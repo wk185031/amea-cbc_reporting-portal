@@ -1,0 +1,106 @@
+/**
+ * Custom entity to extend the built-in User entity.
+ * name: copy of first name + last name from User entity 
+ */
+entity UserExtra {
+	name String maxlength(100) required,
+	designation String maxlength(50),
+    contactMobile String maxlength(20),
+    contactWork String maxlength(20),
+    contactOther String maxlength(20),
+    createdBy String required maxlength(50),
+    createdDate ZonedDateTime required,
+    lastModifiedBy String maxlength(50),
+    lastModifiedDate ZonedDateTime
+}
+
+paginate UserExtra with pager
+
+relationship OneToOne {
+	UserExtra{user(login) required} to User
+}
+
+relationship ManyToMany {
+	UserExtra{roles(name) required} to RoleExtra,
+    UserExtra{institutions(name) required} to Institution
+}
+
+
+/**
+ * Defines application role to control the permission
+ */
+entity RoleExtra {
+	name String required maxlength(50),
+    description String required maxlength(500),
+    createdBy String required maxlength(50),
+    createdDate ZonedDateTime required,
+    lastModifiedBy String maxlength(50),
+    lastModifiedDate ZonedDateTime
+}
+
+paginate RoleExtra with pager
+
+relationship ManyToMany {
+	RoleExtra{permissions(name) required} to AppResource
+}
+
+/**
+ * AppResource,
+ * the resource to be accessed by user based on its role
+ */
+entity AppResource {
+    code String required maxlength(50),
+    name String required maxlength(50),
+    type String required maxlength(50),
+    description String maxlength(500),
+    seqNo Integer required,
+    depth Integer required,
+    createdBy String required maxlength(50),
+    createdDate ZonedDateTime required,
+    lastModifiedBy String maxlength(50),
+    lastModifiedDate ZonedDateTime
+}
+
+relationship ManyToOne {
+	AppResource{parent(name)} to AppResource
+}
+
+/**
+ * SystemConfiguration
+ */
+entity SystemConfiguration {
+    name String  maxlength(50) required,
+    description String  maxlength(500) required,
+    config String required maxlength(5000),
+    createdBy String required maxlength(50),
+    createdDate ZonedDateTime required,
+    lastModifiedBy String maxlength(50),
+    lastModifiedDate ZonedDateTime
+} 
+
+paginate SystemConfiguration with pager
+
+/**
+ * Institution, to support multi-institutions system
+ */
+entity Institution {
+    name String required maxlength(50),
+    type String maxlength(50),
+    businessRegNo String maxlength(50),
+    industry String maxlength(50),
+    address String maxlength(500),
+    phone String maxlength(50),
+    fax String maxlength(50),
+    email String maxlength(50),
+    website String maxlength(50),
+    createdBy String required maxlength(50),
+    createdDate ZonedDateTime required,
+    lastModifiedBy String maxlength(50),
+    lastModifiedDate ZonedDateTime
+}
+
+paginate Institution with pager
+
+relationship ManyToOne {
+	Institution{parent(name)} to Institution
+}

@@ -1,0 +1,116 @@
+<div>
+    <h2>
+        <span jhiTranslate="baseApp.institution.home.title">Institutions</span>
+        <button class="btn btn-primary float-right jh-create-entity create-institution" [routerLink]="['/', { outlets: { popup: ['institution-new'] } }]">
+            <span class="fa fa-plus"></span>
+            <span class="hidden-sm-down"  jhiTranslate="baseApp.institution.home.createLabel">
+            Create new Institution
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <div class="row">
+        <div class="col-sm-12">
+            <form name="searchForm" class="form-inline">
+                <div class="input-group w-100 mt-3">
+                    <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.institution.home.search' | translate }}">
+                    <button class="input-group-append btn btn-info" (click)="search(currentSearch)">
+                        <span class="fa fa-search"></span>
+                    </button>
+                    <button class="input-group-append btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                        <span class="fa fa-trash-o"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="institutions">
+        <table class="table table-striped">
+            <thead>
+            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="transition.bind(this)">
+            <th jhiSortBy="id"><span jhiTranslate="global.field.id">ID</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="name"><span jhiTranslate="baseApp.institution.name">Name</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="type"><span jhiTranslate="baseApp.institution.type">Type</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="businessRegNo"><span jhiTranslate="baseApp.institution.businessRegNo">Business Reg No</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="industry"><span jhiTranslate="baseApp.institution.industry">Industry</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="address"><span jhiTranslate="baseApp.institution.address">Address</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="phone"><span jhiTranslate="baseApp.institution.phone">Phone</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="fax"><span jhiTranslate="baseApp.institution.fax">Fax</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="email"><span jhiTranslate="baseApp.institution.email">Email</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="website"><span jhiTranslate="baseApp.institution.website">Website</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="createdBy"><span jhiTranslate="baseApp.institution.createdBy">Created By</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="createdDate"><span jhiTranslate="baseApp.institution.createdDate">Created Date</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="lastModifiedBy"><span jhiTranslate="baseApp.institution.lastModifiedBy">Last Modified By</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="lastModifiedDate"><span jhiTranslate="baseApp.institution.lastModifiedDate">Last Modified Date</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="attachmentGroup.entity"><span jhiTranslate="baseApp.institution.attachmentGroup">Attachment Group</span> <span class="fa fa-sort"></span></th>
+            <th jhiSortBy="parent.name"><span jhiTranslate="baseApp.institution.parent">Parent</span> <span class="fa fa-sort"></span></th>
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let institution of institutions ;trackBy: trackId">
+                <td><a [routerLink]="['../institution', institution.id ]">{{institution.id}}</a></td>
+                <td>{{institution.name}}</td>
+                <td>{{institution.type}}</td>
+                <td>{{institution.businessRegNo}}</td>
+                <td>{{institution.industry}}</td>
+                <td>{{institution.address}}</td>
+                <td>{{institution.phone}}</td>
+                <td>{{institution.fax}}</td>
+                <td>{{institution.email}}</td>
+                <td>{{institution.website}}</td>
+                <td>{{institution.createdBy}}</td>
+                <td>{{institution.createdDate | date:'medium'}}</td>
+                <td>{{institution.lastModifiedBy}}</td>
+                <td>{{institution.lastModifiedDate | date:'medium'}}</td>
+                <td>
+                    <div *ngIf="institution.attachmentGroup">
+                        <a [routerLink]="['../attachment-group', institution.attachmentGroup?.id ]" >{{institution.attachmentGroup?.entity}}</a>
+                    </div>
+                </td>
+                <td>
+                    <div *ngIf="institution.parent">
+                        <a [routerLink]="['../institution', institution.parent?.id ]" >{{institution.parent?.name}}</a>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button type="submit"
+                                [routerLink]="['../institution', institution.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'institution/'+ institution.id + '/edit'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'institution/'+ institution.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Pager is not implemented yet, so this is normal pagination instead -->
+    <div *ngIf="institutions && institutions.length">
+        <div class="row justify-content-center">
+            <jhi-item-count [page]="page" [total]="queryCount" [itemsPerPage]="itemsPerPage"></jhi-item-count>
+        </div>
+        <div class="row justify-content-center">
+            <ngb-pagination [collectionSize]="totalItems" [(page)]="page" [pageSize]="itemsPerPage" [maxSize]="5" [rotate]="true" [boundaryLinks]="true" (pageChange)="loadPage(page)"></ngb-pagination>
+        </div>
+    </div>
+</div>

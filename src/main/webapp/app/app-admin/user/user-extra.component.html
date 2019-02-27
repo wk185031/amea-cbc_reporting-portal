@@ -1,0 +1,91 @@
+<div class="container-fluid">
+    <div class="card jh-card">
+<div>
+<h2>
+    <span jhiTranslate="baseApp.userExtra.home.title">User Extras</span>
+    <button *appHasAnyPermission="['OPER:User.CREATE']" class="btn btn-primary float-right create-user-extra" [routerLink]="['/', { outlets: { popup: ['app-admin-user-new'] } }]">
+        <span class="fa fa-plus"></span>
+        <span class="hidden-sm-down"  jhiTranslate="baseApp.userExtra.home.createLabel">
+        Create User 
+        </span>
+    </button>
+</h2>
+<jhi-alert></jhi-alert>
+<div class="row" *appHasAnyPermission="['OPER:User.READ']">
+    <div class="col-sm-12 no-padding-right">
+        <form name="searchForm" class="form-inline">
+            <div class="input-group w-100 mt-3">
+                <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.userExtra.home.search' | translate }}">
+                <button *appHasAnyPermission="['OPER:User.READ']" class="input-group-addon btn btn-info" (click)="search(currentSearch)">
+                    <span class="fa fa-search"></span>
+                </button>
+                <button class="input-group-addon btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                    <span class="fa fa-trash-o"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<br/>
+<div class="table-responsive" *ngIf="userExtras">
+    <div *appHasAnyPermission="['OPER:User.READ']">
+        <table class="table table-striped">
+            <thead>
+            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="transition.bind(this)">
+                <th jhiSortBy="user.login"><span jhiTranslate="baseApp.userExtra.username">Username</span> <br> <span class="fa fa-sort"></span></th>
+                <th jhiSortBy="user.firstName"><span jhiTranslate="baseApp.userExtra.firstName">First Name</span> <br> <span class="fa fa-sort"></span></th>
+                <th jhiSortBy="user.lastName"><span jhiTranslate="baseApp.userExtra.lastName">Last Name</span> <br> <span class="fa fa-sort"></span></th>
+                <th jhiSortBy="user.email"><span jhiTranslate="baseApp.userExtra.contactEmail">Email</span> <br> <span class="fa fa-sort"></span></th>              
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let userExtra of userExtras ;trackBy: trackId">
+                <td><a [routerLink]="['../app-admin-user', userExtra.id ]">{{userExtra.user.login}}</a></td>
+                <td>{{userExtra.user.firstName ||'-'}}</td>
+                <td>{{userExtra.user.lastName ||'-'}}</td>
+                <td>{{userExtra.user.email}}</td>               
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button *appHasAnyPermission="['OPER:User.READ']"
+                                type="submit"
+                                [routerLink]="['../app-admin-user', userExtra.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="hidden-md-down" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button *appHasAnyPermission="['OPER:User.UPDATE']"
+                                type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'app-admin-user/'+ userExtra.id + '/edit'} }]"
+                                replaceUrl="true"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="hidden-md-down" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button *appHasAnyPermission="['OPER:User.DELETE']"
+                                type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'app-admin-user/'+ userExtra.id + '/delete'} }]"
+                                replaceUrl="true"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="hidden-md-down" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+    <!-- Pager is not implemented yet, so this is normal pagination instead -->
+    <div *ngIf="userExtras && userExtras.length">
+        <div *appHasAnyPermission="['OPER:User.READ']">
+            <div class="row justify-content-center">
+                <jhi-item-count [page]="page" [total]="queryCount" [itemsPerPage]="itemsPerPage"></jhi-item-count>
+            </div>
+            <div class="row justify-content-center">
+                <ngb-pagination [collectionSize]="totalItems" [(page)]="page"  (pageChange)="loadPage(page)"></ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+</div></div>

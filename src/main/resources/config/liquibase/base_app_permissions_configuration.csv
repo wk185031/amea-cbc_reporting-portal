@@ -1,0 +1,24 @@
+code;name;jhi_type;seq_no;depth;created_by;created_date;last_modified_by;last_modified_date;parent_id
+MENU:AppAdmin;Menu: App Admin;MAIN_MENU;1;1;system;2017-10-04 00:07:01;null;null;null
+MENU:Institution;Menu: Institution;MENU;2;2;system;2017-10-04 00:07:01;null;null;1
+OPER:Institution.READ;Operation: Read Institution;OPER;3;3;system;2017-10-04 00:07:01;null;null;2
+OPER:Institution.CREATE;Operation: Create Institution;OPER;4;3;system;2017-10-04 00:07:01;null;null;2
+OPER:Institution.UPDATE;Operation: Update Institution;OPER;5;3;system;2017-10-04 00:07:01;null;null;2
+OPER:Institution.DELETE;Operation: Delete Institution;OPER;6;3;system;2017-10-04 00:07:01;null;null;2
+MENU:UserRole;Menu: User Role;MENU;7;2;system;2017-10-04 00:07:01;null;null;1
+OPER:UserRole.READ;Operation: Read User Role;OPER;8;3;system;2017-10-04 00:07:01;null;null;7
+OPER:UserRole.CREATE;Operation: Create User Role;OPER;9;3;system;2017-10-04 00:07:01;null;null;7
+OPER:UserRole.UPDATE;Operation: Update User Role;OPER;10;3;system;2017-10-04 00:07:01;null;null;7
+OPER:UserRole.DELETE;Operation: Delete User Role;OPER;11;3;system;2017-10-04 00:07:01;null;null;7
+MENU:User;Menu: User;MENU;12;2;system;2017-10-04 00:07:01;null;null;1
+OPER:User.READ;Operation: Read User;OPER;13;3;system;2017-10-04 00:07:01;null;null;12
+OPER:User.CREATE;Operation: Create User;OPER;14;3;system;2017-10-04 00:07:01;null;null;12
+OPER:User.UPDATE;Operation: Update User;OPER;15;3;system;2017-10-04 00:07:01;null;null;12
+OPER:User.DELETE;Operation: Delete User;OPER;16;3;system;2017-10-04 00:07:01;null;null;12
+MENU:SystemConfiguration;Menu: System Configuration;MENU;17;2;system;2017-10-04 00:07:01;null;null;1
+OPER:SystemConfiguration.READ;Operation: Read System Configuration;OPER;18;3;system;2017-10-04 00:07:01;null;null;17
+OPER:SystemConfiguration.CREATE;Operation: Create System Configuration;OPER;19;3;system;2017-10-04 00:07:01;null;null;17
+OPER:SystemConfiguration.UPDATE;Operation: Update System Configuration;OPER;20;3;system;2017-10-04 00:07:01;null;null;17
+OPER:SystemConfiguration.DELETE;Operation: Delete System Configuration;OPER;21;3;system;2017-10-04 00:07:01;null;null;17
+MENU:EntityAudit;Menu: EntityAudit;MENU;22;2;system;2017-10-04 00:07:01;null;null;1
+OPER:EntityAudit.READ;Operation: Read EntityAudit;OPER;23;3;system;2017-10-04 00:07:01;null;null;22

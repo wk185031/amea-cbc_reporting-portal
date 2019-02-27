@@ -1,0 +1,33 @@
+
+{
+    "baseApp": {
+        "appResource" : {
+            "home": {
+                "title": "App Resources",
+                "createLabel": "Create a new App Resource",
+                "createOrEditLabel": "Create or edit a App Resource",
+                "search": "Search for App Resource"
+            },
+            "created": "A new App Resource is created with identifier {{ param }}",
+            "updated": "A App Resource is updated with identifier {{ param }}",
+            "deleted": "A App Resource is deleted with identifier {{ param }}",
+            "delete": {
+                "question": "Are you sure you want to delete App Resource {{ id }}?"
+            },
+            "detail": {
+                "title": "App Resource"
+            },
+            "code": "Code",
+            "name": "Name",
+            "type": "Type",
+            "description": "Description",
+            "seqNo": "Seq No",
+            "depth": "Depth",
+            "createdBy": "Created By",
+            "createdDate": "Created Date",
+            "lastModifiedBy": "Last Modified By",
+            "lastModifiedDate": "Last Modified Date",
+            "parent": "Parent"
+        }
+    }
+}

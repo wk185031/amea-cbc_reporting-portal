@@ -1,0 +1,42 @@
+
+<div *ngIf="attachmentGroup">
+    <h2><span jhiTranslate="baseApp.attachmentGroup.detail.title">Attachment Group</span> {{attachmentGroup.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.attachmentGroup.entity">Entity</span></dt>
+        <dd>
+            <span>{{attachmentGroup.entity}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachmentGroup.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{attachmentGroup.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachmentGroup.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{attachmentGroup.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachmentGroup.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{attachmentGroup.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachmentGroup.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{attachmentGroup.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'attachment-group/'+ attachmentGroup.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

@@ -1,0 +1,20 @@
+<div *ngIf="nodes && showCheckedBox">
+     <tree-root [nodes]="nodes">
+        <ng-template #treeNodeTemplate let-node="node" let-index="index" >
+            <input
+            (change)="check( node, $event)"
+            type="checkbox"
+            [indeterminate]="node.data.indeterminate"
+            [checked]="node.data.checked">
+            {{ node.data.name }}
+        </ng-template>
+    </tree-root> 
+</div>
+
+<!--Institution use-->
+<div *ngIf="nodes && !showCheckedBox">
+    <div >
+        <input id="filter" #filter (keyup)="tree.treeModel.filterNodes(filter.value, true)" placeholder="Search Company..." class="form-control"/>
+    </div>
+    <tree-root #tree [nodes]="nodes" (focus)="onEvent($event)"></tree-root>
+</div>

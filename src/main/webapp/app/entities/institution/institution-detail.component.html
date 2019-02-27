@@ -1,0 +1,86 @@
+
+<div *ngIf="institution">
+    <h2><span jhiTranslate="baseApp.institution.detail.title">Institution</span> {{institution.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.institution.name">Name</span></dt>
+        <dd>
+            <span>{{institution.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.type">Type</span></dt>
+        <dd>
+            <span>{{institution.type}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.businessRegNo">Business Reg No</span></dt>
+        <dd>
+            <span>{{institution.businessRegNo}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.industry">Industry</span></dt>
+        <dd>
+            <span>{{institution.industry}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.address">Address</span></dt>
+        <dd>
+            <span>{{institution.address}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.phone">Phone</span></dt>
+        <dd>
+            <span>{{institution.phone}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.fax">Fax</span></dt>
+        <dd>
+            <span>{{institution.fax}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.email">Email</span></dt>
+        <dd>
+            <span>{{institution.email}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.website">Website</span></dt>
+        <dd>
+            <span>{{institution.website}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{institution.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{institution.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{institution.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{institution.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.attachmentGroup">Attachment Group</span></dt>
+        <dd>
+            <div *ngIf="institution.attachmentGroup">
+                <a [routerLink]="['/attachment-group', institution.attachmentGroup?.id]">{{institution.attachmentGroup?.entity}}</a>
+            </div>
+        </dd>
+        <dt><span jhiTranslate="baseApp.institution.parent">Parent</span></dt>
+        <dd>
+            <div *ngIf="institution.parent">
+                <a [routerLink]="['/institution', institution.parent?.id]">{{institution.parent?.name}}</a>
+            </div>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'institution/'+ institution.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

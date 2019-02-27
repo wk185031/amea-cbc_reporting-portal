@@ -1,0 +1,29 @@
+
+{
+    "baseApp": {
+        "attachment" : {
+            "home": {
+                "title": "Attachments",
+                "createLabel": "Create a new Attachment",
+                "createOrEditLabel": "Create or edit a Attachment",
+                "search": "Search for Attachment"
+            },
+            "created": "A new Attachment is created with identifier {{ param }}",
+            "updated": "A Attachment is updated with identifier {{ param }}",
+            "deleted": "A Attachment is deleted with identifier {{ param }}",
+            "delete": {
+                "question": "Are you sure you want to delete Attachment {{ id }}?"
+            },
+            "detail": {
+                "title": "Attachment"
+            },
+            "name": "Name",
+            "type": "Type",
+            "createdBy": "Created By",
+            "createdDate": "Created Date",
+            "lastModifiedBy": "Last Modified By",
+            "lastModifiedDate": "Last Modified Date",
+            "attachmentGroup": "Attachment Group"
+        }
+    }
+}

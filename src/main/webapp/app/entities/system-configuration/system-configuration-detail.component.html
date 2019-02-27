@@ -1,0 +1,50 @@
+
+<div *ngIf="systemConfiguration">
+    <h2><span jhiTranslate="baseApp.systemConfiguration.detail.title">System Configuration</span> {{systemConfiguration.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.systemConfiguration.name">Name</span></dt>
+        <dd>
+            <span>{{systemConfiguration.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.description">Description</span></dt>
+        <dd>
+            <span>{{systemConfiguration.description}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.config">Config</span></dt>
+        <dd>
+            <span>{{systemConfiguration.config}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{systemConfiguration.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{systemConfiguration.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{systemConfiguration.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.systemConfiguration.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{systemConfiguration.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'system-configuration/'+ systemConfiguration.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

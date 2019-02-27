@@ -1,0 +1,46 @@
+<div class="container-fluid">
+    <div class="card jh-card">
+
+<div>
+    <jhi-alert></jhi-alert>      
+    <div class="row equal">
+        <div class="col-4">
+            <h4>
+            </h4>
+        </div>
+        <div class="col-8">
+            <div class="row float-right" *appHasAnyPermission="['OPER:Institution.CREATE']">
+                <button class="btn btn-primary float-right jh-create-entity create-institution" [routerLink]="['/', { outlets: { popup: ['app-admin-institution-new'] } }]">
+                <span class="fa fa-plus"></span>
+                <span class="hidden-sm-down"  jhiTranslate="baseApp.institution.home.createLabel">
+                Create new Company
+                </span>
+                </button>
+            </div>
+        </div>
+    </div> 
+    <div class="row equal" *appHasAnyPermission="['OPER:Institution.READ']">
+        <!-- nodes -->
+        <div class="col-4" *ngIf="nodes">
+            <div class="treeborder">
+                <h4>
+                    <span jhiTranslate="baseApp.institution.structure">Institution Structure</span>
+                </h4>
+                <jhi-tree-view [nodes]="nodes" [showCheckedBox]="showCheckedBox" (notify)="onNotify($event)"></jhi-tree-view>
+            </div>
+        </div>
+        <!-- detail -->
+        <div class="col-8">
+            <div *ngIf="!institutionId">
+                <h4>
+                    <span jhiTranslate="baseApp.institution.home.noRecordSelected" >Please select an item from the Company Structure</span>
+                </h4>
+            </div>
+            <div *ngIf="institutionId && mode==='view'" >
+                <jhi-institution-detail [institutionId]="institutionId" ></jhi-institution-detail>                
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>

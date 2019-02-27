@@ -1,0 +1,52 @@
+
+<div *ngIf="attachment">
+    <h2><span jhiTranslate="baseApp.attachment.detail.title">Attachment</span> {{attachment.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.attachment.name">Name</span></dt>
+        <dd>
+            <span>{{attachment.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.type">Type</span></dt>
+        <dd>
+            <span>{{attachment.type}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{attachment.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{attachment.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{attachment.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{attachment.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.attachment.attachmentGroup">Attachment Group</span></dt>
+        <dd>
+            <div *ngIf="attachment.attachmentGroup">
+                <a [routerLink]="['/attachment-group', attachment.attachmentGroup?.id]">{{attachment.attachmentGroup?.entity}}</a>
+            </div>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'attachment/'+ attachment.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

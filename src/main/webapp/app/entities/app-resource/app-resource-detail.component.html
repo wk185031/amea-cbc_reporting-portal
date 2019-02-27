@@ -1,0 +1,68 @@
+
+<div *ngIf="appResource">
+    <h2><span jhiTranslate="baseApp.appResource.detail.title">App Resource</span> {{appResource.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.appResource.code">Code</span></dt>
+        <dd>
+            <span>{{appResource.code}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.name">Name</span></dt>
+        <dd>
+            <span>{{appResource.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.type">Type</span></dt>
+        <dd>
+            <span>{{appResource.type}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.description">Description</span></dt>
+        <dd>
+            <span>{{appResource.description}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.seqNo">Seq No</span></dt>
+        <dd>
+            <span>{{appResource.seqNo}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.depth">Depth</span></dt>
+        <dd>
+            <span>{{appResource.depth}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{appResource.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{appResource.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{appResource.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{appResource.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.appResource.parent">Parent</span></dt>
+        <dd>
+            <div *ngIf="appResource.parent">
+                <a [routerLink]="['/app-resource', appResource.parent?.id]">{{appResource.parent?.name}}</a>
+            </div>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'app-resource/'+ appResource.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

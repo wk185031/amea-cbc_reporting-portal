@@ -1,0 +1,42 @@
+<div class="container-fluid">
+        <div class="card jh-card">
+            <div *ngIf="roleExtra">
+                <div *appHasAnyPermission="['OPER:UserRole.READ']">
+                    <h2><span jhiTranslate="baseApp.roleExtra.detail.title">Role Extra</span> {{roleExtra.id}}</h2>
+                    <hr>
+                    <jhi-alert-error></jhi-alert-error>
+                    <dl class="row-md jh-entity-details">
+                        <dt><span jhiTranslate="baseApp.roleExtra.name">Name</span></dt>
+                        <dd>
+                            <span>{{roleExtra.name}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.roleExtra.description">Description</span></dt>
+                        <dd>
+                            <span>{{roleExtra.description}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.roleExtra.permissions">Permissions</span></dt>
+                        <dd>
+                            <span *ngFor="let permissions of roleExtra.permissions; let last = last">
+                                <a [routerLink]="['/app-resource', permissions?.id ]">{{permissions.name}}</a>{{last ? '' : ', '}}
+                            </span>
+                        </dd>
+                    </dl>
+        
+                    <button type="submit"
+                            (click)="previousState()"
+                            class="btn btn-info">
+                        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+                    </button>
+        
+                    <button type="button"
+                            [routerLink]="['/', { outlets: { popup: 'app-admin-role/'+ roleExtra.id + '/edit'} }]"
+                            replaceUrl="true"
+                            class="btn btn-primary"
+                            *appHasAnyPermission="['OPER:UserRole.UPDATE']">
+                        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    

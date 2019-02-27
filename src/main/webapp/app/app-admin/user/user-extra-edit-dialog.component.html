@@ -1,0 +1,176 @@
+<form name="editForm" role="form" novalidate #editForm="ngForm">
+
+    <div class="modal-header">
+        <h4 class="modal-title" id="myUserExtraLabel" jhiTranslate="baseApp.userExtra.home.createOrEditLabel">Create or edit a User Extra</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                (click)="clear()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <jhi-alert-error></jhi-alert-error>
+        <div class="form-group row">
+
+            <div class="col">
+                <div class="form-group required">
+                <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.username" for="field_username">Username</label>
+                <input [disabled]="userExtra.id" type="text" class="form-control" name="username" id="field_username"
+                       [(ngModel)]="userExtra.user.login"
+                       maxlength="45" required/>
+                <div [hidden]="!(editForm.controls.username?.dirty && editForm.controls.username?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.username?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                    <small class="form-text text-danger"
+                           [hidden]="!editForm.controls.username?.errors?.maxlength"
+                           jhiTranslate="entity.validation.maxlength" translateValues="{ max: 45 }">
+                        This field cannot be longer than 45 characters.
+                    </small>
+                </div>
+            </div>
+            <div class="form-group required">
+             <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.firstName" for="field_firstName">First Name</label>
+                <input type="text" class="form-control" name="firstName" id="field_firstName"
+                       [(ngModel)]="userExtra.user.firstName" required
+                       maxlength="45" />
+                <div [hidden]="!(editForm.controls.firstName?.dirty && editForm.controls.firstName?.invalid)">
+                    <small class="form-text text-danger"
+                    [hidden]="!editForm.controls.firstName?.errors?.required" jhiTranslate="entity.validation.required">
+                    This field is required.
+                    </small>
+                    <small class="form-text text-danger"
+                           [hidden]="!editForm.controls.firstName?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 45 }">
+                        This field cannot be longer than 45 characters.
+                    </small>
+                </div>
+            </div>
+                <div class="form-group required">
+                <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.lastName" for="field_lastName">Last Name</label>
+                <input type="text" class="form-control" name="lastName" id="field_lastName"
+                       [(ngModel)]="userExtra.user.lastName" required
+                       maxlength="45" />
+                <div [hidden]="!(editForm.controls.lastName?.dirty && editForm.controls.lastName?.invalid)">
+                    <small class="form-text text-danger"
+                    [hidden]="!editForm.controls.lastName?.errors?.required" jhiTranslate="entity.validation.required">
+                    This field is required.
+                    </small>
+                    <small class="form-text text-danger"
+                           [hidden]="!editForm.controls.lastName?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 45 }">
+                        This field cannot be longer than 45 characters.
+                    </small>
+                </div>
+            </div>
+              <div class="form-group required">
+                <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.contactEmail" for="field_contactEmail">Email</label>
+                <input type="email" class="form-control" name="email" id="field_contactEmail"
+                       [(ngModel)]="userExtra.user.email"
+                       maxlength="100" required/>
+                <div [hidden]="!(editForm.controls.lastName?.dirty && editForm.controls.lastName?.invalid)">
+                    <small class="form-text text-danger"
+                           [hidden]="!editForm.controls.lastName?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 100 }">
+                        This field cannot be longer than 100 characters.
+                    </small>
+                </div>
+            </div>
+                <div class="form-group">
+                <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.designation" for="field_designation">Designation</label>
+                <input type="text" class="form-control" name="designation" id="field_designation"
+                       [(ngModel)]="userExtra.designation"
+                       maxlength="45"/>
+                <div [hidden]="!(editForm.controls.designation?.dirty && editForm.controls.designation?.invalid)">
+                    <small class="form-text text-danger"
+                           [hidden]="!editForm.controls.designation?.errors?.maxlength"
+                           jhiTranslate="entity.validation.maxlength" translateValues="{ max: 45 }">
+                        This field cannot be longer than 45 characters.
+                    </small>
+                </div>
+            </div>
+              <div class="form-group ">
+                <input type="checkbox" name="activated" id="field_activated" [(ngModel)]="activated"/>
+                <label jhiTranslate="baseApp.userExtra.activated" for="field_activated">Activated</label>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="form-group ">
+                <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.contactMobile" for="field_contactMobile">Contact (mobile)</label>
+                    <input type="text" class="form-control" name="contactMobile" id="field_contactMobile"
+                        [(ngModel)]="userExtra.contactMobile"
+                        maxlength="20" />
+                    <div [hidden]="!(editForm.controls.contactMobile?.dirty && editForm.controls.contactMobile?.invalid)">
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.contactMobile?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 20 }">
+                            This field cannot be longer than 20 characters.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group ">
+                    <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.contactWork" for="field_contactWork">Contact (work)</label>
+                    <input type="text" class="form-control" name="contactWork" id="field_contactWork"
+                        [(ngModel)]="userExtra.contactWork"
+                        maxlength="20" />
+                    <div [hidden]="!(editForm.controls.contactWork?.dirty && editForm.controls.contactWork?.invalid)">
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.contactWork?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 20 }">
+                            This field cannot be longer than 20 characters.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group ">
+                    <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.contactOther" for="field_contactOther">Contact (other)</label>
+                    <input type="text" class="form-control" name="contactOther" id="field_contactOther"
+                        [(ngModel)]="userExtra.contactOther"
+                        maxlength="20" />
+                    <div [hidden]="!(editForm.controls.contactOther?.dirty && editForm.controls.contactOther?.invalid)">
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.contactOther?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 20 }">
+                            This field cannot be longer than 20 characters.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group required">
+                    <label class="form-control-label" jhiTranslate="baseApp.userExtra.create.role" for="field_role">Role</label>
+                    <select class="form-control" id="field_role" name="role" [(ngModel)]="userExtra.roles" multiple required>
+                        <option *ngFor="let roleExtraOption of roleextras; trackBy: trackRoleExtraById"
+                                [ngValue]="getSelected(userExtra.roles, roleExtraOption)">
+                            {{roleExtraOption.name}}
+                        </option>
+                    </select>
+                    <div [hidden]="!(editForm.controls.role?.dirty && editForm.controls.role?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.role?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="form-group required">
+                    <label jhiTranslate="baseApp.userExtra.institution" for="field_institution">institution</label>
+                    <select class="form-control" id="field_institution" multiple name="institution" [(ngModel)]="userExtra.institutions" required>
+                        <option [ngValue]="getSelected(userExtra.institutions, institutionOption)" *ngFor="let institutionOption of institutions; trackBy: trackinstitutionById">{{institutionOption.name}}</option>
+                    </select>
+                    <div [hidden]="!(editForm.controls.institution?.dirty && editForm.controls.institution?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.institution?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <p><font color="red" class="form-text text-danger" jhiTranslate="baseApp.userExtra.warning">
+            The field must be filled
+        </font></p>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" (click)="clear()">
+            <span class="fa fa-ban"></span>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+        <button type="submit" [disabled]="editForm.form.invalid || isSaving" class="btn btn-primary" (click)="update()">
+            <span class="fa fa-save"></span>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+    </div>
+</form>

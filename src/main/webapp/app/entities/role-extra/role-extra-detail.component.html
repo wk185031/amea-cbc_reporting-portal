@@ -1,0 +1,52 @@
+
+<div *ngIf="roleExtra">
+    <h2><span jhiTranslate="baseApp.roleExtra.detail.title">Role Extra</span> {{roleExtra.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.roleExtra.name">Name</span></dt>
+        <dd>
+            <span>{{roleExtra.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.description">Description</span></dt>
+        <dd>
+            <span>{{roleExtra.description}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{roleExtra.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{roleExtra.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{roleExtra.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{roleExtra.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.roleExtra.permissions">Permissions</span></dt>
+        <dd>
+            <span *ngFor="let permissions of roleExtra.permissions; let last = last">
+                <a [routerLink]="['/app-resource', permissions?.id ]">{{permissions.name}}</a>{{last ? '' : ', '}}
+            </span>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'role-extra/'+ roleExtra.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

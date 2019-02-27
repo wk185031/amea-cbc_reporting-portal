@@ -1,0 +1,95 @@
+<div>
+    <h2>
+        <span jhiTranslate="baseApp.appResource.home.title">App Resources</span>
+        <button class="btn btn-primary float-right jh-create-entity create-app-resource" [routerLink]="['/', { outlets: { popup: ['app-resource-new'] } }]">
+            <span class="fa fa-plus"></span>
+            <span class="hidden-sm-down"  jhiTranslate="baseApp.appResource.home.createLabel">
+            Create new App Resource
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <div class="row">
+        <div class="col-sm-12">
+            <form name="searchForm" class="form-inline">
+                <div class="input-group w-100 mt-3">
+                    <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.appResource.home.search' | translate }}">
+                    <button class="input-group-append btn btn-info" (click)="search(currentSearch)">
+                        <span class="fa fa-search"></span>
+                    </button>
+                    <button class="input-group-append btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                        <span class="fa fa-trash-o"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="appResources">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+            <th><span jhiTranslate="global.field.id">ID</span></th>
+            <th><span jhiTranslate="baseApp.appResource.code">Code</span></th>
+            <th><span jhiTranslate="baseApp.appResource.name">Name</span></th>
+            <th><span jhiTranslate="baseApp.appResource.type">Type</span></th>
+            <th><span jhiTranslate="baseApp.appResource.description">Description</span></th>
+            <th><span jhiTranslate="baseApp.appResource.seqNo">Seq No</span></th>
+            <th><span jhiTranslate="baseApp.appResource.depth">Depth</span></th>
+            <th><span jhiTranslate="baseApp.appResource.createdBy">Created By</span></th>
+            <th><span jhiTranslate="baseApp.appResource.createdDate">Created Date</span></th>
+            <th><span jhiTranslate="baseApp.appResource.lastModifiedBy">Last Modified By</span></th>
+            <th><span jhiTranslate="baseApp.appResource.lastModifiedDate">Last Modified Date</span></th>
+            <th><span jhiTranslate="baseApp.appResource.parent">Parent</span></th>
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let appResource of appResources ;trackBy: trackId">
+                <td><a [routerLink]="['../app-resource', appResource.id ]">{{appResource.id}}</a></td>
+                <td>{{appResource.code}}</td>
+                <td>{{appResource.name}}</td>
+                <td>{{appResource.type}}</td>
+                <td>{{appResource.description}}</td>
+                <td>{{appResource.seqNo}}</td>
+                <td>{{appResource.depth}}</td>
+                <td>{{appResource.createdBy}}</td>
+                <td>{{appResource.createdDate | date:'medium'}}</td>
+                <td>{{appResource.lastModifiedBy}}</td>
+                <td>{{appResource.lastModifiedDate | date:'medium'}}</td>
+                <td>
+                    <div *ngIf="appResource.parent">
+                        <a [routerLink]="['../app-resource', appResource.parent?.id ]" >{{appResource.parent?.name}}</a>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button type="submit"
+                                [routerLink]="['../app-resource', appResource.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'app-resource/'+ appResource.id + '/edit'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'app-resource/'+ appResource.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

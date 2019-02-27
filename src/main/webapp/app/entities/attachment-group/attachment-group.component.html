@@ -1,0 +1,79 @@
+<div>
+    <h2>
+        <span jhiTranslate="baseApp.attachmentGroup.home.title">Attachment Groups</span>
+        <button class="btn btn-primary float-right jh-create-entity create-attachment-group" [routerLink]="['/', { outlets: { popup: ['attachment-group-new'] } }]">
+            <span class="fa fa-plus"></span>
+            <span class="hidden-sm-down"  jhiTranslate="baseApp.attachmentGroup.home.createLabel">
+            Create new Attachment Group
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <div class="row">
+        <div class="col-sm-12">
+            <form name="searchForm" class="form-inline">
+                <div class="input-group w-100 mt-3">
+                    <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.attachmentGroup.home.search' | translate }}">
+                    <button class="input-group-append btn btn-info" (click)="search(currentSearch)">
+                        <span class="fa fa-search"></span>
+                    </button>
+                    <button class="input-group-append btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                        <span class="fa fa-trash-o"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="attachmentGroups">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+            <th><span jhiTranslate="global.field.id">ID</span></th>
+            <th><span jhiTranslate="baseApp.attachmentGroup.entity">Entity</span></th>
+            <th><span jhiTranslate="baseApp.attachmentGroup.createdBy">Created By</span></th>
+            <th><span jhiTranslate="baseApp.attachmentGroup.createdDate">Created Date</span></th>
+            <th><span jhiTranslate="baseApp.attachmentGroup.lastModifiedBy">Last Modified By</span></th>
+            <th><span jhiTranslate="baseApp.attachmentGroup.lastModifiedDate">Last Modified Date</span></th>
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let attachmentGroup of attachmentGroups ;trackBy: trackId">
+                <td><a [routerLink]="['../attachment-group', attachmentGroup.id ]">{{attachmentGroup.id}}</a></td>
+                <td>{{attachmentGroup.entity}}</td>
+                <td>{{attachmentGroup.createdBy}}</td>
+                <td>{{attachmentGroup.createdDate | date:'medium'}}</td>
+                <td>{{attachmentGroup.lastModifiedBy}}</td>
+                <td>{{attachmentGroup.lastModifiedDate | date:'medium'}}</td>
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button type="submit"
+                                [routerLink]="['../attachment-group', attachmentGroup.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'attachment-group/'+ attachmentGroup.id + '/edit'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'attachment-group/'+ attachmentGroup.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

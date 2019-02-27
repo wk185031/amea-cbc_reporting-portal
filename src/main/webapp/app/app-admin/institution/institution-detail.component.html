@@ -1,0 +1,95 @@
+<div *ngIf="institution" >
+    <div *appHasAnyPermission="['OPER:Institution.READ']">
+        <div class="modal-header">
+            <h2><span jhiTranslate="baseApp.institution.detail.title">Company</span> {{institution.id}}</h2>
+        </div>
+        <div class="modal-body">
+            <jhi-alert-error></jhi-alert-error>
+            <div class="row">
+                <div class="col">
+                    <dl class="row-md jh-entity-details">
+                        <dt><span jhiTranslate="baseApp.institution.name">Name</span></dt>
+                        <dd>
+                            <span>{{institution.name}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.parent">Parent</span></dt>
+                        <dd>
+                            <span>{{institution.parent?.name}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.businessRegNo">Business Reg No</span></dt>
+                        <dd>
+                            <span>{{institution.businessRegNo}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.industry">Industry</span></dt>
+                        <dd>
+                            <span>{{institution.industry}}</span>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col">
+                    <dl class="row-md jh-entity-details">
+                        <dt><span jhiTranslate="baseApp.institution.address">Address</span></dt>
+                        <dd>
+                            <span>{{institution.address}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.phone">Phone</span></dt>
+                        <dd>
+                            <span>{{institution.phone}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.fax">Fax</span></dt>
+                        <dd>
+                            <span>{{institution.fax}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.email">Email</span></dt>
+                        <dd>
+                            <span>{{institution.email}}</span>
+                        </dd>
+                        <dt><span jhiTranslate="baseApp.institution.website">Website</span></dt>
+                        <dd>
+                            <span>{{institution.website}}</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <!-- gallery start -->
+            <div class="row card">
+                <div class="card-body">
+                    <h5 class="card-title" jhiTranslate="baseApp.attachment.home.title">Attachments</h5>
+                    <section  id="content3" class="tab-content section_dash">
+                        <div class="row text-center text-lg-left" >
+                            <div class="col-md-4 col-xs-6" *ngFor="let attachment of this.institution.attachments; let i = index" >
+                                <!-- lightbox container hidden with CSS -->
+                                <a href="#_" class="lightbox" id="img1{{i}}">
+                                    <img [src]="attachment.imageSource">
+                                </a>
+                                <a href="#img1{{i}}">
+                                    <img [src]="attachment.imageSource" class="thumbnail">
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <!-- gallery stop -->    
+        </div>
+        <div class="modal-footer">
+            <div class="float-right">
+                <button type="button"
+                        [routerLink]="['/', { outlets: { popup: 'app-admin-institution/'+ institution.id + '/edit'} }]"
+                        replaceUrl="true"
+                        class="btn btn-primary"
+                        *appHasAnyPermission="['OPER:Institution.UPDATE']">
+                    <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+                </button>
+                <button type="submit"
+                        [routerLink]="['/', { outlets: { popup: 'app-admin-institution/'+ institution.id + '/delete'} }]"
+                        replaceUrl="true"
+                        class="btn btn-danger"
+                        *appHasAnyPermission="['OPER:Institution.DELETE']">
+                    <span class="fa fa-remove"></span>
+                    <span class="hidden-md-down " jhiTranslate="entity.action.delete">Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

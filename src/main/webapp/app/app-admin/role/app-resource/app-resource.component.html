@@ -1,0 +1,93 @@
+<div>
+        <fieldset class="mandrill-fieldset">
+            <legend class="mandrill-legend" jhiTranslate="baseApp.roleExtra.createEdit.permissions"></legend>
+    
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th class="h6 align-middle" jhiTranslate="baseApp.roleExtra.createEdit.screenName"></th>
+                        <th class="h6 align-middle">
+                            <span jhiTranslate="baseApp.roleExtra.createEdit.read"></span>
+                            <span class="float-right">
+                                    <input title="read" type="checkbox"
+                                           (click)="selectAll('read', selectAllReadCheckbox.checked)"
+                                           [checked]="checkAllRead"
+                                           #selectAllReadCheckbox/>
+                                </span>
+                        </th>
+                        <th class="h6 align-middle">
+                            <span jhiTranslate="baseApp.roleExtra.createEdit.add"></span>
+                            <span class="float-right">
+                                    <input title="add" type="checkbox"
+                                           (click)="selectAll('add', selectAllAddCheckbox.checked)"
+                                           [checked]="checkAllAdd"
+                                           #selectAllAddCheckbox/>
+                                </span>
+                        </th>
+                        <th class="h6 align-middle">
+                            <span jhiTranslate="baseApp.roleExtra.createEdit.edit"></span>
+                            <span class="float-right">
+                                    <input title="edit" type="checkbox"
+                                           (click)="selectAll('edit', selectAllEditCheckbox.checked)"
+                                           [checked]="checkAllUpdate"
+                                           #selectAllEditCheckbox/>
+                                </span>
+                        </th>
+                        <th class="h6 align-middle">
+                            <span jhiTranslate="baseApp.roleExtra.createEdit.delete"></span>
+                            <span class="float-right">
+                                    <input title="delete" type="checkbox"
+                                           (click)="selectAll('delete', selectAllDeleteCheckbox.checked)"
+                                           [checked]="checkAllDelete"
+                                           #selectAllDeleteCheckbox/>
+                                </span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let menuAppResource of menuAppPermissionsConfig">
+                        <td>
+                            <strong *ngIf="menuAppResource.parent === null; else resourceName">{{menuAppResource.name}}</strong>
+                            <ng-template #resourceName>
+                                {{menuAppResource.name}}
+                            </ng-template>
+                        </td>
+                        <td class="text-center">
+                            <input title="read" type="checkbox"
+                                   (click)="select('read', menuAppResource, readCheckbox.checked)"
+                                   (change)="setSelectedAppResources('Read', '.READ', menuAppResource.name, menuAppResource.code, readCheckbox.checked)"
+                                   [checked]="isChecked('read', menuAppResource.name)"
+                                   #readCheckbox/>
+                        </td>
+                        <td class="text-center">
+                            <input *ngIf="menuAppResource.type !== 'MAIN_MENU'"
+                                   title="add" type="checkbox"
+                                   (click)="select('add', menuAppResource, addCheckbox.checked)"
+                                   (change)="setSelectedAppResources('Create', '.CREATE', menuAppResource.name, menuAppResource.code, readCheckbox.checked)"
+                                   [checked]="isChecked('add', menuAppResource.name)"
+                                   #addCheckbox/>
+                        </td>
+                        <td class="text-center">
+                            <input *ngIf="menuAppResource.type !== 'MAIN_MENU'"
+                                   title="edit" type="checkbox"
+                                   (click)="select('edit', menuAppResource, editCheckbox.checked)"
+                                   (change)="setSelectedAppResources('Update', '.UPDATE', menuAppResource.name, menuAppResource.code, readCheckbox.checked)"
+                                   [checked]="isChecked('edit', menuAppResource.name)"
+                                   #editCheckbox/>
+                        </td>
+                        <td class="text-center">
+                            <input *ngIf="menuAppResource.type !== 'MAIN_MENU'"
+                                   title="delete" type="checkbox"
+                                   (click)="select('delete', menuAppResource, deleteCheckbox.checked)"
+                                   (change)="setSelectedAppResources('Delete', '.DELETE', menuAppResource.name, menuAppResource.code, readCheckbox.checked)"
+                                   [checked]="isChecked('delete', menuAppResource.name)"
+                                   #deleteCheckbox/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+    </div>
+    

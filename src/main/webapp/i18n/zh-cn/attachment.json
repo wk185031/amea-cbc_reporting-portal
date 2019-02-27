@@ -1,0 +1,29 @@
+
+{
+    "baseApp": {
+        "attachment" : {
+            "home": {
+                "title": "Attachments",
+                "createLabel": "创建新 Attachment",
+                "createOrEditLabel": "创建或编辑 Attachment",
+                "search": "查找 Attachment"
+            },
+            "created": "Attachment {{ param }} 创建成功",
+            "updated": "Attachment {{ param }} 更新成功",
+            "deleted": "Attachment {{ param }} 删除成功",
+            "delete": {
+                "question": "你确定要删除 Attachment {{ id }} 吗？"
+            },
+            "detail": {
+                "title": "Attachment"
+            },
+            "name": "Name",
+            "type": "Type",
+            "createdBy": "Created By",
+            "createdDate": "Created Date",
+            "lastModifiedBy": "Last Modified By",
+            "lastModifiedDate": "Last Modified Date",
+            "attachmentGroup": "Attachment Group"
+        }
+    }
+}

@@ -1,0 +1,89 @@
+<div class="container-fluid">
+        <div class="card jh-card">
+            <div *ngIf="userExtra">
+                <div *appHasAnyPermission="['OPER:User.READ']">
+                    <h2>
+                        <span jhiTranslate="baseApp.userExtra.detail.title">User</span>
+                        {{userExtra.user.login}} ({{userExtra.user.firstName}} {{userExtra.user.lastName}})
+                    </h2>
+                    <br>
+                    <jhi-alert-error></jhi-alert-error>
+                    <fieldset class="mandrill-fieldset">
+                        <legend class="mandrill-legend" jhiTranslate="baseApp.userExtra.detail.detail"></legend>
+        
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col">
+                                    <dl class="row-md jh-entity-details">
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.username">Username</span></dt>
+                                        <dd><span>{{userExtra.user.login}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.firstName">First Name</span></dt>
+                                        <dd><span>{{userExtra.user.firstName}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.lastName">Last Name</span></dt>
+                                        <dd><span>{{userExtra.user.lastName}}</span></dd>
+                                    </dl>
+                                </div>
+                                <div class="col">
+                                    <dl class="row-md jh-entity-details">
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.contactEmail">Email</span></dt>
+                                        <dd><span>{{userExtra.user.email}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.designation">Designation</span></dt>
+                                        <dd><span>{{userExtra.designation || '-'}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.activated">Activated</span></dt>
+                                        <dd><span>{{configuredActivation}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.institution">institution</span></dt>
+                                        <dd>
+                                            <span *ngFor="let institution of userExtra.institutions; let last = last">
+                                                <a [routerLink]="['/app-admin-institution', institution?.id ]">{{institution.name}}</a>{{last ? '' : ', '}}
+                                            </span>
+                                        </dd>
+                                    </dl>
+                                </div>
+        
+                                <div class="col">
+                                    <dl class="row-md jh-entity-details">
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.contactMobile">Contact (mobile)</span></dt>
+                                        <dd><span>{{userExtra.contactMobile || '-'}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.contactWork">Contact (work)</span></dt>
+                                        <dd><span>{{userExtra.contactWork || '-'}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.detail.contactOther">Contact (other)</span></dt>
+                                        <dd><span>{{userExtra.contactOther || '-'}}</span></dd>
+                                        <dt><span jhiTranslate="baseApp.userExtra.create.role">Role</span></dt>
+                                        <dd>
+                                            <span *ngFor="let role of userExtra.roles; let last = last">
+                                                <a [routerLink]="['/app-admin-role', role?.id ]">{{role.name}}</a>{{last ? '' : ', '}}
+                                            </span>
+                                        </dd>
+                                    </dl>
+                                </div>
+        
+                                <div class="col">
+                                    
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col text-right">
+                                    <button type="submit"
+                                            (click)="previousState()"
+                                            class="btn btn-info">
+                                        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+                                    </button>
+                                    <button *appHasAnyPermission="['OPER:User.UPDATE']"
+                                            type="button"
+                                            [routerLink]="['/', { outlets: { popup: 'app-admin-user/'+ userExtra.id + '/edit'} }]"
+                                            replaceUrl="true"
+                                            class="btn btn-primary">
+                                        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    

@@ -1,0 +1,74 @@
+
+<div *ngIf="userExtra">
+    <h2><span jhiTranslate="baseApp.userExtra.detail.title">User Extra</span> {{userExtra.id}}</h2>
+    <hr>
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="baseApp.userExtra.name">Name</span></dt>
+        <dd>
+            <span>{{userExtra.name}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.designation">Designation</span></dt>
+        <dd>
+            <span>{{userExtra.designation}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.contactMobile">Contact Mobile</span></dt>
+        <dd>
+            <span>{{userExtra.contactMobile}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.contactWork">Contact Work</span></dt>
+        <dd>
+            <span>{{userExtra.contactWork}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.contactOther">Contact Other</span></dt>
+        <dd>
+            <span>{{userExtra.contactOther}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.createdBy">Created By</span></dt>
+        <dd>
+            <span>{{userExtra.createdBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.createdDate">Created Date</span></dt>
+        <dd>
+            <span>{{userExtra.createdDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.lastModifiedBy">Last Modified By</span></dt>
+        <dd>
+            <span>{{userExtra.lastModifiedBy}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.lastModifiedDate">Last Modified Date</span></dt>
+        <dd>
+            <span>{{userExtra.lastModifiedDate | date:'medium'}}</span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.user">User</span></dt>
+        <dd>
+            {{userExtra.user?.login}}
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.roles">Roles</span></dt>
+        <dd>
+            <span *ngFor="let roles of userExtra.roles; let last = last">
+                <a [routerLink]="['/role-extra', roles?.id ]">{{roles.name}}</a>{{last ? '' : ', '}}
+            </span>
+        </dd>
+        <dt><span jhiTranslate="baseApp.userExtra.institutions">Institutions</span></dt>
+        <dd>
+            <span *ngFor="let institutions of userExtra.institutions; let last = last">
+                <a [routerLink]="['/institution', institutions?.id ]">{{institutions.name}}</a>{{last ? '' : ', '}}
+            </span>
+        </dd>
+    </dl>
+
+    <button type="submit"
+            (click)="previousState()"
+            class="btn btn-info">
+        <span class="fa fa-arrow-left"></span>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+    </button>
+
+    <button type="button"
+            [routerLink]="['/', { outlets: { popup: 'user-extra/'+ userExtra.id + '/edit'} }]"
+            replaceUrl="true"
+            queryParamsHandling="merge"
+            class="btn btn-primary">
+        <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+    </button>
+</div>

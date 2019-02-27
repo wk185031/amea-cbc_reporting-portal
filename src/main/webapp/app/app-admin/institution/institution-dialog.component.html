@@ -1,0 +1,181 @@
+<form name="editForm" role="form" novalidate (ngSubmit)="save()" #editForm="ngForm">
+
+    <div class="modal-header">
+        <h4 class="modal-title" id="myInstitutionLabel" jhiTranslate="baseApp.institution.home.createOrEditLabel">Create or edit a Institution</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                (click)="clear()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <jhi-alert-error></jhi-alert-error>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.name" for="field_name">Name</label>
+                        <input type="text" class="form-control" name="name" id="field_name"
+                            [(ngModel)]="institution.name" required maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.name?.dirty && editForm.controls.name?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.name?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.name?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.parent" for="field_parent">Parent</label>
+                        <select class="form-control" id="field_parent" name="parent" [(ngModel)]="institution.parent">
+                            <option [ngValue]="institutionOption.id === institution.parent?.id ? institution.parent : institutionOption" *ngFor="let institutionOption of institutions; trackBy: trackInstitutionById">{{institutionOption.name}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.businessRegNo" for="field_businessRegNo">Business Reg No</label>
+                        <input type="text" class="form-control" name="businessRegNo" id="field_businessRegNo"
+                            [(ngModel)]="institution.businessRegNo" maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.businessRegNo?.dirty && editForm.controls.businessRegNo?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.businessRegNo?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.businessRegNo?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.industry" for="field_industry">Industry</label>
+                        <select class="form-control" id="field_industry" name="industry" required
+                            [(ngModel)]="institution.industry">
+                            <option [ngValue]="undefined">Please Select the Industry</option>
+                            <option
+                                [ngValue]="industryOption === institution.industry ? institution.industry : industryOption"
+                                *ngFor="let industryOption of industryOptions; trackBy: trackIndustryByValue">
+                                {{industryOption}}
+                            </option>
+                        </select>
+                        <div [hidden]="!(editForm.controls.industry?.dirty && editForm.controls.industry?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.industry?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.industry?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.address" for="field_address">Address</label>
+                        <textarea class="form-control" name="address" id="field_address" required
+                                [(ngModel)]="institution.address" maxlength="500" rows="4">
+                        </textarea>
+                        <div [hidden]="!(editForm.controls.address?.dirty && editForm.controls.address?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.address?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.address?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 500 }">
+                            This field cannot be longer than 500 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.phone" for="field_phone">Phone</label>
+                        <input type="text" class="form-control" name="phone" id="field_phone"
+                            [(ngModel)]="institution.phone" maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.phone?.dirty && editForm.controls.phone?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.phone?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.phone?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.fax" for="field_fax">Fax</label>
+                        <input type="text" class="form-control" name="fax" id="field_fax"
+                            [(ngModel)]="institution.fax" maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.fax?.dirty && editForm.controls.fax?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.fax?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.email" for="field_email">Email</label>
+                        <input type="text" class="form-control" name="email" id="field_email"
+                            [(ngModel)]="institution.email" maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.email?.dirty && editForm.controls.email?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.email?.errors?.required" jhiTranslate="entity.validation.required">
+                            This field is required.
+                            </small>
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.email?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" jhiTranslate="baseApp.institution.website" for="field_website">Website</label>
+                        <input type="text" class="form-control" name="website" id="field_website"
+                            [(ngModel)]="institution.website" maxlength="50"/>
+                        <div [hidden]="!(editForm.controls.website?.dirty && editForm.controls.website?.invalid)">
+                            <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.website?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 50 }">
+                            This field cannot be longer than 50 characters.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row card">
+                <div class="card-body">
+                    <h5 class="card-title" jhiTranslate="baseApp.attachment.home.title">Attachments</h5>
+                    <div class="form-group">
+                        <label for="attachments" jhiTranslate="baseApp.institution.attachment">Upload image</label>
+                        <input id="attachments" class="form-control" type="file" multiple="multiple" accept="image/jpeg" (click)="(templateInputElement.value = '')"
+                            (change)="attachDocumentList($event)" #templateInputElement/>
+                    </div>
+                    <hr>
+                    <section  id="content3" class="tab-content section_dash">
+                        <div class="row text-center text-lg-left" >
+                            <div *ngFor="let attachment of this.institution.attachments; let i = index" class="col-md-4 col-xs-6" [hidden]="attachment.hiddenFlag">
+                                <label (click)="removeFlagToggle(i)" class="{{this.institution.attachments[i].removeFlag ? 'image-checkbox-checked' : 'image-checkbox'}}"
+                                    >
+                                    <img [src]="attachment.imageSource" class="thumbnail">
+                                    <i class="fa fa-check"></i>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                    <hr>
+                    <div class="text-right btn-group flex-btn-group-container">
+                        <button type="button" class="btn btn-danger btn-sm" [disabled]="!removeAttachmentFlag" (click)="removeAttachment()">
+                            <span class="fa fa-trash"></span>&nbsp;<span jhiTranslate="entity.action.remove">Remove</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="clear()">
+            <span class="fa fa-ban"></span>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+        <button type="submit" [disabled]="editForm.form.invalid || isSaving" class="btn btn-primary">
+            <span class="fa fa-save"></span>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+    </div>
+</form>
