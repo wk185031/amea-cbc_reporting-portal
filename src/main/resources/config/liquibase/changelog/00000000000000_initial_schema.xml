@@ -8,6 +8,7 @@
 
     <property name="now" value="now()" dbms="h2"/>
     <property name="now" value="now()" dbms="mysql"/>
+    <property name="now" value="current_timestamp" dbms="oracle"/>
     <property name="autoIncrement" value="true"/>
 
     <!--
@@ -47,17 +48,17 @@
             <column name="last_modified_by" type="varchar(50)"/>
             <column name="last_modified_date" type="timestamp"/>
         </createTable>
-        <createIndex indexName="idx_user_login"
+        <!--  <createIndex indexName="idx_user_login"
             tableName="jhi_user"
             unique="true">
             <column name="login" type="varchar(50)"/>
-        </createIndex>
+        </createIndex> -->
 
-        <createIndex indexName="idx_user_email"
+        <!-- <createIndex indexName="idx_user_email"
             tableName="jhi_user"
             unique="true">
             <column name="email" type="varchar(100)"/>
-        </createIndex>
+        </createIndex> -->
         <createTable tableName="jhi_authority">
             <column name="name" type="varchar(50)">
                 <constraints primaryKey="true" nullable="false"/>

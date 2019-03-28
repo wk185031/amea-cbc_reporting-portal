@@ -1,0 +1,43 @@
+<div class="container-fluid">
+        <div class="card jh-card">
+            <div>
+                <jhi-alert></jhi-alert>
+                <div class="row equal">
+                    <div class="col-4">
+                        <h4>
+                        </h4>
+                    </div>
+                    <div class="col-8">
+                        <div class="row float-right" *appHasAnyPermission="['OPER:ReportDefinition.CREATE']">
+                            <button class="btn btn-primary float-right jh-create-entity create-reportDefinition"
+                                [routerLink]="['/', { outlets: { popup: ['report-definition-new'] } }]">
+                                <span class="fa fa-plus"></span>
+                                <span class="hidden-sm-down" jhiTranslate="baseApp.reportDefinition.create">
+                                    Create New Report Definition
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row equal" *appHasAnyPermission="['OPER:ReportDefinition.READ']">
+                    <!-- list -->
+                    <div class="col-4" *ngIf="reportDefinition">
+                        <div class="treeborder">
+                            <h4>
+                                <span jhiTranslate="baseApp.reportDefinition.list">List of Reports</span>
+                            </h4>
+                            <div *ngFor="let reportDefinitionList of reportDefinition">
+                                <a (click)="onClick(reportDefinitionList.id)">{{reportDefinitionList.name}}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- view -->
+                    <div class="col-8">
+                        <div *ngIf="reportDefinitionId && mode==='view'">
+                            <report-config-definition-view [reportDefinitionId]="reportDefinitionId">
+                            </report-config-definition-view>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

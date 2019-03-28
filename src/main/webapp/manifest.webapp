@@ -1,24 +1,24 @@
 {
-  "name": "Base",
-  "short_name": "Base",
+  "name": "Reporting Portal",
+  "short_name": "Reporting Portal",
   "icons": [
       {
-          "src": "./content/images/logo-jhipster.png",
+          "src": "./content/images/ncr_splash.jpg",
           "sizes": "192x192",
           "type": "image/png"
       },
       {
-          "src": "./content/images/logo-jhipster.png",
+          "src": "./content/images/ncr_splash.jpg",
           "sizes": "256x256",
           "type": "image/png"
       },
       {
-          "src": "./content/images/logo-jhipster.png",
+          "src": "./content/images/ncr_splash.jpg",
           "sizes": "384x384",
           "type": "image/png"
       },
       {
-          "src": "./content/images/logo-jhipster.png",
+          "src": "./content/images/ncr_splash.jpg",
           "sizes": "512x512",
           "type": "image/png"
       }

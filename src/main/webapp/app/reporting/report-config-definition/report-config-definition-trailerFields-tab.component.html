@@ -1,0 +1,244 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<div>
+    <div class="container-fluid bg-gray">
+        <div class="container-report-config-definition">
+            <section class="report-config-definition">
+                <div class="row">
+                    <div class="col-12">
+                    </div>
+                    <div class="col-12 mx-auto"
+                        *ngFor="let section of reportDefinition.trailerSection; let sectionIndex = index ">
+                        <div class="accordion" id="accordion_{{sectionIndex}}">
+                            <div class="card">
+                                <div class="card-header-report-config-definition" id="heading_{{sectionIndex}}">
+                                    <h5 class="mb-0">
+                                        <button [ngClass]="isShowed(sectionIndex)" style="padding-left: 5%"
+                                            (mousedown)="collapseToggler(sectionIndex)" type="button">
+                                            <div class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                    (mousedown)="stopCollapse()"
+                                                    (click)="moveTop(sectionIndex, reportDefinition.trailerSection)"
+                                                    [disabled]="!isEdit">
+                                                    <span class="fa fa-arrow-up"></span>
+                                                </button>
+                                                &nbsp;
+                                                <button type="button" class="btn btn-info btn-sm"
+                                                    (mousedown)="stopCollapse()"
+                                                    (click)="moveBottom(sectionIndex, reportDefinition.trailerSection)"
+                                                    [disabled]="!isEdit">
+                                                    <span class="fa fa-arrow-down"></span>
+                                                </button>
+                                                &nbsp;
+                                                <button
+                                                    [disabled]="disableRemoveContent(reportDefinition.trailerSection) || !isEdit"
+                                                    type="button" class="btn btn-danger btn-sm"
+                                                    (mousedown)="stopCollapse()"
+                                                    (click)="removeFromList(sectionIndex, reportDefinition.trailerSection)">
+                                                    <span class="fa fa-minus"></span>&nbsp;<span
+                                                        jhiTranslate="baseApp.reportDefinition.removeSection">Remove
+                                                        Section</span>
+                                                </button>
+                                            </div>
+                                            <i class="fa fa-angle-double-right main"></i>
+                                            <span jhiTranslate="baseApp.reportDefinition.section">Section</span>
+                                            <input type="text" class="form-control-section-title"
+                                                name="section_name_{{sectionIndex}}" (mousedown)="stopCollapse()"
+                                                id="field_section_name_{{sectionIndex}}" [(ngModel)]="section.name"
+                                                maxlength="200" [disabled]="!isEdit" />
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="collapse_{{sectionIndex}}" [ngClass]="isCollapsed(sectionIndex)">
+                                    <div class="card-body-report-config-definition">
+                                        <div class="custom-subcard" [ngClass]="itemAlternatingColour(itemIndex)">
+                                            <br />
+                                            <div class="row custom-row-for-tab">
+                                                <div class="col-6">
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldNameLabel"
+                                                                    for="field_name_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Name</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_name_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_name_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldName" maxlength="50"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldLengthCsvTxtLabel"
+                                                                    for="field_length_csv_txt_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Length (CSV/TXT)</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_length_csv_txt_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_length_csv_txt_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldLengthCsvTxt"
+                                                                    maxlength="4" [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldLengthPdfLabel"
+                                                                    for="field_length_pdf_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Length (PDF)</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldLengthPdf" maxlength="4"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldTypeLabel"
+                                                                    for="field_type_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Type</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldType" maxlength="10"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldDelimiterLabel"
+                                                                    for="field_delimiter_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Delimiter</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldDelimiter" maxlength="1"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldDefaultValueLabel"
+                                                                    for="field_default_value_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Default Value</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_default_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_default_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldDefaultValue"
+                                                                    maxlength="50" [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group form-check custom-checkbox-inline">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldFirstLabel"
+                                                                    for="field_first_{{sectionIndex}}_{{itemIndex}}">First
+                                                                    Field</label>
+                                                                <input type="checkbox"
+                                                                    name="field_length_first_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_length_first_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldFirst" maxlength="1"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group form-check custom-checkbox-inline">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldEolLabel"
+                                                                    for="field_eol_{{sectionIndex}}_{{itemIndex}}">End
+                                                                    of Line (EOL)</label>
+                                                                <input type="checkbox"
+                                                                    name="field_length_eol_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_length_eol_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldEndOfLine" maxlength="1"
+                                                                    [disabled]="!isEdit" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldLengthPdfLabel"
+                                                                    for="field_length_pdf_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Length (PDF)</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldLengthPdf"
+                                                                    maxlength="4" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldTypeLabel"
+                                                                    for="field_type_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Type</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldType" maxlength="4" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <div class="form-group">
+                                                                <label class="form-control-label"
+                                                                    jhiTranslate="baseApp.reportDefinition.fieldDelimiterLabel"
+                                                                    for="field_delimiter_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    Delimiter</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldDelimiter"
+                                                                    maxlength="1" />
+                                                            </div>
+                                                        </div>
+                                                    </div> -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <br />
+    <div style="text-align: center;">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addSection()" [disabled]="!isEdit">
+            <span class="fa fa-plus"></span>&nbsp;<span jhiTranslate="baseApp.reportDefinition.addSection">New
+                Section</span>
+        </button>
+    </div>
+</div>

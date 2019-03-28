@@ -1,0 +1,134 @@
+<div class="container-fluid">
+    <div class="card jh-card">
+        <div *ngIf="reportDefinition">
+            <h2>{{reportDefinition.name}}</h2>
+            <hr>
+            <jhi-alert-error></jhi-alert-error>
+            <div class="col-md-12">
+                <div class="tab_container new-tabContain">
+                    <input class="newinput" (change)="tabValue = 'content1'" id="tab1" type="radio" name="tabs" checked>
+                    <label class="label_dash" for="tab1" style="width: 20% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.mainDetailsTab">Details</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <input class="newinput" (change)="tabValue = 'content2'" id="tab2" type="radio" name="tabs">
+                    <label class="label_dash" for="tab2" style="width: 20% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.headerFieldsTab">Header
+                            Fields</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <input class="newinput" (change)="tabValue = 'content3'" id="tab3" type="radio" name="tabs">
+                    <label class="label_dash" for="tab3" style="width: 20% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.bodyFieldsTab">Body Fields</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <input class="newinput" (change)="tabValue = 'content4'" id="tab4" type="radio" name="tabs">
+                    <label class="label_dash" for="tab4" style="width: 20% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.trailerFieldsTab">Trailer
+                            Fields</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <input class="newinput" (change)="tabValue = 'content5'" id="tab5" type="radio" name="tabs">
+                    <label class="label_dash" for="tab5" style="width: 20% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.queryTab">SQL Query</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <section id="content1" class="tab-content section_dash">
+                        <div class="row" *ngIf="tabValue === 'content1'">
+                            <div class="col-6">
+                                <dl class="row-md jh-entity-details">
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.nameLabel">File Name</span></dt>
+                                    <dd>
+                                        <span>{{reportDefinition.name}}</span>
+                                    </dd>
+                                    <dt><span
+                                            jhiTranslate="baseApp.reportDefinition.descriptionLabel">Description</span>
+                                    </dt>
+                                    <dd>
+                                        <span>{{reportDefinition.description}}</span>
+                                    </dd>
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.categoryLabel">Category</span></dt>
+                                    <dd>
+                                        <span>{{reportDefinition.reportCategory?.name}}</span>
+                                    </dd>
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.fileNamePrefixLabel">File Name
+                                            Prefix</span></dt>
+                                    <dd>
+                                        <span>{{reportDefinition.fileNamePrefix}}</span>
+                                    </dd>
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.fileFormatLabel">File Format</span>
+                                    </dt>
+                                    <dd>
+                                        <span>{{reportDefinition.fileFormat}}</span>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-6">
+                                <dl class="row-md jh-entity-details">
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.processingClassLabel">Processing
+                                            Class</span></dt>
+                                    <dd>
+                                        <span>{{reportDefinition.processingClass}}</span>
+                                    </dd>
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.fileOutputLocationLabel">File
+                                            Output
+                                            Location</span></dt>
+                                    <dd>
+                                        <span>{{reportDefinition.fileLocation}}</span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="content2" class="tab-content section_dash" style="overflow: auto;">
+                        <div *ngIf="reportDefinition.headerFields">
+                            <div class="col-8" *ngIf="tabValue === 'content2'">
+                                <report-config-definition-headerFields-tab [reportDefinition]="reportDefinition"
+                                    [isEdit]="false">
+                                </report-config-definition-headerFields-tab>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="content3" class="tab-content section_dash" style="overflow: auto;">
+                        <div *ngIf="reportDefinition.bodyFields">
+                            <div class="col-8" *ngIf="tabValue === 'content3'">
+                                <report-config-definition-bodyFields-tab [reportDefinition]="reportDefinition"
+                                    [isEdit]="false">
+                                </report-config-definition-bodyFields-tab>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="content4" class="tab-content section_dash" style="overflow: auto;">
+                        <div *ngIf="reportDefinition.trailerFields">
+                            <div class="col-8" *ngIf="tabValue === 'content4'">
+                                <report-config-definition-trailerFields-tab [reportDefinition]="reportDefinition"
+                                    [isEdit]="false">
+                                </report-config-definition-trailerFields-tab>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="content5" class="tab-content section_dash" style="overflow: auto;">
+                        <div *ngIf="reportDefinition.query">
+                            <div class="col-8" *ngIf="tabValue === 'content5'">
+                                <report-config-definition-query-tab [reportDefinition]="reportDefinition"
+                                    [isEdit]="false">
+                                </report-config-definition-query-tab>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <br />
+            <button type="submit" (click)="previousState()" class="btn btn-info">
+                <span class="fa fa-arrow-left"></span>
+                <span jhiTranslate="entity.action.back">Back</span>
+            </button>
+            <button type="submit"
+                [routerLink]="['/', { outlets: { popup: 'reportDefinition/'+ reportDefinition.id + '/edit'} }]"
+                replaceUrl="true" queryParamsHandling="merge" class="btn btn-primary">
+                <span class="fa fa-pencil"></span>
+                <span jhiTranslate="entity.action.edit">Edit</span>
+            </button>
+        </div>
+    </div>
+</div>

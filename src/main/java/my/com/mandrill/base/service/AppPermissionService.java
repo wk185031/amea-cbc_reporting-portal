@@ -58,6 +58,10 @@ public class AppPermissionService {
     public static final String RESOURCE_DASHBOARD = "Dashboard";
     public static final String RESOURCE_SHIPMENT = "Shipment";
     public static final String RESOURCE_ENTITY_AUDIT = "EntityAudit";
+    public static final String RESOURCE_REPORT_CATEGORY = "ReportCategory";
+    public static final String RESOURCE_REPORT_DEFINITION = "ReportDefinition";
+    public static final String RESOURCE_GENERATE_REPORT = "GenerateReport";
+    public static final String RESOURCE_REPORT_DASHBOARD = "Dashboard";
 
     public AppPermissionService(AppService companyService) {
 		this.appService = companyService;

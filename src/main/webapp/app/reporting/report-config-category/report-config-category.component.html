@@ -1,0 +1,49 @@
+<div class="container-fluid">
+    <div class="card jh-card">
+        <div>
+            <jhi-alert></jhi-alert>
+            <div class="row equal">
+                <div class="col-4">
+                    <h4>
+                    </h4>
+                </div>
+                <div class="col-8">
+                    <div class="row float-right" *appHasAnyPermission="['OPER:ReportCategory.CREATE']">
+                        <button class="btn btn-primary float-right jh-create-entity create-reportCategory"
+                            [routerLink]="['/', { outlets: { popup: ['report-category-new'] } }]">
+                            <span class="fa fa-plus"></span>
+                            <span class="hidden-sm-down" jhiTranslate="baseApp.reportCategory.create">
+                                Create New Report Category
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row equal" *appHasAnyPermission="['OPER:ReportCategory.READ']">
+                <!-- list -->
+                <div class="col-4" *ngIf="reportCategory">
+                    <div class="treeborder">
+                        <h4>
+                            <span jhiTranslate="baseApp.reportCategory.list">List of Report Categories</span>
+                        </h4>
+                        <div *ngFor="let reportCategoryList of reportCategory">
+                            <a (click)="onClick(reportCategoryList.id)">{{reportCategoryList.name}}</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- detail -->
+                <div class="col-8">
+                    <!-- <div *ngIf="!reportCategoryId">
+                            <h4>
+                                <span jhiTranslate="baseApp.reportConfig.category.noRecordSelected">Please select an
+                                    item from the Report Category</span>
+                            </h4>
+                        </div> -->
+                    <div *ngIf="reportCategoryId && mode==='view'">
+                        <report-config-category-detail [reportCategoryId]="reportCategoryId">
+                        </report-config-category-detail>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

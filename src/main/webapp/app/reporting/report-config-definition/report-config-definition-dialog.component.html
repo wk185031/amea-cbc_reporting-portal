@@ -1,0 +1,71 @@
+<div class="modal-header">
+    <h4 style="font-weight: 300 !important" class="modal-title" id="report-config-definition-Label"
+        jhiTranslate="baseApp.reportDefinition.createOrEditLabel">Create or Edit Report Definition</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" (click)="clear()">&times;</button>
+</div>
+<div class="modal-body">
+    <ngb-tabset type="tabs">
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span style="color: #533f03 !important"
+                    jhiTranslate="baseApp.reportDefinition.mainDetailsTab">Details</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <report-config-definition-main-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-main-tab>
+            </ng-template>
+        </ngb-tab>
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span jhiTranslate="baseApp.reportDefinition.headerFieldsTab">Header Fields</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <br />
+                <report-config-definition-headerFields-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-headerFields-tab>
+            </ng-template>
+        </ngb-tab>
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.bodyFieldsTab">Body
+                    Fields</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <report-config-definition-bodyFields-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-bodyFields-tab>
+            </ng-template>
+        </ngb-tab>
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.trailerFieldsTab">Trailer
+                    Fields</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <report-config-definition-trailerFields-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-trailerFields-tab>
+            </ng-template>
+        </ngb-tab>
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.queryTab">Query</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <report-config-definition-query-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-query-tab>
+            </ng-template>
+        </ngb-tab>
+    </ngb-tabset>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="clear()">
+        <span class="fa fa-ban"></span>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="!canSave || isSaving" (click)="save()">
+        <span class="fa fa-save"></span>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+    </button>
+</div>

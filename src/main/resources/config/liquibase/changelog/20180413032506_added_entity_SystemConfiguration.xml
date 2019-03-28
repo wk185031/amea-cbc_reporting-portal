@@ -30,7 +30,11 @@
                 <constraints nullable="false" />
             </column>
 
-            <column name="config" type="varchar(5000)">
+            <!-- <column name="config" type="varchar(5000)">
+                <constraints nullable="false" />
+            </column> -->
+            
+            <column name="config" type="varchar(500)">
                 <constraints nullable="false" />
             </column>
 

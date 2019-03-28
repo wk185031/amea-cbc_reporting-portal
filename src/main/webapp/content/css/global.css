@@ -3,7 +3,7 @@ Bootstrap tweaks
 ===============================================================*/
 
 body, h1, h2, h3, h4 {
-    font-weight: 300;
+    font-weight: 300 !important;
 }
 
 body {
@@ -46,9 +46,9 @@ Generic styles
 /* other generic styles */
 
 .jh-card {
-    padding: 1.5%;
-    margin-top: 20px;
-    border: none;
+    padding: 1.5% !important;
+    margin-top: 20px !important;
+    border: none !important;
 }
 
 .error {
@@ -265,6 +265,15 @@ ui bootstrap tweaks
       display: block;
   }
 
+  .treeborder {
+    border: 1px solid lightgray;
+    border-bottom: none;
+    border-left: none;
+    border-top: none;
+    height: 70vh;
+    padding-right: 12px;
+    overflow-y: auto;
+}
 
 
 .nopad {
@@ -312,4 +321,265 @@ ui bootstrap tweaks
     top: 0;
     right: 15px;
     display: block !important;
+}
+
+/************************************************/
+/******* Report Definition Fields Popup Accordion **********/
+/************************************************/
+@import url('https://fonts.googleapis.com/css?family=Tajawal');
+@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+
+section.task-template-content{
+    /* padding: 60px 0; */
+    padding: 1px 0;
+}
+
+h1.report-config-definition,
+a.report-config-definition{
+    color:#007b5e;
+}
+
+.container-report-config-definition{
+    max-width: 100% !important;
+}
+
+.btn-link-report-config-definition {
+    font-weight: 400;
+    color: #007b5e;
+    background-color: transparent;
+    text-decoration: none !important;
+    font-size: 16px;
+    font-weight: bold;
+	padding-left: 25px;
+}
+
+.card-body-report-config-definition {
+    border-top: 2px solid #007b5e;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.card-header-report-config-definition .btn.collapsed .fa.main{
+	/* display:none; */
+}
+
+.card-header-report-config-definition .btn .fa.main{
+    background: #007b5e;
+    padding: 13px 11px;
+    color: #ffffff;
+    width: 35px;
+    height: 41px;
+    position: absolute;
+    left: -1px;
+    top: 10px;
+    border-top-right-radius: 7px;
+    border-bottom-right-radius: 7px;
+	display:block;
+}
+
+.gray-first-shade {
+    background: #ABB2B9;
+}
+
+.gray-second-shade {
+    background: #EBEDEF  ;
+}
+
+.form-control-section-title {
+    display: block !important;
+    width: 50%;
+    padding-left: 5px;
+    font-size: 1rem !important;
+    border: 0.5px solid #ced4da !important;
+    border-radius: .25rem !important;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out !important;
+}
+
+div.card > div.row, div.custom-row-for-tab {
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+}
+
+div.card > hr, div.custom-subcard > hr {
+    width: 95%;
+    align-self: center;
+    margin-top: 0rem !important;
+    margin-bottom: 0rem !important;
+}
+
+.custom-checkbox-inline {
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    margin-right: 1rem;
+    padding-left: 0;
+    display: inline;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+Report Definition Fields and Generate Reports
+========================================================================== */
+.report-custom a {
+    color: #1d95f6 !important;
+    text-decoration: underline !important;
+}
+
+.cellContainer {
+    margin-top: 2%;
+    overflow: auto;
+}
+
+.padding-new{
+    padding: 10px 10px 10px 0px;
+}
+
+.tab_container {
+    width: 100%;
+    margin: 0 auto;
+    padding-top: 18px;
+    position: relative;
+    /* -webkit-box-shadow: 0 11px 7px -10px #777;
+    -moz-box-shadow: 0 11px 7px -10px #777;
+    box-shadow: 0 11px 7px -10px #777; */
+}
+
+/* input, section {
+    clear: both;
+    padding-top: 10px;
+    display: none;
+} */
+
+.new-tabContain{
+    margin-top: 1%;
+}
+
+.tab-font{
+    font-size: 20px;
+    margin-left: 20px;
+}
+
+.tab-button{
+    float: right;
+    margin-top: 3%;
+    margin-right: 26%;
+}
+
+.newinput, section{
+    clear: both;
+    padding-top: 10px;
+    display: none;
+}
+
+
+.label_dash {
+    font-weight: 700;
+    font-size: 18px;
+    display: block;
+    float: left;
+    width: 25%;
+    padding: 1.5em;
+    color: #757575;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    background: #f0f0f0;
+}
+
+#tab1:checked ~ #content1, #tab2:checked ~ #content2, #tab3:checked ~ #content3, 
+#tab4:checked ~ #content4, #tab5:checked ~ #content5, #tab6:checked ~ #content6, 
+#tab7:checked~#content7, #tab8:checked~#content8, #tab9:checked~#content9 {
+    display: block;
+    padding: 20px;
+    background: #fff;
+    color: #999;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.tab_container .tab-content p, .tab_container .tab-content h3 {
+    -webkit-animation: fadeInScale 0.7s ease-in-out;
+    -moz-animation: fadeInScale 0.7s ease-in-out;
+    animation: fadeInScale 0.7s ease-in-out;
+}
+
+.tab_container .tab-content h3 {
+    text-align: center;
+}
+
+.tab_container [id^="tab"]:checked+label {
+    background: #fff;
+    box-shadow: inset 0 3px #0CE;
+    width: 50%;
+}
+
+.tab_container [id^="tab"]:checked+label .fa {
+    color: #0CE;
+}
+
+label .fa {
+    font-size: 1.3em;
+    margin: 0 0.4em 0 0;
+}
+
+.color-issuedetails{
+    color: #276FAD;
+    font-weight: 400;
+}
+
+.card-subtitle{
+    color: black !important;
+    font-size: 1.05rem;
+
+}
+
+.imageholder {
+    width: 512px;
+    height: 512px;
+    overflow: hidden;
+    padding: 55px;
+
+    }
+.primary-font1{
+    font-size: 22px;
+    color: #276FAD;
+    font-weight: 600
+}
+
+.primary-font2{
+    font-size: 18px;
+    color: #276FAD;
+    font-weight: 300;
+}
+
+.primary-font3{
+    font-size: 20px;
+    color: #6d6d6d;
+    font-weight: 500;
+    margin-left: 1%;
+    text-align: left;
+}
+
+
+.useravatar img {
+    width: 100px;
+    height: 100px;
+    max-width: 100px;
+    max-height: 100px;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+}
+
+.show-icon{
+    display: none;
+
+}
+
+.card-title {
+    margin-bottom: .75rem;
+    color: #3e3e3e;
+    font-size: 16px;
+    font-weight: 700;
 }

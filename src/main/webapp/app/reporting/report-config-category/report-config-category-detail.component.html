@@ -1,0 +1,58 @@
+<div *ngIf="reportCategory">
+    <div *appHasAnyPermission="['OPER:ReportCategory.READ']">
+        <h2><span>{{reportCategory.name}}</span></h2>
+        <hr>
+        <jhi-alert-error></jhi-alert-error>
+        <div class="row">
+            <div class="col-6">
+                <dl class="row-md jh-entity-details">
+                    <dt><span jhiTranslate="baseApp.reportCategory.nameLabel">Category Name</span></dt>
+                    <dd>
+                        <span>{{reportCategory.name}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportCategory.descriptionLabel">Description</span></dt>
+                    <dd>
+                        <span>{{reportCategory.description}}</span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-6">
+                <!-- <dl class="row-md jh-entity-details">
+                    <dt><span jhiTranslate="buildingopsApp.institution.address">Address</span></dt>
+                    <dd>
+                        <span>{{institution.address}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="buildingopsApp.institution.phone">Phone</span></dt>
+                    <dd>
+                        <span>{{institution.phone}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="buildingopsApp.institution.fax">Fax</span></dt>
+                    <dd>
+                        <span>{{institution.fax}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="buildingopsApp.institution.email">Email</span></dt>
+                    <dd>
+                        <span>{{institution.email}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="buildingopsApp.institution.website">Website</span></dt>
+                    <dd>
+                        <span>{{institution.website}}</span>
+                    </dd>
+                </dl> -->
+            </div>
+        </div>
+        <div class="float-right">
+            <button type="button"
+                [routerLink]="['/', { outlets: { popup: 'reportCategory/'+ reportCategory.id + '/edit'} }]"
+                replaceUrl="true" class="btn btn-primary">
+                <span class="fa fa-pencil"></span>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+            </button>
+            <button type="submit"
+                [routerLink]="['/', { outlets: { popup: 'reportCategory/'+ reportCategory.id + '/delete'} }]"
+                replaceUrl="true" class="btn btn-danger">
+                <span class="fa fa-remove"></span>
+                <span class="hidden-md-down " jhiTranslate="entity.action.delete">Delete</span>
+            </button>
+        </div>
+    </div>
+</div>

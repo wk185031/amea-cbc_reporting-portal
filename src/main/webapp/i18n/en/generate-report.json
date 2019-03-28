@@ -1,0 +1,18 @@
+{
+    "baseApp": {
+        "reportGeneration": {
+            "title": "Generate Report",
+            "reportCategoryLabel": "Category : ",
+            "reportDefinitionLabel": "Report : ",
+            "fileDateLabel": "File Date (YYYY-MM-DD): ",
+            "queryTxnLabel": "Query Transaction Date : ",
+            "txnStartLabel": "Transaction Start Date : ",
+            "txnEndLabel": "Transaction End Date : ",
+            "generate": "Generate",
+            "createdByLabel": "Create By :",
+            "createdDateLabel": "Created Date :",
+            "lastModifiedByLabel": "Last Modified By :",
+            "lastModifiedDateLabel": "Last Modified Date :"
+        }
+    }
+}

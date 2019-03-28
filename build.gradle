@@ -219,6 +219,8 @@ dependencies {
     compile "io.springfox:springfox-bean-validators"
     compile "org.mariadb.jdbc:mariadb-java-client"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
+    compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.13' // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
+    
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
     testCompile "info.cukes:cucumber-spring"
@@ -237,6 +239,10 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
+}
+
+dependencies {
+	compile files('build/libs/ojdbc8-12.2.0.1.jar')
 }
 
 task cleanResources(type: Delete) {

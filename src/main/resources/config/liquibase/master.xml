@@ -24,4 +24,5 @@
     <include file="config/liquibase/changelog/20180413032509_data_app_permissions_configuration.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20180413032510_data_user.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20180413032511_data_institution.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20190320431013_data_app_permissions_configuration_2.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

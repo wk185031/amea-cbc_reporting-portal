@@ -1,0 +1,60 @@
+<div *ngIf="reportDefinition">
+    <div *appHasAnyPermission="['OPER:ReportDefinition.READ']">
+        <h2><span>{{reportDefinition.name}}</span></h2>
+        <hr>
+        <jhi-alert-error></jhi-alert-error>
+        <div class="row">
+            <div class="col-6">
+                <dl class="row-md jh-entity-details">
+                    <dt><span jhiTranslate="baseApp.reportDefinition.nameLabel">File Name</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.name}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.descriptionLabel">Description</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.description}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.categoryLabel">Category</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.reportCategory?.name}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.fileNamePrefixLabel">File Name Prefix</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.fileNamePrefix}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.fileFormatLabel">File Format</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.fileFormat}}</span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-6">
+                <dl class="row-md jh-entity-details">
+                    <dt><span jhiTranslate="baseApp.reportDefinition.processingClassLabel">Processing
+                            Class</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.processingClass}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.fileOutputLocationLabel">File Output
+                            Location</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.fileLocation}}</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="float-right">
+            <button type="submit" [routerLink]="['../report-configuration-definition', reportDefinition.id ]"
+                class="btn btn-info">
+                <span class="fa fa-eye"></span>
+                <span jhiTranslate="entity.action.view">View</span>
+            </button>
+            <button type="submit"
+                [routerLink]="['/', { outlets: { popup: 'reportDefinition/'+ reportDefinition.id + '/delete'} }]"
+                replaceUrl="true" class="btn btn-danger">
+                <span class="fa fa-remove"></span>
+                <span jhiTranslate="entity.action.delete">Delete</span>
+            </button>
+        </div>
+    </div>
+</div>

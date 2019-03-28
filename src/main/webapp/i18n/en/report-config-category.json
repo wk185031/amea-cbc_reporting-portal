@@ -1,0 +1,25 @@
+{
+    "baseApp": {
+        "reportCategory": {
+            "created": "Report Category is created!",
+            "updated": "Report Category is updated!",
+            "deleted": "Report Category is deleted!",
+            "mainTitle": "Report Configuration",
+            "title": "Report Category",
+            "search": "Search...",
+            "list": "List of Report Categories",
+            "noRecordSelected": "Please select an item from the Report Category",
+            "create": "Create New Report Category",
+            "edit": "Edit",
+            "delete": "Delete",
+            "nameLabel": "Category Name : ",
+            "descriptionLabel": "Description : ",
+            "createdByLabel": "Create By :",
+            "createdDateLabel": "Created Date :",
+            "lastModifiedByLabel": "Last Modified By :",
+            "lastModifiedDateLabel": "Last Modified Date :",
+            "createOrEditLabel": "Create or Edit Report Category",
+            "confirmDelete": "Are you sure you want to delete this report category?"
+        }
+    }
+}

@@ -3,7 +3,7 @@ import './vendor.ts';
 import { NgModule, Injector } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { Ng2Webstorage, LocalStorageService, SessionStorageService  } from 'ngx-webstorage';
+import { Ng2Webstorage, LocalStorageService, SessionStorageService } from 'ngx-webstorage';
 import { JhiEventManager } from 'ng-jhipster';
 
 import { AuthInterceptor } from './blocks/interceptor/auth.interceptor';
@@ -11,7 +11,7 @@ import { AuthExpiredInterceptor } from './blocks/interceptor/auth-expired.interc
 import { ErrorHandlerInterceptor } from './blocks/interceptor/errorhandler.interceptor';
 import { NotificationInterceptor } from './blocks/interceptor/notification.interceptor';
 import { BaseSharedModule, UserRouteAccessService } from './shared';
-import { BaseAppRoutingModule} from './app-routing.module';
+import { BaseAppRoutingModule } from './app-routing.module';
 import { BaseHomeModule } from './home/home.module';
 import { BaseAdminModule } from './admin/admin.module';
 import { BaseAccountModule } from './account/account.module';
@@ -32,12 +32,16 @@ import { BaseAppAdminModule } from './app-admin/app-admin.module';
 import { AppCommonModule } from './common/common.module';
 import { AppRouteAccessService } from './common/app-route-access-service';
 import { AppRouteSelfRegistrationService } from './common/app-route-self-registration-service';
+import { ReportConfigCategoryModule } from './reporting/report-config-category/report-config-category.module';
+import { ReportConfigDefinitionModule } from './reporting/report-config-definition/report-config-definition.module';
+import { DashboardModule } from './reporting/dashboard/dashboard.module';
+import { GenerateReportModule } from './reporting/generate-report/generate-report.module';
 
 @NgModule({
     imports: [
         BrowserModule,
         BaseAppRoutingModule,
-        Ng2Webstorage.forRoot({ prefix: 'jhi', separator: '-'}),
+        Ng2Webstorage.forRoot({ prefix: 'jhi', separator: '-' }),
         BaseSharedModule,
         BaseHomeModule,
         BaseAdminModule,
@@ -45,7 +49,11 @@ import { AppRouteSelfRegistrationService } from './common/app-route-self-registr
         BaseEntityModule,
         // jhipster-needle-angular-add-module JHipster will add new module here
         BaseAppAdminModule,
-        AppCommonModule
+        AppCommonModule,
+        ReportConfigCategoryModule,
+        ReportConfigDefinitionModule,
+        DashboardModule,
+        GenerateReportModule
     ],
     declarations: [
         JhiMainComponent,
@@ -95,6 +103,6 @@ import { AppRouteSelfRegistrationService } from './common/app-route-self-registr
             ]
         }
     ],
-    bootstrap: [ JhiMainComponent ]
+    bootstrap: [JhiMainComponent]
 })
-export class BaseAppModule {}
+export class BaseAppModule { }

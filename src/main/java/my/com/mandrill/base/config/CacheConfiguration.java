@@ -52,6 +52,9 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.Institution.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.AttachmentGroup.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.Attachment.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.ReportCategory.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.ReportDefinition.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.ReportGeneration.class.getName(), jcacheConfiguration);
             // jhipster-needle-ehcache-add-entry
             cm.createCache(my.com.mandrill.base.domain.EntityAuditEvent.class.getName(), jcacheConfiguration);
         };
