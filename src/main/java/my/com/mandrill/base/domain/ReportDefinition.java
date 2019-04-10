@@ -63,20 +63,24 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	@Column(name = "red_processing_class", length = 255)
 	private String processingClass;
 
-	@Size(max = 1000)
-	@Column(name = "red_header_fields", length = 1000)
+//	@Size(max = 1000)
+//	@Column(name = "red_header_fields", length = 1000)
+	@Column(name = "red_header_fields")
 	private String headerFields;
 
-	@Size(max = 1000)
-	@Column(name = "red_body_fields", length = 1000)
+//	@Size(max = 1000)
+//	@Column(name = "red_body_fields", length = 1000)
+	@Column(name = "red_body_fields")
 	private String bodyFields;
 
-	@Size(max = 1000)
-	@Column(name = "red_trailer_fields", length = 1000)
+//	@Size(max = 1000)
+//	@Column(name = "red_trailer_fields", length = 1000)
+	@Column(name = "red_trailer_fields")
 	private String trailerFields;
 
-	@Size(max = 2000)
-	@Column(name = "red_query", length = 2000)
+//	@Size(max = 2000)
+//	@Column(name = "red_query", length = 2000)
+	@Column(name = "red_query")
 	private String query;
 
 	@ManyToOne(optional = false)

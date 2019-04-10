@@ -43,8 +43,8 @@
                                         <span jhiTranslate="baseApp.reportDefinition.section">Section</span>
                                         <input type="text" class="form-control-section-title"
                                             name="section_name_{{sectionIndex}}" (mousedown)="stopCollapse()"
-                                            id="field_section_name_{{sectionIndex}}" [(ngModel)]="section.name"
-                                            maxlength="200" [disabled]="!isEdit" />
+                                            id="field_section_name_{{sectionIndex}}" [(ngModel)]="section.sectionName"
+                                            maxlength="200" (keyup)="valueChange()" [disabled]="!isEdit" />
                                     </button>
                                 </h5>
                             </div>
@@ -65,7 +65,7 @@
                                                                 name="field_name_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_name_{{sectionIndex}}_{{itemIndex}}"
                                                                 [(ngModel)]="section.fieldName" maxlength="50"
-                                                                [disabled]="!isEdit" />
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -79,8 +79,8 @@
                                                             <input type="text" class="form-control"
                                                                 name="field_length_csv_txt_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_length_csv_txt_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldLengthCsvTxt" maxlength="4"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.csvTxtLength" maxlength="4"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -94,8 +94,8 @@
                                                             <input type="text" class="form-control"
                                                                 name="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldLengthPdf" maxlength="4"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.pdfLength" maxlength="4"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -109,8 +109,8 @@
                                                             <input type="text" class="form-control"
                                                                 name="field_type_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_type_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldType" maxlength="10"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.fieldType" maxlength="35"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -124,13 +124,28 @@
                                                             <input type="text" class="form-control"
                                                                 name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldDelimiter" maxlength="1"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.delimiter" maxlength="1"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="col-6">
+                                                <div class="row">
+                                                    <div class="col-10">
+                                                        <div class="form-group">
+                                                            <label class="form-control-label"
+                                                                jhiTranslate="baseApp.reportDefinition.fieldFormatLabel"
+                                                                for="field_default_value_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                Format</label>
+                                                            <input type="text" class="form-control"
+                                                                name="field_default_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                id="field_default_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                [(ngModel)]="section.fieldFormat" maxlength="15"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 <div class="row">
                                                     <div class="col-10">
                                                         <div class="form-group">
@@ -141,8 +156,8 @@
                                                             <input type="text" class="form-control"
                                                                 name="field_default_value_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_default_value_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldDefaultValue" maxlength="50"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.defaultValue" maxlength="50"
+                                                                (keyup)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -156,8 +171,8 @@
                                                             <input type="checkbox"
                                                                 name="field_length_first_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_length_first_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldFirst" maxlength="1"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.firstField" maxlength="1"
+                                                                (click)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -171,55 +186,11 @@
                                                             <input type="checkbox"
                                                                 name="field_length_eol_{{sectionIndex}}_{{itemIndex}}"
                                                                 id="field_length_eol_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldEndOfLine" maxlength="1"
-                                                                [disabled]="!isEdit" />
+                                                                [(ngModel)]="section.eol" maxlength="1"
+                                                                (click)="valueChange()" [disabled]="!isEdit" />
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <!-- <div class="row">
-                                                    <div class="col-10">
-                                                        <div class="form-group">
-                                                            <label class="form-control-label"
-                                                                jhiTranslate="baseApp.reportDefinition.fieldLengthPdfLabel"
-                                                                for="field_length_pdf_{{sectionIndex}}_{{itemIndex}}">Field
-                                                                Length (PDF)</label>
-                                                            <input type="text" class="form-control"
-                                                                name="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
-                                                                id="field_length_pdf_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldLengthPdf"
-                                                                maxlength="4" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-10">
-                                                        <div class="form-group">
-                                                            <label class="form-control-label"
-                                                                jhiTranslate="baseApp.reportDefinition.fieldTypeLabel"
-                                                                for="field_type_{{sectionIndex}}_{{itemIndex}}">Field
-                                                                Type</label>
-                                                            <input type="text" class="form-control"
-                                                                name="field_type_{{sectionIndex}}_{{itemIndex}}"
-                                                                id="field_type_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldType" maxlength="4" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-10">
-                                                        <div class="form-group">
-                                                            <label class="form-control-label"
-                                                                jhiTranslate="baseApp.reportDefinition.fieldDelimiterLabel"
-                                                                for="field_delimiter_{{sectionIndex}}_{{itemIndex}}">Field
-                                                                Delimiter</label>
-                                                            <input type="text" class="form-control"
-                                                                name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
-                                                                id="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
-                                                                [(ngModel)]="section.fieldDelimiter"
-                                                                maxlength="1" />
-                                                        </div>
-                                                    </div>
-                                                </div> -->
                                             </div>
                                         </div>
                                     </div>

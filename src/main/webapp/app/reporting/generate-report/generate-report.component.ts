@@ -99,22 +99,10 @@ export class GenerateReportComponent implements OnInit {
     }
 
     generate() {
-        if (this.generateReport) {
-            // const req = this.generateReportService.generateReport(this.report.id, this.generateReport.fileDate, this.generateReport.txnStart, this.generateReport.txnEnd);
-            // this.http.request(req).subscribe(
-            //     (requestEvent: HttpEvent<Blob>) => {
-            //         if (requestEvent instanceof HttpResponse) {
-            //             if (requestEvent.body) {
-            //                 if (format === 'PDF') {
-            //                     this.processFile(requestEvent.body);
-            //                 } else {
-            //                     this.excelUrl = window.URL.createObjectURL(requestEvent.body);
-            //                     this.download('.xlsx');
-            //                 }
-            //             }
-            //         }
-            //     }
-            // );
+        if (this.generateReport && this.report.id && this.generateReport.fileDate && this.generateReport.txnStart && this.generateReport.txnEnd) {
+            const req = this.generateReportService.generateReport(this.report.id, this.generateReport.fileDate, this.generateReport.txnStart, this.generateReport.txnEnd);
+            this.http.request(req).subscribe(
+            );
         }
     }
 }

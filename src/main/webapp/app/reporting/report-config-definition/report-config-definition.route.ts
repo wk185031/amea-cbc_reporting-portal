@@ -46,7 +46,7 @@ export const reportConfigDefinitionRoute: Routes = [
         data: {
             authorities: ['ROLE_USER'],
             appPermission: ['OPER:ReportDefinition.READ'],
-            pageTitle: 'buildingopsApp.taskTemplate.home.title'
+            pageTitle: 'baseApp.reportDefinition.title'
         },
         canActivate: [UserRouteAccessService, AppRouteAccessService]
     }

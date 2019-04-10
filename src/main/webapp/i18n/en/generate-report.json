@@ -4,7 +4,7 @@
             "title": "Generate Report",
             "reportCategoryLabel": "Category : ",
             "reportDefinitionLabel": "Report : ",
-            "fileDateLabel": "File Date (YYYY-MM-DD): ",
+            "fileDateLabel": "File Date (YYYYMMDD): ",
             "queryTxnLabel": "Query Transaction Date : ",
             "txnStartLabel": "Transaction Start Date : ",
             "txnEndLabel": "Transaction End Date : ",

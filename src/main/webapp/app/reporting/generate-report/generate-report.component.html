@@ -9,7 +9,7 @@
             <br />
             <select class="form-control" style="width: 600px" [(ngModel)]="category" (change)="filterByCategory()">
                 <option [ngValue]="categoryOption.name === category.name ? category : categoryOption"
-                    *ngFor="let categoryOption of categories">
+                    *ngFor="let categoryOption of categories" required>
                     {{categoryOption.name}}</option>
             </select>
         </div>
@@ -18,7 +18,7 @@
             <br />
             <select class="form-control" style="width: 600px" [(ngModel)]="report">
                 <option [ngValue]="reportOption.name === report.name ? report : reportOption"
-                    *ngFor="let reportOption of reports">{{reportOption.name}}</option>
+                    *ngFor="let reportOption of reports" required>{{reportOption.name}}</option>
             </select>
         </div>
     </div>
@@ -26,8 +26,8 @@
     <div class="form-group">
         <label class="form-control-label" jhiTranslate="baseApp.reportGeneration.fileDateLabel"
             for="field_fileDate">File Date</label>
-        <input type="text" class="form-control" name="name" id="field_fileDate" required maxlength="10"
-            [(ngModel)]="generateReport.fileDate" style="width: 600px" />
+        <input type="text" class="form-control" name="name" id="field_fileDate" maxlength="10"
+            [(ngModel)]="generateReport.fileDate" style="width: 600px" required />
         <div [hidden]="!(editForm.controls.fileDate?.dirty && editForm.controls.fileDate?.invalid)">
             <small class="form-text text-danger" [hidden]="!editForm.controls.fileDate?.errors?.required"
                 jhiTranslate="entity.validation.required">
@@ -45,12 +45,12 @@
         &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnStartLabel">Transaction Start Date</label>
         <div class="col-3">
             <input class="d-flex" id="field_fromDate" type="date" data-date="" data-date-format="dd MMM yyyy"
-                class="form-control" name="fromDate" [(ngModel)]="generateReport.txnStart" />
+                class="form-control" name="fromDate" [(ngModel)]="generateReport.txnStart" required />
         </div>
         <label jhiTranslate="baseApp.reportGeneration.txnEndLabel">Transaction End Date</label>
         <div class="col-3">
             <input class="d-flex" id="field_toDate" type="date" data-date-format="dd MMM yyyy" class="form-control"
-                name="toDate" [(ngModel)]="generateReport.txnEnd" />
+                name="toDate" [(ngModel)]="generateReport.txnEnd" required />
         </div>
     </div>
     <br />

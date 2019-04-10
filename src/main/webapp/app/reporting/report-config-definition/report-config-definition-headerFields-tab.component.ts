@@ -19,7 +19,7 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
         if (!this.reportDefinition.id) {
             if (!this.reportDefinition.headerSection || this.reportDefinition.headerSection.length === 0) {
                 const reportDefinitionSections = new ReportDefinitionSection();
-                reportDefinitionSections.name = '1';
+                reportDefinitionSections.sectionName = '1';
                 this.reportDefinition.headerSection.push(reportDefinitionSections);
             }
         }
@@ -29,11 +29,11 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
         if (!this.reportDefinition.headerSection || this.reportDefinition.headerSection.length === 0) {
             this.reportDefinition.headerSection = [];
             const reportDefinitionSections = new ReportDefinitionSection();
-            reportDefinitionSections.name = '1';
+            reportDefinitionSections.sectionName = '1';
             this.reportDefinition.headerSection.push(reportDefinitionSections);
         } else {
             const reportDefinitionSections = new ReportDefinitionSection();
-            reportDefinitionSections.name = '' + (this.reportDefinition.headerSection.length + 1);
+            reportDefinitionSections.sectionName = '' + (this.reportDefinition.headerSection.length + 1);
             this.reportDefinition.headerSection.push(reportDefinitionSections);
         }
         this.valueChange();
