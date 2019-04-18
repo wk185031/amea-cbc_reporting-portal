@@ -16,9 +16,10 @@ import { ReportConfigDefinitionMainTabComponent } from './report-config-definiti
 import { ReportConfigDefinitionHeaderFieldsTabComponent } from './report-config-definition-headerFields-tab.component';
 import { ReportConfigDefinitionBodyFieldsTabComponent } from './report-config-definition-bodyFields-tab.component';
 import { ReportConfigDefinitionTrailerFieldsTabComponent } from './report-config-definition-trailerFields-tab.component';
-import { ReportConfigDefinitionQueryTabComponent } from './report-config-definition-query-tab.component';
+import { ReportConfigDefinitionBodyQueryTabComponent } from './report-config-definition-bodyQuery-tab.component';
 import { ReportConfigDefinitionViewComponent } from './report-config-definition-view.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { ReportConfigDefinitionTrailerQueryTabComponent } from './report-config-definition-trailerQuery-tab.component';
 
 const ENTITY_STATES = [
     ...reportConfigDefinitionRoute,
@@ -44,7 +45,8 @@ const ENTITY_STATES = [
         ReportConfigDefinitionHeaderFieldsTabComponent,
         ReportConfigDefinitionBodyFieldsTabComponent,
         ReportConfigDefinitionTrailerFieldsTabComponent,
-        ReportConfigDefinitionQueryTabComponent
+        ReportConfigDefinitionBodyQueryTabComponent,
+        ReportConfigDefinitionTrailerQueryTabComponent
     ],
     entryComponents: [
         ReportConfigDefinitionComponent,
@@ -58,7 +60,8 @@ const ENTITY_STATES = [
         ReportConfigDefinitionHeaderFieldsTabComponent,
         ReportConfigDefinitionBodyFieldsTabComponent,
         ReportConfigDefinitionTrailerFieldsTabComponent,
-        ReportConfigDefinitionQueryTabComponent
+        ReportConfigDefinitionBodyQueryTabComponent,
+        ReportConfigDefinitionTrailerQueryTabComponent
     ],
     providers: [
         NgbActiveModal,

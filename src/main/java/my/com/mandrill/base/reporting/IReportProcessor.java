@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.json.JSONException;
 
 public interface IReportProcessor {
@@ -15,9 +16,15 @@ public interface IReportProcessor {
 
 	void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException;
 
-	void writeBodyHeaderLine(ReportGenerationMgr rgm) throws IOException, JSONException;
+	void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException;
 
-	void writeBodyLine(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException;
+
+	void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException;
+
+	void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, int success,
+			int pagination)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException;
 
 	void writeTrailer(ReportGenerationMgr rgm) throws IOException, JSONException;
@@ -25,17 +32,22 @@ public interface IReportProcessor {
 	void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException;
 
-	String writePdfHeader(ReportGenerationMgr rgm) throws IOException, JSONException;
+	void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading, int pagination)
+			throws IOException, JSONException;
 
-	String writePdfBodyHeaderLine(ReportGenerationMgr rgm) throws IOException, JSONException;
+	void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
+			throws IOException, JSONException;
 
-	String writePdfBodyLine(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading, int success, int pagination)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException;
 
-	String writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException;
 
-	String getFullFileName(String partialFileName, ReportGenerationMgr rgm);
+	String getBodyQuery(ReportGenerationMgr rgm);
 
-	String getQuery(ReportGenerationMgr rgm);
+	String getTrailerQuery(ReportGenerationMgr rgm);
+
 }

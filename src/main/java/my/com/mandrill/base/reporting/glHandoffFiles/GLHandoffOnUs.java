@@ -99,11 +99,11 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (getGlobalFieldValue(field, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-			} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 				line.append(String.format("%-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
 						.replace(' ', '0'));
+			} else if (getGlobalFieldValue(field, true) == null) {
+				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 			} else {
 				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
 			}
@@ -113,7 +113,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	@Override
-	public void writeBodyLine(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	public void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();

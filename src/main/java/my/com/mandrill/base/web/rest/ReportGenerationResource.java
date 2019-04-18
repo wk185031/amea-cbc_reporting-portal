@@ -72,7 +72,8 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
 		reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
 		reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-		reportGenerationMgr.setQuery(reportDefinition.getQuery());
+		reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+		reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 		reportGenerationMgr.setFileDate(getFileDate(fileDate));
 		reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnStart));
 		reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnEnd));

@@ -36,7 +36,8 @@ public class ReportGenerationFields {
 	private String headerFields;
 	private String bodyFields;
 	private String trailerFields;
-	private String query;
+	private String bodyQuery;
+	private String trailerQuery;
 	// Report Definition Section
 	private int sequence;
 	private String sectionName;
@@ -53,9 +54,6 @@ public class ReportGenerationFields {
 	private boolean eol;
 	private boolean endOfSection;
 	private String source;
-	// private int length;
-	// private int maxLength;
-	// private String paddingCharacter;
 	// Report Generation
 	private Date fileDate;
 	private Date txnStartDate;
@@ -152,12 +150,20 @@ public class ReportGenerationFields {
 		this.trailerFields = trailerFields;
 	}
 
-	public String getQuery() {
-		return query;
+	public String getBodyQuery() {
+		return bodyQuery;
 	}
 
-	public void setQuery(String query) {
-		this.query = query;
+	public void setBodyQuery(String bodyQuery) {
+		this.bodyQuery = bodyQuery;
+	}
+
+	public String getTrailerQuery() {
+		return trailerQuery;
+	}
+
+	public void setTrailerQuery(String trailerQuery) {
+		this.trailerQuery = trailerQuery;
 	}
 
 	public int getSequence() {
@@ -312,30 +318,6 @@ public class ReportGenerationFields {
 		this.source = source;
 	}
 
-	// public int getLength() {
-	// return length;
-	// }
-	//
-	// public void setLength(int length) {
-	// this.length = length;
-	// }
-	//
-	// public int getMaxLength() {
-	// return maxLength;
-	// }
-	//
-	// public void setMaxLength(int maxLength) {
-	// this.maxLength = maxLength;
-	// }
-	//
-	// public String getPaddingCharacter() {
-	// return paddingCharacter;
-	// }
-	//
-	// public void setPaddingCharacter(String paddingCharacter) {
-	// this.paddingCharacter = paddingCharacter;
-	// }
-
 	public String format(String eol, boolean fixedLength, Integer eky_id) {
 		String padChar = null;
 		boolean fieldLeading = false;
@@ -362,13 +344,15 @@ public class ReportGenerationFields {
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_SPECIAL_DECIMAL)) { // Format eg. 10.55 to 1055
+		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_SPECIAL_DECIMAL)) { // Format eg. 10.55 to
+																								// 1055
 			padChar = "0";
 			fieldLeading = true;
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue).replace(".", "");
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_FORMAT_DECIMAL)) { // Format eg. 100055 to 1000.55
+		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_FORMAT_DECIMAL)) { // Format eg. 100055 to
+																								// 1000.55
 			padChar = "0";
 			fieldLeading = true;
 			int exponent = fieldFormat.length() - fieldFormat.indexOf(".") - 1;
@@ -383,8 +367,11 @@ public class ReportGenerationFields {
 
 			DecimalFormat formatter = new DecimalFormat(newformat);
 			tempValue = formatter.format(doubleValue);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL_WITHOUT_LEADING_ZEROS)) { // Format eg. 0001000.55 to
-																							// 1000.55
+		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL_WITHOUT_LEADING_ZEROS)) { // Format
+																											// eg.
+																											// 0001000.55
+																											// to
+			// 1000.55
 			padChar = " ";
 			fieldLeading = true;
 			double doubleValue = Double.parseDouble(value);
@@ -418,32 +405,16 @@ public class ReportGenerationFields {
 			padChar = " ";
 			tempValue = value.replaceAll(eol, " ");
 		}
-		// if (fixedLength) {
-		// if (tempValue.length() < csvTxtLength || tempValue.length() < pdfLength) {
-		// if (paddingCharacter != null && !paddingCharacter.isEmpty()) {
-		// padChar = paddingCharacter;
-		// } else if (padChar == null) {
-		// padChar = " ";
-		// }
-		// // tempValue = Padding.add(tempValue, padChar, length, fieldLeading);
-		// } else if (tempValue.length() > csvTxtLength || tempValue.length() >
-		// pdfLength) {
-		// tempValue = tempValue.substring(0, length);
-		// }
-		// } else {
-		// if (tempValue.length() > maxLength && maxLength != 0) {
-		// tempValue = tempValue.substring(0, maxLength);
-		// }
-		// }
 		return tempValue;
 	}
 
 	@Override
 	public String toString() {
-		return "ReportGenerationFields [logger=" + logger + ", fileName=" + fileName + ", fileNamePrefix="
-				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", headerFields=" + headerFields + ", bodyFields="
-				+ bodyFields + ", trailerFields=" + trailerFields + ", query=" + query + ", sequence=" + sequence
+		return "ReportGenerationFields [logger=" + logger + ", reportCategory=" + reportCategory + ", fileName="
+				+ fileName + ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
+				+ fileFormatTmp + ", fileLocation=" + fileLocation + ", processingClass=" + processingClass
+				+ ", headerFields=" + headerFields + ", bodyFields=" + bodyFields + ", trailerFields=" + trailerFields
+				+ ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery + ", sequence=" + sequence
 				+ ", sectionName=" + sectionName + ", fieldName=" + fieldName + ", csvTxtLength=" + csvTxtLength
 				+ ", pdfLength=" + pdfLength + ", fieldType=" + fieldType + ", value=" + value + ", delimiter="
 				+ delimiter + ", fieldFormat=" + fieldFormat + ", defaultValue=" + defaultValue + ", firstField="
@@ -454,16 +425,6 @@ public class ReportGenerationFields {
 
 	public ReportGenerationFields clone(ReportGenerationMgr rgm) {
 		ReportGenerationFields field = new ReportGenerationFields();
-		// field.setFileName(fileName);
-		// field.setFileNamePrefix(fileNamePrefix);
-		// field.setFileFormat(fileFormat);
-		// field.setFileLocation(fileLocation);
-		// field.setProcessingClass(processingClass);
-		// field.setHeaderFields(headerFields);
-		// field.setBodyFields(bodyFields);
-		// field.setTrailerFields(trailerFields);
-		// field.setQuery(query);
-		// field.setSequence(sequence);
 		field.setSectionName(sectionName);
 		field.setFieldName(fieldName);
 		field.setCsvTxtLength(csvTxtLength);
@@ -478,13 +439,6 @@ public class ReportGenerationFields {
 		field.setEol(eol);
 		field.setEndOfSection(endOfSection);
 		field.setSource(source);
-		// field.setLength(length);
-		// field.setMaxLength(maxLength);
-		// field.setPaddingCharacter(paddingCharacter);
-		// field.setFileDate(fileDate);
-		// field.setTxnStartDate(txnStartDate);
-		// field.setTxnEndDate(txnEndDate);
-		// field.setGenerate(isGenerate);
 		return field;
 	}
 }

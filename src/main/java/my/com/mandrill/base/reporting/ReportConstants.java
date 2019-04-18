@@ -10,6 +10,9 @@ public final class ReportConstants {
 	public static final String DB_USERNAME = "spring.datasource.username";
 	public static final String DB_PASSWORD = "spring.datasource.password";
 
+	// Report Category
+	public static final String GL_HANDOFF_FILES = "GL Handoff Files";
+			
 	// Report Generation Time
 	public static final String START_TIME = "00:00:00";
 	public static final String END_TIME = "23:59:59";
@@ -54,6 +57,7 @@ public final class ReportConstants {
 	public static final String TXT_FORMAT = ".txt";
 
 	// Report Fields
+	public static final String PAGE_NUMBER = "Page Number";
 	public static final String TODAYS_DATE_VALUE = "Todays Date Value";
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
 	public static final String RUNDATE_VALUE = "RunDate Value";
@@ -61,4 +65,10 @@ public final class ReportConstants {
 	public static final String FILE_UPLOAD_DATE = "File Upload Date";
 	public static final String FILE_NAME = "File Name";
 	public static final String NO_OF_DATA_RECORDS = "Number of Data Records";
+	public static final String LINE = "Line";
+	public static final String BRANCH = "BRANCH";
+	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
+	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
+	public static final String DESCRIPTION = "DESCRIPTION";
+	public static final int SUCCESS_THRESHOLD = 70;
 }

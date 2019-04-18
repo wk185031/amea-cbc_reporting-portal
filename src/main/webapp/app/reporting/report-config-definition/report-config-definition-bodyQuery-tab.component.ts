@@ -2,10 +2,10 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ReportDefinition } from './report-config-definition.model';
 
 @Component({
-    selector: 'report-config-definition-query-tab',
-    templateUrl: './report-config-definition-query-tab.component.html'
+    selector: 'report-config-definition-bodyQuery-tab',
+    templateUrl: './report-config-definition-bodyQuery-tab.component.html'
 })
-export class ReportConfigDefinitionQueryTabComponent implements OnInit {
+export class ReportConfigDefinitionBodyQueryTabComponent implements OnInit {
 
     @Output() onValueChange = new EventEmitter<boolean>();
     @Input() reportDefinition: ReportDefinition;

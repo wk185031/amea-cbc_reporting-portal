@@ -63,25 +63,30 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	@Column(name = "red_processing_class", length = 255)
 	private String processingClass;
 
-//	@Size(max = 1000)
-//	@Column(name = "red_header_fields", length = 1000)
+	// @Size(max = 1000)
+	// @Column(name = "red_header_fields", length = 1000)
 	@Column(name = "red_header_fields")
 	private String headerFields;
 
-//	@Size(max = 1000)
-//	@Column(name = "red_body_fields", length = 1000)
+	// @Size(max = 1000)
+	// @Column(name = "red_body_fields", length = 1000)
 	@Column(name = "red_body_fields")
 	private String bodyFields;
 
-//	@Size(max = 1000)
-//	@Column(name = "red_trailer_fields", length = 1000)
+	// @Size(max = 1000)
+	// @Column(name = "red_trailer_fields", length = 1000)
 	@Column(name = "red_trailer_fields")
 	private String trailerFields;
 
-//	@Size(max = 2000)
-//	@Column(name = "red_query", length = 2000)
-	@Column(name = "red_query")
-	private String query;
+	// @Size(max = 2000)
+	// @Column(name = "red_query", length = 2000)
+	@Column(name = "red_body_query")
+	private String bodyQuery;
+
+	// @Size(max = 2000)
+	// @Column(name = "red_query", length = 2000)
+	@Column(name = "red_trailer_query")
+	private String trailerQuery;
 
 	@ManyToOne(optional = false)
 	@NotNull
@@ -214,17 +219,30 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 		this.trailerFields = trailerFields;
 	}
 
-	public String getQuery() {
-		return query;
+	public String getBodyQuery() {
+		return bodyQuery;
 	}
 
-	public ReportDefinition query(String query) {
-		this.query = query;
+	public ReportDefinition bodyQuery(String bodyQuery) {
+		this.bodyQuery = bodyQuery;
 		return this;
 	}
 
-	public void setQuery(String query) {
-		this.query = query;
+	public void setBodyQuery(String bodyQuery) {
+		this.bodyQuery = bodyQuery;
+	}
+
+	public String getTrailerQuery() {
+		return trailerQuery;
+	}
+
+	public ReportDefinition trailerQuery(String trailerQuery) {
+		this.trailerQuery = trailerQuery;
+		return this;
+	}
+
+	public void setTrailerQuery(String trailerQuery) {
+		this.trailerQuery = trailerQuery;
 	}
 
 	public ReportCategory getReportCategory() {
@@ -264,22 +282,10 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 
 	@Override
 	public String toString() {
-		return "ReportDefinition{" + 
-				"id=" + getId() + 
-				", name='" + getName() + "'" + 
-				", description='" + getDescription() + "'" + 
-				", fileNamePrefix='" + getFileNamePrefix() + "'" + 
-				", fileFormat='" + getFileFormat() + "'" + 
-				", fileLocation='" + getFileLocation() + "'" + 
-				", processingClass='" + getProcessingClass() + "'" + 
-				", headerFields='" + getHeaderFields() + "'" + 
-				", bodyFields='" + getBodyFields() + "'" + 
-				", trailerFields='" + getTrailerFields() + "'" + 
-				", query='" + getQuery() + "'" + 
-				", createdBy='" + getCreatedBy() + "'" + 
-				", createdDate='" + getCreatedDate() + "'" + 
-				", lastModifiedBy='" + getLastModifiedBy() + "'" + 
-				", lastModifiedDate='" + getLastModifiedDate() + "'" + 
-				"}";
+		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
+				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
+				+ ", processingClass=" + processingClass + ", headerFields=" + headerFields + ", bodyFields="
+				+ bodyFields + ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery + ", trailerQuery="
+				+ trailerQuery + ", red=" + red + "]";
 	}
 }

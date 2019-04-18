@@ -10,10 +10,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -33,6 +31,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public FileOutputStream fileOutputStream;
 	public int success = 0;
 	public int errors = 0;
+	public int pagination = 0;
 
 	public int getSuccess() {
 		return success;
@@ -48,6 +47,14 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 	public void setErrors(int errors) {
 		this.errors = errors;
+	}
+
+	public int getPagination() {
+		return pagination;
+	}
+
+	public void setPagination(int pagination) {
+		this.pagination = pagination;
 	}
 
 	public void run(String url, String username, String password) {
@@ -106,78 +113,53 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private void generatePdfFile(ReportGenerationMgr rgm) {
 		logger.debug("In ReportGenerationMgr.generatePdfFile()");
 		PDDocument doc = null;
+		pagination = 1;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
 			doc.addPage(page);
 			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.TIMES_ROMAN;
+			PDFont pdfFont = PDType1Font.COURIER;
 			float fontSize = 6;
 			float leading = 1.5f * fontSize;
-			PDRectangle mediabox = page.getMediaBox();
-			float margin = 35;
-			float width = mediabox.getWidth() - 2 * margin;
-			float startX = mediabox.getLowerLeftX() + margin;
-			float startY = mediabox.getUpperRightY() - margin;
+			PDRectangle pageSize = page.getMediaBox();
+			float margin = 30;
+			float width = pageSize.getWidth() - 2 * margin;
+			float startX = pageSize.getLowerLeftX() + margin;
+			float startY = pageSize.getUpperRightY() - margin;
 
-			preProcessing(this);
-			postProcessing(this);
+			preProcessing(rgm);
 
-			List<String> printHeaderLine = printHeaderLine(this, pdfFont, fontSize, leading, margin, width, startX,
-					startY);
-			List<String> printBodyHeaderLine = printBodyHeaderLine(this, pdfFont, fontSize, leading, margin, width,
-					startX, startY);
-			List<String> printBodyLine = printBodyLine(this, pdfFont, fontSize, leading, margin, width, startX, startY);
-			List<String> printTrailerLine = printTrailerLine(this, pdfFont, fontSize, leading, margin, width, startX,
-					startY);
-
-			contentStream.beginText();
 			contentStream.setFont(pdfFont, fontSize);
-			contentStream.newLineAtOffset(startX, startY - 1);
-
-			for (String headerLine : printHeaderLine) {
-				contentStream.showText(headerLine);
-				contentStream.newLineAtOffset(0, -leading);
-			}
-			for (String bodyHeaderLine : printBodyHeaderLine) {
-				contentStream.showText(bodyHeaderLine);
-				contentStream.newLineAtOffset(0, -leading);
-			}
-			for (String bodyLine : printBodyLine) {
-				contentStream.showText(bodyLine);
-				contentStream.newLineAtOffset(0, -leading);
-			}
-			for (String trailerLine : printTrailerLine) {
-				contentStream.showText(trailerLine);
-				contentStream.newLineAtOffset(0, -leading);
-			}
-			contentStream.endText();
-			contentStream.close();
+			contentStream.beginText();
+			contentStream.newLineAtOffset(startX, startY);
+			reportProcessor.writePdfHeader(rgm, contentStream, leading, pagination);
+			reportProcessor.writePdfBodyHeader(rgm, contentStream, leading);
+			executePdfBodyQuery(doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+			postProcessing(rgm);
 
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String txnDate = df.format(this.getTxnEndDate());
-			if (this.getReportCategory().contains("GL")) {
+			String txnDate = df.format(rgm.getTxnEndDate());
+			if (rgm.getReportCategory().contains(ReportConstants.GL_HANDOFF_FILES)) {
 				doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
 						+ ReportConstants.PDF_FORMAT));
 			} else {
 				doc.save(new File(
 						rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT));
 			}
-		} catch (IOException e) {
+			success = 0;
+		} catch (IOException | JSONException e) {
 			logger.error("Error in generating PDF file", e);
 		} finally {
 			if (doc != null) {
 				try {
 					doc.close();
-					exit();
+					rgm.exit();
 				} catch (IOException e) {
 					logger.error("Error in closing PDF file", e);
 				}
 			}
 		}
-
-		logger.debug("The number of successfully exported items is {} ", success);
-		logger.debug("The number of errors during the export process is {}", errors);
 	}
 
 	private void generateNormalFile() {
@@ -186,7 +168,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		if (this.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_CSV)) {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 			String txnDate = df.format(this.getTxnEndDate());
-			if (this.getReportCategory().contains("GL")) {
+			if (this.getReportCategory().contains(ReportConstants.GL_HANDOFF_FILES)) {
 				file = new File(this.getFileLocation() + this.getFileNamePrefix() + "_" + txnDate + "_" + "001"
 						+ ReportConstants.CSV_FORMAT);
 				glFilesProcessing(file);
@@ -199,7 +181,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		if (this.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 			String txnDate = df.format(this.getTxnEndDate());
-			if (this.getReportCategory().contains("GL")) {
+			if (this.getReportCategory().contains(ReportConstants.GL_HANDOFF_FILES)) {
 				file = new File(this.getFileLocation() + this.getFileNamePrefix() + "_" + txnDate + "_" + "001"
 						+ ReportConstants.TXT_FORMAT);
 				glFilesProcessing(file);
@@ -209,9 +191,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 				reportsProcessing(file);
 			}
 		}
-
-		logger.debug("The number of successfully exported items is {} ", success);
-		logger.debug("The number of errors during the export process is {}", errors);
+		success = 0;
 	}
 
 	private void glFilesProcessing(File file) {
@@ -219,8 +199,8 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			fileOutputStream = new FileOutputStream(file);
 			reportProcessor.preProcessing(this);
 			reportProcessor.writeHeader(this);
-			reportProcessor.writeBodyHeaderLine(this);
-			executeBodyLineQuery();
+			reportProcessor.writeBodyHeader(this);
+			executeGLBodyQuery();
 			reportProcessor.postProcessing(this);
 			reportProcessor.writeTrailer(this);
 			fileOutputStream.flush();
@@ -241,14 +221,14 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	}
 
 	private void reportsProcessing(File file) {
+		pagination = 1;
 		try {
 			fileOutputStream = new FileOutputStream(file);
 			reportProcessor.preProcessing(this);
-			reportProcessor.writeHeader(this);
-			reportProcessor.writeBodyHeaderLine(this);
-			executeBodyLineQuery();
+			reportProcessor.writeHeader(this, pagination);
+			reportProcessor.writeBodyHeader(this);
+			executeReportBodyQuery();
 			reportProcessor.postProcessing(this);
-			executeTrailerLineQuery();
 			fileOutputStream.flush();
 			fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -307,151 +287,268 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		}
 	}
 
-	private String writePdfHeader(ReportGenerationMgr rgm) {
-		logger.debug("In ReportGenerationMgr.writePdfHeader()");
-		String headerLine = "";
-		try {
-			headerLine = reportProcessor.writePdfHeader(rgm);
-		} catch (Exception e) {
-			logger.error("Error trying to write the header", e);
-		}
-		return headerLine;
-	}
-
-	private String writePdfBodyHeader(ReportGenerationMgr rgm) {
-		logger.debug("In ReportGenerationMgr.writePdfBodyHeader()");
-		String bodyHeaderLine = "";
-		try {
-			bodyHeaderLine = reportProcessor.writePdfBodyHeaderLine(rgm);
-		} catch (Exception e) {
-			logger.error("Error trying to write the header", e);
-		}
-		return bodyHeaderLine;
-	}
-
-	private void executeBodyLineQuery() {
-		logger.debug("In ReportGenerationMgr.executeBodyLineQuery()");
+	private void executeGLBodyQuery() {
+		logger.debug("In ReportGenerationMgr.executeGLBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		try {
-			String query = reportProcessor.getQuery(this);
-			logger.info("Query for body line export: {}", query);
-			ps = connection.prepareStatement(query);
-			rs = ps.executeQuery();
-			fieldsMap = getQueryResultStructure(rs);
-
-			while (rs.next()) {
-				new StringBuffer();
-				lineFieldsMap = getLineFieldsMap(fieldsMap);
-				for (String key : lineFieldsMap.keySet()) {
-					ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-					Object result;
-					try {
-						result = rs.getObject(field.getSource());
-					} catch (SQLException e) {
-						errors++;
-						logger.error("An error was encountered when trying to write a line", e);
-						continue;
-					}
-					if (result != null) {
-						if (result instanceof Date) {
-							field.setValue(Long.toString(((Date) result).getTime()));
-						} else if (result instanceof oracle.sql.TIMESTAMP) {
-							field.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-						} else if (result instanceof oracle.sql.DATE) {
-							field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-						} else {
-							Class clazz = result.getClass();
-							field.setValue(result.toString());
-						}
-					} else {
-						field.setValue("");
-					}
-				}
-				reportProcessor.writeBodyLine(this, lineFieldsMap);
-				success++;
-			}
-		} catch (Exception e) {
-			logger.error("Error trying to execute the body line export query", e);
-		} finally {
+		String query = reportProcessor.getBodyQuery(this);
+		logger.info("Query for body line export: {}", query);
+		if (query != null && !query.isEmpty()) {
 			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				logger.error("Error closing DB resources", e);
+				ps = connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					reportProcessor.writeBody(this, lineFieldsMap);
+					success++;
+				}
+			} catch (Exception e) {
+				logger.error("Error trying to execute the body line export query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
+				}
 			}
 		}
 	}
 
-	private String executePdfBodyLineQuery() {
+	private void executeReportBodyQuery() {
+		logger.debug("In ReportGenerationMgr.executeReportBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = reportProcessor.getBodyQuery(this);
+		logger.info("Query for body line export: {}", query);
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					if (success > ReportConstants.SUCCESS_THRESHOLD) {
+						success = 0;
+						pagination++;
+						reportProcessor.writeHeader(this, pagination);
+
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									Class clazz = result.getClass();
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+						}
+						reportProcessor.writeBody(this, lineFieldsMap, success, pagination);
+						success++;
+					} else {
+						new StringBuffer();
+						lineFieldsMap = getLineFieldsMap(fieldsMap);
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									Class clazz = result.getClass();
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+						}
+						reportProcessor.writeBody(this, lineFieldsMap, success, pagination);
+						success++;
+					}
+				}
+				executeTrailerQuery();
+			} catch (Exception e) {
+				logger.error("Error trying to execute the body line export query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
+	private void executePdfBodyQuery(PDDocument doc, PDPageContentStream contentStream, PDRectangle pageSize,
+			float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
 		logger.debug("In ReportGenerationMgr.executePdfBodyLineQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		try {
-			String query = reportProcessor.getQuery(this);
-			logger.info("Query for body line export: {}", query);
-			ps = connection.prepareStatement(query);
-			rs = ps.executeQuery();
-			fieldsMap = getQueryResultStructure(rs);
-
-			while (rs.next()) {
-				new StringBuffer();
+		String query = reportProcessor.getBodyQuery(this);
+		logger.info("Query for body line export: {}", query);
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = getQueryResultStructure(rs);
 				lineFieldsMap = getLineFieldsMap(fieldsMap);
-				for (String key : lineFieldsMap.keySet()) {
-					ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-					Object result;
-					try {
-						result = rs.getObject(field.getSource());
-					} catch (SQLException e) {
-						errors++;
-						logger.error("An error was encountered when trying to write a line", e);
-						continue;
-					}
-					if (result != null) {
-						if (result instanceof Date) {
-							field.setValue(Long.toString(((Date) result).getTime()));
-						} else if (result instanceof oracle.sql.TIMESTAMP) {
-							field.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-						} else if (result instanceof oracle.sql.DATE) {
-							field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-						} else {
-							Class clazz = result.getClass();
-							field.setValue(result.toString());
+
+				while (rs.next()) {
+					if (success > ReportConstants.SUCCESS_THRESHOLD) {
+						success = 0;
+						PDPage page = new PDPage();
+						doc.addPage(page);
+						pagination++;
+						contentStream.endText();
+						contentStream.close();
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+						reportProcessor.writePdfHeader(this, contentStream, leading, pagination);
+
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									Class clazz = result.getClass();
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
 						}
+						reportProcessor.writePdfBody(this, lineFieldsMap, contentStream, leading, success, pagination);
+						success++;
 					} else {
-						field.setValue("");
+						new StringBuffer();
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									Class clazz = result.getClass();
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+						}
+						reportProcessor.writePdfBody(this, lineFieldsMap, contentStream, leading, success, pagination);
+						success++;
 					}
 				}
-				writePdfBody(this, lineFieldsMap);
-				success++;
-			}
-		} catch (Exception e) {
-			logger.error("Error trying to execute the body line export query", e);
-		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				logger.error("Error closing DB resources", e);
+				executePdfTrailerQuery(doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+				contentStream.endText();
+				contentStream.close();
+			} catch (Exception e) {
+				logger.error("Error trying to execute the body line export query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
+				}
 			}
 		}
-		return writePdfBody(this, lineFieldsMap);
-	}
-
-	private String writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> lineFieldsMap) {
-		logger.debug("In ReportGenerationMgr.writePdfBody()");
-		String bodyLine = "";
-		try {
-			bodyLine = reportProcessor.writePdfBodyLine(rgm, lineFieldsMap);
-		} catch (Exception e) {
-			errors++;
-			logger.error("An error was encountered when trying to write a line", e);
-		}
-		return bodyLine;
 	}
 
 	private void postProcessing(ReportGenerationMgr rgm) {
@@ -463,280 +560,122 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		}
 	}
 
-	private void executeTrailerLineQuery() {
+	private void executeTrailerQuery() {
 		logger.debug("In ReportGenerationMgr.executeTrailerLineQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		try {
-			String query = reportProcessor.getQuery(this);
-			// logger.info("\t\t Query for trailer line export: {}", query);
-			ps = connection.prepareStatement(query);
-			rs = ps.executeQuery();
-			fieldsMap = getQueryResultStructure(rs);
-
-			while (rs.next()) {
-				new StringBuffer();
-				lineFieldsMap = getLineFieldsMap(fieldsMap);
-				for (String key : lineFieldsMap.keySet()) {
-					ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-					Object result;
-					try {
-						result = rs.getObject(field.getSource());
-					} catch (SQLException e) {
-						errors++;
-						logger.error("An error was encountered when trying to write a line", e);
-						continue;
-					}
-					if (result != null) {
-						if (result instanceof Date) {
-							field.setValue(Long.toString(((Date) result).getTime()));
-						} else if (result instanceof oracle.sql.TIMESTAMP) {
-							field.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-						} else if (result instanceof oracle.sql.DATE) {
-							field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-						} else {
-							Class clazz = result.getClass();
-							field.setValue(result.toString());
-						}
-					} else {
-						field.setValue("");
-					}
-				}
-				reportProcessor.writeTrailer(this, lineFieldsMap);
-				success++;
-			}
-		} catch (Exception e) {
-			logger.error("Error trying to execute the export query ", e);
-		} finally {
+		String query = reportProcessor.getTrailerQuery(this);
+		logger.info("Query for trailer line export: {}", query);
+		if (query != null && !query.isEmpty()) {
 			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				logger.error("Error closing DB resources", e);
+				ps = connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					reportProcessor.writeTrailer(this, lineFieldsMap);
+					success++;
+				}
+			} catch (Exception e) {
+				logger.error("Error trying to execute the export query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
+				}
 			}
 		}
 	}
 
-	private String executePdfTrailerLineQuery() {
+	private void executePdfTrailerQuery(PDDocument doc, PDPageContentStream contentStream, PDRectangle pageSize,
+			float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
 		logger.debug("In ReportGenerationMgr.executePdfTrailerLineQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		try {
-			String query = reportProcessor.getQuery(this);
-			// logger.info("\t\t Query for trailer line export: {}", query);
-			ps = connection.prepareStatement(query);
-			rs = ps.executeQuery();
-			fieldsMap = getQueryResultStructure(rs);
-
-			while (rs.next()) {
-				new StringBuffer();
-				lineFieldsMap = getLineFieldsMap(fieldsMap);
-				for (String key : lineFieldsMap.keySet()) {
-					ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-					Object result;
-					try {
-						result = rs.getObject(field.getSource());
-					} catch (SQLException e) {
-						errors++;
-						logger.error("An error was encountered when trying to write a line", e);
-						continue;
-					}
-					if (result != null) {
-						if (result instanceof Date) {
-							field.setValue(Long.toString(((Date) result).getTime()));
-						} else if (result instanceof oracle.sql.TIMESTAMP) {
-							field.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-						} else if (result instanceof oracle.sql.DATE) {
-							field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-						} else {
-							Class clazz = result.getClass();
-							field.setValue(result.toString());
-						}
-					} else {
-						field.setValue("");
-					}
-				}
-				writePdfTrailer(this, lineFieldsMap);
-				success++;
-			}
-		} catch (Exception e) {
-			logger.error("Error trying to execute the export query ", e);
-		} finally {
+		String query = reportProcessor.getTrailerQuery(this);
+		logger.info("Query for trailer line export: {}", query);
+		if (query != null && !query.isEmpty()) {
 			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				logger.error("Error closing DB resources", e);
-			}
-		}
-		return writePdfTrailer(this, lineFieldsMap);
-	}
+				ps = connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = getQueryResultStructure(rs);
 
-	private String writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> lineFieldsMap) {
-		logger.debug("In ReportGenerationMgr.writePdfTrailer()");
-		String trailerLine = "";
-		try {
-			trailerLine = reportProcessor.writePdfTrailer(rgm, lineFieldsMap);
-		} catch (Exception e) {
-			errors++;
-			logger.error("An error was encountered when trying to write a line", e);
-		}
-		return trailerLine;
-	}
-
-	private List<String> printHeaderLine(ReportGenerationMgr rgm, PDFont pdfFont, float fontSize, float leading,
-			float margin, float width, float startX, float startY) {
-		logger.debug("In ReportGenerationMgr.printHeaderLine()");
-		List<String> lines = new ArrayList<String>();
-		try {
-			String headerLine = writePdfHeader(rgm);
-			int lastSpace = -1;
-			while (headerLine.length() > 0) {
-				int spaceIndex = headerLine.indexOf(' ', lastSpace + 1);
-				if (spaceIndex < 0) {
-					spaceIndex = headerLine.length();
-				}
-				String subString = headerLine.substring(0, spaceIndex);
-				float size = fontSize * pdfFont.getStringWidth(subString) / 1000;
-				// System.out.printf("'%s' - %f of %f\n", subString, size, width);
-				if (size > width) {
-					if (lastSpace < 0) {
-						lastSpace = spaceIndex;
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
 					}
-					subString = headerLine.substring(0, lastSpace);
-					lines.add(subString);
-					headerLine = headerLine.substring(lastSpace).trim();
-					// System.out.printf("'%s' is line\n", subString);
-					lastSpace = -1;
-				} else if (spaceIndex == headerLine.length()) {
-					lines.add(headerLine);
-					// System.out.printf("'%s' is line\n", headerLine);
-					headerLine = "";
-				} else {
-					lastSpace = spaceIndex;
+					reportProcessor.writePdfTrailer(this, lineFieldsMap, contentStream, leading);
+					success++;
+				}
+			} catch (Exception e) {
+				logger.error("Error trying to execute the export query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
 				}
 			}
-		} catch (IOException e) {
-			logger.error("Error printing header line for PDF", e);
 		}
-		return lines;
-	}
-
-	private List<String> printBodyHeaderLine(ReportGenerationMgr rgm, PDFont pdfFont, float fontSize, float leading,
-			float margin, float width, float startX, float startY) {
-		logger.debug("In ReportGenerationMgr.printBodyHeaderLine()");
-		List<String> lines = new ArrayList<String>();
-		try {
-			String bodyHeaderLine = writePdfBodyHeader(rgm);
-			int lastSpace = -1;
-			while (bodyHeaderLine.length() > 0) {
-				int spaceIndex = bodyHeaderLine.indexOf(' ', lastSpace + 1);
-				if (spaceIndex < 0) {
-					spaceIndex = bodyHeaderLine.length();
-				}
-				String subString = bodyHeaderLine.substring(0, spaceIndex);
-				float size = fontSize * pdfFont.getStringWidth(subString) / 1000;
-				// System.out.printf("'%s' - %f of %f\n", subString, size, width);
-				if (size > width) {
-					if (lastSpace < 0) {
-						lastSpace = spaceIndex;
-					}
-					subString = bodyHeaderLine.substring(0, lastSpace);
-					lines.add(subString);
-					bodyHeaderLine = bodyHeaderLine.substring(lastSpace).trim();
-					// System.out.printf("'%s' is line\n", subString);
-					lastSpace = -1;
-				} else if (spaceIndex == bodyHeaderLine.length()) {
-					lines.add(bodyHeaderLine);
-					// System.out.printf("'%s' is line\n", bodyHeaderLine);
-					bodyHeaderLine = "";
-				} else {
-					lastSpace = spaceIndex;
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Error printing body header line for PDF", e);
-		}
-		return lines;
-	}
-
-	private List<String> printBodyLine(ReportGenerationMgr rgm, PDFont pdfFont, float fontSize, float leading,
-			float margin, float width, float startX, float startY) {
-		logger.debug("In ReportGenerationMgr.printBodyLine()");
-		List<String> lines = new ArrayList<String>();
-		try {
-			String bodyLine = executePdfBodyLineQuery();
-			int lastSpace = -1;
-			while (bodyLine.length() > 0) {
-				int spaceIndex = bodyLine.indexOf(' ', lastSpace + 1);
-				if (spaceIndex < 0) {
-					spaceIndex = bodyLine.length();
-				}
-				String subString = bodyLine.substring(0, spaceIndex);
-				float size = fontSize * pdfFont.getStringWidth(subString) / 1000;
-				// System.out.printf("'%s' - %f of %f\n", subString, size, width);
-				if (size > width) {
-					if (lastSpace < 0) {
-						lastSpace = spaceIndex;
-					}
-					subString = bodyLine.substring(0, lastSpace);
-					lines.add(subString);
-					bodyLine = bodyLine.substring(lastSpace).trim();
-					// System.out.printf("'%s' is line\n", subString);
-					lastSpace = -1;
-				} else if (spaceIndex == bodyLine.length()) {
-					lines.add(bodyLine);
-					// System.out.printf("'%s' is line\n", bodyLine);
-					bodyLine = "";
-				} else {
-					lastSpace = spaceIndex;
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Error printing body line for PDF", e);
-		}
-		return lines;
-	}
-
-	private List<String> printTrailerLine(ReportGenerationMgr rgm, PDFont pdfFont, float fontSize, float leading,
-			float margin, float width, float startX, float startY) {
-		logger.debug("In ReportGenerationMgr.printTrailerLine()");
-		List<String> lines = new ArrayList<String>();
-		try {
-			String trailerLine = executePdfTrailerLineQuery();
-			int lastSpace = -1;
-			while (trailerLine.length() > 0) {
-				int spaceIndex = trailerLine.indexOf(' ', lastSpace + 1);
-				if (spaceIndex < 0) {
-					spaceIndex = trailerLine.length();
-				}
-				String subString = trailerLine.substring(0, spaceIndex);
-				float size = fontSize * pdfFont.getStringWidth(subString) / 1000;
-				// System.out.printf("'%s' - %f of %f\n", subString, size, width);
-				if (size > width) {
-					if (lastSpace < 0) {
-						lastSpace = spaceIndex;
-					}
-					subString = trailerLine.substring(0, lastSpace);
-					lines.add(subString);
-					trailerLine = trailerLine.substring(lastSpace).trim();
-					// System.out.printf("'%s' is line\n", subString);
-					lastSpace = -1;
-				} else if (spaceIndex == trailerLine.length()) {
-					lines.add(trailerLine);
-					// System.out.printf("'%s' is line\n", trailerLine);
-					trailerLine = "";
-				} else {
-					lastSpace = spaceIndex;
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Error printing trailer line for PDF", e);
-		}
-		return lines;
 	}
 }

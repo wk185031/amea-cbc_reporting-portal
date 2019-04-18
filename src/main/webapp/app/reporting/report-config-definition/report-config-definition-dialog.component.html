@@ -51,12 +51,24 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.queryTab">Query</span>
+                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.bodyQueryTab">Body SQL
+                    Query</span>
             </ng-template>
             <ng-template ngbTabContent>
-                <report-config-definition-query-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                <report-config-definition-bodyQuery-tab [reportDefinition]="reportDefinition" [isEdit]="true"
                     (onValueChange)="valueChange($event)">
-                </report-config-definition-query-tab>
+                </report-config-definition-bodyQuery-tab>
+            </ng-template>
+        </ngb-tab>
+        <ngb-tab>
+            <ng-template ngbTabTitle>
+                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.trailerQueryTab">Trailer
+                    SQL Query</span>
+            </ng-template>
+            <ng-template ngbTabContent>
+                <report-config-definition-trailerQuery-tab [reportDefinition]="reportDefinition" [isEdit]="true"
+                    (onValueChange)="valueChange($event)">
+                </report-config-definition-trailerQuery-tab>
             </ng-template>
         </ngb-tab>
     </ngb-tabset>

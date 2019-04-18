@@ -7,30 +7,37 @@
             <div class="col-md-12">
                 <div class="tab_container new-tabContain">
                     <input class="newinput" (change)="tabValue = 'content1'" id="tab1" type="radio" name="tabs" checked>
-                    <label class="label_dash" for="tab1" style="width: 20% !important;">
+                    <label class="label_dash" for="tab1" style="width: 15% !important;">
                         <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.mainDetailsTab">Details</span>
                         <span class="fa fa-file show-icon"></span>
                     </label>
                     <input class="newinput" (change)="tabValue = 'content2'" id="tab2" type="radio" name="tabs">
-                    <label class="label_dash" for="tab2" style="width: 20% !important;">
+                    <label class="label_dash" for="tab2" style="width: 15% !important;">
                         <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.headerFieldsTab">Header
                             Fields</span>
                         <span class="fa fa-file show-icon"></span>
                     </label>
                     <input class="newinput" (change)="tabValue = 'content3'" id="tab3" type="radio" name="tabs">
-                    <label class="label_dash" for="tab3" style="width: 20% !important;">
+                    <label class="label_dash" for="tab3" style="width: 15% !important;">
                         <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.bodyFieldsTab">Body Fields</span>
                         <span class="fa fa-file show-icon"></span>
                     </label>
                     <input class="newinput" (change)="tabValue = 'content4'" id="tab4" type="radio" name="tabs">
-                    <label class="label_dash" for="tab4" style="width: 20% !important;">
+                    <label class="label_dash" for="tab4" style="width: 15% !important;">
                         <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.trailerFieldsTab">Trailer
                             Fields</span>
                         <span class="fa fa-file show-icon"></span>
                     </label>
                     <input class="newinput" (change)="tabValue = 'content5'" id="tab5" type="radio" name="tabs">
-                    <label class="label_dash" for="tab5" style="width: 20% !important;">
-                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.queryTab">SQL Query</span>
+                    <label class="label_dash" for="tab5" style="width: 15% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.bodyQueryTab">Body SQL
+                            Query</span>
+                        <span class="fa fa-file show-icon"></span>
+                    </label>
+                    <input class="newinput" (change)="tabValue = 'content6'" id="tab6" type="radio" name="tabs">
+                    <label class="label_dash" for="tab6" style="width: 15% !important;">
+                        <span class="hide-icon" jhiTranslate="baseApp.reportDefinition.trailerQueryTab">Trailer SQL
+                            Query</span>
                         <span class="fa fa-file show-icon"></span>
                     </label>
                     <section id="content1" class="tab-content section_dash">
@@ -108,11 +115,20 @@
                         </div>
                     </section>
                     <section id="content5" class="tab-content section_dash" style="overflow: auto;">
-                        <div *ngIf="reportDefinition.query">
+                        <div *ngIf="reportDefinition.bodyQuery">
                             <div class="col-8" *ngIf="tabValue === 'content5'">
-                                <report-config-definition-query-tab [reportDefinition]="reportDefinition"
+                                <report-config-definition-bodyQuery-tab [reportDefinition]="reportDefinition"
                                     [isEdit]="false">
-                                </report-config-definition-query-tab>
+                                </report-config-definition-bodyQuery-tab>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="content6" class="tab-content section_dash" style="overflow: auto;">
+                        <div *ngIf="reportDefinition.trailerQuery">
+                            <div class="col-8" *ngIf="tabValue === 'content6'">
+                                <report-config-definition-trailerQuery-tab [reportDefinition]="reportDefinition"
+                                    [isEdit]="false">
+                                </report-config-definition-trailerQuery-tab>
                             </div>
                         </div>
                     </section>

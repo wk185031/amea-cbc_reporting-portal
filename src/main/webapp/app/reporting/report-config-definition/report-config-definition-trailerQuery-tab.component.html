@@ -6,11 +6,11 @@
                     query :</label>
                 <br />
                 <!-- <input type="text" class="form-control" name="query" id="field_query" maxlength="2000" /> -->
-                <textarea #query id="query_box" name="query" cols="100" rows="20" maxlength="2000"
-                    (keyup)="resize(query, $event.target.value)" [(ngModel)]="reportDefinition.query"
+                <textarea #trailerQuery id="trailerQuery_box" name="trailerQuery" cols="100" rows="20" maxlength="2000"
+                    (keyup)="resize(trailerQuery, $event.target.value)" [(ngModel)]="reportDefinition.trailerQuery"
                     [disabled]="!isEdit"></textarea>
-                <div [hidden]="!(editForm.controls.query?.dirty && editForm.controls.query?.invalid)">
-                    <small class="form-text text-danger" [hidden]="!editForm.controls.query?.errors?.maxlength"
+                <div [hidden]="!(editForm.controls.trailerQuery?.dirty && editForm.controls.trailerQuery?.invalid)">
+                    <small class="form-text text-danger" [hidden]="!editForm.controls.trailerQuery?.errors?.maxlength"
                         jhiTranslate="entity.validation.maxlength" translateValues="{ max: 2000 }">
                         This field cannot be longer than 2000 characters.
                     </small>
