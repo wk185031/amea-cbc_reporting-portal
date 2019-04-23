@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class GeneralReportProcess implements IReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
-	HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
-	String eol = System.lineSeparator();
+	private HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
+	private String eol = System.lineSeparator();
 
 	public HashMap<String, ReportGenerationFields> getGlobalFileFieldsMap() {
 		return globalFileFieldsMap;
@@ -39,21 +38,65 @@ public class GeneralReportProcess implements IReportProcessor {
 	public void setEol(String eol) {
 		this.eol = eol;
 	}
-
+	
 	@Override
-	public void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		addPreProcessingFieldsToGlobalMap(rgm);
-		performPreProcessingTransformations(globalFileFieldsMap);
+	public void processPdfRecord(ReportGenerationMgr rgm) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
-	public void postProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		addPostProcessingFieldsToGlobalMap(rgm);
-		performPostProcessingTransformations(globalFileFieldsMap);
+	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
+		// TODO Auto-generated method stub
+		
 	}
 
+	@Override
+	public String getBodyQuery(ReportGenerationMgr rgm) {
+		String query = rgm.getBodyQuery();
+		StringBuffer sb = new StringBuffer();
+		if (query != null) {
+			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]");
+			Matcher m = p.matcher(query);
+			while (m.find()) {
+				String paramName = m.group().substring(1, m.group().length() - 1);
+				if (globalFileFieldsMap.containsKey(paramName)) {
+					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
+				} else {
+					logger.error("No field defined for parameter ", paramName);
+				}
+
+			}
+			m.appendTail(sb);
+		} else {
+			logger.debug("*** Body query is null or empty");
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public String getTrailerQuery(ReportGenerationMgr rgm) {
+		String query = rgm.getTrailerQuery();
+		StringBuffer sb = new StringBuffer();
+		if (query != null) {
+			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]");
+			Matcher m = p.matcher(query);
+			while (m.find()) {
+				String paramName = m.group().substring(1, m.group().length() - 1);
+				if (globalFileFieldsMap.containsKey(paramName)) {
+					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
+				} else {
+					logger.error("No field defined for parameter ", paramName);
+				}
+
+			}
+			m.appendTail(sb);
+		} else {
+			logger.debug("*** Trailer query is null or empty");
+		}
+		return sb.toString();
+	}
+	
 	protected List<ReportGenerationFields> extractHeaderFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -120,60 +163,6 @@ public class GeneralReportProcess implements IReportProcessor {
 		return trailerFields;
 	}
 
-	@Override
-	public String getBodyQuery(ReportGenerationMgr rgm) {
-		String query = rgm.getBodyQuery();
-		StringBuffer sb = new StringBuffer();
-		if (query != null) {
-			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]"); // the expression\
-			Matcher m = p.matcher(query);
-			while (m.find()) {
-				String paramName = m.group().substring(1, m.group().length() - 1);
-				if (globalFileFieldsMap.containsKey(paramName)) {
-					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
-				} else {
-					logger.error("No field defined for parameter ", paramName);
-				}
-
-			}
-			m.appendTail(sb);
-		} else {
-
-		}
-		return sb.toString();
-	}
-
-	@Override
-	public String getTrailerQuery(ReportGenerationMgr rgm) {
-		String query = rgm.getTrailerQuery();
-		StringBuffer sb = new StringBuffer();
-		if (query != null) {
-			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]"); // the expression\
-			Matcher m = p.matcher(query);
-			while (m.find()) {
-				String paramName = m.group().substring(1, m.group().length() - 1);
-				if (globalFileFieldsMap.containsKey(paramName)) {
-					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
-				} else {
-					logger.error("No field defined for parameter ", paramName);
-				}
-
-			}
-			m.appendTail(sb);
-		} else {
-
-		}
-		return sb.toString();
-	}
-
-	protected void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		// TODO Auto-generated method stub
-	}
-
-	protected void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		// TODO Auto-generated method stub
-	}
-
 	protected String getGlobalFieldValue(ReportGenerationFields fieldConfig, boolean fixedLength) {
 		String fieldValue = null;
 		if (fieldConfig.getDefaultValue() != null && !fieldConfig.getDefaultValue().equalsIgnoreCase("")) {
@@ -231,7 +220,7 @@ public class GeneralReportProcess implements IReportProcessor {
 		// }
 	}
 
-	private void performPostProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
+	protected void performPostProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
 		// for (ActionDescriptor actionDesc :
@@ -267,76 +256,5 @@ public class GeneralReportProcess implements IReportProcessor {
 		// }
 		//
 		// }
-	}
-
-	@Override
-	public void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		extractHeaderFields(rgm);
-	}
-
-	@Override
-	public void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		extractBodyHeaderFields(rgm);
-	}
-
-	@Override
-	public void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		extractBodyFields(rgm);
-	}
-
-	@Override
-	public void writeTrailer(ReportGenerationMgr rgm) throws IOException, JSONException {
-		extractTrailerFields(rgm);
-	}
-
-	@Override
-	public void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		extractTrailerFields(rgm);
-	}
-
-	@Override
-	public void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
-			int pagination) throws IOException, JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, int success, int pagination)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, int success,
-			int pagination)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		// TODO Auto-generated method stub
-
 	}
 }

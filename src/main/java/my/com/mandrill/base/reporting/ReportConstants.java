@@ -34,6 +34,9 @@ public final class ReportConstants {
 	// Report Generation Parameter
 	public static final String PARAM_FILE_DATE = "FileDate";
 	public static final String PARAM_TXN_DATE = "Txn_Date";
+	public static final String PARAM_BRANCH_CODE = "Branch_Code";
+	public static final String PARAM_BRANCH_NAME = "Branch_Name";
+	public static final String PARAM_TERMINAL = "Terminal";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -66,9 +69,12 @@ public final class ReportConstants {
 	public static final String FILE_NAME = "File Name";
 	public static final String NO_OF_DATA_RECORDS = "Number of Data Records";
 	public static final String LINE = "Line";
-	public static final String BRANCH = "BRANCH";
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
 	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
 	public static final String DESCRIPTION = "DESCRIPTION";
+	public static final String BRANCH_CODE = "BRANCH CODE";
+	public static final String BRANCH_NAME = "BRANCH NAME";
+	public static final String TERMINAL = "TERMINAL";
+	public static final String COMMENT = "COMMENT";
 	public static final int SUCCESS_THRESHOLD = 70;
 }

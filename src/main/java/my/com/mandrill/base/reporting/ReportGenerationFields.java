@@ -38,6 +38,7 @@ public class ReportGenerationFields {
 	private String trailerFields;
 	private String bodyQuery;
 	private String trailerQuery;
+	private String tmpBodyQuery;
 	// Report Definition Section
 	private int sequence;
 	private String sectionName;
@@ -164,6 +165,14 @@ public class ReportGenerationFields {
 
 	public void setTrailerQuery(String trailerQuery) {
 		this.trailerQuery = trailerQuery;
+	}
+
+	public String getTmpBodyQuery() {
+		return tmpBodyQuery;
+	}
+
+	public void setTmpBodyQuery(String tmpBodyQuery) {
+		this.tmpBodyQuery = tmpBodyQuery;
 	}
 
 	public int getSequence() {
@@ -414,13 +423,13 @@ public class ReportGenerationFields {
 				+ fileName + ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
 				+ fileFormatTmp + ", fileLocation=" + fileLocation + ", processingClass=" + processingClass
 				+ ", headerFields=" + headerFields + ", bodyFields=" + bodyFields + ", trailerFields=" + trailerFields
-				+ ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery + ", sequence=" + sequence
-				+ ", sectionName=" + sectionName + ", fieldName=" + fieldName + ", csvTxtLength=" + csvTxtLength
-				+ ", pdfLength=" + pdfLength + ", fieldType=" + fieldType + ", value=" + value + ", delimiter="
-				+ delimiter + ", fieldFormat=" + fieldFormat + ", defaultValue=" + defaultValue + ", firstField="
-				+ firstField + ", bodyHeader=" + bodyHeader + ", eol=" + eol + ", endOfSection=" + endOfSection
-				+ ", source=" + source + ", fileDate=" + fileDate + ", txnStartDate=" + txnStartDate + ", txnEndDate="
-				+ txnEndDate + ", generate=" + generate + "]";
+				+ ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery + ", tmpBodyQuery=" + tmpBodyQuery
+				+ ", sequence=" + sequence + ", sectionName=" + sectionName + ", fieldName=" + fieldName
+				+ ", csvTxtLength=" + csvTxtLength + ", pdfLength=" + pdfLength + ", fieldType=" + fieldType
+				+ ", value=" + value + ", delimiter=" + delimiter + ", fieldFormat=" + fieldFormat + ", defaultValue="
+				+ defaultValue + ", firstField=" + firstField + ", bodyHeader=" + bodyHeader + ", eol=" + eol
+				+ ", endOfSection=" + endOfSection + ", source=" + source + ", fileDate=" + fileDate + ", txnStartDate="
+				+ txnStartDate + ", txnEndDate=" + txnEndDate + ", generate=" + generate + "]";
 	}
 
 	public ReportGenerationFields clone(ReportGenerationMgr rgm) {
