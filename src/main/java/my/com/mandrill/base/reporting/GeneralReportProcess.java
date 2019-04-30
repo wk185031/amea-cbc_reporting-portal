@@ -186,9 +186,9 @@ public class GeneralReportProcess implements IReportProcessor {
 		fieldConfig.setValue(fieldValue);
 
 		Integer eky_id = null;
-		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
+//		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
 			// eky_id = SecurityManager.getCurrentKeyIndex();
-		}
+//		}
 		return fieldConfig.format(eol, fixedLength, eky_id);
 	}
 
@@ -207,9 +207,9 @@ public class GeneralReportProcess implements IReportProcessor {
 		fieldConfig.setValue(fieldValue);
 
 		Integer eky_id = null;
-		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
+//		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
 			// eky_id = SecurityManager.getCurrentKeyIndex();
-		}
+//		}
 		return fieldConfig.format(eol, fixedLength, eky_id);
 	}
 

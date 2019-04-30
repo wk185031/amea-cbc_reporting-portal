@@ -1,0 +1,83 @@
+<div>
+    <h2>
+        <span jhiTranslate="baseApp.taskGroup.home.mainTitle">Task Management</span>
+        <button class="btn btn-primary float-right jh-create-name create-task-group" [routerLink]="['/', { outlets: { popup: ['task-group-new'] } }]">
+            <span class="fa fa-plus"></span>
+            <span class="hidden-sm-down"  jhiTranslate="baseApp.taskGroup.home.createLabel">
+            Create new Task Group
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <div class="row">
+        <div class="col-sm-12">
+            <form name="searchForm" class="form-inline">
+                <div class="input-group w-100 mt-3">
+                    <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.taskGroup.home.search' | translate }}">
+                    <button class="input-group-append btn btn-info" (click)="search(currentSearch)">
+                        <span class="fa fa-search"></span>
+                    </button>
+                    <button class="input-group-append btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                        <span class="fa fa-trash-o"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="taskGroups">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+            <!-- <th><span jhiTranslate="global.field.id">ID</span></th> -->
+            <th><span jhiTranslate="baseApp.taskGroup.name">Name</span></th>
+            <th><span jhiTranslate="baseApp.taskGroup.description">Description</span></th>
+            <th><span jhiTranslate="baseApp.taskGroup.status">Status</span></th>
+            <th><span jhiTranslate="baseApp.taskGroup.createdBy">Created By</span></th>
+            <th><span jhiTranslate="baseApp.taskGroup.createdDate">Created Date</span></th>
+            <!-- <th><span jhiTranslate="baseApp.taskGroup.lastModifiedBy">Last Modified By</span></th> -->
+            <!-- <th><span jhiTranslate="baseApp.taskGroup.lastModifiedDate">Last Modified Date</span></th> -->
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let taskGroup of taskGroups ;trackBy: trackId">
+                <!-- <td><a [routerLink]="['../task-group', taskGroup.id ]">{{taskGroup.id}}</a></td> -->
+                <td>{{taskGroup.name}}</td>
+                <td>{{taskGroup.description}}</td>
+                <td>{{taskGroup.status}}</td>
+                <td>{{taskGroup.createdBy}}</td>
+                <td>{{taskGroup.createdDate | date:'medium'}}</td>
+                <!-- <td>{{taskGroup.lastModifiedBy}}</td> -->
+                <!-- <td>{{taskGroup.lastModifiedDate | date:'medium'}}</td> -->
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button type="submit"
+                                [routerLink]="['../task-group', taskGroup.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'task-group/'+ taskGroup.id + '/edit'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'task-group/'+ taskGroup.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

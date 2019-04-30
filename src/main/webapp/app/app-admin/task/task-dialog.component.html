@@ -1,0 +1,105 @@
+<form name="editForm" role="form" novalidate (ngSubmit)="save()" #editForm="ngForm">
+
+    <div class="modal-header">
+        <h4 class="modal-title" id="myTaskLabel" jhiTranslate="baseApp.task.home.createOrEditLabel">Create or edit a Attachment</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                (click)="clear()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <jhi-alert-error></jhi-alert-error>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.name" for="field_name">Name</label>
+            <input type="text" class="form-control" name="name" id="field_name"
+                [(ngModel)]="task.name" required maxlength="100"/>
+            <div [hidden]="!(editForm.controls.name?.dirty && editForm.controls.name?.invalid)">
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.name?.errors?.required" jhiTranslate="entity.validation.required">
+                   This field is required.
+                </small>
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.name?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 100 }">
+                   This field cannot be longer than 100 characters.
+                </small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.description" for="field_description">Description</label>
+            <input type="text" class="form-control" name="description" id="field_description"
+                [(ngModel)]="task.description" maxlength="1000"/>
+            <div [hidden]="!(editForm.controls.description?.dirty && editForm.controls.description?.invalid)">
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.description?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 1000 }">
+                   This field cannot be longer than 1000 characters.
+                </small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.content" for="field_content">Content</label>
+            ​<textarea class="form-control" name="content" id="field_content" rows="5" cols="70" 
+                maxlength="3000" [(ngModel)]="task.content"></textarea>
+            <div [hidden]="!(editForm.controls.content?.dirty && editForm.controls.content?.invalid)">
+                <!-- <small class="form-text text-danger"
+                    [hidden]="!editForm.controls.content?.errors?.required" jhiTranslate="entity.validation.required">
+                    This field is required.
+                 </small> -->
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.content?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 3000 }">
+                   This field cannot be longer than 3000 characters.
+                </small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.sequence" for="field_sequence">Sequence</label>
+            <input type="number" class="form-control" name="sequence" id="field_sequence" [(ngModel)]="task.sequence" required/>
+            <div [hidden]="!(editForm.controls.sequence?.dirty && editForm.controls.sequence?.invalid)">
+                <small class="form-text text-danger"
+                    [hidden]="!editForm.controls.sequence?.errors?.required" jhiTranslate="entity.validation.required">
+                    This field is required.
+                 </small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.type" for="field_type">Type</label>
+            <input type="text" class="form-control" name="type" id="field_type"
+                [(ngModel)]="task.type" maxlength="100" required/>
+            <div [hidden]="!(editForm.controls.type?.dirty && editForm.controls.type?.invalid)">
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.type?.errors?.required" jhiTranslate="entity.validation.required">
+                   This field is required.
+                </small>
+                <small class="form-text text-danger"
+                   [hidden]="!editForm.controls.type?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" translateValues="{ max: 100 }">
+                   This field cannot be longer than 100 characters.
+                </small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.status" for="status">Status</label>
+            <select class="form-control" id="field_status" name="status" required [(ngModel)]="task.status">
+                <option *ngFor="let status of statusList" [value]="status">
+                    {{status}}
+                </option>
+            </select>    
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" jhiTranslate="baseApp.task.taskGroup" for="field_taskGroup">Task Group</label>
+            <select class="form-control" id="field_taskGroup" name="taskGroup" [(ngModel)]="task.taskGroup"  required>
+                <option [ngValue]="taskGroupOption.id === task.taskGroup?.id ? task.taskGroup : taskGroupOption" *ngFor="let taskGroupOption of taskgroups">{{taskGroupOption.name}}</option>
+            </select>
+            <div [hidden]="!(editForm.controls.taskGroup?.dirty && editForm.controls.taskGroup?.invalid)">
+                <small class="form-text text-danger"
+                    [hidden]="!editForm.controls.taskGroup?.errors?.required" jhiTranslate="entity.validation.required">
+                    This field is required.
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="clear()">
+            <span class="fa fa-ban"></span>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+        <button type="submit" [disabled]="editForm.form.invalid || isSaving" class="btn btn-primary">
+            <span class="fa fa-save"></span>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+    </div>
+</form>

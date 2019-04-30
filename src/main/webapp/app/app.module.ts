@@ -36,6 +36,7 @@ import { ReportConfigCategoryModule } from './reporting/report-config-category/r
 import { ReportConfigDefinitionModule } from './reporting/report-config-definition/report-config-definition.module';
 import { DashboardModule } from './reporting/dashboard/dashboard.module';
 import { GenerateReportModule } from './reporting/generate-report/generate-report.module';
+import { DatabaseSynchronizationModule } from './reporting/database-synchronization/database-synchronization.module';
 
 @NgModule({
     imports: [
@@ -53,7 +54,8 @@ import { GenerateReportModule } from './reporting/generate-report/generate-repor
         ReportConfigCategoryModule,
         ReportConfigDefinitionModule,
         DashboardModule,
-        GenerateReportModule
+        GenerateReportModule,
+        DatabaseSynchronizationModule
     ],
     declarations: [
         JhiMainComponent,
