@@ -172,27 +172,6 @@
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" routerLink="job" routerLinkActive="active"
-                            (click)="collapseNavbar()">
-                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
-                            <span jhiTranslate="global.menu.admin.jobManagement">Jobs Management</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" routerLink="task-group" routerLinkActive="active"
-                            (click)="collapseNavbar()">
-                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
-                            <span jhiTranslate="global.menu.admin.taskGroupsManagement">Task Groups Management</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" routerLink="task" routerLinkActive="active"
-                            (click)="collapseNavbar()">
-                            <i class="fa fa-fw fa-list" aria-hidden="true"></i>
-                            <span jhiTranslate="global.menu.admin.tasksManagement">Tasks Management</span>
-                        </a>
-                    </li>
-                    <li>
                         <a class="dropdown-item" routerLink="audits" routerLinkActive="active"
                             (click)="collapseNavbar()">
                             <i class="fa fa-fw fa-bell" aria-hidden="true"></i>
@@ -265,6 +244,27 @@
                     </span>
                 </a>
                 <ul class="dropdown-menu" ngbDropdownMenu>
+                    <li>
+                        <a class="dropdown-item" routerLink="job" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.jobManagement">Jobs Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="task-group" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.taskGroupsManagement">Task Groups Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="task" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.tasksManagement">Tasks Management</span>
+                        </a>
+                    </li>
                     <li>
                         <a class="dropdown-item" routerLink="database-synchronization" routerLinkActive="active"
                             [routerLinkActiveOptions]="{ exact: true }" (click)="collapseNavbar()">

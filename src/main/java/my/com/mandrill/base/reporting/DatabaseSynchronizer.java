@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -51,19 +52,19 @@ import my.com.mandrill.base.web.rest.JobHistoryResource;
 public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private final Logger log = LoggerFactory.getLogger(DatabaseSynchronizer.class);
-	private static final String DRIVER = "oracle.jdbc.OracleDriver";
-	private static final String DB_URL = "jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain";
-	private static final String USERNAME = "CBC_OWNER";
     private final JobRepository jobRepository;
 	private final TaskGroupRepository taskGroupRepository;
     private final TaskRepository taskRepository;
     private final JobHistoryResource jobHistoryResource;
-        
-	public DatabaseSynchronizer(JobRepository jobRepository, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository, JobHistoryResource jobHistoryResource) {
+    private final Environment env;
+    
+	public DatabaseSynchronizer(JobRepository jobRepository, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository, 
+								JobHistoryResource jobHistoryResource, Environment env) {
 		this.jobRepository = jobRepository;
 		this.taskRepository = taskRepository;
 		this.taskGroupRepository = taskGroupRepository;
 		this.jobHistoryResource = jobHistoryResource;
+		this.env = env;
 	}
 	
 	TaskScheduler taskScheduler;
@@ -115,8 +116,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	@PostMapping("/synchronize-database/{user}")
     public void synchronizeDatabase(@PathVariable String user) throws Exception {
         log.debug("REST request to Synchronize Database");
-        Class.forName(DRIVER);
-        Connection conn = DriverManager.getConnection(DB_URL, USERNAME, USERNAME);
+        Connection conn = DriverManager.getConnection(env.getProperty(ReportConstants.DB_URL), env.getProperty(ReportConstants.DB_USERNAME),
+				env.getProperty(ReportConstants.DB_PASSWORD));
         
         long start = 0;
         long end = 0;
