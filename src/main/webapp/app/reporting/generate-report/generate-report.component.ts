@@ -46,9 +46,9 @@ export class GenerateReportComponent implements OnInit {
         fromDate.setDate(fromDate.getDate() - 1);
         this.generateReport.txnStart = this.formatDateString(fromDate);
 
-        this.reportConfigDefinitionService.query().subscribe((response: HttpResponse<ReportDefinition[]>) => {
+        this.reportConfigDefinitionService.queryNoPaging().subscribe((response: HttpResponse<ReportDefinition[]>) => {
             this.allReports = response.body;
-            this.reportConfigCategoryService.query().subscribe((response: HttpResponse<ReportCategory[]>) => {
+            this.reportConfigCategoryService.queryNoPaging().subscribe((response: HttpResponse<ReportCategory[]>) => {
                 this.categories = response.body;
                 if (this.categories || this.categories.length > 0) {
                     this.category = this.categories[0];

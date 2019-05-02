@@ -9,7 +9,10 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -25,60 +28,70 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	private final Logger logger = LoggerFactory.getLogger(GLHandoffOnUs.class);
 	private int success = 0;
 	private int errors = 0;
-	private int pagination = 0;
+	private String debitBodyQuery = null;
+	private String creditBodyQuery = null;
+	private String criteriaQuery = null;
 
-	public int getSuccess() {
-		return success;
+	public String getDebitBodyQuery() {
+		return debitBodyQuery;
 	}
 
-	public void setSuccess(int success) {
-		this.success = success;
+	public void setDebitBodyQuery(String debitBodyQuery) {
+		this.debitBodyQuery = debitBodyQuery;
 	}
 
-	public int getErrors() {
-		return errors;
+	public String getCreditBodyQuery() {
+		return creditBodyQuery;
 	}
 
-	public void setErrors(int errors) {
-		this.errors = errors;
+	public void setCreditBodyQuery(String creditBodyQuery) {
+		this.creditBodyQuery = creditBodyQuery;
 	}
 
-	public int getPagination() {
-		return pagination;
+	public String getCriteriaQuery() {
+		return criteriaQuery;
 	}
 
-	public void setPagination(int pagination) {
-		this.pagination = pagination;
+	public void setCriteriaQuery(String criteriaQuery) {
+		this.criteriaQuery = criteriaQuery;
 	}
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffOnUs.processCsvTxtRecord()");
 		File file = null;
+		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-		String txnDate = df.format(rgm.getTxnEndDate());
 
-		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_CSV)) {
-			file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
-					+ ReportConstants.CSV_FORMAT);
-			execute(file, rgm);
-
+		if (rgm.isGenerate() == true) {
+			txnDate = df.format(rgm.getFileDate());
+		} else {
+			txnDate = df.format(rgm.getTxnEndDate());
 		}
+
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
 			file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
 					+ ReportConstants.TXT_FORMAT);
 			execute(file, rgm);
-
 		}
 	}
 
 	private void execute(File file, ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.execute()");
+		String branchCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
+			separateDebitCreditQuery(rgm);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			executeBodyQuery(rgm);
+			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
+			while (branchCodeItr.hasNext()) {
+				branchCode = branchCodeItr.next();
+				preProcessing(rgm, branchCode);
+				rgm.setBodyQuery(getDebitBodyQuery());
+				executeBodyQuery(rgm, branchCode);
+				rgm.setBodyQuery(getCreditBodyQuery());
+				executeBodyQuery(rgm, branchCode);
+			}
 			postProcessing(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
@@ -98,9 +111,66 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		}
 	}
 
+	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffOnUs.filterByCriteria()");
+		String branchCode = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedSet<String> branchCodeList = new TreeSet<>();
+		rgm.setBodyQuery(getCriteriaQuery());
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter criteria: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
+							}
+						}
+					}
+					branchCodeList.add(branchCode);
+				}
+			} catch (Exception e) {
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return branchCodeList;
+	}
+
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffOnUs.writePdfBody()");
+		if (getCriteriaQuery() != null
+				&& getCriteriaQuery().indexOf("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}") != 0) {
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+		}
+
 		if (rgm.isGenerate() == true) {
 			if (rgm.getTxnStartDate() != null && rgm.getTxnEndDate() != null) {
 				String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
@@ -116,24 +186,36 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 				getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 			} else {
-				logger.debug("\t\t txnStartDate or txnEndDate is empty or null");
+				logger.debug("txnStartDate or txnEndDate is empty or null");
 			}
 		} else {
-			// String ytdDate = new
-			// SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(epm.getYesterdayDate()).concat("
-			// ").concat(kftcStartTimePropertyValue);
-			// String todayDate = new
-			// SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(epm.getTodayDate()).concat("
-			// ").concat(mepsEndTimePropertyValue);
-
-			// Field dateField = new Field(ReportConstants.PARAM_TXN_DATE,
-			// Field.TYPE_STRING, "TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + ytdDate + "', '"
-			// + ReportConstants.FORMAT_TXN_DATE + "') AND TXN.TRL_SYSTEM_TIMESTAMP <
-			// TO_DATE('" + todayDate + "','" + ReportConstants.FORMAT_TXN_DATE + "')");
-			// getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+			// TBD
 		}
 		addPreProcessingFieldsToGlobalMap(rgm);
 		performPreProcessingTransformations(getGlobalFileFieldsMap());
+	}
+
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In GLHandoffOnUs.preProcessing()");
+		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+		}
+	}
+
+	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffOnUs.separateDebitCreditquery()");
+		if (rgm.getBodyQuery() != null) {
+			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_START),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setCreditBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replaceFirst(ReportConstants.SUBSTRING_END, ""));
+			setCriteriaQuery(getDebitBodyQuery());
+		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -150,7 +232,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 				getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
 				getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
 			} else {
-				logger.debug("\t\t txnStartDate or txnEndDate is empty or null");
+				logger.debug("txnStartDate or txnEndDate is empty or null");
 			}
 		} else {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -175,7 +257,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffOnUs.addPostProcessingFieldsToGlobalMap()");
 		ReportGenerationFields noOfRecords = new ReportGenerationFields(ReportConstants.NO_OF_DATA_RECORDS,
-				ReportGenerationFields.TYPE_NUMBER, Integer.toString((getSuccess())));
+				ReportGenerationFields.TYPE_NUMBER, Integer.toString(success));
 		getGlobalFileFieldsMap().put(noOfRecords.getFieldName(), noOfRecords);
 	}
 
@@ -198,20 +280,28 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
-					|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-				line.append(String.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-						.replace(' ', '0').replaceAll("null", "0000"));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+			if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AC_NUMBER)) {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap, true)));
+				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					line.append(
+							String.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
+									.replace(' ', '0').replaceAll("null", "0000"));
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+				} else {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
+				}
 			} else {
-				line.append(
-						String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
+				// Do not print
 			}
 		}
 		line.append(getEol());
@@ -237,7 +327,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void executeBodyQuery(ReportGenerationMgr rgm) {
+	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
 		logger.debug("In GLHandoffOnUs.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -281,7 +371,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap);
+					writeBody(rgm, lineFieldsMap, branchCode);
 					success++;
 				}
 			} catch (Exception e) {

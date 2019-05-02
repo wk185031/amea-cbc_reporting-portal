@@ -17,6 +17,7 @@ export class ReportConfigDefinitionService {
     private resourceSearchUrl = SERVER_API_URL + 'api/_search/reportDefinition';
     private resourceUrlNoPaging = SERVER_API_URL + 'api/reportDefinition-nopaging';
     private resourcGetParenteUrl = SERVER_API_URL + 'api/reportDefinition-parent-for-reportDefinition-and-user';
+    private resourceReportDefinitionStructures = SERVER_API_URL + 'api/reportDefinition-structures';
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
 
@@ -97,5 +98,10 @@ export class ReportConfigDefinitionService {
         copy.createdDate = this.dateUtils.toDate(reportDefinition.createdDate);
         copy.lastModifiedDate = this.dateUtils.toDate(reportDefinition.lastModifiedDate);
         return copy;
+    }
+
+    findReportDefinitionStructures(): Observable<HttpResponse<any>> {
+        return this.http.get<any>(`${this.resourceReportDefinitionStructures}`, { observe: 'response' })
+            .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
     }
 }

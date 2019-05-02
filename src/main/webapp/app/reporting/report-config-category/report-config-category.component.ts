@@ -30,7 +30,7 @@ export class ReportConfigCategoryComponent implements OnInit, OnDestroy {
     }
 
     loadAll() {
-        this.reportConfigCategoryService.query().subscribe((response: HttpResponse<ReportCategory[]>) => {
+        this.reportConfigCategoryService.queryNoPaging().subscribe((response: HttpResponse<ReportCategory[]>) => {
             this.reportCategory = response.body;
         }, (response: HttpErrorResponse) => this.onError(response.message));
     }

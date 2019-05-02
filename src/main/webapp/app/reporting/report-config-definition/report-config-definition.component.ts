@@ -6,6 +6,7 @@ import { ReportDefinition } from './report-config-definition.model';
 import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { Principal } from '../../shared';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { TreeModule } from 'angular-tree-component';
 
 @Component({
     selector: 'report-config-definition',
@@ -18,6 +19,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
     reportDefinition: ReportDefinition[];
     reportDefinitionId: number;
     mode: string;
+    nodes: TreeModule;
 
     constructor(
         private reportConfigDefinitionService: ReportConfigDefinitionService,
@@ -28,9 +30,11 @@ export class ReportConfigDefinitionComponent implements OnInit {
     }
 
     loadAll() {
-        this.reportConfigDefinitionService.query().subscribe((response: HttpResponse<ReportDefinition[]>) => {
-            this.reportDefinition = response.body;
-        }, (response: HttpErrorResponse) => this.onError(response.message));
+        this.reportConfigDefinitionService.findReportDefinitionStructures().subscribe(
+            (response: HttpResponse<any>) => {
+                this.nodes = response.body;
+            },
+            (response: HttpErrorResponse) => this.onError(response.message));
     }
 
     ngOnInit() {
@@ -58,14 +62,24 @@ export class ReportConfigDefinitionComponent implements OnInit {
     }
 
     onNotify(id: number): void {
-        this.reportDefinitionId = id;
+        let index = 0;
+        while (this.nodes[index]) {
+            if (this.nodes[index].children) {
+                let indexChildren = 0;
+                while (this.nodes[index].children[indexChildren]) {
+                    if (this.nodes[index].children[indexChildren].id === id) {
+                        this.reportDefinitionId = this.nodes[index].children[indexChildren].actualId;
+                        return;
+                    }
+                    indexChildren++;
+                }
+            }
+            index++;
+        }
+        this.reportDefinitionId = null;
     }
 
     private onError(error) {
         this.jhiAlertService.error(error.message, null, null);
-    }
-
-    onClick(id: number) {
-        this.reportDefinitionId = id;
     }
 }

@@ -5,14 +5,13 @@
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.enterQueryLabel">Enter your SQL
                     query :</label>
                 <br />
-                <!-- <input type="text" class="form-control" name="query" id="field_query" maxlength="2000" /> -->
-                <textarea #bodyQuery id="bodyQuery_box" name="bodyQuery" cols="100" rows="20" maxlength="2000"
+                <textarea #bodyQuery id="bodyQuery_box" name="bodyQuery" cols="100" rows="20" maxlength="5000"
                     (keyup)="resize(bodyQuery, $event.target.value)" [(ngModel)]="reportDefinition.bodyQuery"
                     [disabled]="!isEdit"></textarea>
                 <div [hidden]="!(editForm.controls.bodyQuery?.dirty && editForm.controls.bodyQuery?.invalid)">
                     <small class="form-text text-danger" [hidden]="!editForm.controls.bodyQuery?.errors?.maxlength"
-                        jhiTranslate="entity.validation.maxlength" translateValues="{ max: 2000 }">
-                        This field cannot be longer than 2000 characters.
+                        jhiTranslate="entity.validation.maxlength" translateValues="{ max: 5000 }">
+                        This field cannot be longer than 5000 characters.
                     </small>
                 </div>
             </div>

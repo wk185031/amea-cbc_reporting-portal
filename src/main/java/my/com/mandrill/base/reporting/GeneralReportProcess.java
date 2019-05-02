@@ -38,7 +38,7 @@ public class GeneralReportProcess implements IReportProcessor {
 	public void setEol(String eol) {
 		this.eol = eol;
 	}
-	
+
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		// TODO Auto-generated method stub
@@ -48,7 +48,7 @@ public class GeneralReportProcess implements IReportProcessor {
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class GeneralReportProcess implements IReportProcessor {
 		}
 		return sb.toString();
 	}
-	
+
 	protected List<ReportGenerationFields> extractHeaderFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -201,60 +201,26 @@ public class GeneralReportProcess implements IReportProcessor {
 		}
 		return fieldConfig.format(eol, fixedLength, eky_id);
 	}
+	
+	protected void generateFileHash() {
+		
+	}
 
 	protected void performPreProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
-		// for (ActionDescriptor actionDesc :
-		// exportDataStructure.getPreProcessingActionsList()) {
-		// Class<?> tr = Class.forName(actionDesc.getPath());
-		// Class<? extends TransformationI> interfaceClass =
-		// tr.asSubclass(TransformationI.class);
-		// TransformationI action = interfaceClass.newInstance();
-		// Field fieldResult = action.process(fieldsMap, poolDBObjects,
-		// actionDesc.getFieldsName(), actionDesc.getResult());
-		// if (fieldResult != null) {
-		// fieldsMap.put(fieldResult.getName(), fieldResult);
-		// }
-		//
-		// }
+		// TBD
 	}
 
 	protected void performPostProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
-		// for (ActionDescriptor actionDesc :
-		// exportDataStructure.getPostProcessingActionsList()) {
-		// Class<?> tr = Class.forName(actionDesc.getPath());
-		// Class<? extends TransformationI> interfaceClass =
-		// tr.asSubclass(TransformationI.class);
-		// TransformationI action = interfaceClass.newInstance();
-		// ReportGenerationFields fieldResult = action.process(fieldsMap, poolDBObjects,
-		// actionDesc.getFieldsName(),
-		// actionDesc.getResult());
-		// if (fieldResult != null) {
-		// fieldsMap.put(fieldResult.getFieldName(), fieldResult);
-		// }
-		//
-		// }
+		// TBD
 	}
 
 	protected void performTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
-		// for (ActionDescriptor actionDesc :
-		// exportDataStructure.getTransformationActionList()) {
-		// Class<?> tr = Class.forName(actionDesc.getPath());
-		// Class<? extends TransformationI> interfaceClass =
-		// tr.asSubclass(TransformationI.class);
-		// TransformationI action = interfaceClass.newInstance();
-		// ReportGenerationFields fieldResult = action.process(fieldsMap, poolDBObjects,
-		// actionDesc.getFieldsName(),
-		// actionDesc.getResult());
-		// if (fieldResult != null) {
-		// fieldsMap.put(fieldResult.getFieldName(), fieldResult);
-		// }
-		//
-		// }
+		// TBD
 	}
 }

@@ -1,7 +1,7 @@
 {
-  "name": "base",
+  "name": "reporting-portal",
   "version": "0.0.0",
-  "description": "Description for base",
+  "description": "Description for reporting-portal",
   "private": true,
   "license": "UNLICENSED",
   "cacheDirectories": [

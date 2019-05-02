@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 public class ReportGenerationFields {
 
 	private final Logger logger = LoggerFactory.getLogger(ReportGenerationFields.class);
-	public static final String TYPE_NEWLINE = "NEWLINE";
 	public static final String TYPE_NUMBER = "NUMBER";
 	public static final String TYPE_SPECIAL_NUMBER = "SPECIAL_NUMBER";
 	public static final String TYPE_FORMAT_NUMBER = "FORMAT_NUMBER";
@@ -23,7 +22,7 @@ public class ReportGenerationFields {
 	public static final String TYPE_SPECIAL_STRING = "SPECIAL_STRING";
 	public static final String TYPE_BIN = "BIN";
 	public static final String TYPE_ENCRYPTED_STRING = "ENCRYPTED";
-	public static final String DEFAULT_DATE_FORMAT = "yyy/MM/dd HH:mm:ss";
+	public static final String DEFAULT_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
 
 	// Report Definition
 	private String reportCategory;

@@ -60,6 +60,7 @@ public final class ReportConstants {
 	public static final String TXT_FORMAT = ".txt";
 
 	// Report Fields
+	public static final String AC_NUMBER = "A/C Number";
 	public static final String PAGE_NUMBER = "Page Number";
 	public static final String TODAYS_DATE_VALUE = "Todays Date Value";
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
@@ -69,12 +70,24 @@ public final class ReportConstants {
 	public static final String FILE_NAME = "File Name";
 	public static final String NO_OF_DATA_RECORDS = "Number of Data Records";
 	public static final String LINE = "Line";
-	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
-	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
-	public static final String DESCRIPTION = "DESCRIPTION";
 	public static final String BRANCH_CODE = "BRANCH CODE";
 	public static final String BRANCH_NAME = "BRANCH NAME";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
+	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
+	public static final String ACCOUNT_NUMBER = "ACCOUNT NUMBER";
+	public static final String DESCRIPTION = "DESCRIPTION";
+	public static final String ACCOUNT = "ACCOUNT";
 	public static final String COMMENT = "COMMENT";
-	public static final int SUCCESS_THRESHOLD = 70;
+	public static final String DEBITS = "DEBITS";
+	public static final String CREDITS = "CREDITS";
+	public static final int PAGE_HEIGHT_THRESHOLD = 70;
+	
+	// Result Code Description
+	public static final String APPROVED = "Approved";
+	
+	// Query
+	public static final String SUBSTRING_START = "SELECT";
+	public static final String SUBSTRING_END = "END";
+	public static final String SUBSTRING_SECOND_QUERY_START = "END SELECT";
 }
