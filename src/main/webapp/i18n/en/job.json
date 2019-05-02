@@ -1,0 +1,53 @@
+
+{
+    "baseApp": {
+        "job" : {
+            "home": {
+                "mainTitle": "Jobs Management",
+                "title": "Job",
+                "createLabel": "Create a new Job",
+                "createOrEditLabel": "Create or edit a Job",
+                "search": "Search for Job"
+            },
+            "created": "A new Job is created with identifier {{ param }}",
+            "updated": "A Job is updated with identifier {{ param }}",
+            "deleted": "A Job is deleted with identifier {{ param }}",
+            "delete": {
+                "question": "Are you sure you want to delete Job {{ name }}?"
+            },
+            "detail": {
+                "title": "Job"
+            },
+            "name": "Name",
+            "description": "Description",
+            "status": "Status",
+            "scheduleTime": "Schedule Time",
+            "createdBy": "Created By",
+            "createdDate": "Created Date"
+        },
+        "Job" : {
+            "home": {
+                "mainTitle": "Jobs Management",
+                "title": "Job",
+                "createLabel": "Create a new Job",
+                "createOrEditLabel": "Create or edit a Job",
+                "search": "Search for Job"
+            },
+            "created": "A new Job is created with identifier {{ param }}",
+            "updated": "A Job is updated with identifier {{ param }}",
+            "deleted": "A Job is deleted with identifier {{ param }}",
+            "delete": {
+                "question": "Are you sure you want to delete Job {{ name }}?"
+            },
+            "detail": {
+                "title": "Job"
+            },
+            "name": "Name",
+            "description": "Description",
+            "status": "Status",
+            "scheduleTime": "Schedule Time",
+            "createdBy": "Created By",
+            "createdDate": "Created Date"
+        }
+    }
+}

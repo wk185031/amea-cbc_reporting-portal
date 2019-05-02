@@ -167,7 +167,7 @@
                     <li>
                         <a class="dropdown-item" routerLink="jhi-configuration" routerLinkActive="active"
                             (click)="collapseNavbar()">
-                            <i class="fa fa-fw fa-list" aria-hidden="true"></i>
+                            <i class="fa fa-fw fa-cog" aria-hidden="true"></i>
                             <span jhiTranslate="global.menu.admin.configuration">Configuration</span>
                         </a>
                     </li>
@@ -235,14 +235,51 @@
                     </li>
                 </ul>
             </li>
-            <li *ngSwitchCase="true" class="nav-item" routerLinkActive="active"
-                [routerLinkActiveOptions]="{exact: true}">
-                <a class="nav-link" routerLink="generate-report" (click)="collapseNavbar()">
+            <li *jhiHasAnyAuthority="'ROLE_ADMIN'" ngbDropdown class="nav-item dropdown pointer"
+                routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="operation-menu">
                     <span>
-                        <i class="fa fa-file-text-o" aria-hidden="true"></i>
-                        <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
+                        <i class="fa fa-user-plus" aria-hidden="true"></i>
+                        <span jhiTranslate="global.menu.operation.main">Operation</span>
                     </span>
                 </a>
+                <ul class="dropdown-menu" ngbDropdownMenu>
+                    <li>
+                        <a class="dropdown-item" routerLink="job" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.jobManagement">Jobs Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="task-group" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list-alt" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.taskGroupsManagement">Task Groups Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="task" routerLinkActive="active"
+                            (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-list" aria-hidden="true"></i>
+                            <span jhiTranslate="global.menu.admin.tasksManagement">Tasks Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="database-synchronization" routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }" (click)="collapseNavbar()">
+                            <i class="fa fa-fw fa-refresh" aria-hidden="true"></i>
+                            <span jhiTranslate="baseApp.databaseSynchronization.title">Database Synchronization</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" routerLink="generate-report" routerLinkActive="active" 
+                            [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
+                            <i class="fa fa-file-text-o" aria-hidden="true"></i>
+                            <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
             <li ngbDropdown class="nav-item dropdown pointer" *ngIf="languages && isLanguageSelection">
                 <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);"

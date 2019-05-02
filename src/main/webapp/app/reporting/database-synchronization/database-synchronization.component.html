@@ -1,0 +1,52 @@
+<form name="editForm" role="form" novalidate #editForm="ngForm"></form>
+<div>
+    <div>
+        <h2 jhiTranslate="baseApp.databaseSynchronization.title" class="d-inline">Database Synchronization</h2>
+        <div class="float-right d-inline"> 
+            <button type="button" class="btn btn-lg btn-primary float-right d-inline" (click)="syncDatabase()">
+                <i class="fa fa-fw fa-refresh"></i>
+                <span jhiTranslate="baseApp.databaseSynchronization.synchronizeDatabase">Synchronize Database</span>
+            </button>
+            <div>
+                <small class="float-right d-inline">
+                    <span jhiTranslate="baseApp.databaseSynchronization.lastSync">Last Synchronization On</span> <strong>{{jobHistory.createdDate | date: 'shortDate'}} {{jobHistory.createdDate | date: 'mediumTime'}}</strong>
+                </small> 
+            </div>
+        </div>
+        
+    </div>
+    <jhi-alert></jhi-alert>
+    <br />
+    <div class="row">
+        <div class="col-sm-6">
+            <label jhiTranslate="baseApp.databaseSynchronization.synchronizationScheduler" class="col-sm-6 d-inline align-bottom">
+                Synchronization Scheduler
+            </label>
+            <div class="d-inline">
+                <h3 class="d-inline align-bottom" [ngbPopover]="schedulerContent" placement="bottom" #p="ngbPopover">
+                    <span *ngIf="newTime">{{ (time.hour + '').split('').length > 1 ? time.hour : '0' + time.hour }}:{{ (time.minute + '').split('').length > 1 ? time.minute : '0' + time.minute }}:{{ (time.second + '').split('').length > 1 ? time.second : '0' + time.second }}</span>
+                    <span *ngIf="!newTime" jhiTranslate="baseApp.databaseSynchronization.notScheduledYet">Not Scheduled Yet</span>
+                </h3>
+                <button class="btn btn-sm btn-warning d-inline ml-3 align-bottom" (click)="editScheduler()">
+                    <i class="fa fa-edit"></i>
+                    <span jhiTranslate="entity.action.edit">Edit</span>
+                </button>
+                <ng-template #schedulerContent>
+                    <ngb-timepicker [(ngModel)]="time" meridian="true"></ngb-timepicker>
+                    <div class="float-right mb-1">
+                        <button class="btn btn-default" (click)="p.close()" jhiTranslate="entity.action.cancel">
+                            Cancel
+                        </button>
+                        <button class="btn btn-success" (click)="saveSchedulerChanges()" jhiTranslate="entity.action.save">
+                            Save
+                        </button>
+                    </div>
+                </ng-template>
+            </div>
+            
+            
+        </div>
+    </div>
+    <br />
+</div>
+</form>

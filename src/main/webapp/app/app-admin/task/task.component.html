@@ -1,0 +1,91 @@
+<div>
+    <h2>
+        <span jhiTranslate="baseApp.task.home.title">Attachments</span>
+        <button class="btn btn-primary float-right jh-create-entity create-task" [routerLink]="['/', { outlets: { popup: ['task-new'] } }]">
+            <span class="fa fa-plus"></span>
+            <span class="hidden-sm-down"  jhiTranslate="baseApp.task.home.createLabel">
+            Create new Task
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <div class="row">
+        <div class="col-sm-12">
+            <form name="searchForm" class="form-inline">
+                <div class="input-group w-100 mt-3">
+                    <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="{{ 'baseApp.task.home.search' | translate }}">
+                    <button class="input-group-append btn btn-info" (click)="search(currentSearch)">
+                        <span class="fa fa-search"></span>
+                    </button>
+                    <button class="input-group-append btn btn-danger" (click)="clear()" *ngIf="currentSearch">
+                        <span class="fa fa-trash-o"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="tasks">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+            <!-- <th><span jhiTranslate="global.field.id">ID</span></th> -->
+            <th><span jhiTranslate="baseApp.task.name">Name</span></th>
+            <th><span jhiTranslate="baseApp.task.description">Description</span></th>
+            <th><span jhiTranslate="baseApp.task.status">Status</span></th>
+            <th><span jhiTranslate="baseApp.task.type">Type</span></th>
+            <th><span jhiTranslate="baseApp.task.taskGroup">Task Group</span></th>
+            <th><span jhiTranslate="baseApp.task.createdBy">Created By</span></th>
+            <th><span jhiTranslate="baseApp.task.createdDate">Created Date</span></th>
+            <!-- <th><span jhiTranslate="baseApp.task.lastModifiedBy">Last Modified By</span></th> -->
+            <!-- <th><span jhiTranslate="baseApp.task.lastModifiedDate">Last Modified Date</span></th> -->
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let task of tasks ;trackBy: trackId">
+                <!-- <td><a [routerLink]="['../task', task.id ]">{{task.id}}</a></td> -->
+                <td>{{task.name}}</td>
+                <td>{{task.description}}</td>
+                <td>{{task.status}}</td>
+                <td>{{task.type}}</td>
+                <td>
+                    <div *ngIf="task.taskGroup">
+                        <a [routerLink]="['../task-group', task.taskGroup?.id ]" >{{task.taskGroup?.name}}</a>
+                    </div>
+                </td>
+                <td>{{task.createdBy}}</td>
+                <td>{{task.createdDate | date:'medium'}}</td>
+                <!-- <td>{{task.lastModifiedBy}}</td> -->
+                <!-- <td>{{task.lastModifiedDate | date:'medium'}}</td> -->
+                <td class="text-right">
+                    <div class="btn-group flex-btn-group-container">
+                        <button type="submit"
+                                [routerLink]="['../task', task.id ]"
+                                class="btn btn-info btn-sm">
+                            <span class="fa fa-eye"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'task/'+ task.id + '/edit'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-primary btn-sm">
+                            <span class="fa fa-pencil"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/', { outlets: { popup: 'task/'+ task.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <span class="fa fa-remove"></span>
+                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
