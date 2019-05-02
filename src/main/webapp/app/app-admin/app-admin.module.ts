@@ -8,6 +8,7 @@ import { BaseAppResourceModule } from './role/app-resource/app-resource.module';
 import { BaseTaskGroupModule } from './task-group/task-group.module';
 import { BaseTaskModule } from './task/task.module';
 import { BaseJobModule } from './job/job.module';
+import { BaseJobHistoryModule } from './job-history/job-history.module';
 /* jhipster-needle-add-entity-module-import - JHipster will add entity modules imports here */
 
 @NgModule({
@@ -19,7 +20,8 @@ import { BaseJobModule } from './job/job.module';
         BaseAppResourceModule,
         BaseTaskGroupModule,
         BaseTaskModule,
-        BaseJobModule
+        BaseJobModule,
+        BaseJobHistoryModule
         /* jhipster-needle-add-entity-module - JHipster will add entity modules here */
     ],
     declarations: [],

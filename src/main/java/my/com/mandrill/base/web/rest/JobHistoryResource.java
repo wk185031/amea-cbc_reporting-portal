@@ -60,7 +60,7 @@ public class JobHistoryResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new JobHistory, or with status 400 (Bad Request) if the JobHistory has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PostMapping("/jobHistory")
+    @PostMapping("/job-history")
     @Timed
     public ResponseEntity<JobHistory> createJobHistory(@Valid @RequestBody JobHistory jobHistory) throws URISyntaxException {
         log.debug("REST request to save JobHistory : {}", jobHistory);
@@ -83,7 +83,7 @@ public class JobHistoryResource {
      * or with status 500 (Internal Server Error) if the JobHistory couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PutMapping("/jobHistory")
+    @PutMapping("/job-history")
     @Timed
     public ResponseEntity<JobHistory> updateJobHistory(@Valid @RequestBody JobHistory jobHistory) throws URISyntaxException {
         log.debug("REST request to update JobHistory : {}", jobHistory);
@@ -102,7 +102,7 @@ public class JobHistoryResource {
      *
      * @return the ResponseEntity with status 200 (OK) and the list of JobHistorys in body
      */
-    @GetMapping("/jobHistory")
+    @GetMapping("/job-history")
     @Timed
     public List<JobHistory> getAllJobHistorys() {
         log.debug("REST request to get all JobHistorys");
@@ -115,7 +115,7 @@ public class JobHistoryResource {
      * @param id the id of the JobHistory to retrieve
      * @return the ResponseEntity with status 200 (OK) and with body the JobHistory, or with status 404 (Not Found)
      */
-    @GetMapping("/jobHistory/{id}")
+    @GetMapping("/job-history/{id}")
     @Timed
     public ResponseEntity<JobHistory> getJobHistory(@PathVariable Long id) {
         log.debug("REST request to get JobHistory : {}", id);
@@ -129,7 +129,7 @@ public class JobHistoryResource {
      * @param id the id of the JobHistory to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @DeleteMapping("/jobHistory/{id}")
+    @DeleteMapping("/job-history/{id}")
     @Timed
     public ResponseEntity<Void> deleteJobHistory(@PathVariable Long id) {
         log.debug("REST request to delete JobHistory : {}", id);
@@ -145,7 +145,7 @@ public class JobHistoryResource {
      * @param query the query of the JobHistory search
      * @return the result of the search
      */
-    @GetMapping("/_search/jobHistory")
+    @GetMapping("/_search/job-history")
     @Timed
     public List<JobHistory> searchJobHistorys(@RequestParam String query) {
         log.debug("REST request to search JobHistorys for query {}", query);
