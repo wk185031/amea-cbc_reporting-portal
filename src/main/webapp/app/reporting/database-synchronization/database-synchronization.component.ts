@@ -13,6 +13,8 @@ import { NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap/timepicker/timepicker.
 import { Job, JobService } from '../../app-admin/job';
 import { DatePipe } from '@angular/common';
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
+import { JobHistoryService } from '../../app-admin/job-history';
+import { JobHistory } from '../../app-admin/job-history/job-history.model';
 
 @Component({
     selector: 'database-synchronization',
@@ -31,6 +33,8 @@ export class DatabaseSynchronizationComponent implements OnInit {
     spinners: boolean;
     newTime: Date;
     job: Job;
+    jobHistory: JobHistory;
+    jobHistories: JobHistory[];
     
     constructor(
         private databaseSynchronizationService: DatabaseSynchronizationService,
@@ -40,6 +44,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
         private http: HttpClient,
         private jobService: JobService,
         private datePipe: DatePipe,
+        private jobHistoryService: JobHistoryService
     ) {
     }
 
@@ -59,7 +64,8 @@ export class DatabaseSynchronizationComponent implements OnInit {
             this.newTime = this.job.scheduleTime;
             this.time = {hour: this.newTime.getHours(), minute: this.newTime.getMinutes(), second: this.newTime.getSeconds()};
         }
-
+        this.getPreviousSyncTime();
+        this.periodicSyncTimeCheck();
     }
 
     ngOnInit() {
@@ -77,6 +83,24 @@ export class DatabaseSynchronizationComponent implements OnInit {
         } else {
             this.p.open();
         }
+    }
+
+    periodicSyncTimeCheck() {
+        setInterval(() => { 
+            this.getPreviousSyncTime(); 
+        }, 1000 * 60 * 5);
+    }
+
+    getPreviousSyncTime() {
+        let query = "status: COMPLETED && job.id: " + this.job.id;
+        this.jobHistoryService.search({
+            query: query,
+        }).subscribe((res: HttpResponse<JobHistory[]>) => { 
+            this.jobHistories = res.body.sort((a,b) => {
+                return (a.createdDate < b.createdDate) ? 1 : -1;
+            });
+            this.jobHistory = this.jobHistories[0];
+        }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
     saveSchedulerChanges() {
@@ -118,6 +142,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
 
     syncDatabase() {
         const req = this.databaseSynchronizationService.syncDatabase(this.currentAccount.login);
-        this.http.request(req).subscribe((res: HttpResponse<any>) => console.log(res));
+        this.http.request(req).subscribe((res: HttpResponse<any>) => this.getPreviousSyncTime());
     }
 }

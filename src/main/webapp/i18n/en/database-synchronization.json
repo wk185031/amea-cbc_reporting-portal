@@ -22,7 +22,8 @@
             "confirmDelete": "Are you sure you want to delete this Database Synchronization?",
             "synchronizeDatabase": "Synchronize Database",
             "synchronizationScheduler": "Synchronization Scheduler :",
-            "notScheduledYet": "Not Scheduled Yet"
+            "notScheduledYet": "Not Scheduled Yet",
+            "lastSync": "Last Synchronization On"
         }
     }
 }

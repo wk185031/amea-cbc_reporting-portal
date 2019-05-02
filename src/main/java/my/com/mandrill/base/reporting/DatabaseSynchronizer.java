@@ -26,10 +26,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import my.com.mandrill.base.domain.Job;
@@ -40,7 +37,6 @@ import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.TaskGroupRepository;
 import my.com.mandrill.base.repository.TaskRepository;
 import my.com.mandrill.base.web.rest.JobHistoryResource;
-import springfox.documentation.spring.web.json.Json;
 
 
 
@@ -62,9 +58,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final TaskGroupRepository taskGroupRepository;
     private final TaskRepository taskRepository;
     private final JobHistoryResource jobHistoryResource;
-    
-    volatile boolean isStopIssued;
-    
+        
 	public DatabaseSynchronizer(JobRepository jobRepository, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository, JobHistoryResource jobHistoryResource) {
 		this.jobRepository = jobRepository;
 		this.taskRepository = taskRepository;
@@ -73,20 +67,20 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 	
 	TaskScheduler taskScheduler;
-    private ScheduledFuture<?> job1;
+    private ScheduledFuture<?> syncDbJob;
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
         ThreadPoolTaskScheduler threadPoolTaskScheduler =new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(10);// Set the pool of threads
         threadPoolTaskScheduler.setThreadNamePrefix("scheduler-thread");
         threadPoolTaskScheduler.initialize();
-        scheduleJob(threadPoolTaskScheduler);// Assign the job to the scheduler
+        scheduleSyncDbJob(threadPoolTaskScheduler);// Assign the job to the scheduler
         this.taskScheduler=threadPoolTaskScheduler;// this will be used in later part of the article during refreshing the cron expression dynamically
         taskRegistrar.setTaskScheduler(threadPoolTaskScheduler);
     }
     
-    private void scheduleJob(TaskScheduler scheduler) {
-       job1 = scheduler.schedule(new Runnable() {
+    private void scheduleSyncDbJob(TaskScheduler scheduler) {
+       syncDbJob = scheduler.schedule(new Runnable() {
        @Override
        public void run() {
             try {
@@ -112,9 +106,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     }
     
 	public void refreshCronSchedule(){
-		if(job1!=null){
-			job1.cancel(true);
-		  	scheduleJob(taskScheduler);
+		if(syncDbJob!=null){
+			syncDbJob.cancel(true);
+		  	scheduleSyncDbJob(taskScheduler);
 		}
 	}
 

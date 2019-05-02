@@ -2,10 +2,18 @@
 <div>
     <div>
         <h2 jhiTranslate="baseApp.databaseSynchronization.title" class="d-inline">Database Synchronization</h2>
-        <button type="button" class="btn btn-lg btn-primary float-right d-inline" (click)="syncDatabase()">
-            <i class="fa fa-fw fa-refresh"></i>
-            <span jhiTranslate="baseApp.databaseSynchronization.synchronizeDatabase">Synchronize Database</span>
-        </button>
+        <div class="float-right d-inline"> 
+            <button type="button" class="btn btn-lg btn-primary float-right d-inline" (click)="syncDatabase()">
+                <i class="fa fa-fw fa-refresh"></i>
+                <span jhiTranslate="baseApp.databaseSynchronization.synchronizeDatabase">Synchronize Database</span>
+            </button>
+            <div>
+                <small class="float-right d-inline">
+                    <span jhiTranslate="baseApp.databaseSynchronization.lastSync">Last Synchronization On</span> <strong>{{jobHistory.createdDate | date: 'shortDate'}} {{jobHistory.createdDate | date: 'mediumTime'}}</strong>
+                </small> 
+            </div>
+        </div>
+        
     </div>
     <jhi-alert></jhi-alert>
     <br />
