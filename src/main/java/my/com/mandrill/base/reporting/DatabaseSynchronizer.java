@@ -96,13 +96,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
             public Date nextExecutionTime(TriggerContext triggerContext) {
             	Job job = jobRepository.findByName("DB_SYNC");
             	Calendar calendar = Calendar.getInstance();
-            	calendar.setTime(job.getScheduleTime());
-            	int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            	int minute = calendar.get(Calendar.MINUTE);
-            	String cronExp = "0 " + minute + " " + hour + " * * ?"; 
-            	log.debug(cronExp.toString());
-	            return new CronTrigger(cronExp).nextExecutionTime(triggerContext);
-          }
+            	if (job != null) {
+            		calendar.setTime(job.getScheduleTime());
+                	int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                	int minute = calendar.get(Calendar.MINUTE);
+                	String cronExp = "0 " + minute + " " + hour + " * * ?"; 
+                	log.debug(cronExp.toString());
+    	            return new CronTrigger(cronExp).nextExecutionTime(triggerContext);
+            	}
+            	return new CronTrigger("0 30 0 * * ?").nextExecutionTime(triggerContext);          }
         });
     }
     
