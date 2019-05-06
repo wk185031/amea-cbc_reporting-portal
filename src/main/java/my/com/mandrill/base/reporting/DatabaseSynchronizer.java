@@ -1,10 +1,13 @@
 package my.com.mandrill.base.reporting;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Collections;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -37,7 +41,12 @@ import my.com.mandrill.base.domain.TaskGroup;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.TaskGroupRepository;
 import my.com.mandrill.base.repository.TaskRepository;
+import my.com.mandrill.base.repository.search.JobSearchRepository;
+import my.com.mandrill.base.repository.search.TaskGroupSearchRepository;
+import my.com.mandrill.base.repository.search.TaskSearchRepository;
 import my.com.mandrill.base.web.rest.JobHistoryResource;
+import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
+import my.com.mandrill.base.web.rest.util.HeaderUtil;
 
 
 
@@ -53,16 +62,25 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private final Logger log = LoggerFactory.getLogger(DatabaseSynchronizer.class);
     private final JobRepository jobRepository;
-	private final TaskGroupRepository taskGroupRepository;
+    private final JobSearchRepository jobSearchRepository;
+    private final TaskGroupRepository taskGroupRepository;
+    private final TaskGroupSearchRepository taskGroupSearchRepository;
     private final TaskRepository taskRepository;
+    private final TaskSearchRepository taskSearchRepository;
     private final JobHistoryResource jobHistoryResource;
+
     private final Environment env;
     
-	public DatabaseSynchronizer(JobRepository jobRepository, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository, 
-								JobHistoryResource jobHistoryResource, Environment env) {
+	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository, TaskRepository taskRepository, 
+								TaskSearchRepository taskSearchRepository, TaskGroupRepository taskGroupRepository, 
+								TaskGroupSearchRepository taskGroupSearchRepository, JobHistoryResource jobHistoryResource, 
+								Environment env) {
 		this.jobRepository = jobRepository;
+		this.jobSearchRepository = jobSearchRepository;
 		this.taskRepository = taskRepository;
+		this.taskSearchRepository = taskSearchRepository;
 		this.taskGroupRepository = taskGroupRepository;
+		this.taskGroupSearchRepository = taskGroupSearchRepository;
 		this.jobHistoryResource = jobHistoryResource;
 		this.env = env;
 	}
@@ -82,15 +100,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     
     private void scheduleSyncDbJob(TaskScheduler scheduler) {
        syncDbJob = scheduler.schedule(new Runnable() {
-       @Override
-       public void run() {
-            try {
-            	synchronizeDatabase("system");
-            } catch (Exception e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
-          }
-          }
+	       @Override
+	       public void run() {
+	            try {
+	            	synchronizeDatabase("system");
+	            } catch (Exception e) {
+	              // TODO Auto-generated catch block
+	              e.printStackTrace();
+	          }
+	       }
        }, new Trigger() {
             @Override
             public Date nextExecutionTime(TriggerContext triggerContext) {
@@ -104,8 +122,116 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
                 	log.debug(cronExp.toString());
     	            return new CronTrigger(cronExp).nextExecutionTime(triggerContext);
             	}
-            	return new CronTrigger("0 30 0 * * ?").nextExecutionTime(triggerContext);          }
+            	
+            	try {
+					createSyncDbJob();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            	return new CronTrigger("0 30 0 * * ?").nextExecutionTime(triggerContext);          
+        	}
         });
+    }
+    
+    public void createSyncDbJob() throws Exception {
+    	Calendar calendar = Calendar.getInstance();
+    	calendar.set(Calendar.HOUR_OF_DAY, 0);
+    	calendar.set(Calendar.MINUTE, 30);
+    	Timestamp ts = new Timestamp(calendar.getTimeInMillis());
+
+    	Job newSyncDbJob = new Job();
+    	newSyncDbJob.setName("DB_SYNC");
+    	newSyncDbJob.setStatus("ACTIVE");
+    	newSyncDbJob.setCreatedBy("system");
+    	newSyncDbJob.setCreatedDate(ZonedDateTime.now());
+    	newSyncDbJob.setScheduleTime(ts);
+    	
+    	createJob(newSyncDbJob);
+    }
+    
+    public ResponseEntity<Job> createJob(Job job) throws Exception {
+        log.debug("REST request to save Job : {}", job);
+        if (job.getId() != null) {
+            throw new BadRequestAlertException("A new Job cannot already have an ID", "Job", "idexists");
+        }
+        Job result = jobRepository.save(job);
+        jobSearchRepository.save(result);
+        createSyncDbTaskGroup(job);
+        return ResponseEntity.created(new URI("/api/jobs/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert("Job", result.getId().toString()))
+            .body(result);
+    }
+    
+    public void createSyncDbTaskGroup(Job job) throws Exception {
+    	TaskGroup newTaskGroup = new TaskGroup();
+    	newTaskGroup.setName("DB_SYNC");
+    	newTaskGroup.setStatus("ACTIVE");
+    	newTaskGroup.setCreatedBy("system");
+    	newTaskGroup.setCreatedDate(ZonedDateTime.now());
+    	newTaskGroup.setJob(job);;
+    	
+    	createTaskGroup(newTaskGroup);
+    }
+    
+    public ResponseEntity<TaskGroup> createTaskGroup(TaskGroup taskGroup) throws Exception {
+        log.debug("REST request to save TaskGroup : {}", taskGroup);
+        if (taskGroup.getId() != null) {
+            throw new BadRequestAlertException("A new TaskGroup cannot already have an ID", "TaskGroup", "idexists");
+        }
+        TaskGroup result = taskGroupRepository.save(taskGroup);
+        taskGroupSearchRepository.save(result);
+        createSyncDbTasks(taskGroup);
+        return ResponseEntity.created(new URI("/api/task-groups/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert("TaskGroup", result.getId().toString()))
+            .body(result);
+    }
+    
+    public void createSyncDbTasks(TaskGroup taskGroup) throws Exception {
+    	Task task1 = new Task();
+    	task1.setName("Truncate DB");
+    	task1.setStatus("ACTIVE");
+    	task1.setContent("TRUNCATE TABLE TRANSACTION_LOG_V3");
+    	task1.setSequence(1);
+    	task1.setType("DB");
+    	task1.setCreatedBy("system");
+    	task1.setCreatedDate(ZonedDateTime.now());
+    	task1.setTaskGroup(taskGroup);
+    	createTask(task1);
+    	
+    	Task task2 = new Task();
+    	task2.setName("Sync DB Oracle-11g");
+    	task2.setStatus("ACTIVE");
+    	task2.setContent("INSERT INTO TRANSACTION_LOG_V3 SELECT * FROM TRANSACTION_LOG@DBLINK_11G");
+    	task2.setSequence(2);
+    	task2.setType("DB");
+    	task2.setCreatedBy("system");
+    	task2.setCreatedDate(ZonedDateTime.now());
+    	task2.setTaskGroup(taskGroup);
+    	createTask(task2);
+    	
+    	Task task3 = new Task();
+    	task3.setName("Sync DB Oracle-12c");
+    	task3.setStatus("ACTIVE");
+    	task3.setContent("INSERT INTO TRANSACTION_LOG_V3 SELECT * FROM TRANSACTION_LOG@DBLINK_12C");
+    	task3.setSequence(3);
+    	task3.setType("DB");
+    	task3.setCreatedBy("system");
+    	task3.setCreatedDate(ZonedDateTime.now());
+    	task3.setTaskGroup(taskGroup);
+    	createTask(task3);
+    }
+    
+    public ResponseEntity<Task> createTask(Task task) throws URISyntaxException {
+        log.debug("REST request to save Task : {}", task);
+        if (task.getId() != null) {
+            throw new BadRequestAlertException("A new Task cannot already have an ID", "Task", "idexists");
+        }
+        Task result = taskRepository.save(task);
+        taskSearchRepository.save(result);
+        return ResponseEntity.created(new URI("/api/tasks/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert("Task", result.getId().toString()))
+            .body(result);
     }
     
 	public void refreshCronSchedule(){

@@ -34,7 +34,7 @@ import { AppRouteAccessService } from './common/app-route-access-service';
 import { AppRouteSelfRegistrationService } from './common/app-route-self-registration-service';
 import { ReportConfigCategoryModule } from './reporting/report-config-category/report-config-category.module';
 import { ReportConfigDefinitionModule } from './reporting/report-config-definition/report-config-definition.module';
-import { DashboardModule } from './reporting/dashboard/dashboard.module';
+// import { DashboardModule } from './reporting/dashboard/dashboard.module';
 import { GenerateReportModule } from './reporting/generate-report/generate-report.module';
 import { DatabaseSynchronizationModule } from './reporting/database-synchronization/database-synchronization.module';
 
@@ -53,7 +53,7 @@ import { DatabaseSynchronizationModule } from './reporting/database-synchronizat
         AppCommonModule,
         ReportConfigCategoryModule,
         ReportConfigDefinitionModule,
-        DashboardModule,
+        // DashboardModule,
         GenerateReportModule,
         DatabaseSynchronizationModule
     ],

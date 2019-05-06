@@ -63,12 +63,12 @@ public class TaskGroupResource {
      */
     @PostMapping("/task-groups")
     @Timed
-    public ResponseEntity<TaskGroup> createTaskGroup(@Valid @RequestBody TaskGroup TaskGroup) throws URISyntaxException {
-        log.debug("REST request to save TaskGroup : {}", TaskGroup);
-        if (TaskGroup.getId() != null) {
+    public ResponseEntity<TaskGroup> createTaskGroup(@Valid @RequestBody TaskGroup taskGroup) throws URISyntaxException {
+        log.debug("REST request to save TaskGroup : {}", taskGroup);
+        if (taskGroup.getId() != null) {
             throw new BadRequestAlertException("A new TaskGroup cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        TaskGroup result = taskGroupRepository.save(TaskGroup);
+        TaskGroup result = taskGroupRepository.save(taskGroup);
         taskGroupSearchRepository.save(result);
         return ResponseEntity.created(new URI("/api/task-groups/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
