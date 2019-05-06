@@ -35,9 +35,9 @@ spring:
        # url: jdbc:mariadb://localhost:3306/base
        # username: mandrill
        # password: mandrill
-        url: jdbc:oracle:thin:@localhost:1521/orcl
-        username: LOCAL_AX5_CBC_OWNER
-        password: LOCAL_AX5_CBC_OWNER
+        url: jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain
+        username: CBC_OWNER
+        password: CBC_OWNER
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
