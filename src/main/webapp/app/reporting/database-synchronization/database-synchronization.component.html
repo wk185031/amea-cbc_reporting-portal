@@ -7,7 +7,7 @@
                 <i class="fa fa-fw fa-refresh"></i>
                 <span jhiTranslate="baseApp.databaseSynchronization.synchronizeDatabase">Synchronize Database</span>
             </button>
-            <div>
+            <div *ngIf="jobHistory">
                 <small class="float-right d-inline">
                     <span jhiTranslate="baseApp.databaseSynchronization.lastSync">Last Synchronization On</span> <strong>{{jobHistory.createdDate | date: 'shortDate'}} {{jobHistory.createdDate | date: 'mediumTime'}}</strong>
                 </small> 

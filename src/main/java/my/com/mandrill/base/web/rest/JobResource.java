@@ -66,12 +66,12 @@ public class JobResource {
      */
     @PostMapping("/jobs")
     @Timed
-    public ResponseEntity<Job> createJob(@Valid @RequestBody Job Job) throws URISyntaxException {
-        log.debug("REST request to save Job : {}", Job);
-        if (Job.getId() != null) {
+    public ResponseEntity<Job> createJob(@Valid @RequestBody Job job) throws URISyntaxException {
+        log.debug("REST request to save Job : {}", job);
+        if (job.getId() != null) {
             throw new BadRequestAlertException("A new Job cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Job result = jobRepository.save(Job);
+        Job result = jobRepository.save(job);
         jobSearchRepository.save(result);
         return ResponseEntity.created(new URI("/api/jobs/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
