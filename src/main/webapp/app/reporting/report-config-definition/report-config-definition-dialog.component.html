@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h4 style="font-weight: 300 !important" class="modal-title" id="report-config-definition-Label"
+    <h4 class="modal-title report-definition-label" id="report-config-definition-Label"
         jhiTranslate="baseApp.reportDefinition.createOrEditLabel">Create or Edit Report Definition</h4>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true" (click)="clear()">&times;</button>
 </div>
@@ -7,8 +7,7 @@
     <ngb-tabset type="tabs">
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important"
-                    jhiTranslate="baseApp.reportDefinition.mainDetailsTab">Details</span>
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.mainDetailsTab">Details</span>
             </ng-template>
             <ng-template ngbTabContent>
                 <report-config-definition-main-tab [reportDefinition]="reportDefinition" [isEdit]="true"
@@ -18,10 +17,9 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span jhiTranslate="baseApp.reportDefinition.headerFieldsTab">Header Fields</span>
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.headerFieldsTab">Header Fields</span>
             </ng-template>
             <ng-template ngbTabContent>
-                <br />
                 <report-config-definition-headerFields-tab [reportDefinition]="reportDefinition" [isEdit]="true"
                     (onValueChange)="valueChange($event)">
                 </report-config-definition-headerFields-tab>
@@ -29,7 +27,7 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.bodyFieldsTab">Body
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.bodyFieldsTab">Body
                     Fields</span>
             </ng-template>
             <ng-template ngbTabContent>
@@ -40,7 +38,7 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.trailerFieldsTab">Trailer
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.trailerFieldsTab">Trailer
                     Fields</span>
             </ng-template>
             <ng-template ngbTabContent>
@@ -51,7 +49,7 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.bodyQueryTab">Body SQL
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.bodyQueryTab">Body SQL
                     Query</span>
             </ng-template>
             <ng-template ngbTabContent>
@@ -62,7 +60,7 @@
         </ngb-tab>
         <ngb-tab>
             <ng-template ngbTabTitle>
-                <span style="color: #533f03 !important" jhiTranslate="baseApp.reportDefinition.trailerQueryTab">Trailer
+                <span class="tab-link" jhiTranslate="baseApp.reportDefinition.trailerQueryTab">Trailer
                     SQL Query</span>
             </ng-template>
             <ng-template ngbTabContent>

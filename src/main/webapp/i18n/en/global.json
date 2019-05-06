@@ -32,6 +32,9 @@
                 "metrics": "Metrics",
                 "health": "Health",
                 "configuration": "Configuration",
+                "taskGroupsManagement": "Task Groups Management",
+                "tasksManagement": "Tasks Management",
+                "jobManagement": "Jobs Management",
                 "logs": "Logs",
                 "audits": "Audits",
                 "apidocs": "API",
@@ -39,6 +42,9 @@
                 "elasticsearch-reindex": "Reindex Elasticsearch",
                 "entity-audit": "Entity Audit",
                 "jhipster-needle-menu-add-admin-element": "JHipster will add additional menu entries here (do not translate!)"
+            },
+            "operation": {
+                "main": "Operation"
             },
             "language": "Language",
             "appAdmin":{
