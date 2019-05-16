@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,15 +25,33 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffOnUs extends GeneralReportProcess {
+public class GLHandoffMiniStatement extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffOnUs.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffMiniStatement.class);
 	private int success = 0;
 	private double fileHash = 0.00;
+	private String acquirerDebitQuery = null;
+	private String acquirerCreditQuery = null;
 	private String debitBodyQuery = null;
 	private String creditBodyQuery = null;
 	private String criteriaQuery = null;
 	private String groupIdDate = null;
+
+	public String getAcquirerDebitQuery() {
+		return acquirerDebitQuery;
+	}
+
+	public void setAcquirerDebitQuery(String acquirerDebitQuery) {
+		this.acquirerDebitQuery = acquirerDebitQuery;
+	}
+
+	public String getAcquirerCreditQuery() {
+		return acquirerCreditQuery;
+	}
+
+	public void setAcquirerCreditQuery(String acquirerCreditQuery) {
+		this.acquirerCreditQuery = acquirerCreditQuery;
+	}
 
 	public String getDebitBodyQuery() {
 		return debitBodyQuery;
@@ -60,7 +79,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.processCsvTxtRecord()");
+		logger.debug("In GLHandoffMiniStatement.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -79,20 +98,36 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void execute(File file, ReportGenerationMgr rgm) {
-		String branchCode = null;
 		try {
+			String tranParticular = null;
+			String branchCode = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
-			separateDebitCreditQuery(rgm);
+			separateQuery(rgm);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
-			while (branchCodeItr.hasNext()) {
-				branchCode = branchCodeItr.next();
-				preProcessing(rgm, branchCode);
-				rgm.setBodyQuery(getDebitBodyQuery());
-				executeBodyQuery(rgm, branchCode);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				executeBodyQuery(rgm, branchCode);
+			Iterator<String> tranParticularItr = filterByGlDescription(rgm).iterator();
+			while (tranParticularItr.hasNext()) {
+				tranParticular = tranParticularItr.next();
+				if (tranParticular.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
+					preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+					rgm.setBodyQuery(getAcquirerDebitQuery());
+					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+					preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+					while (branchCodeItr.hasNext()) {
+						branchCode = branchCodeItr.next();
+						preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+						rgm.setBodyQuery(getAcquirerCreditQuery());
+						executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+					}
+				} else {
+					preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+					rgm.setBodyQuery(getDebitBodyQuery());
+					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+					preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+					rgm.setBodyQuery(getCreditBodyQuery());
+					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+				}
 			}
 			postProcessing(rgm);
 			writeTrailer(rgm);
@@ -115,17 +150,73 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		}
 	}
 
-	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.filterByCriteria()");
+	private List<String> filterByGlDescription(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffMiniStatement.filterByGlDescription()");
+		String tranParticular = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		List<String> tranParticularList = new ArrayList<>();
+		rgm.setBodyQuery(getCriteriaQuery());
+		String query = getBodyQuery(rgm);
+		logger.info("Query to filter gl description: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.TRAN_PARTICULAR)) {
+								tranParticular = result.toString();
+							}
+						}
+					}
+					tranParticularList.add(tranParticular);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return tranParticularList;
+	}
+
+	private SortedSet<String> filterByBranchCode(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffMiniStatement.filterByBranchCode()");
 		String branchCode = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		SortedSet<String> branchCodeList = new TreeSet<>();
-		rgm.setBodyQuery(getCriteriaQuery());
+		rgm.setBodyQuery(getAcquirerCreditQuery().indexOf("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}") != 0
+				? getAcquirerCreditQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+				: "");
 		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
+		logger.info("Query to filter branch code: {}", query);
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -171,9 +262,10 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.preProcessing()");
+		logger.debug("In GLHandoffMiniStatement.preProcessing()");
 		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
 
 		if (rgm.isGenerate() == true) {
@@ -206,31 +298,82 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.preProcessing()");
-		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
+			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In GLHandoffMiniStatement.preProcessing()");
+		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitQuery() != null
+				&& indicator.equals(ReportConstants.DEBIT_IND)) {
+			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
+					ReportGenerationFields.TYPE_STRING,
+					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
+			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditQuery() != null
+				&& indicator.equals(ReportConstants.CREDIT_IND)) {
+			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			}
+			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
+					ReportGenerationFields.TYPE_STRING,
+					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
+			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+
+		// TBC
+		switch (filterByGlDescription) {
+		case ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL:
+			ReportGenerationFields channelOnUs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_ISS_NAME = 'CBC Cash Cards'");
+			getGlobalFileFieldsMap().put(channelOnUs.getFieldName(), channelOnUs);
+			break;
+		default:
+			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ISS_NAME = 'CBC Cash Cards'");
+			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
+			break;
 		}
 	}
 
-	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.separateDebitCreditquery()");
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffMiniStatement.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-			setCreditBodyQuery(rgm.getBodyQuery()
+			setAcquirerDebitQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
+					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
+					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
+					.replace("\"BRANCH CODE\" ASC,", ""));
+			setAcquirerCreditQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replaceFirst(ReportConstants.SUBSTRING_START, ""));
+			setDebitBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
+					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
+					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
+					.replace("\"BRANCH CODE\" ASC,", ""));
+			setCreditBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replaceFirst(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
+					.replace("ABR.ABR_CODE", "")
+					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
+					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
+					.replace("\"BRANCH CODE\" ASC,", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffMiniStatement.addPreProcessingFieldsToGlobalMap()");
 		if (rgm.isGenerate() == true) {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 			String txnDate = df.format(rgm.getTxnEndDate());
@@ -264,19 +407,19 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	private void postProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.postProcessing()");
+		logger.debug("In GLHandoffMiniStatement.postProcessing()");
 		addPostProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.addPostProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffMiniStatement.addPostProcessingFieldsToGlobalMap()");
 		ReportGenerationFields noOfRecords = new ReportGenerationFields(ReportConstants.NO_OF_DATA_RECORDS,
 				ReportGenerationFields.TYPE_NUMBER, Integer.toString(success));
 		getGlobalFileFieldsMap().put(noOfRecords.getFieldName(), noOfRecords);
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffOnUs.writeHeader()");
+		logger.debug("In GLHandoffMiniStatement.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -295,19 +438,32 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String branchCode)
+			String glDescription, String branchCode, String indicator)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AC_NUMBER)) {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap, true)));
-				String glAccNo = branchCode + getFieldValue(field, fieldsMap, true);
-				int[] glAccNoArray = new int[glAccNo.length()];
-				for (int i = 0; i < glAccNoArray.length; i++) {
-					glAccNoArray[i] = glAccNo.charAt(i);
-					fileHash += glAccNoArray[i];
+				if (branchCode != null
+						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
+						&& indicator.equals(ReportConstants.CREDIT_IND)) {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap, true)));
+					String glAccNo = branchCode + getFieldValue(field, fieldsMap, true);
+					int[] glAccNoArray = new int[glAccNo.length()];
+					for (int i = 0; i < glAccNoArray.length; i++) {
+						glAccNoArray[i] = glAccNo.charAt(i);
+						fileHash += glAccNoArray[i];
+					}
+				} else {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
+					String glAccNo = getFieldValue(field, fieldsMap, true);
+					int[] glAccNoArray = new int[glAccNo.length()];
+					for (int i = 0; i < glAccNoArray.length; i++) {
+						glAccNoArray[i] = glAccNo.charAt(i);
+						fileHash += glAccNoArray[i];
+					}
 				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GROUP_ID)) {
 				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", "ATM" + groupIdDate + "001000001"));
@@ -335,7 +491,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void writeTrailer(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffOnUs.writeTrailer()");
+		logger.debug("In GLHandoffMiniStatement.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -359,8 +515,8 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
-		logger.debug("In GLHandoffOnUs.executeBodyQuery()");
+	private void executeBodyQuery(ReportGenerationMgr rgm, String glDescription, String branchCode, String indicator) {
+		logger.debug("In GLHandoffMiniStatement.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -403,7 +559,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap, branchCode);
+					writeBody(rgm, lineFieldsMap, glDescription, branchCode, indicator);
 					success++;
 				}
 			} catch (Exception e) {

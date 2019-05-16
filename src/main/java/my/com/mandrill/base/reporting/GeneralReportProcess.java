@@ -63,6 +63,7 @@ public class GeneralReportProcess implements IReportProcessor {
 				if (globalFileFieldsMap.containsKey(paramName)) {
 					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
 				} else {
+					rgm.errors++;
 					logger.error("No field defined for parameter ", paramName);
 				}
 
@@ -86,6 +87,7 @@ public class GeneralReportProcess implements IReportProcessor {
 				if (globalFileFieldsMap.containsKey(paramName)) {
 					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
 				} else {
+					rgm.errors++;
 					logger.error("No field defined for parameter ", paramName);
 				}
 
@@ -175,9 +177,10 @@ public class GeneralReportProcess implements IReportProcessor {
 		fieldConfig.setValue(fieldValue);
 
 		Integer eky_id = null;
-//		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
-			// eky_id = SecurityManager.getCurrentKeyIndex();
-//		}
+		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
+		// {
+		// eky_id = SecurityManager.getCurrentKeyIndex();
+		// }
 		return fieldConfig.format(eol, fixedLength, eky_id);
 	}
 
@@ -196,26 +199,11 @@ public class GeneralReportProcess implements IReportProcessor {
 		fieldConfig.setValue(fieldValue);
 
 		Integer eky_id = null;
-//		if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING)) {
-			// eky_id = SecurityManager.getCurrentKeyIndex();
-//		}
+		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
+		// {
+		// eky_id = SecurityManager.getCurrentKeyIndex();
+		// }
 		return fieldConfig.format(eol, fixedLength, eky_id);
-	}
-	
-	protected void generateFileHash() {
-		
-	}
-
-	protected void performPreProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
-		// TBD
-	}
-
-	protected void performPostProcessingTransformations(HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		Map<String, Object> poolDBObjects = new HashMap<String, Object>();
-		// TBD
 	}
 
 	protected void performTransformations(HashMap<String, ReportGenerationFields> fieldsMap)

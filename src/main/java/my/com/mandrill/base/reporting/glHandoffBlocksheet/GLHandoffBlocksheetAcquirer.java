@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.glHandoffFinalProofSheet;
+package my.com.mandrill.base.reporting.glHandoffBlocksheet;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,16 +29,19 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
+public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetOnUs.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetAcquirer.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
-	private double total = 0.00;
 	private String debitBodyQuery = null;
 	private String creditBodyQuery = null;
+	private String debitTrailerQuery = null;
+	private String creditTrailerQuery = null;
 	private String criteriaQuery = null;
+	private boolean firstRecord = false;
+	private boolean endBranch = false;
 
 	public String getDebitBodyQuery() {
 		return debitBodyQuery;
@@ -57,6 +59,22 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 		this.creditBodyQuery = creditBodyQuery;
 	}
 
+	public String getDebitTrailerQuery() {
+		return debitTrailerQuery;
+	}
+
+	public void setDebitTrailerQuery(String debitTrailerQuery) {
+		this.debitTrailerQuery = debitTrailerQuery;
+	}
+
+	public String getCreditTrailerQuery() {
+		return creditTrailerQuery;
+	}
+
+	public void setCreditTrailerQuery(String creditTrailerQuery) {
+		this.creditTrailerQuery = creditTrailerQuery;
+	}
+
 	public String getCriteriaQuery() {
 		return criteriaQuery;
 	}
@@ -67,53 +85,66 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.processPdfRecord()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.processPdfRecord()");
 		PDDocument doc = null;
-		pagination = 1;
+		pagination = 0;
 		try {
 			doc = new PDDocument();
-			PDPage page = new PDPage();
-			doc.addPage(page);
-			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.COURIER;
-			float fontSize = 6;
-			float leading = 1.5f * fontSize;
-			PDRectangle pageSize = page.getMediaBox();
-			float margin = 30;
-			float width = pageSize.getWidth() - 2 * margin;
-			float startX = pageSize.getLowerLeftX() + margin;
-			float startY = pageSize.getUpperRightY() - margin;
 			String branchCode = null;
 
 			separateDebitCreditQuery(rgm);
 			preProcessing(rgm);
 
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
-
-			writePdfHeader(rgm, contentStream, leading, pagination);
-			pageHeight += 4;
-			writePdfBodyHeader(rgm, contentStream, leading);
-			pageHeight += 2;
-
 			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
 
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
-				preProcessing(rgm, branchCode);
+				PDPage page = new PDPage();
+				doc.addPage(page);
+				firstRecord = true;
+				pagination++;
+				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+				PDRectangle pageSize = page.getMediaBox();
+				PDFont pdfFont = PDType1Font.COURIER;
+				float fontSize = 6;
+				float leading = 1.5f * fontSize;
+				float margin = 30;
+				float width = pageSize.getWidth() - 2 * margin;
+				float startX = pageSize.getLowerLeftX() + margin;
+				float startY = pageSize.getUpperRightY() - margin;
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
 				rgm.setBodyQuery(getDebitBodyQuery());
+				rgm.setTrailerQuery(getDebitTrailerQuery());
+				preProcessing(rgm, branchCode);
+				writePdfHeader(rgm, contentStream, leading, pagination);
+				pageHeight += 4;
+				writePdfBodyHeader(rgm, contentStream, leading);
+				pageHeight += 2;
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
 						pdfFont, fontSize, branchCode);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize, branchCode);
-			}
 
-			writePdfTrailer(rgm, contentStream, leading);
-			pageHeight += 1;
-			contentStream.endText();
-			contentStream.close();
+				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+				page = new PDPage();
+				doc.addPage(page);
+				firstRecord = true;
+				pagination++;
+				contentStream = new PDPageContentStream(doc, page);
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
+				rgm.setBodyQuery(getCreditBodyQuery());
+				rgm.setTrailerQuery(getCreditTrailerQuery());
+				preProcessing(rgm, branchCode);
+				writePdfHeader(rgm, contentStream, leading, pagination);
+				pageHeight += 4;
+				writePdfBodyHeader(rgm, contentStream, leading);
+				pageHeight += 2;
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize, branchCode);
+				endBranch = true;
+			}
 
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 			String txnDate = null;
@@ -145,7 +176,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.processCsvTxtRecord()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -157,7 +188,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
-			pagination = 1;
+			pagination = 0;
 			file = new File(
 					rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.TXT_FORMAT);
 			execute(rgm, file);
@@ -168,18 +199,28 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 		String branchCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			writeHeader(rgm, pagination);
-			writeBodyHeader(rgm);
 			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
-				preProcessing(rgm, branchCode);
+				endBranch = true;
+				firstRecord = true;
+				pagination++;
 				rgm.setBodyQuery(getDebitBodyQuery());
+				rgm.setTrailerQuery(getDebitTrailerQuery());
+				preProcessing(rgm, branchCode);
+				writeHeader(rgm, pagination);
+				writeBodyHeader(rgm);
 				executeBodyQuery(rgm, branchCode);
+
+				firstRecord = true;
+				pagination++;
 				rgm.setBodyQuery(getCreditBodyQuery());
+				rgm.setTrailerQuery(getCreditTrailerQuery());
+				preProcessing(rgm, branchCode);
+				writeHeader(rgm, pagination);
+				writeBodyHeader(rgm);
 				executeBodyQuery(rgm, branchCode);
 			}
-			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -200,7 +241,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 	}
 
 	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.filterByCriteria()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.filterByCriteria()");
 		String branchCode = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -255,7 +296,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.preProcessing()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.preProcessing()");
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
@@ -293,8 +334,8 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.preProcessing()");
-		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
+		logger.debug("In GLHandoffBlocksheetAcquirer.preProcessing()");
+		if (filterByBranchCode != null && rgm.getBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
@@ -302,7 +343,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 	}
 
 	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.separateDebitCreditquery()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.separateDebitCreditquery()");
 		if (rgm.getBodyQuery() != null) {
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -312,10 +353,19 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
+		if (rgm.getTrailerQuery() != null) {
+			setDebitTrailerQuery(
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setCreditTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -339,7 +389,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writeHeader()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -369,7 +419,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 	}
 
 	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writeBodyHeader()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -393,55 +443,129 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 			String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		boolean bancnet = false;
+		int bancnetLength = 0;
+		String bancnetValue = null;
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap, true)));
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-				line.append(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+			if (!firstRecord) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.DESCRIPTION)) {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+						line.append(
+								String.format("%1$4s", "") + String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+					} else {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+					}
+				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.CODE)) {
+						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
+							String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
+									.replace(' ', '0');
+							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatStan));
+						} else {
+							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+						}
+					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
+							String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
+									.replace(' ', '0');
+							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatAccNo));
+						} else {
+							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+						}
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+					} else {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				}
 			} else {
-				line.append(
-						String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+					bancnetLength += field.getCsvTxtLength();
+				}
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap, true)));
+					bancnetLength += field.getCsvTxtLength();
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+					if (getFieldValue(field, fieldsMap, true).contains("Bancnet")) {
+						line.append(String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
+								getFieldValue(field, fieldsMap, true).substring(0, 26)));
+						bancnetValue = getFieldValue(field, fieldsMap, true).substring(27,
+								getFieldValue(field, fieldsMap, true).length());
+						bancnet = true;
+					} else {
+						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getCsvTxtLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.CODE)) {
+					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
+						String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
+								.replace(' ', '0');
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatStan));
+					} else {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
+						String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
+								.replace(' ', '0');
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatAccNo));
+					} else {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+				} else {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
+				}
 			}
 		}
 		line.append(getEol());
+		if (bancnet) {
+			bancnet = false;
+			line.append(String.format("%1$4s", "")
+					+ String.format("%1$" + (bancnetLength + bancnetValue.length()) + "s", bancnetValue));
+			line.append(getEol());
+		}
 		rgm.writeLine(line.toString().getBytes());
+		firstRecord = false;
 	}
 
-	private void writeTrailer(ReportGenerationMgr rgm)
+	private void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writeTrailer()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
+							getFieldValue(field, fieldsMap, true).charAt(0)));
 					line.append(getEol());
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-					line.append(getEol());
-				} else if (getGlobalFieldValue(field, true) == null) {
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 					line.append(getEol());
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
 					line.append(getEol());
 				}
 			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
+				if (getFieldValue(field, fieldsMap, true) == null) {
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
 				}
 			}
 		}
@@ -451,7 +575,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writePdfHeader()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -480,7 +604,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writePdfBodyHeader()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -509,61 +633,156 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 			PDPageContentStream contentStream, float leading, String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		boolean bancnet = false;
+		int bancnetLength = 0;
+		String bancnetValue = null;
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+			if (!firstRecord) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.DESCRIPTION)) {
+					if (field.isEol()) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						contentStream.newLineAtOffset(0, -leading);
+					} else {
+						if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+							contentStream.showText(
+									String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s", ""));
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						}
+					}
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+					if (field.isEol()) {
+						if (getFieldValue(field, fieldsMap, true) == null) {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+							contentStream.newLineAtOffset(0, -leading);
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+							contentStream.newLineAtOffset(0, -leading);
+						}
+					} else {
+						if (field.getFieldName().equalsIgnoreCase(ReportConstants.CODE)) {
+							if (getFieldValue(field, fieldsMap, true).length() <= 6) {
+								String formatStan = String
+										.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
+										.replace(' ', '0');
+								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatStan));
+							} else {
+								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+										getFieldValue(field, fieldsMap, true)));
+							}
+						} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+							if (getFieldValue(field, fieldsMap, true).length() <= 16) {
+								String formatAccNo = String
+										.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
+										.replace(' ', '0');
+								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
+							} else {
+								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+										getFieldValue(field, fieldsMap, true)));
+							}
+						} else if (getFieldValue(field, fieldsMap, true) == null) {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+						}
+					}
+				}
+			} else {
+				if (field.isEol()) {
+					if (getFieldValue(field, fieldsMap, true) == null) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						contentStream.newLineAtOffset(0, -leading);
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+						contentStream.newLineAtOffset(0, -leading);
+					}
+				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+						bancnetLength += field.getPdfLength();
+					}
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								branchCode + getFieldValue(field, fieldsMap, true)));
+						bancnetLength += field.getPdfLength();
+					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+						if (getFieldValue(field, fieldsMap, true).contains("Bancnet")) {
+							contentStream.showText(
+									String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
+											getFieldValue(field, fieldsMap, true).substring(0, 26)));
+							bancnetValue = getFieldValue(field, fieldsMap, true).substring(27,
+									getFieldValue(field, fieldsMap, true).length());
+							bancnet = true;
+						} else {
+							contentStream.showText(String.format("%1$4s", "") + String
+									.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+						}
+					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.CODE)) {
+						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
+							String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
+									.replace(' ', '0');
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatStan));
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+						}
+					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
+							String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
+									.replace(' ', '0');
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+									getFieldValue(field, fieldsMap, true)));
+						}
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
 				}
 			}
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
-				contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap, true)));
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-				contentStream.showText(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-			} else {
-				contentStream.showText(
-						String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-			}
 		}
-		contentStream.newLineAtOffset(0, -leading);
+		if (bancnet) {
+			bancnet = false;
+			contentStream.showText(String.format("%1$4s", "")
+					+ String.format("%1$" + (bancnetLength + bancnetValue.length()) + "s", bancnetValue));
+			contentStream.newLineAtOffset(0, -leading);
+		}
+		firstRecord = false;
 	}
 
-	private void writePdfTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
+	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.writePdfTrailer()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
+				if (field.getFieldName().contains(ReportConstants.LINE) && field.isFirstField()) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
+							getFieldValue(field, fieldsMap, true).charAt(0)));
 					contentStream.newLineAtOffset(0, -leading);
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
 					contentStream.newLineAtOffset(0, -leading);
 				}
 			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
+				if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
 					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
 				}
 			}
 		}
@@ -572,7 +791,7 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize, String branchCode) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.executePdfBodyQuery()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -588,7 +807,8 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
 				while (rs.next()) {
-					if (pageHeight > totalHeight) {
+					if (pageHeight > totalHeight && !endBranch) {
+						endBranch = false;
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 						page = new PDPage();
 						doc.addPage(page);
@@ -631,6 +851,11 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading, branchCode);
 					pageHeight++;
 				}
+				pageHeight += 1;
+				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+				pageHeight += 1;
+				contentStream.endText();
+				contentStream.close();
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
@@ -647,8 +872,70 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 		return contentStream;
 	}
 
+	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
+		logger.debug("In GLHandoffBlocksheetAcquirer.executePdfTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
 	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
-		logger.debug("In GLHandoffFinalProofSheetOnUs.executeBodyQuery()");
+		logger.debug("In GLHandoffBlocksheetAcquirer.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -693,9 +980,71 @@ public class GLHandoffFinalProofSheetOnUs extends GeneralReportProcess {
 					}
 					writeBody(rgm, lineFieldsMap, branchCode);
 				}
+				executeTrailerQuery(rgm);
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
+	private void executeTrailerQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetAcquirer.executeTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeTrailer(rgm, lineFieldsMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
 				try {
 					ps.close();

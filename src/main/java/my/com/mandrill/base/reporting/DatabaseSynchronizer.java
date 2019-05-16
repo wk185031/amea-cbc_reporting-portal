@@ -103,16 +103,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	       @Override
 	       public void run() {
 	            try {
-	            	synchronizeDatabase("system");
+	            	synchronizeDatabase(ReportConstants.CREATED_BY_USER);
 	            } catch (Exception e) {
-	              // TODO Auto-generated catch block
-	              e.printStackTrace();
+	            	log.error("Exception in nextExecutionTime.", e);
 	          }
 	       }
        }, new Trigger() {
             @Override
             public Date nextExecutionTime(TriggerContext triggerContext) {
-            	Job job = jobRepository.findByName("DB_SYNC");
+            	Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
             	Calendar calendar = Calendar.getInstance();
             	if (job != null) {
             		calendar.setTime(job.getScheduleTime());
@@ -126,8 +125,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
             	try {
 					createSyncDbJob();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					log.error("Exception in nextExecutionTime.", e);
 				}
             	return new CronTrigger("0 30 0 * * ?").nextExecutionTime(triggerContext);          
         	}
@@ -141,9 +139,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     	Timestamp ts = new Timestamp(calendar.getTimeInMillis());
 
     	Job newSyncDbJob = new Job();
-    	newSyncDbJob.setName("DB_SYNC");
-    	newSyncDbJob.setStatus("ACTIVE");
-    	newSyncDbJob.setCreatedBy("system");
+    	newSyncDbJob.setName(ReportConstants.JOB_NAME);
+    	newSyncDbJob.setStatus(ReportConstants.STATUS_ACTIVE);
+    	newSyncDbJob.setCreatedBy(ReportConstants.CREATED_BY_USER);
     	newSyncDbJob.setCreatedDate(ZonedDateTime.now());
     	newSyncDbJob.setScheduleTime(ts);
     	
@@ -165,9 +163,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     
     public void createSyncDbTaskGroup(Job job) throws Exception {
     	TaskGroup newTaskGroup = new TaskGroup();
-    	newTaskGroup.setName("DB_SYNC");
-    	newTaskGroup.setStatus("ACTIVE");
-    	newTaskGroup.setCreatedBy("system");
+    	newTaskGroup.setName(ReportConstants.JOB_NAME);
+    	newTaskGroup.setStatus(ReportConstants.STATUS_ACTIVE);
+    	newTaskGroup.setCreatedBy(ReportConstants.CREATED_BY_USER);
     	newTaskGroup.setCreatedDate(ZonedDateTime.now());
     	newTaskGroup.setJob(job);;
     	
@@ -190,33 +188,33 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     public void createSyncDbTasks(TaskGroup taskGroup) throws Exception {
     	Task task1 = new Task();
     	task1.setName("Truncate DB");
-    	task1.setStatus("ACTIVE");
+    	task1.setStatus(ReportConstants.STATUS_ACTIVE);
     	task1.setContent("TRUNCATE TABLE TRANSACTION_LOG_V3");
     	task1.setSequence(1);
     	task1.setType("DB");
-    	task1.setCreatedBy("system");
+    	task1.setCreatedBy(ReportConstants.CREATED_BY_USER);
     	task1.setCreatedDate(ZonedDateTime.now());
     	task1.setTaskGroup(taskGroup);
     	createTask(task1);
     	
     	Task task2 = new Task();
     	task2.setName("Sync DB Oracle-11g");
-    	task2.setStatus("ACTIVE");
+    	task2.setStatus(ReportConstants.STATUS_ACTIVE);
     	task2.setContent("INSERT INTO TRANSACTION_LOG_V3 SELECT * FROM TRANSACTION_LOG@DBLINK_11G");
     	task2.setSequence(2);
     	task2.setType("DB");
-    	task2.setCreatedBy("system");
+    	task2.setCreatedBy(ReportConstants.CREATED_BY_USER);
     	task2.setCreatedDate(ZonedDateTime.now());
     	task2.setTaskGroup(taskGroup);
     	createTask(task2);
     	
     	Task task3 = new Task();
     	task3.setName("Sync DB Oracle-12c");
-    	task3.setStatus("ACTIVE");
+    	task3.setStatus(ReportConstants.STATUS_ACTIVE);
     	task3.setContent("INSERT INTO TRANSACTION_LOG_V3 SELECT * FROM TRANSACTION_LOG@DBLINK_12C");
     	task3.setSequence(3);
     	task3.setType("DB");
-    	task3.setCreatedBy("system");
+    	task3.setCreatedBy(ReportConstants.CREATED_BY_USER);
     	task3.setCreatedDate(ZonedDateTime.now());
     	task3.setTaskGroup(taskGroup);
     	createTask(task3);
@@ -252,14 +250,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         Statement stmt = null;
         ResultSet rs = null;
         stmt = conn.createStatement();
-        Job job = jobRepository.findByName("DB_SYNC");
+        Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
         TaskGroup taskGroup = taskGroupRepository.findByJobId(job.getId());
         List<Task> tasks = taskRepository.findByTaskGroupId(taskGroup.getId());
         Collections.sort(tasks, (a, b) -> a.getSequence() - b.getSequence());
         
         JobHistory jobHistory1 = new JobHistory();
         jobHistory1.setJob(job);
-        jobHistory1.setStatus("IN PROGRESS");
+        jobHistory1.setStatus(ReportConstants.STATUS_IN_PROGRESS);
         jobHistory1.setCreatedDate(ZonedDateTime.now());
         jobHistory1.setCreatedBy(user);
         jobHistoryResource.createJobHistory(jobHistory1);
@@ -281,7 +279,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         
         JobHistory jobHistory2 = new JobHistory();
         jobHistory2.setJob(job);
-        jobHistory2.setStatus("COMPLETED");
+        jobHistory2.setStatus(ReportConstants.STATUS_COMPLETED);
         jobHistory2.setCreatedDate(ZonedDateTime.now());
         jobHistory2.setCreatedBy(user);
         jobHistoryResource.createJobHistory(jobHistory2);

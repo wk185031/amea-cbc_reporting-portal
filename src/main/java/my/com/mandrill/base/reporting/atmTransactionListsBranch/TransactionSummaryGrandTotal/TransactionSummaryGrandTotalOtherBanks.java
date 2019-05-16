@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsBranch.EftAtmTransactionList;
+package my.com.mandrill.base.reporting.atmTransactionListsBranch.TransactionSummaryGrandTotal;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +30,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class EftAtmTransactionListOnUs extends GeneralReportProcess {
+public class TransactionSummaryGrandTotalOtherBanks extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(EftAtmTransactionListOnUs.class);
+	private final Logger logger = LoggerFactory.getLogger(TransactionSummaryGrandTotalOtherBanks.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
@@ -40,7 +40,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.processPdfRecord()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -81,8 +81,13 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 						writePdfBodyHeader(rgm, contentStream, leading);
 						pageHeight += 2;
 						preProcessing(rgm, branchCode, branchName, terminal);
-						contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-								pdfFont, fontSize);
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize);
+						pageHeight += 1;
+						executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
+								fontSize);
+						pageHeight += 1;
+						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
 					}
 				}
@@ -118,87 +123,8 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 		}
 	}
 
-	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
-			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
-		logger.debug("In EftAtmTransactionListOnUs.execute()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getBodyQuery(rgm);
-		logger.info("Query for body line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream.endText();
-						contentStream.close();
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-					}
-
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								Class clazz = result.getClass();
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					success++;
-					pageHeight++;
-				}
-				contentStream.newLineAtOffset(0, -leading);
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return contentStream;
-	}
-
 	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.filterByCriteria()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
@@ -277,7 +203,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOnUs.preProcessing()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
@@ -317,7 +243,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
 			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOnUs.preProcessing()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.preProcessing()");
 		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
@@ -339,7 +265,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -364,7 +290,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOnUs.writePdfHeader()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -397,7 +323,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOnUs.writePdfBodyHeader()");
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -427,15 +353,117 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
-					if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
-						contentStream.showText(String.format("%1$5s", "") + String
-								.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
+				if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.newLineAtOffset(0, -leading);
+				}
+			} else {
+				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				} else {
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				}
+			}
+		}
+	}
+
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
+			PDFont pdfFont, float fontSize) {
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.execute()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					if (pageHeight > totalHeight) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream.endText();
+						contentStream.close();
+						page = new PDPage();
+						doc.addPage(page);
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
 					}
+
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					success++;
+					pageHeight++;
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return contentStream;
+	}
+
+	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.writePdfTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				if (field.getFieldName().contains(ReportConstants.LINE)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
+							getFieldValue(field, fieldsMap, true).charAt(0)));
+					contentStream.newLineAtOffset(0, -leading);
 				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					contentStream.newLineAtOffset(0, -leading);
@@ -445,38 +473,73 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 					contentStream.newLineAtOffset(0, -leading);
 				}
 			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.ATM_CARD_NUMBER)) {
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						String formatCardNo = String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatCardNo));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)) {
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatStan));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT)) {
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
+				if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
 					contentStream.showText(
 							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				}
+			}
+		}
+	}
+
+	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
+		logger.debug("In TransactionSummaryGrandTotalOtherBanks.executePdfTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								Class clazz = result.getClass();
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
 				}
 			}
 		}
