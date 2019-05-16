@@ -259,7 +259,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         
         JobHistory jobHistory1 = new JobHistory();
         jobHistory1.setJob(job);
-        jobHistory1.setStatus("EXECUTED");
+        jobHistory1.setStatus("IN PROGRESS");
         jobHistory1.setCreatedDate(ZonedDateTime.now());
         jobHistory1.setCreatedBy(user);
         jobHistoryResource.createJobHistory(jobHistory1);
