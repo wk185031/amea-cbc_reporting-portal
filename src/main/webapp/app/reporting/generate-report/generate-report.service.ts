@@ -99,8 +99,8 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(reportId: number, fileDate: string, txnStart, txnEnd): any {
-        const req = new HttpRequest('GET', `${this.resourceUrl}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`, {
+    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): any {
+        const req = new HttpRequest('GET', `${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`, {
             reportProgress: true,
             responseType: 'blob'
         });

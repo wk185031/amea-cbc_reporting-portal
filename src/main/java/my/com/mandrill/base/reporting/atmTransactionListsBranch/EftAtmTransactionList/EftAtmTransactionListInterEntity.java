@@ -30,9 +30,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class EftAtmTransactionListOnUs extends GeneralReportProcess {
+public class EftAtmTransactionListInterEntity extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(EftAtmTransactionListOnUs.class);
+	private final Logger logger = LoggerFactory.getLogger(EftAtmTransactionListInterEntity.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
@@ -40,7 +40,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.processPdfRecord()");
+		logger.debug("In EftAtmTransactionListInterEntity.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -121,7 +121,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
-		logger.debug("In EftAtmTransactionListOnUs.execute()");
+		logger.debug("In EftAtmTransactionListInterEntity.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -198,7 +198,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 	}
 
 	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.filterByCriteria()");
+		logger.debug("In EftAtmTransactionListInterEntity.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
@@ -277,7 +277,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOnUs.preProcessing()");
+		logger.debug("In EftAtmTransactionListInterEntity.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
@@ -317,7 +317,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
 			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOnUs.preProcessing()");
+		logger.debug("In EftAtmTransactionListInterEntity.preProcessing()");
 		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
@@ -339,7 +339,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOnUs.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In EftAtmTransactionListInterEntity.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -364,7 +364,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOnUs.writePdfHeader()");
+		logger.debug("In EftAtmTransactionListInterEntity.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -397,7 +397,7 @@ public class EftAtmTransactionListOnUs extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOnUs.writePdfBodyHeader()");
+		logger.debug("In EftAtmTransactionListInterEntity.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {

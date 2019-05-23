@@ -24,9 +24,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffOnUs extends GeneralReportProcess {
+public class GLHandoffAcquirer extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffOnUs.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffAcquirer.class);
 	private int success = 0;
 	private double fileHash = 0.00;
 	private String debitBodyQuery = null;
@@ -60,7 +60,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.processCsvTxtRecord()");
+		logger.debug("In GLHandoffAcquirer.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -116,7 +116,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.filterByCriteria()");
+		logger.debug("In GLHandoffAcquirer.filterByCriteria()");
 		String branchCode = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -171,7 +171,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.preProcessing()");
+		logger.debug("In GLHandoffAcquirer.preProcessing()");
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
@@ -208,7 +208,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.preProcessing()");
+		logger.debug("In GLHandoffAcquirer.preProcessing()");
 		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
@@ -217,7 +217,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.separateDebitCreditquery()");
+		logger.debug("In GLHandoffAcquirer.separateDebitCreditquery()");
 		if (rgm.getBodyQuery() != null) {
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -230,7 +230,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffAcquirer.addPreProcessingFieldsToGlobalMap()");
 		if (rgm.isGenerate() == true) {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 			String txnDate = df.format(rgm.getTxnEndDate());
@@ -264,19 +264,19 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 
 	private void postProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffOnUs.postProcessing()");
+		logger.debug("In GLHandoffAcquirer.postProcessing()");
 		addPostProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffOnUs.addPostProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffAcquirer.addPostProcessingFieldsToGlobalMap()");
 		ReportGenerationFields noOfRecords = new ReportGenerationFields(ReportConstants.NO_OF_DATA_RECORDS,
 				ReportGenerationFields.TYPE_NUMBER, Integer.toString(success));
 		getGlobalFileFieldsMap().put(noOfRecords.getFieldName(), noOfRecords);
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffOnUs.writeHeader()");
+		logger.debug("In GLHandoffAcquirer.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -335,7 +335,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void writeTrailer(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffOnUs.writeTrailer()");
+		logger.debug("In GLHandoffAcquirer.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -360,7 +360,7 @@ public class GLHandoffOnUs extends GeneralReportProcess {
 	}
 
 	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
-		logger.debug("In GLHandoffOnUs.executeBodyQuery()");
+		logger.debug("In GLHandoffAcquirer.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

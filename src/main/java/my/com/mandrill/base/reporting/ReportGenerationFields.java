@@ -58,6 +58,8 @@ public class ReportGenerationFields {
 	private Date fileDate;
 	private Date txnStartDate;
 	private Date txnEndDate;
+	private Date todayDate;
+	private Date yesterdayDate;
 	private boolean generate;
 
 	public ReportGenerationFields() {
@@ -310,6 +312,22 @@ public class ReportGenerationFields {
 		this.txnEndDate = txnEndDate;
 	}
 
+	public Date getTodayDate() {
+		return todayDate;
+	}
+
+	public void setTodayDate(Date todayDate) {
+		this.todayDate = todayDate;
+	}
+
+	public Date getYesterdayDate() {
+		return yesterdayDate;
+	}
+
+	public void setYesterdayDate(Date yesterdayDate) {
+		this.yesterdayDate = yesterdayDate;
+	}
+
 	public boolean isGenerate() {
 		return generate;
 	}
@@ -327,12 +345,8 @@ public class ReportGenerationFields {
 	}
 
 	public String format(String eol, boolean fixedLength, Integer eky_id) {
-		String padChar = null;
-		boolean fieldLeading = false;
 		String tempValue = null;
-
 		if (value == null || value.length() < 1) {
-			padChar = " ";
 			tempValue = "";
 		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_ENCRYPTED_STRING)) {
 			if (value != null && !value.isEmpty()) {
@@ -345,72 +359,13 @@ public class ReportGenerationFields {
 			SimpleDateFormat df = new SimpleDateFormat(fieldFormat);
 			Date date = new Date(Long.parseLong(value));
 			tempValue = df.format(date);
-			return tempValue;
 		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-			padChar = "0";
-			fieldLeading = true;
-			double doubleValue = Double.parseDouble(value);
-			DecimalFormat formatter = new DecimalFormat(fieldFormat);
-			tempValue = formatter.format(doubleValue);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_SPECIAL_DECIMAL)) { // Format eg. 10.55 to
-																								// 1055
-			padChar = "0";
-			fieldLeading = true;
-			double doubleValue = Double.parseDouble(value);
-			DecimalFormat formatter = new DecimalFormat(fieldFormat);
-			tempValue = formatter.format(doubleValue).replace(".", "");
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_FORMAT_DECIMAL)) { // Format eg. 100055 to
-																								// 1000.55
-			padChar = "0";
-			fieldLeading = true;
-			int exponent = fieldFormat.length() - fieldFormat.indexOf(".") - 1;
-			double doubleValue = Double.parseDouble(value) / (Math.pow(10, exponent));
-			String newformat = null;
-
-			if (doubleValue < 0) {
-				// newformat = Padding.add(format, padChar, length - 1, fieldLeading);
-			} else {
-				// newformat = Padding.add(format, padChar, length, fieldLeading);
-			}
-
-			DecimalFormat formatter = new DecimalFormat(newformat);
-			tempValue = formatter.format(doubleValue);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL_WITHOUT_LEADING_ZEROS)) { // Format
-																											// eg.
-																											// 0001000.55
-																											// to
-			// 1000.55
-			padChar = " ";
-			fieldLeading = true;
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue);
 		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-			padChar = "0";
-			fieldLeading = true;
 			tempValue = value;
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_SPECIAL_NUMBER)) { // Format eg. 1000 to 10
-			padChar = "0";
-			fieldLeading = true;
-			if (value.equals("0")) {
-				tempValue = "0";
-			} else {
-				tempValue = value.substring(0, value.length() - 2);
-			}
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_FORMAT_NUMBER)) { // Format eg. 10 to 1000
-			padChar = "0";
-			fieldLeading = true;
-			if (value.equals("0")) {
-				tempValue = "0";
-			} else {
-				tempValue = value.concat("00");
-			}
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_SPECIAL_STRING)) {
-			padChar = " ";
-			fieldLeading = true;
-			tempValue = value.replaceAll(eol, " ");
 		} else {
-			padChar = " ";
 			tempValue = value.replaceAll(eol, " ");
 		}
 		return tempValue;

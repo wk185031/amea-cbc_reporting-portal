@@ -19,6 +19,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public IReportProcessor reportProcessor;
 	public Connection connection;
 	public FileOutputStream fileOutputStream;
+	public int errors = 0;
 
 	public void run(String url, String username, String password) {
 		logger.debug("In ReportGenerationMgr.run()");
@@ -46,6 +47,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			connection = DriverManager.getConnection(url, username, password);
 			connection.setAutoCommit(false);
 		} catch (Exception e) {
+			errors++;
 			logger.error("Error establishing database connection for reporting - Error: ", e);
 		}
 	}
@@ -55,6 +57,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		try {
 			connection.setAutoCommit(true);
 		} catch (Exception e) {
+			errors++;
 			logger.error("Error closing connection: ", e);
 		}
 	}
@@ -65,6 +68,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			Class<?> newClass = Class.forName(rgm.getProcessingClass());
 			reportProcessor = (IReportProcessor) newClass.newInstance();
 		} catch (Exception e) {
+			errors++;
 			logger.error("Error creating batch processor instance", e);
 		}
 	}

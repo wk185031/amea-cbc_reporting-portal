@@ -37,7 +37,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
-	private int errors = 0;
 	private int pagination = 0;
 
 	@Override
@@ -102,12 +101,15 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTxnEndDate());
+				txnDate = df.format(rgm.getTodayDate());
 			}
-			doc.save(new File(
-					rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT));
+			if (rgm.errors == 0) {
+				doc.save(new File(
+						rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT));
+			}
 		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
 				| ClassNotFoundException e) {
+			rgm.errors++;
 			logger.error("Error in generating PDF file", e);
 		} finally {
 			if (doc != null) {
@@ -115,6 +117,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 					doc.close();
 					rgm.exit();
 				} catch (IOException e) {
+					rgm.errors++;
 					logger.error("Error in closing PDF file", e);
 				}
 			}
@@ -148,7 +151,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 						try {
 							result = rs.getObject(field.getSource());
 						} catch (SQLException e) {
-							errors++;
+							rgm.errors++;
 							logger.error("An error was encountered when getting result", e);
 							continue;
 						}
@@ -184,12 +187,14 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 					}
 				}
 			} catch (Exception e) {
+				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
 				try {
 					ps.close();
 					rs.close();
 				} catch (SQLException e) {
+					rgm.errors++;
 					logger.error("Error closing DB resources", e);
 				}
 			}
@@ -200,10 +205,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.preProcessing()");
-		if (rgm.getBodyQuery() != null
-				&& rgm.getBodyQuery().indexOf("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}") != 0
-				&& rgm.getBodyQuery().indexOf("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}") != 0
-				&& rgm.getBodyQuery().indexOf("AND {" + ReportConstants.PARAM_TERMINAL + "}") != 0) {
+		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
@@ -211,34 +213,39 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 		}
 
 		if (rgm.isGenerate() == true) {
-			if (rgm.getTxnStartDate() != null && rgm.getTxnEndDate() != null) {
-				String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-						.concat(" ").concat(ReportConstants.START_TIME);
-				String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate())
-						.concat(" ").concat(ReportConstants.END_TIME);
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
+					.concat(" ").concat(ReportConstants.START_TIME);
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
+					.concat(ReportConstants.END_TIME);
 
-				ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-						ReportGenerationFields.TYPE_STRING,
-						"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-								+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-								+ ReportConstants.FORMAT_TXN_DATE + "')");
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
 
-				getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			} else {
-				logger.debug("txnStartDate or txnEndDate is empty or null");
-			}
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		} else {
-			// TBD
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
+					.concat(" ").concat(ReportConstants.START_TIME);
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
+					.concat(ReportConstants.END_TIME);
+
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
+
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		}
 		addPreProcessingFieldsToGlobalMap(rgm);
-		performPreProcessingTransformations(getGlobalFileFieldsMap());
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
 			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null
-				&& rgm.getTmpBodyQuery().indexOf("AND {" + ReportConstants.PARAM_TERMINAL + "}") != 0) {
+		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
@@ -260,36 +267,25 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.addPreProcessingFieldsToGlobalMap()");
+		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+
+		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
+		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
+		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
+
 		if (rgm.isGenerate() == true) {
-			if (rgm.getTxnStartDate() != null && rgm.getTxnEndDate() != null) {
-				ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-						ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-				ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-						ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-				ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-						ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-				ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-						ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-				getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
-				getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-				getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-				getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-			} else {
-				logger.debug("txnStartDate or txnEndDate is empty or null");
-			}
+			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
+			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
-			ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
 					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-			ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-			ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-			getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-			getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-			getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
 		}
 	}
 
@@ -357,28 +353,25 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
-			if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
-					&& !field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)
-					&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)) {
-				if (field.isEol()) {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
-					}
+			if (field.isEol()) {
+				if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.newLineAtOffset(0, -leading);
 				}
 			} else {
-				// Do not print
+				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				} else {
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				}
 			}
 		}
 	}
@@ -421,7 +414,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 						try {
 							result = rs.getObject(field.getSource());
 						} catch (SQLException e) {
-							errors++;
+							rgm.errors++;
 							logger.error("An error was encountered when trying to write a line", e);
 							continue;
 						}
@@ -446,12 +439,14 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 					pageHeight++;
 				}
 			} catch (Exception e) {
+				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
 				try {
 					ps.close();
 					rs.close();
 				} catch (SQLException e) {
+					rgm.errors++;
 					logger.error("Error closing DB resources", e);
 				}
 			}
@@ -466,7 +461,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE) && field.isFirstField()) {
+				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
 							getFieldValue(field, fieldsMap, true).charAt(0)));
 					contentStream.newLineAtOffset(0, -leading);
@@ -514,7 +509,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 						try {
 							result = rs.getObject(field.getSource());
 						} catch (SQLException e) {
-							errors++;
+							rgm.errors++;
 							logger.error("An error was encountered when trying to write a line", e);
 							continue;
 						}
@@ -537,12 +532,14 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
 				}
 			} catch (Exception e) {
+				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
 				try {
 					ps.close();
 					rs.close();
 				} catch (SQLException e) {
+					rgm.errors++;
 					logger.error("Error closing DB resources", e);
 				}
 			}

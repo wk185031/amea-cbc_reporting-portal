@@ -6,15 +6,21 @@ import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_GENERAT
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,10 +28,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.jhipster.web.util.ResponseUtil;
+import my.com.mandrill.base.domain.Job;
+import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.repository.JobHistoryRepository;
+import my.com.mandrill.base.repository.JobRepository;
+import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
+import my.com.mandrill.base.repository.search.JobHistorySearchRepository;
+import my.com.mandrill.base.repository.search.JobSearchRepository;
+import my.com.mandrill.base.repository.search.ReportCategorySearchRepository;
 import my.com.mandrill.base.repository.search.ReportDefinitionSearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 
@@ -36,49 +50,156 @@ import my.com.mandrill.base.security.SecurityUtils;
 @RequestMapping("/api")
 public class ReportGenerationResource {
 
-	private final Logger log = LoggerFactory.getLogger(ReportGenerationResource.class);
+	private final Logger logger = LoggerFactory.getLogger(ReportGenerationResource.class);
 	private static final String ENTITY_NAME = "reportGeneration";
+	private final ReportCategoryRepository reportCategoryRepository;
+	private final ReportCategorySearchRepository reportCategorySearchRepository;
 	private final ReportDefinitionRepository reportDefinitionRepository;
 	private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
+	private final JobRepository jobRepository;
+	private final JobSearchRepository jobSearchRepository;
+	private final JobHistoryRepository jobHistoryRepository;
+	private final JobHistorySearchRepository jobHistorySearchRepository;
 	private final EntityManager entityManager;
 	private final Environment env;
+	private Timer scheduleTimer = null;
+	private Calendar nextTime = null;
 
-	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
-			ReportDefinitionSearchRepository reportDefinitionSearchRepository, EntityManager entityManager,
-			Environment env) {
+	public ReportGenerationResource(ReportCategoryRepository reportCategoryRepository,
+			ReportCategorySearchRepository reportCategorySearchRepository,
+			ReportDefinitionRepository reportDefinitionRepository,
+			ReportDefinitionSearchRepository reportDefinitionSearchRepository, JobRepository jobRepository,
+			JobSearchRepository jobSearchRepository, JobHistoryRepository jobHistoryRepository,
+			JobHistorySearchRepository jobHistorySearchRepository, EntityManager entityManager, Environment env) {
+		this.reportCategoryRepository = reportCategoryRepository;
+		this.reportCategorySearchRepository = reportCategorySearchRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
+		this.jobRepository = jobRepository;
+		this.jobSearchRepository = jobSearchRepository;
+		this.jobHistoryRepository = jobHistoryRepository;
+		this.jobHistorySearchRepository = jobHistorySearchRepository;
 		this.entityManager = entityManager;
 		this.env = env;
 	}
 
-	@GetMapping("/reportGeneration/{reportId}/{fileDate}/{txnStart}/{txnEnd}")
+	@Scheduled(cron = "0 0 0 * * *")
+	public void initialise() {
+		if (scheduleTimer != null) {
+			scheduleTimer.cancel();
+		}
+		if (scheduleTimer == null) {
+			scheduleTimer = new Timer();
+		}
+		startScheduleTimer();
+	}
+
+	private void startScheduleTimer() {
+		scheduleTimer.schedule(new TimerTask() {
+			public void run() {
+				startScheduleTimer();
+				new Thread() {
+					@Override
+					public void run() {
+						generateDailyReport();
+					}
+				}.start();
+			}
+		}, getNextWakeUpTime());
+	}
+
+	private Date getNextWakeUpTime() {
+		if (nextTime == null) {
+			nextTime = Calendar.getInstance();
+		}
+		nextTime.add(Calendar.MINUTE, 1);
+		return nextTime.getTime();
+	}
+
+	private void generateDailyReport() {
+		Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+		for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
+				.filter(jobHistory -> jobHistory.getJob().getId() == job.getId()).collect(Collectors.toList())) {
+			if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)) {
+				Date todayDate = new Date();
+				Calendar cal = Calendar.getInstance();
+				cal.add(Calendar.DATE, -1);
+				Date yesterdayDate = cal.getTime();
+
+				ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+				reportGenerationMgr.setYesterdayDate(yesterdayDate);
+				reportGenerationMgr.setTodayDate(todayDate);
+
+				for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
+					reportGenerationMgr.setFileName(reportDefinitionList.getName());
+					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+					reportGenerationMgr.setFileLocation(reportDefinitionList.getFileLocation());
+					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
+					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
+					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
+					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
+					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
+					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
+					reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				}
+			}
+		}
+	}
+
+	@GetMapping("/reportGeneration/{reportCategoryId}/{reportId}/{fileDate}/{txnStart}/{txnEnd}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long reportId, @PathVariable String fileDate,
-			@PathVariable String txnStart, @PathVariable String txnEnd) throws ParseException {
-		log.debug("User: {}, Rest to generate report ID: {}, File Date: {}, Txn Start Date: {}, Txn End Date: {}",
-				SecurityUtils.getCurrentUserLogin().orElse(""), reportId, fileDate, txnStart, txnEnd);
-		ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
+	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long reportCategoryId,
+			@PathVariable Long reportId, @PathVariable String fileDate, @PathVariable String txnStart,
+			@PathVariable String txnEnd) throws ParseException {
+		logger.debug(
+				"User: {}, Rest to generate Report Category ID: {}, Report ID: {}, File Date: {}, Txn Start Date: {}, Txn End Date: {}",
+				SecurityUtils.getCurrentUserLogin().orElse(""), reportCategoryId, reportId, fileDate, txnStart, txnEnd);
+		ReportDefinition reportDefinition = null;
 		txnStart = txnStart.replace("-", "");
 		txnEnd = txnEnd.replace("-", "");
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setGenerate(true);
-		reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-		reportGenerationMgr.setFileName(reportDefinition.getName());
-		reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
-		reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-		reportGenerationMgr.setFileLocation(reportDefinition.getFileLocation());
-		reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-		reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-		reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-		reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-		reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-		reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 		reportGenerationMgr.setFileDate(getFileDate(fileDate));
 		reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnStart));
 		reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnEnd));
-		reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL), env.getProperty(ReportConstants.DB_USERNAME),
-				env.getProperty(ReportConstants.DB_PASSWORD));
+
+		if (reportId == 0) {
+			for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+				if (reportDefinitionList.getReportCategory().getId() == reportCategoryId) {
+					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
+					reportGenerationMgr.setFileName(reportDefinitionList.getName());
+					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+					reportGenerationMgr.setFileLocation(reportDefinitionList.getFileLocation());
+					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
+					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
+					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
+					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
+					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
+					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
+					reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				}
+			}
+		} else {
+			reportDefinition = reportDefinitionRepository.findOne(reportId);
+			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
+			reportGenerationMgr.setFileName(reportDefinition.getName());
+			reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
+			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
+			reportGenerationMgr.setFileLocation(reportDefinition.getFileLocation());
+			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
+			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
+			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
+			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
+			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
+			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+		}
 
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
 	}
@@ -101,5 +222,9 @@ public class ReportGenerationResource {
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_07);
 		Date date = df.parse(txnStartTime);
 		return date;
+	}
+
+	private Sort orderByIdAsc() {
+		return new Sort(Sort.Direction.ASC, "id");
 	}
 }

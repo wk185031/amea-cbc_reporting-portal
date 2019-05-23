@@ -40,11 +40,10 @@ export class GenerateReportComponent implements OnInit {
     }
 
     loadAll() {
-        const toDate = new Date(Date.now());
+        const toDate = new Date();
+        toDate.setDate(toDate.getDate() - 1);
         this.generateReport.txnEnd = this.formatDateString(toDate);
-        const fromDate = new Date();
-        fromDate.setDate(fromDate.getDate() - 1);
-        this.generateReport.txnStart = this.formatDateString(fromDate);
+        this.generateReport.txnStart = this.formatDateString(toDate);
 
         this.reportConfigDefinitionService.queryNoPaging().subscribe((response: HttpResponse<ReportDefinition[]>) => {
             this.allReports = response.body;
@@ -52,6 +51,7 @@ export class GenerateReportComponent implements OnInit {
                 this.categories = response.body;
                 if (this.categories || this.categories.length > 0) {
                     this.category = this.categories[0];
+                    this.report = null;
                     this.filterByCategory();
                 }
             }, (response: HttpErrorResponse) => this.onError(response.message));
@@ -92,15 +92,12 @@ export class GenerateReportComponent implements OnInit {
     filterByCategory() {
         if (this.allReports) {
             this.reports = this.allReports.filter(report => report.reportCategory.id === this.category.id);
-            if (this.reports || this.reports.length > 0) {
-                this.report = this.reports[0];
-            }
         }
     }
 
     generate() {
-        if (this.generateReport && this.report.id && this.generateReport.fileDate && this.generateReport.txnStart && this.generateReport.txnEnd) {
-            const req = this.generateReportService.generateReport(this.report.id, this.generateReport.fileDate, this.generateReport.txnStart, this.generateReport.txnEnd);
+        if (this.generateReport && this.generateReport.fileDate) {
+            const req = this.generateReportService.generateReport(this.category.id, this.report ? this.report.id : 0, this.generateReport.fileDate, this.generateReport.txnStart, this.generateReport.txnEnd);
             this.http.request(req).subscribe(
             );
         }
