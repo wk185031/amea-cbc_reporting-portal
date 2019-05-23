@@ -200,7 +200,7 @@
                     <!-- jhipster-needle-add-element-to-admin-menu - JHipster will add entities to the admin menu here -->
                 </ul>
             </li>
-            <li *ngSwitchCase="true" class="nav-item" routerLinkActive="active"
+            <!-- <li *ngSwitchCase="true" class="nav-item" routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: true}">
                 <a class="nav-link" routerLink="dashboard" (click)="collapseNavbar()">
                     <span>
@@ -208,7 +208,7 @@
                         <span jhiTranslate="baseApp.dashboard.title">Dashboard</span>
                     </span>
                 </a>
-            </li>
+            </li> -->
             <li *ngSwitchCase="true" ngbDropdown class="nav-item dropdown pointer" routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: true}">
                 <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);"
@@ -235,7 +235,7 @@
                     </li>
                 </ul>
             </li>
-            <li *jhiHasAnyAuthority="'ROLE_ADMIN'" ngbDropdown class="nav-item dropdown pointer"
+            <li ngbDropdown class="nav-item dropdown pointer"
                 routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="operation-menu">
                     <span>
