@@ -157,7 +157,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends GeneralReportProcess 
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTodayDate());
+				txnDate = df.format(rgm.getYesterdayDate());
 			}
 			if (rgm.errors == 0) {
 				doc.save(new File(
@@ -190,7 +190,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends GeneralReportProcess 
 		if (rgm.isGenerate() == true) {
 			txnDate = df.format(rgm.getFileDate());
 		} else {
-			txnDate = df.format(rgm.getTodayDate());
+			txnDate = df.format(rgm.getYesterdayDate());
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
@@ -429,13 +429,12 @@ public class GLHandoffFinalProofSheetMiniStatement extends GeneralReportProcess 
 		case ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL:
 			ReportGenerationFields channelOnUs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_ISS_NAME = 'CBC Cash Cards'");
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND CPD.CPD_NAME IN ('CASH CARD', 'EMV CASH CARD')");
 			getGlobalFileFieldsMap().put(channelOnUs.getFieldName(), channelOnUs);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ISS_NAME = 'CBC Cash Cards'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -454,23 +453,25 @@ public class GLHandoffFinalProofSheetMiniStatement extends GeneralReportProcess 
 			setAcquirerCreditQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
 					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
 					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", ""));
+					.replace("\"BRANCH CODE\" ASC,", "").replace("LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN", "")
+					.replace("LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
+					.replace(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
 					.replace("ABR.ABR_CODE", "")
 					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
 					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					.replace("\"BRANCH CODE\" ASC,", "").replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN", "")
+					.replace("LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID", ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
@@ -494,7 +495,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends GeneralReportProcess 
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}

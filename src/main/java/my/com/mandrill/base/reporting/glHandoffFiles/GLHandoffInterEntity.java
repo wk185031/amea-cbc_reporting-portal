@@ -87,7 +87,7 @@ public class GLHandoffInterEntity extends GeneralReportProcess {
 		if (rgm.isGenerate() == true) {
 			txnDate = df.format(rgm.getFileDate());
 		} else {
-			txnDate = df.format(rgm.getTodayDate());
+			txnDate = df.format(rgm.getYesterdayDate());
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
@@ -367,7 +367,7 @@ public class GLHandoffInterEntity extends GeneralReportProcess {
 			setAcquirerCreditQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
@@ -378,7 +378,7 @@ public class GLHandoffInterEntity extends GeneralReportProcess {
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
+					.replace(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
 					.replace("ABR.ABR_CODE", "")
 					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
 					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
@@ -406,9 +406,9 @@ public class GLHandoffInterEntity extends GeneralReportProcess {
 			groupIdDate = sdf.format(date);
 		} else {
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String txnDate = df.format(new Date());
+			String txnDate = df.format(rgm.getYesterdayDate());
 			ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
 					ReportGenerationFields.TYPE_STRING,
 					rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
@@ -416,7 +416,7 @@ public class GLHandoffInterEntity extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
 
 			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(new Date().getTime());
+			Date date = new Date(rgm.getYesterdayDate().getTime());
 			groupIdDate = sdf.format(date);
 		}
 	}

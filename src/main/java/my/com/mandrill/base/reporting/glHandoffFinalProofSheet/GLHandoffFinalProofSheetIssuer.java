@@ -120,7 +120,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTodayDate());
+				txnDate = df.format(rgm.getYesterdayDate());
 			}
 			if (rgm.errors == 0) {
 				doc.save(new File(
@@ -153,7 +153,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 		if (rgm.isGenerate() == true) {
 			txnDate = df.format(rgm.getFileDate());
 		} else {
-			txnDate = df.format(rgm.getTodayDate());
+			txnDate = df.format(rgm.getYesterdayDate());
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
@@ -339,7 +339,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}

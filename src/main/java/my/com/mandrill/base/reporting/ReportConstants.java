@@ -14,6 +14,7 @@ public final class ReportConstants {
 	public static final String JOB_NAME = "DB_SYNC";
 	public static final String STATUS_IN_PROGRESS = "IN PROGRESS";
 	public static final String STATUS_COMPLETED = "COMPLETED";
+	public static final String REPORTS_GENERATED = "REPORTS GENERATED";
 	public static final String STATUS_ACTIVE = "ACTIVE";
 	public static final String CREATED_BY_USER = "system";
 
@@ -42,6 +43,7 @@ public final class ReportConstants {
 	public static final String PARAM_BRANCH_CODE = "Branch_Code";
 	public static final String PARAM_BRANCH_NAME = "Branch_Name";
 	public static final String PARAM_TERMINAL = "Terminal";
+	public static final String PARAM_CARD_PRODUCT = "Card_Product";
 	public static final String PARAM_GL_DESCRIPTION = "GL_Description";
 	public static final String PARAM_CHANNEL = "Channel";
 	public static final String PARAM_BILLER = "Biller";
@@ -78,6 +80,7 @@ public final class ReportConstants {
 	public static final String AC_NUMBER = "A/C Number";
 	public static final String TRAN_AMOUNT = "Tran Amount";
 	public static final String TRAN_PARTICULAR = "Tran Particular";
+	public static final String TRAN_REMARKS = "Tran Remarks";
 	public static final String THIRD_PARTY_TRAN_DESCRIPTION = "Third Party Tran Description";
 	public static final String GROUP_ID = "GROUP_ID";
 	public static final String FILE_HASH = "File Hash";
@@ -86,6 +89,7 @@ public final class ReportConstants {
 	public static final String BRANCH_CODE = "BRANCH CODE";
 	public static final String BRANCH_NAME = "BRANCH NAME";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String CARD_PRODUCT = "CARD PRODUCT";
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
 	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
 	public static final String CODE = "CODE";
@@ -125,6 +129,11 @@ public final class ReportConstants {
 	public static final String BANCNET_INTERBANK_TRANSFER_DR = "BANCNET INTERBANK TRANSFER DR";
 	public static final String BANCNET_INTERBANK_TRANSFER_CR = "BANCNET INTERBANK TRANSFER CR";
 	public static final String CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL = "CC ON-US/INTRBRNCH WITHDRAWAL";
+	public static final String IE_BEEP_LOADING = "I/E BEEP LOADING";
+	public static final String IE_BEEP_SERVICE_CHARGE = "I/E BEEP SERVICE CHARGE";
+	public static final String ATM_PAY_TO_MOBILE_WITHDRAWAL = "ATM PAY TO MOBILE WITHDRAWAL";
+	public static final String ATM_EMERGENCY_CASH_WITHDRAWAL = "ATM EMERGENCY CASH WITHDRAWAL";
+	public static final String MBK_PAY_TO_MOBILE_OB_DEPOSIT = "MBK PAY TO MOBILE - OB DEPOSIT";
 
 	// TBC
 	public static final String ATM_BILLS_PAYMENT = "ATM BILLS PAYMENT";

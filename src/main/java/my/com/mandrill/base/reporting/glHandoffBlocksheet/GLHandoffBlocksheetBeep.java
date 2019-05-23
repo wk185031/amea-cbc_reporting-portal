@@ -7,12 +7,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -29,9 +28,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
+public class GLHandoffBlocksheetBeep extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetAcquirer.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetBeep.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -41,8 +40,8 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	private String creditTrailerQuery = null;
 	private String criteriaQuery = null;
 	private boolean firstRecord = false;
-	private boolean newBranch = false;
-	private boolean endBranch = false;
+	private boolean newGroup = false;
+	private boolean endGroup = false;
 
 	public String getDebitBodyQuery() {
 		return debitBodyQuery;
@@ -86,7 +85,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.processPdfRecord()");
+		logger.debug("In GLHandoffBlocksheetBeep.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;
 		PDPageContentStream contentStream = null;
@@ -101,20 +100,21 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 		pagination = 0;
 		try {
 			doc = new PDDocument();
+			String glDescription = null;
 			String branchCode = null;
 
-			separateDebitCreditQuery(rgm);
+			separateQuery(rgm);
 			preProcessing(rgm);
 
-			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
+			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 
-			while (branchCodeItr.hasNext()) {
-				branchCode = branchCodeItr.next();
-				if (!endBranch && !newBranch) {
+			while (glDescriptionItr.hasNext()) {
+				glDescription = glDescriptionItr.next();
+				if (!endGroup && !newGroup) {
 					page = new PDPage();
 					doc.addPage(page);
 					firstRecord = true;
-					newBranch = true;
+					newGroup = true;
 					pagination++;
 					contentStream = new PDPageContentStream(doc, page);
 					pageSize = page.getMediaBox();
@@ -126,8 +126,8 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 					contentStream.newLineAtOffset(startX, startY);
 				}
 
-				if (endBranch && newBranch) {
-					endBranch = false;
+				if (endGroup && newGroup) {
+					endGroup = false;
 					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 					page = new PDPage();
 					doc.addPage(page);
@@ -139,23 +139,23 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 					contentStream.newLineAtOffset(startX, startY);
 					rgm.setBodyQuery(getDebitBodyQuery());
 					rgm.setTrailerQuery(getDebitTrailerQuery());
-					preProcessing(rgm, branchCode);
+					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					writePdfHeader(rgm, contentStream, leading, pagination);
 					pageHeight += 4;
 					writePdfBodyHeader(rgm, contentStream, leading);
 					pageHeight += 2;
 					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, branchCode);
+							startY, pdfFont, fontSize);
 				} else {
 					rgm.setBodyQuery(getDebitBodyQuery());
 					rgm.setTrailerQuery(getDebitTrailerQuery());
-					preProcessing(rgm, branchCode);
+					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					writePdfHeader(rgm, contentStream, leading, pagination);
 					pageHeight += 4;
 					writePdfBodyHeader(rgm, contentStream, leading);
 					pageHeight += 2;
 					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, branchCode);
+							startY, pdfFont, fontSize);
 				}
 
 				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
@@ -169,14 +169,14 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 				contentStream.newLineAtOffset(startX, startY);
 				rgm.setBodyQuery(getCreditBodyQuery());
 				rgm.setTrailerQuery(getCreditTrailerQuery());
-				preProcessing(rgm, branchCode);
+				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 				writePdfHeader(rgm, contentStream, leading, pagination);
 				pageHeight += 4;
 				writePdfBodyHeader(rgm, contentStream, leading);
 				pageHeight += 2;
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize, branchCode);
-				endBranch = true;
+						pdfFont, fontSize);
+				endGroup = true;
 			}
 
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -209,7 +209,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.processCsvTxtRecord()");
+		logger.debug("In GLHandoffBlocksheetBeep.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -229,30 +229,30 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void execute(ReportGenerationMgr rgm, File file) {
+		String glDescription = null;
 		String branchCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			Iterator<String> branchCodeItr = filterByCriteria(rgm).iterator();
-			while (branchCodeItr.hasNext()) {
-				branchCode = branchCodeItr.next();
-				endBranch = true;
+			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
+			while (glDescriptionItr.hasNext()) {
+				glDescription = glDescriptionItr.next();
 				firstRecord = true;
 				pagination++;
 				rgm.setBodyQuery(getDebitBodyQuery());
 				rgm.setTrailerQuery(getDebitTrailerQuery());
-				preProcessing(rgm, branchCode);
+				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				writeHeader(rgm, pagination);
 				writeBodyHeader(rgm);
-				executeBodyQuery(rgm, branchCode);
+				executeBodyQuery(rgm);
 
 				firstRecord = true;
 				pagination++;
 				rgm.setBodyQuery(getCreditBodyQuery());
 				rgm.setTrailerQuery(getCreditTrailerQuery());
-				preProcessing(rgm, branchCode);
+				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 				writeHeader(rgm, pagination);
 				writeBodyHeader(rgm);
-				executeBodyQuery(rgm, branchCode);
+				executeBodyQuery(rgm);
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -273,17 +273,17 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 		}
 	}
 
-	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.filterByCriteria()");
-		String branchCode = null;
+	private List<String> filterByGlDescription(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetBeep.filterByGlDescription()");
+		String tranParticular = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedSet<String> branchCodeList = new TreeSet<>();
+		List<String> descriptionList = new ArrayList<>();
 		rgm.setBodyQuery(getCriteriaQuery());
 		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
+		logger.info("Query to filter gl description: {}", query);
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -304,12 +304,12 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 							continue;
 						}
 						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								branchCode = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.DESCRIPTION)) {
+								tranParticular = result.toString();
 							}
 						}
 					}
-					branchCodeList.add(branchCode);
+					descriptionList.add(tranParticular);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -324,14 +324,15 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 				}
 			}
 		}
-		return branchCodeList;
+		return descriptionList;
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.preProcessing()");
+		logger.debug("In GLHandoffBlocksheetBeep.preProcessing()");
 		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
 
 		if (rgm.isGenerate() == true) {
@@ -365,18 +366,54 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.preProcessing()");
-		if (filterByBranchCode != null && rgm.getBodyQuery() != null) {
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
+			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In GLHandoffBlocksheetBeep.preProcessing()");
+		if (filterByGlDescription != null && getDebitBodyQuery() != null
+				&& indicator.equals(ReportConstants.DEBIT_IND)) {
+			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
+					ReportGenerationFields.TYPE_STRING,
+					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
+			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+		if (filterByGlDescription != null && getCreditBodyQuery() != null
+				&& indicator.equals(ReportConstants.CREDIT_IND)) {
+			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			}
+			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
+					ReportGenerationFields.TYPE_STRING,
+					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
+			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+
+		// TBC
+		switch (filterByGlDescription) {
+		case ReportConstants.IE_BEEP_LOADING:
+			ReportGenerationFields channelIE = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME = 'CBS_Bridge'");
+			getGlobalFileFieldsMap().put(channelIE.getFieldName(), channelIE);
+			break;
+		case ReportConstants.IE_BEEP_SERVICE_CHARGE:
+			ReportGenerationFields channelIECharge = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME = 'CBS_Bridge'");
+			getGlobalFileFieldsMap().put(channelIECharge.getFieldName(), channelIECharge);
+			break;
+		default:
+			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME != 'CBS_Bridge'");
+			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
+			break;
 		}
 	}
 
-	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.separateDebitCreditquery()");
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetBeep.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -384,7 +421,17 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getDebitBodyQuery());
+			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
+					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
+			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
+					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
+					.replace(
+							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN ('CBC BEEP LOADING', 'I/E BEEP LOADING') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT, 0) END AS \"DEBIT\",",
+							"")
+					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"ACCOUNT NUMBER\",", "").replace("TXN.TRL_AMT_TXN,", "")
+					.replace("TXN.TRL_ISS_CHARGE_AMT,", "").replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));
+			setDebitBodyQuery(getDebitBodyQuery().replace(getDebitBodyQuery()
+					.substring(getDebitBodyQuery().indexOf("GROUP BY"), getDebitBodyQuery().indexOf("ORDER BY")), ""));
 		}
 		if (rgm.getTrailerQuery() != null) {
 			setDebitTrailerQuery(
@@ -398,7 +445,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffBlocksheetBeep.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -422,7 +469,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writeHeader()");
+		logger.debug("In GLHandoffBlocksheetBeep.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -452,7 +499,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writeBodyHeader()");
+		logger.debug("In GLHandoffBlocksheetBeep.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -472,16 +519,15 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String branchCode)
+	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		boolean bancnet = false;
-		int bancnetLength = 0;
-		String bancnetValue = null;
+		boolean interEntity = false;
+		int fieldLength = 0;
+		String interEntityValue = null;
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (!firstRecord) {
+			if (!firstRecord && !interEntity) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
 						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)
 						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)
@@ -520,21 +566,22 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 				}
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					bancnetLength += field.getCsvTxtLength();
+					fieldLength += field.getPdfLength();
 				}
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap, true)));
-					bancnetLength += field.getCsvTxtLength();
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-					if (getFieldValue(field, fieldsMap, true).contains("Bancnet")) {
+					fieldLength += field.getPdfLength();
+				}
+
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+					if (getFieldValue(field, fieldsMap, true).contains("Payable - BEEP Inter-Entity")
+							|| getFieldValue(field, fieldsMap, true).contains("Inter-Entity SVC Charge Bridge")) {
 						line.append(String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true).substring(0, 26)));
-						bancnetValue = getFieldValue(field, fieldsMap, true).substring(27,
+								getFieldValue(field, fieldsMap, true).substring(0, 21)));
+						interEntityValue = getFieldValue(field, fieldsMap, true).substring(22,
 								getFieldValue(field, fieldsMap, true).length());
-						bancnet = true;
+						interEntity = true;
 					} else {
-						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getCsvTxtLength() + "s",
+						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
 					}
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.CODE)) {
@@ -564,10 +611,10 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 			}
 		}
 		line.append(getEol());
-		if (bancnet) {
-			bancnet = false;
+		if (interEntity) {
+			interEntity = false;
 			line.append(String.format("%1$4s", "")
-					+ String.format("%1$" + (bancnetLength + bancnetValue.length()) + "s", bancnetValue));
+					+ String.format("%1$" + (fieldLength + interEntityValue.length()) + "s", interEntityValue));
 			line.append(getEol());
 		}
 		rgm.writeLine(line.toString().getBytes());
@@ -576,7 +623,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	private void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writeTrailer()");
+		logger.debug("In GLHandoffBlocksheetBeep.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -608,7 +655,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfHeader()");
+		logger.debug("In GLHandoffBlocksheetBeep.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -637,7 +684,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfBodyHeader()");
+		logger.debug("In GLHandoffBlocksheetBeep.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -663,14 +710,14 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, String branchCode)
+			PDPageContentStream contentStream, float leading)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		boolean bancnet = false;
-		int bancnetLength = 0;
-		String bancnetValue = null;
+		boolean interEntity = false;
+		int fieldLength = 0;
+		String interEntityValue = null;
 		for (ReportGenerationFields field : fields) {
-			if (!firstRecord) {
+			if (!firstRecord && !interEntity) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
 						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)
 						|| field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)
@@ -737,20 +784,21 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 					}
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-						bancnetLength += field.getPdfLength();
+						fieldLength += field.getPdfLength();
 					}
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NUMBER)) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								branchCode + getFieldValue(field, fieldsMap, true)));
-						bancnetLength += field.getPdfLength();
-					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-						if (getFieldValue(field, fieldsMap, true).contains("Bancnet")) {
+						fieldLength += field.getPdfLength();
+					}
+
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+						if (getFieldValue(field, fieldsMap, true).contains("Payable - BEEP Inter-Entity")
+								|| getFieldValue(field, fieldsMap, true).contains("Inter-Entity SVC Charge Bridge")) {
 							contentStream.showText(
 									String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
-											getFieldValue(field, fieldsMap, true).substring(0, 26)));
-							bancnetValue = getFieldValue(field, fieldsMap, true).substring(27,
+											getFieldValue(field, fieldsMap, true).substring(0, 21)));
+							interEntityValue = getFieldValue(field, fieldsMap, true).substring(22,
 									getFieldValue(field, fieldsMap, true).length());
-							bancnet = true;
+							interEntity = true;
 						} else {
 							contentStream.showText(String.format("%1$4s", "") + String
 									.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
@@ -782,10 +830,10 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 				}
 			}
 		}
-		if (bancnet) {
-			bancnet = false;
+		if (interEntity) {
+			interEntity = false;
 			contentStream.showText(String.format("%1$4s", "")
-					+ String.format("%1$" + (bancnetLength + bancnetValue.length()) + "s", bancnetValue));
+					+ String.format("%1$" + (fieldLength + interEntityValue.length()) + "s", interEntityValue));
 			contentStream.newLineAtOffset(0, -leading);
 		}
 		firstRecord = false;
@@ -794,7 +842,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffBlocksheetAcquirer.writePdfTrailer()");
+		logger.debug("In GLHandoffBlocksheetBeep.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -823,8 +871,8 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize, String branchCode) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.executePdfBodyQuery()");
+			PDFont pdfFont, float fontSize) {
+		logger.debug("In GLHandoffBlocksheetBeep.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -840,8 +888,8 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
 				while (rs.next()) {
-					if (pageHeight > totalHeight && !endBranch) {
-						endBranch = false;
+					if (pageHeight > totalHeight && !endGroup) {
+						endGroup = false;
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 						page = new PDPage();
 						doc.addPage(page);
@@ -881,7 +929,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading, branchCode);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
 					pageHeight++;
 				}
 				pageHeight += 1;
@@ -907,7 +955,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 
 	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
 			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.executePdfTrailerQuery()");
+		logger.debug("In GLHandoffBlocksheetBeep.executePdfTrailerQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -967,8 +1015,8 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 		}
 	}
 
-	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.executeBodyQuery()");
+	private void executeBodyQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetBeep.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -1011,7 +1059,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap, branchCode);
+					writeBody(rgm, lineFieldsMap);
 				}
 				executeTrailerQuery(rgm);
 			} catch (Exception e) {
@@ -1030,7 +1078,7 @@ public class GLHandoffBlocksheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void executeTrailerQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBlocksheetAcquirer.executeTrailerQuery()");
+		logger.debug("In GLHandoffBlocksheetBeep.executeTrailerQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

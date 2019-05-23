@@ -23,6 +23,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 	public void run(String url, String username, String password) {
 		logger.debug("In ReportGenerationMgr.run()");
+		errors = 0;
 		initialiseDBConnection(url, username, password);
 		createReportInstance(this);
 		this.setFileFormatTmp(this.getFileFormat());
