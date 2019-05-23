@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://www.jndi.activemq.authentic.com/ActiveMQResources"
+	targetNamespace="http://www.jndi.activemq.authentic.com/ActiveMQResources"
+	elementFormDefault="qualified" attributeFormDefault="unqualified"
+	version="2.32">
+
+	<element name="ActiveMQResources">
+		<complexType>
+			<sequence>
+				<element name="secure" type="boolean" maxOccurs="1"
+					minOccurs="1">
+				</element>
+				<element name="securityModule" type="tns:SecurityModule"
+					maxOccurs="1" minOccurs="1">
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="KeyStore">
+		<sequence>
+			<element name="type" type="string" maxOccurs="1" minOccurs="1"></element>
+			<element name="path" type="string" maxOccurs="1"
+				minOccurs="1">
+			</element>
+			<element name="storePassword" type="string" maxOccurs="1"
+				minOccurs="1">
+			</element>
+			<element name="keyPassword" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="alias" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<simpleType name="Protocol">
+		<restriction base="string">
+			<enumeration value="TLS" />
+			<enumeration value="SSL" />
+		</restriction>
+	</simpleType>
+
+	<simpleType name="Security">
+		<restriction base="string">
+			<enumeration value="ONE_WAY" />
+			<enumeration value="TWO_WAY" />
+			<enumeration value="NONE" />
+		</restriction>
+	</simpleType>
+
+	<complexType name="SecurityModule">
+		<sequence>
+			<element name="protocol" type="tns:Protocol" maxOccurs="1"
+				minOccurs="1">
+			</element>
+			<element name="security" type="tns:Security" maxOccurs="1"
+				minOccurs="1"></element>
+			<element name="trustStore" type="tns:KeyStore" maxOccurs="1"
+				minOccurs="1">
+			</element>
+			<element name="keyStore" type="tns:KeyStore" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+</schema>

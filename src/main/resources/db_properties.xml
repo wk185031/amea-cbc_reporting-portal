@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectionPooling xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../xml/schema/ucp_db_properties.xsd">
+
+	<UniversalConnectionPool>
+
+		<Pooling>
+
+			<PoolingProperties>
+			    <!--
+			    See http://download.oracle.com/docs/cd/B28359_01/java.111/e10788/optimize.htm 
+			    Defaults and notes
+			    InitialPoolSize : 0
+				MaxPoolSize : No default
+				MinPoolSize : 0 			
+				MaxConnectionReuseCount : 0 (disabled)
+				  The maximum connection reuse count allows connections to be gracefully closed and removed 
+				  from the connection pool after a connection has been borrowed a specific number of times. 
+				  This property is typically used to periodically recycle connections. 
+				MaxConnectionReuseTime : 0 (disabled) (seconds)
+				  The maximum connection reuse time allows connections to be gracefully closed and removed 
+				  from the pool after a connection has been in use for a specific amount of time.
+				  This property is typically used to periodically recycle connections and to
+				  and avoid firewall timeout policy issues by setting it to a smaller value than the firewall timeout
+				AbandonedConnectionTimeout : 0 (disabled) (seconds)
+				  Sets the maximum time that a connection can remain unused before the connection is closed and returned to the cache. 
+				  A connection is considered unused if it has not had SQL database activity. 
+				  By default, the connection pool reclaims the physical connection when a connection is determined to be abandoned.
+				TimeToLiveConnectionTimeout: 0 (disabled) (seconds)
+				  Sets the maximum time in seconds that a logical connection can remain open. 
+				  When TimeToLiveTimeout expires, the logical connection is unconditionally closed, 
+				  the relevant statement handles are canceled, and the underlying physical connection is returned to the cache for reuse.
+				ConnectionWaitTimeout : 0 (seconds)
+				  Each connection request waits for the specified number of seconds or until a connection is returned to the cache. 
+				  If no connection is returned to the cache before the timeout elapses, then the connection request returns null.
+				InactiveConnectionTimeout : 0 (disabled) (seconds)
+				  The inactive connection timeout specifies how long an available connection can remain idle before it is closed and removed
+				  from the pool. This timeout property is only applicable to available connections and does not affect borrowed connections. 
+				  This property helps conserve resources that are otherwise lost on maintaining connections that are no longer being used. 
+				  The inactive connection timeout (together with the maximum pool size) allows a connection pool to grow and shrink 
+				  as application load changes.
+				TimeoutCheckInterval : 30
+				  The timeout check interval property controls how frequently the timeout properties (abandoned connection timeout, 
+				  time-to-live connection timeout, and inactive connection timeout) are enforced. 
+				  Connections that have timed-out are reclaimed when the timeout check cycle runs. 
+				  This means that a connection may not actually be reclaimed by the pool at the moment that the connection times-out. 
+				  The lag time between the connection timeout and actually reclaiming the connection may be considerable 
+				  depending on the size of the timeout check interval.
+				ValidateConnectionOnBorrow
+				  Setting ValidateConnection to true causes the connection cache to test every connection it retrieves against the underlying database. 
+				  If a valid connection cannot be retrieved, then an exception is thrown.
+				SQLForValidateConnection : (String) 
+				  Specifies the SQL statement that is executed on a connection when it is borrowed from the pool.
+				  When using an Oracle JDBC driver. UCP for JDBC performs an internal ping and this property should not be set.
+				  -->			
+
+				<InitialPoolSize>5</InitialPoolSize>
+				<MaxPoolSize>100</MaxPoolSize>
+				<MinPoolSize>5</MinPoolSize>			
+				<ConnectionWaitTimeout>5</ConnectionWaitTimeout>
+				<InactiveConnectionTimeout>60</InactiveConnectionTimeout>
+				
+				<MaxConnectionReuseCount>0</MaxConnectionReuseCount>
+				<TimeoutCheckInterval>5</TimeoutCheckInterval>
+				
+				<ValidateConnectionOnBorrow>true</ValidateConnectionOnBorrow>
+				<!-- Not required for Oracle -->
+
+				<!-- Do not alter -->
+				<AbandonedConnectionTimeout>60</AbandonedConnectionTimeout>
+				<TimeToLiveConnectionTimeout>0</TimeToLiveConnectionTimeout>
+				<MaxConnectionReuseTime>0</MaxConnectionReuseTime>
+				<!--<ConnectionHarvestMaxCount></ConnectionHarvestMaxCount> -->
+
+				<!-- Used by the list processor etc -->
+				<LongRunningConnection>
+
+					<MaxPoolSize>100</MaxPoolSize>
+					<MinPoolSize>5</MinPoolSize>
+
+					<!-- Do not alter -->
+					<AbandonedConnectionTimeout>0</AbandonedConnectionTimeout>
+					<TimeToLiveConnectionTimeout>0</TimeToLiveConnectionTimeout>
+					<MaxConnectionReuseTime>0</MaxConnectionReuseTime>
+
+				</LongRunningConnection>
+
+			</PoolingProperties>
+			
+
+			<!-- primary data source -->
+			<DataSource databaseId="authentic" dbms="oracle">
+			
+				<ConnectionFactoryClassName>oracle.jdbc.pool.OracleDataSource</ConnectionFactoryClassName>
+				<Description>Authentic</Description>
+							
+				<!--<URL>jdbc:oracle:thin:@(description=(address=(host=153.71.65.168)(protocol=tcps)(port=2484))(connect_data=(SERVICE_NAME=AUTH12CR1)))</URL>-->
+				    <URL>jdbc:oracle:thin:@(description=(address=(host=153.58.18.104)(protocol=tcp)(port=1521))(connect_data=(SERVICE_NAME=orcl)))</URL>
+				<!--<PortNumber>2484</PortNumber>-->
+				    <PortNumber>1521</PortNumber>
+			
+				<!-- USER=PROD4_5_00_DEV_USER -->
+				<!--<User>F529F828004339EF69D8C799C88591BDB03E647D1A2623AE2FF59FD9DDF5CD58</User>
+				<Password>FD9B139380173420AFEE0998ADF5C8CE9BAA0BF22FE3FF478697B5FA84D3C669</Password>-->
+
+				<!-- USER=AUTH_OWNER 
+				<User>6771F5A6E482BB031F941F8F226D49AE</User>
+				<Password>98B4653124D08262FB2CA6CF104E71EE</Password>
+				-->
+				<!-- USER=PBB_OWNER -->
+				<!--<User>77844AFE4B84E4F2B58C4C702726ED02</User>
+				<Password>A31248019F3DD3C189158AA4FA5899EF</Password>-->
+				
+				<!-- USER=PBB_SIT_OWNER
+				<User>E45D7893E551AD21172871D2676E21A1</User>
+				<Password>F3B199891C0AFB46734A1791C1586AD7</Password>
+				 -->
+				
+				<!-- USER=PBB_AUTH 
+				<User>306E58700D19DC8782A4D6A64E57B54E</User>
+				<Password>071926A083C8441C7CC48CBEB30E1E28</Password>
+				-->
+				
+				<!-- USER=PBB_SIT -->
+				<User>9A5A06B47EE03A841A51BD5E561CCB53</User>
+				<Password>5B68C604FD30AC12814D04C6394B5E69</Password>
+				
+			
+				<!-- USER=PROD4_5_00_TEST_USER -->
+				<!-- DO NOT COMMIT NOT COMMENTED OUT -->
+				<!-- <User></User> -->
+				<!-- <Password></Password> -->
+
+				<!-- USER=PROD4_5_00_MASTER_USER -->
+				<!-- DO NOT COMMIT NOT COMMENTED OUT -->
+				<!-- <User></User> -->
+				<!-- <Password></Password> -->				
+
+				<MaxStatements>10</MaxStatements>
+								
+				<!--
+					DBTimeMonitoringIntervalMins:
+					This option is used enable caching of the database time offset for each datasource within the application. 
+					The database time is checked with the specified polling interval and the offset cached in the application memory. 
+					This cached offset is used to calculate a standard relative time in each of the application servers.
+					 
+					The option is intended to be used when the database and application times are not synchronised with a time server.
+				-->
+				<!-- <DBTimeMonitoringIntervalMins>1</DBTimeMonitoringIntervalMins> -->
+				
+				<!-- <SQLForValidateConnection>select VER_ID from VERSION</SQLForValidateConnection>-->
+				
+				<!--
+				FastConnectionFailoverEnabled: 
+					Set to 'true' to enable
+				ONSConfiguration: 
+					This property is used to allow Authentic database manger to connect to ONS services on all the Oracle Servers in the Oracle RAC. 
+					The keyword: nodes, precede a set of Oracle Server machine name and the port number separated by comas. 
+					In the example there are two nodes: rac1-vip.London.Alaric and rac2-vip.London.Alaric. 
+					ONS service is configured by default on port: 6200.  
+					The keyword logLevel as defined is to set high level of logging. 
+				-->	
+				<!--
+				<FastConnectionFailoverEnabled>true</FastConnectionFailoverEnabled> 
+				    <MaxIdleTime></MaxIdleTime>
+				    <NetworkProtocol></NetworkProtocol>
+				    <PropertyCycle></PropertyCycle>
+				    <RoleName></RoleName>
+				<ONSConfiguration>nodes=rac1-vip.London.Alaric:6200,rac2-vip.London.Alaric:6200,logLevel=9</ONSConfiguration>
+				-->	
+				
+				<Properties>
+					<OracleProperties>
+						<Property name="connectionCachingEnabled" value="true" />
+						<Property name="javax.net.ssl.trustStore" value="ORACLE.trusted.keystore" />
+						<Property name="oracle.net.crypto_checksum_client" value="REQUIRED" />
+						<Property name="javax.net.ssl.trustStorePassword" encryptor="password" value="0C266E7DFAC3DCA6A4F6A1D7CC4DE90C"/>
+						<!-- Secure connection properties 
+						<Property name="oracle.net.encryption_client"             value="REQUIRED" />
+						<Property name="oracle.net.encryption_types_client"       value="AES256" />
+						<Property name="oracle.net.crypto_checksum_client"        value="REQUIRED" />
+						<Property name="oracle.net.crypto_checksum_types_client"  value="MD5" />
+						-->
+					</OracleProperties>
+				</Properties>
+				
+				<LongRunningConnection>
+				</LongRunningConnection>				
+
+			</DataSource>
+			
+			<!-- Tracing --> 
+			<!-- 
+			<DataSource databaseId="authentic_trace" dbms="oracle">
+			
+				<ConnectionFactoryClassName>oracle.jdbc.pool.OracleDataSource</ConnectionFactoryClassName>
+				<Description>Authentic</Description>
+							
+				<URL>jdbc:oracle:thin:@(description=(address=(host=chops.alaric.com)(protocol=tcps)(port=2484))(connect_data=(SERVICE_NAME=PROD121)))</URL>
+
+				<PortNumber>2484</PortNumber>	
+			
+				<User>F529F828004339EF69D8C799C88591BDB03E647D1A2623AE2FF59FD9DDF5CD58</User>
+				<Password>FD9B139380173420AFEE0998ADF5C8CE9BAA0BF22FE3FF478697B5FA84D3C669</Password>
+							
+				<MaxStatements>10</MaxStatements>
+				<DBTimeMonitoringIntervalMins>1</DBTimeMonitoringIntervalMins>
+				
+				<Properties>
+					<OracleProperties>
+						<Property name="connectionCachingEnabled" value="true" />
+						<Property name="javax.net.ssl.trustStore" value="ORACLE.trusted.keystore" />
+						<Property name="oracle.net.crypto_checksum_client" value="REQUIRED" />
+						<Property name="javax.net.ssl.trustStorePassword" encryptor="password" value="0C266E7DFAC3DCA6A4F6A1D7CC4DE90C"/>
+					</OracleProperties>
+				</Properties>
+				
+				<LongRunningConnection>
+				</LongRunningConnection>				
+				
+			</DataSource>
+			-->
+			
+			<!-- Statistics -->
+			<!-- 
+			<DataSource databaseId="authentic_statistics" dbms="oracle">
+			
+				<ConnectionFactoryClassName>oracle.jdbc.pool.OracleDataSource</ConnectionFactoryClassName>
+				<Description>Authentic</Description>
+							
+				<URL>jdbc:oracle:thin:@(description=(address=(host=chops.alaric.com)(protocol=tcps)(port=2484))(connect_data=(SERVICE_NAME=PROD121)))</URL>
+
+				<PortNumber>2484</PortNumber>	
+			
+				<User>F529F828004339EF69D8C799C88591BDB03E647D1A2623AE2FF59FD9DDF5CD58</User>
+				<Password>FD9B139380173420AFEE0998ADF5C8CE9BAA0BF22FE3FF478697B5FA84D3C669</Password>
+							
+				<MaxStatements>10</MaxStatements>
+				<DBTimeMonitoringIntervalMins>1</DBTimeMonitoringIntervalMins>
+				
+				<Properties>
+					<OracleProperties>
+						<Property name="connectionCachingEnabled" value="true" />
+						<Property name="javax.net.ssl.trustStore" value="ORACLE.trusted.keystore" />
+						<Property name="oracle.net.crypto_checksum_client" value="REQUIRED" />
+						<Property name="javax.net.ssl.trustStorePassword" encryptor="password" value="0C266E7DFAC3DCA6A4F6A1D7CC4DE90C"/>
+					</OracleProperties>
+				</Properties>
+				
+				<LongRunningConnection>
+				</LongRunningConnection>				
+				
+			</DataSource>
+			-->
+			
+		</Pooling>
+
+	</UniversalConnectionPool>
+
+	<ActiveConfigurations default="authentic" statementTimeout="5">
+		
+		<Database id="authentic" statementTimeout="10" shortStatementTimeout="3" mediumStatementTimeout="10" longStatementTimeout="30">
+			<Alias id="Config" />
+			<Alias id="Default" />
+			<Alias id="trace_data" />
+			<Alias id="Statistics" />
+		</Database>
+		
+		<!-- Tracing -->
+		<!--
+		<Database id="authentic_trace" statementTimeout="5">
+			<Alias id="trace_data" />
+		</Database>
+		-->
+		
+		<!-- Statistics -->
+		<!--
+		<Database id="authentic_statistics" statementTimeout="5">
+			<Alias id="Statistics" />
+		</Database>
+		-->		
+		
+	</ActiveConfigurations>
+	
+</ConnectionPooling>

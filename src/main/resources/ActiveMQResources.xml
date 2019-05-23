@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ActiveMQResources xmlns="http://www.jndi.activemq.authentic.com/ActiveMQResources" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.jndi.activemq.authentic.com/ActiveMQResources ./ActiveMQResources.xsd">
+	<secure>true</secure>
+    <securityModule>
+        <protocol>TLS</protocol>
+        <security>NONE</security>
+        <trustStore>
+        	<type>JKS</type>
+            <path>C:/Tools/AppServers/apache-tomcat-8.0.12/conf/CMS-MQ.trusted.keystore</path>
+            <storePassword>83CCB5D861536D1419FBB6086D875A1923322259AB1B448FE8559FD9ADADA4B4</storePassword>
+            <keyPassword>F59A523CA5A1B215F5C101213A459614D763FDA1E212ADEFE9AB31838A9741D7</keyPassword>
+            <alias>trust_activemq</alias>
+        </trustStore>
+        <keyStore>
+        	<type>JKS</type>
+            <path>C:/Tools/AppServers/apache-tomcat-8.0.12/conf/CMS-MQ.private.keystore</path>
+            <storePassword>080DA93546F4F0614F1431C8D94200CE076F79561B6DEB216976324D9E24A1EE</storePassword>
+            <keyPassword>2B8C034A29054927C5E4D6A14DDDC3262D9082CE9AB378A31A76BF49FC7185F3</keyPassword>
+            <alias>private_cms-mq</alias>
+        </keyStore>
+    </securityModule>
+</ActiveMQResources>

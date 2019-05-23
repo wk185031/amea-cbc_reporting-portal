@@ -155,6 +155,9 @@ configurations {
 repositories {
     mavenLocal()
     jcenter()
+    flatDir {
+    	dirs 'build/libs'
+    }
 }
 
 dependencies {
@@ -220,6 +223,20 @@ dependencies {
     compile "org.mariadb.jdbc:mariadb-java-client"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
     compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.13' // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
+    compile group: 'org.apache.cxf', name: 'cxf-rt-transports-jms', version: '3.3.1'
+    compile group: 'org.apache.cxf', name: 'cxf-rt-frontend-jaxws', version: '3.3.1'
+    compile group: 'org.apache.activemq', name: 'activemq-client', version: '5.15.2'
+	compile group: 'log4j', name: 'log4j', version: '1.2.17'
+    
+    compile name: "authentic-common-4.5.00.00"
+	compile name: "ojdbc8-12.2.0.1"
+	compile name: "ucp"
+	compile name :"authentic-usec-client-4.5.00.00"
+	compile name: "authentic-usec-common-4.5.00.00"
+	compile name: "authentic-jdbc-4.5.00.00"
+	compile name: "cxp-webui-framework-webservice-1.0.2-j8u152"
+	compile name: "authentic-logging-4.5.00.00"
+    compile name: "authentic-encryption-4.5.00.00"
     
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
@@ -239,10 +256,6 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
-}
-
-dependencies {
-	compile files('build/libs/ojdbc8-12.2.0.1.jar')
 }
 
 task cleanResources(type: Delete) {
