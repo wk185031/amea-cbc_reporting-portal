@@ -1,2 +1,2 @@
-id;login;password_hash;first_name;last_name;email;image_url;activated;lang_key;created_by;last_modified_by
-5;mandrill;$2a$10$ar8qAq7PKRHsVohcQ2Ydte60H9OWfLfMn8rFmQ6XyNqZzpjNchyc6;Mandrill Tech;BPM Mandrill User;mandrill@localhost;;true;en;system;system
+id;login;password_hash;first_name;last_name;email;image_url;activated;lang_key;created_by;last_modified_by;created_date
+5;mandrill;$2a$10$ar8qAq7PKRHsVohcQ2Ydte60H9OWfLfMn8rFmQ6XyNqZzpjNchyc6;Mandrill Tech;BPM Mandrill User;mandrill@localhost;;true;en;system;system;2017-10-04 00:07:01
