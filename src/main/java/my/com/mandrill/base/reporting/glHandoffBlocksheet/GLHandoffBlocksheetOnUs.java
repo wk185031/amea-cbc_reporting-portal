@@ -41,6 +41,7 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 	private String creditTrailerQuery = null;
 	private String criteriaQuery = null;
 	private boolean firstRecord = false;
+	private boolean newBranch = false;
 	private boolean endBranch = false;
 
 	public String getDebitBodyQuery() {
@@ -87,6 +88,16 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffBlocksheetOnUs.processPdfRecord()");
 		PDDocument doc = null;
+		PDPage page = null;
+		PDPageContentStream contentStream = null;
+		PDRectangle pageSize = null;
+		PDFont pdfFont = PDType1Font.COURIER;
+		float fontSize = 6;
+		float leading = 1.5f * fontSize;
+		float margin = 30;
+		float width = 0.0f;
+		float startX = 0.0f;
+		float startY = 0.0f;
 		pagination = 0;
 		try {
 			doc = new PDDocument();
@@ -99,31 +110,53 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
-				PDPage page = new PDPage();
-				doc.addPage(page);
-				firstRecord = true;
-				pagination++;
-				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-				PDRectangle pageSize = page.getMediaBox();
-				PDFont pdfFont = PDType1Font.COURIER;
-				float fontSize = 6;
-				float leading = 1.5f * fontSize;
-				float margin = 30;
-				float width = pageSize.getWidth() - 2 * margin;
-				float startX = pageSize.getLowerLeftX() + margin;
-				float startY = pageSize.getUpperRightY() - margin;
-				contentStream.setFont(pdfFont, fontSize);
-				contentStream.beginText();
-				contentStream.newLineAtOffset(startX, startY);
-				rgm.setBodyQuery(getDebitBodyQuery());
-				rgm.setTrailerQuery(getDebitTrailerQuery());
-				preProcessing(rgm, branchCode);
-				writePdfHeader(rgm, contentStream, leading, pagination);
-				pageHeight += 4;
-				writePdfBodyHeader(rgm, contentStream, leading);
-				pageHeight += 2;
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize, branchCode);
+				if (!endBranch && !newBranch) {
+					page = new PDPage();
+					doc.addPage(page);
+					firstRecord = true;
+					newBranch = true;
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					pageSize = page.getMediaBox();
+					width = pageSize.getWidth() - 2 * margin;
+					startX = pageSize.getLowerLeftX() + margin;
+					startY = pageSize.getUpperRightY() - margin;
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+				}
+
+				if (endBranch && newBranch) {
+					endBranch = false;
+					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+					page = new PDPage();
+					doc.addPage(page);
+					firstRecord = true;
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+					rgm.setBodyQuery(getDebitBodyQuery());
+					rgm.setTrailerQuery(getDebitTrailerQuery());
+					preProcessing(rgm, branchCode);
+					writePdfHeader(rgm, contentStream, leading, pagination);
+					pageHeight += 4;
+					writePdfBodyHeader(rgm, contentStream, leading);
+					pageHeight += 2;
+					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+							startY, pdfFont, fontSize, branchCode);
+				} else {
+					rgm.setBodyQuery(getDebitBodyQuery());
+					rgm.setTrailerQuery(getDebitTrailerQuery());
+					preProcessing(rgm, branchCode);
+					writePdfHeader(rgm, contentStream, leading, pagination);
+					pageHeight += 4;
+					writePdfBodyHeader(rgm, contentStream, leading);
+					pageHeight += 2;
+					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+							startY, pdfFont, fontSize, branchCode);
+				}
 
 				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 				page = new PDPage();
@@ -151,7 +184,7 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTodayDate());
+				txnDate = df.format(rgm.getYesterdayDate());
 			}
 			if (rgm.errors == 0) {
 				doc.save(new File(
@@ -184,7 +217,7 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 		if (rgm.isGenerate() == true) {
 			txnDate = df.format(rgm.getFileDate());
 		} else {
-			txnDate = df.format(rgm.getTodayDate());
+			txnDate = df.format(rgm.getYesterdayDate());
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
@@ -382,7 +415,7 @@ public class GLHandoffBlocksheetOnUs extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}

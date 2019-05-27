@@ -46,6 +46,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 	private String creditTrailerQuery = null;
 	private String criteriaQuery = null;
 	private boolean firstRecord = false;
+	private boolean newGroup = false;
 	private boolean endGroup = false;
 
 	public String getAcquirerDebitBodyQuery() {
@@ -124,6 +125,16 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffBlocksheetInterEntity.processPdfRecord()");
 		PDDocument doc = null;
+		PDPage page = null;
+		PDPageContentStream contentStream = null;
+		PDRectangle pageSize = null;
+		PDFont pdfFont = PDType1Font.COURIER;
+		float fontSize = 6;
+		float leading = 1.5f * fontSize;
+		float margin = 30;
+		float width = 0.0f;
+		float startX = 0.0f;
+		float startY = 0.0f;
 		pagination = 0;
 		try {
 			doc = new PDDocument();
@@ -137,69 +148,24 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();
-				PDPage page = new PDPage();
-				doc.addPage(page);
-				firstRecord = true;
-				pagination++;
-				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-				PDRectangle pageSize = page.getMediaBox();
-				PDFont pdfFont = PDType1Font.COURIER;
-				float fontSize = 6;
-				float leading = 1.5f * fontSize;
-				float margin = 30;
-				float width = pageSize.getWidth() - 2 * margin;
-				float startX = pageSize.getLowerLeftX() + margin;
-				float startY = pageSize.getUpperRightY() - margin;
-				contentStream.setFont(pdfFont, fontSize);
-				contentStream.beginText();
-				contentStream.newLineAtOffset(startX, startY);
+				if (!endGroup && !newGroup) {
+					page = new PDPage();
+					doc.addPage(page);
+					firstRecord = true;
+					newGroup = true;
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					pageSize = page.getMediaBox();
+					width = pageSize.getWidth() - 2 * margin;
+					startX = pageSize.getLowerLeftX() + margin;
+					startY = pageSize.getUpperRightY() - margin;
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+				}
 
-				if (glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
-					rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-					rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					writePdfHeader(rgm, contentStream, leading, pagination);
-					pageHeight += 4;
-					writePdfBodyHeader(rgm, contentStream, leading);
-					pageHeight += 2;
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-
-					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-					while (branchCodeItr.hasNext()) {
-						branchCode = branchCodeItr.next();
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						page = new PDPage();
-						doc.addPage(page);
-						firstRecord = true;
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-						rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
-						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-						writePdfHeader(rgm, contentStream, leading, pagination);
-						pageHeight += 4;
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					}
-					endGroup = true;
-				} else {
-					rgm.setBodyQuery(getDebitBodyQuery());
-					rgm.setTrailerQuery(getDebitTrailerQuery());
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					writePdfHeader(rgm, contentStream, leading, pagination);
-					pageHeight += 4;
-					writePdfBodyHeader(rgm, contentStream, leading);
-					pageHeight += 2;
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
-
+				if (endGroup && newGroup) {
+					endGroup = false;
 					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 					page = new PDPage();
 					doc.addPage(page);
@@ -209,16 +175,141 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 					contentStream.setFont(pdfFont, fontSize);
 					contentStream.beginText();
 					contentStream.newLineAtOffset(startX, startY);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					rgm.setTrailerQuery(getCreditTrailerQuery());
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					writePdfHeader(rgm, contentStream, leading, pagination);
-					pageHeight += 4;
-					writePdfBodyHeader(rgm, contentStream, leading);
-					pageHeight += 2;
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					endGroup = true;
+					if (glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
+						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
+						rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+
+						Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+						while (branchCodeItr.hasNext()) {
+							branchCode = branchCodeItr.next();
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							firstRecord = true;
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+							rgm.setBodyQuery(getAcquirerCreditBodyQuery());
+							rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
+							preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+							writePdfHeader(rgm, contentStream, leading, pagination);
+							pageHeight += 4;
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize, glDescription, branchCode,
+									ReportConstants.CREDIT_IND);
+						}
+						endGroup = true;
+					} else {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
+
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+						rgm.setBodyQuery(getCreditBodyQuery());
+						rgm.setTrailerQuery(getCreditTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
+						endGroup = true;
+					}
+				} else {
+					if (glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
+						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
+						rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+
+						Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+						while (branchCodeItr.hasNext()) {
+							branchCode = branchCodeItr.next();
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							firstRecord = true;
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+							rgm.setBodyQuery(getAcquirerCreditBodyQuery());
+							rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
+							preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+							writePdfHeader(rgm, contentStream, leading, pagination);
+							pageHeight += 4;
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize, glDescription, branchCode,
+									ReportConstants.CREDIT_IND);
+						}
+						endGroup = true;
+					} else {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
+
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+						rgm.setBodyQuery(getCreditBodyQuery());
+						rgm.setTrailerQuery(getCreditTrailerQuery());
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
+						writePdfHeader(rgm, contentStream, leading, pagination);
+						pageHeight += 4;
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
+						endGroup = true;
+					}
 				}
 			}
 
@@ -227,7 +318,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTodayDate());
+				txnDate = df.format(rgm.getYesterdayDate());
 			}
 			if (rgm.errors == 0) {
 				doc.save(new File(
@@ -260,7 +351,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 		if (rgm.isGenerate() == true) {
 			txnDate = df.format(rgm.getFileDate());
 		} else {
-			txnDate = df.format(rgm.getTodayDate());
+			txnDate = df.format(rgm.getYesterdayDate());
 		}
 
 		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
@@ -562,7 +653,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setAcquirerCreditBodyQuery(getAcquirerCreditBodyQuery()
 					.replace(getAcquirerCreditBodyQuery().substring(getAcquirerCreditBodyQuery().indexOf("GROUP BY"),
 							getAcquirerCreditBodyQuery().indexOf("ORDER BY")), ""));
@@ -576,7 +667,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, "").replace("ABR.ABR_CODE \"BRANCH CODE\",", "")
+					.replace(ReportConstants.SUBSTRING_START, "").replace("ABR.ABR_CODE \"BRANCH CODE\",", "")
 					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
 					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
 					.replace("ABR.ABR_CODE,", "").replace("ABR.ABR_CODE ASC,", "")
@@ -604,7 +695,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			setAcquirerCreditTrailerQuery(rgm.getTrailerQuery()
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replaceFirst(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitTrailerQuery(rgm.getTrailerQuery()
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
@@ -642,7 +733,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}
@@ -841,7 +932,7 @@ public class GLHandoffBlocksheetInterEntity extends GeneralReportProcess {
 			line.append(getEol());
 		}
 		if (acdIbft) {
-			receivable = false;
+			acdIbft = false;
 			line.append(String.format("%1$4s", "")
 					+ String.format("%1$" + (fieldLength + acdIbftValue.length()) + "s", acdIbftValue));
 			line.append(getEol());

@@ -166,24 +166,11 @@ public class TransactionSummaryGrandTotalOtherBanks extends GeneralReportProcess
 							}
 						}
 					}
-
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<String, Set<String>>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
-					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
-						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
-						}
-					}
+					Map<String, Set<String>> branchNameMap = new HashMap<String, Set<String>>();
+					Set<String> terminalList = new HashSet<>();
+					terminalList.add(terminal);
+					branchNameMap.put(branchName, terminalList);
+					criteriaMap.put(branchCode, branchNameMap);
 				}
 			} catch (Exception e) {
 				rgm.errors++;

@@ -6,6 +6,10 @@ import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_GENERAT
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
@@ -64,6 +68,7 @@ public class ReportGenerationResource {
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
+	private boolean executed = false;
 
 	public ReportGenerationResource(ReportCategoryRepository reportCategoryRepository,
 			ReportCategorySearchRepository reportCategorySearchRepository,
@@ -85,6 +90,7 @@ public class ReportGenerationResource {
 
 	@Scheduled(cron = "0 0 0 * * *")
 	public void initialise() {
+		executed = false;
 		if (scheduleTimer != null) {
 			scheduleTimer.cancel();
 		}
@@ -101,7 +107,9 @@ public class ReportGenerationResource {
 				new Thread() {
 					@Override
 					public void run() {
-						generateDailyReport();
+						if (!executed) {
+							generateDailyReport();
+						}
 					}
 				}.start();
 			}
@@ -118,17 +126,25 @@ public class ReportGenerationResource {
 
 	private void generateDailyReport() {
 		Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+		ZonedDateTime currentDate = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		Date yesterdayDate = cal.getTime();
+		String todayDate = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01).format(currentDate);
+
 		for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
 				.filter(jobHistory -> jobHistory.getJob().getId() == job.getId()).collect(Collectors.toList())) {
-			if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)) {
-				Date todayDate = new Date();
-				Calendar cal = Calendar.getInstance();
-				cal.add(Calendar.DATE, -1);
-				Date yesterdayDate = cal.getTime();
-
+			logger.debug("Job ID: {}, Job History Status: {}", jobHistoryList.getJob().getId(),
+					jobHistoryList.getStatus());
+			if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)
+					&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
+							.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
+				logger.debug(
+						"Job History Status: {}, Created Date: {}. Start generating reports. Yesterday Date: {}, Today Date: {}",
+						jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate, currentDate);
 				ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 				reportGenerationMgr.setYesterdayDate(yesterdayDate);
-				reportGenerationMgr.setTodayDate(todayDate);
+				reportGenerationMgr.setTodayDate(yesterdayDate);
 
 				for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
@@ -146,6 +162,8 @@ public class ReportGenerationResource {
 							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 				}
 			}
+			executed = true;
+			jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
 		}
 	}
 

@@ -8,10 +8,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -30,9 +28,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess {
+public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(TransactionSummaryGrandTotalnterEntity.class);
+	private final Logger logger = LoggerFactory.getLogger(TransactionSummaryGrandTotalCashCard.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
@@ -40,7 +38,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.processPdfRecord()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -59,6 +57,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String cardProduct = null;
 
 			preProcessing(rgm);
 
@@ -66,21 +65,26 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
+					preProcessing(rgm, branchCode, branchName, terminal, cardProduct);
 					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
 					pageHeight += 4;
-					for (String terminalMap : branchNameMap.getValue()) {
-						terminal = terminalMap;
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						cardProduct = terminalMap.getValue();
 						contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + branchName);
+						pageHeight += 1;
+						contentStream.newLineAtOffset(0, -leading);
+						contentStream.showText(ReportConstants.CARD_PRODUCT + " : " + cardProduct);
 						pageHeight += 1;
 						contentStream.newLineAtOffset(0, -leading);
 						writePdfBodyHeader(rgm, contentStream, leading);
 						pageHeight += 2;
-						preProcessing(rgm, branchCode, branchName, terminal);
+						preProcessing(rgm, branchCode, branchName, terminal, cardProduct);
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize);
 						pageHeight += 1;
@@ -123,16 +127,17 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.filterByCriteria()");
+	private SortedMap<String, Map<String, Map<String, String>>> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In TransactionSummaryGrandTotalCashCard.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String cardProduct = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<String, Map<String, Set<String>>>();
+		SortedMap<String, Map<String, Map<String, String>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -164,11 +169,14 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.CARD_PRODUCT)) {
+								cardProduct = result.toString();
+							}
 						}
 					}
-					Map<String, Set<String>> branchNameMap = new HashMap<String, Set<String>>();
-					Set<String> terminalList = new HashSet<>();
-					terminalList.add(terminal);
+					Map<String, Map<String, String>> branchNameMap = new HashMap<>();
+					Map<String, String> terminalList = new HashMap<>();
+					terminalList.put(terminal, cardProduct);
 					branchNameMap.put(branchName, terminalList);
 					criteriaMap.put(branchCode, branchNameMap);
 				}
@@ -190,12 +198,13 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.preProcessing()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_CARD_PRODUCT + "}", ""));
 		}
 
 		if (rgm.isGenerate() == true) {
@@ -229,8 +238,9 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.preProcessing()");
+			String filterByTerminal, String filterByCardProduct)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In TransactionSummaryGrandTotalCashCard.preProcessing()");
 		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
@@ -249,10 +259,17 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
+
+		if (filterByCardProduct != null && rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			ReportGenerationFields cardProduct = new ReportGenerationFields(ReportConstants.PARAM_CARD_PRODUCT,
+					ReportGenerationFields.TYPE_STRING, "TRIM(CPD.CPD_NAME) = '" + filterByCardProduct + "'");
+			getGlobalFileFieldsMap().put(cardProduct.getFieldName(), cardProduct);
+		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -277,7 +294,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.writePdfHeader()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -310,7 +327,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.writePdfBodyHeader()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -365,7 +382,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.execute()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -443,7 +460,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.writePdfTrailer()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -472,7 +489,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 
 	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
 			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.executePdfTrailerQuery()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.executePdfTrailerQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

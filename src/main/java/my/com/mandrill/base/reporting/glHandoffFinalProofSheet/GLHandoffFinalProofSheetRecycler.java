@@ -30,9 +30,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
+public class GLHandoffFinalProofSheetRecycler extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetAcquirer.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetRecycler.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -67,7 +67,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.processPdfRecord()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -145,7 +145,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.processCsvTxtRecord()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
@@ -200,7 +200,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private SortedSet<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.filterByCriteria()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.filterByCriteria()");
 		String branchCode = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -255,7 +255,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.preProcessing()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.preProcessing()");
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
@@ -293,7 +293,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.preProcessing()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.preProcessing()");
 		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
@@ -302,7 +302,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.separateDebitCreditquery()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.separateDebitCreditquery()");
 		if (rgm.getBodyQuery() != null) {
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -315,7 +315,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -339,7 +339,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writeHeader()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -369,7 +369,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writeBodyHeader()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -414,7 +414,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void writeTrailer(ReportGenerationMgr rgm)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writeTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -451,7 +451,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writePdfHeader()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -480,7 +480,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writePdfBodyHeader()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -535,7 +535,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 
 	private void writePdfTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.writePdfTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -572,7 +572,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize, String branchCode) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.executePdfBodyQuery()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -648,7 +648,7 @@ public class GLHandoffFinalProofSheetAcquirer extends GeneralReportProcess {
 	}
 
 	private void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
-		logger.debug("In GLHandoffFinalProofSheetAcquirer.executeBodyQuery()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
