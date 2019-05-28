@@ -64,18 +64,37 @@ public class GLHandoffBeep extends GeneralReportProcess {
 		logger.debug("In GLHandoffBeep.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
+		String fileLocation = rgm.getFileLocation();
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 
-		if (rgm.isGenerate() == true) {
-			txnDate = df.format(rgm.getFileDate());
-		} else {
-			txnDate = df.format(rgm.getYesterdayDate());
-		}
+		try {
+			if (rgm.isGenerate() == true) {
+				txnDate = df.format(rgm.getFileDate());
+			} else {
+				txnDate = df.format(rgm.getYesterdayDate());
+			}
 
-		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
-			file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
-					+ ReportConstants.TXT_FORMAT);
-			execute(file, rgm);
+			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
+				if (rgm.errors == 0) {
+					if (fileLocation != null) {
+						File directory = new File(fileLocation);
+						if (!directory.exists()) {
+							directory.mkdirs();
+						}
+						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
+								+ ReportConstants.TXT_FORMAT);
+						execute(file, rgm);
+					} else {
+						throw new Exception("Path: " + fileLocation + " not configured.");
+					}
+				} else {
+					throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+							+ ReportConstants.TXT_FORMAT);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
+					+ ReportConstants.TXT_FORMAT, e);
 		}
 	}
 

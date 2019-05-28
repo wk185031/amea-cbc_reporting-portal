@@ -68,6 +68,7 @@ public class GLHandoffFinalProofSheetEload extends GeneralReportProcess {
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffFinalProofSheetEload.processPdfRecord()");
 		PDDocument doc = null;
+		String txnDate = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -116,20 +117,33 @@ public class GLHandoffFinalProofSheetEload extends GeneralReportProcess {
 			contentStream.close();
 
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String txnDate = null;
+			String fileLocation = rgm.getFileLocation();
+
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
 				txnDate = df.format(rgm.getYesterdayDate());
 			}
+
 			if (rgm.errors == 0) {
-				doc.save(new File(
-						rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT));
+				if (fileLocation != null) {
+					File directory = new File(fileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
+					}
+					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
+							+ ReportConstants.PDF_FORMAT));
+				} else {
+					throw new Exception("Path: " + fileLocation + " not configured.");
+				}
+			} else {
+				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+						+ ReportConstants.PDF_FORMAT);
 			}
-		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
+		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Error in generating PDF file", e);
+			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
+					e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -148,19 +162,38 @@ public class GLHandoffFinalProofSheetEload extends GeneralReportProcess {
 		logger.debug("In GLHandoffFinalProofSheetEload.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
+		String fileLocation = rgm.getFileLocation();
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 
-		if (rgm.isGenerate() == true) {
-			txnDate = df.format(rgm.getFileDate());
-		} else {
-			txnDate = df.format(rgm.getYesterdayDate());
-		}
+		try {
+			if (rgm.isGenerate() == true) {
+				txnDate = df.format(rgm.getFileDate());
+			} else {
+				txnDate = df.format(rgm.getYesterdayDate());
+			}
 
-		if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
-			pagination = 1;
-			file = new File(
-					rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.TXT_FORMAT);
-			execute(rgm, file);
+			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
+				if (rgm.errors == 0) {
+					if (fileLocation != null) {
+						File directory = new File(fileLocation);
+						if (!directory.exists()) {
+							directory.mkdirs();
+						}
+						pagination = 1;
+						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
+								+ ReportConstants.TXT_FORMAT);
+						execute(rgm, file);
+					} else {
+						throw new Exception("Path: " + fileLocation + " not configured.");
+					}
+				} else {
+					throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+							+ ReportConstants.TXT_FORMAT);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.TXT_FORMAT,
+					e);
 		}
 	}
 

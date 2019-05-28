@@ -40,6 +40,7 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalCashCard.processPdfRecord()");
 		PDDocument doc = null;
+		String txnDate = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -100,20 +101,33 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 			contentStream.close();
 
 			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String txnDate = null;
+			String fileLocation = rgm.getFileLocation();
+
 			if (rgm.isGenerate() == true) {
 				txnDate = df.format(rgm.getFileDate());
 			} else {
-				txnDate = df.format(rgm.getTodayDate());
+				txnDate = df.format(rgm.getYesterdayDate());
 			}
+
 			if (rgm.errors == 0) {
-				doc.save(new File(
-						rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT));
+				if (fileLocation != null) {
+					File directory = new File(fileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
+					}
+					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
+							+ ReportConstants.PDF_FORMAT));
+				} else {
+					throw new Exception("Path: " + fileLocation + " not configured.");
+				}
+			} else {
+				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+						+ ReportConstants.PDF_FORMAT);
 			}
-		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
+		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Error in generating PDF file", e);
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
+					e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -287,7 +301,7 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}

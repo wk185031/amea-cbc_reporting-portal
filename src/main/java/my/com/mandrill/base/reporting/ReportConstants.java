@@ -97,7 +97,10 @@ public final class ReportConstants {
 	public static final String DESCRIPTION = "DESCRIPTION";
 	public static final String ATM_CARD_NUMBER = "ATM CARD NUMBER";
 	public static final String ACCOUNT = "ACCOUNT";
+	public static final String FROM_ACCOUNT_NO = "FROM ACCOUNT NO";
+	public static final String TO_ACCOUNT_NO = "TO ACCOUNT NO";
 	public static final String SEQ_NUMBER = "SEQ NUMBER";
+	public static final String TRACE_NUMBER = "TRACE NUMBER";
 	public static final String COMMENT = "COMMENT";
 	public static final String DEBIT = "DEBIT";
 	public static final String CREDIT = "CREDIT";
@@ -107,6 +110,7 @@ public final class ReportConstants {
 	public static final String TOTAL_CREDIT = "TOTAL CREDIT";
 	public static final String CUSTOM_DATA = "CUSTOM DATA";
 	public static final String BP_BILLER_CODE = "BILLER CODE";
+	public static final String BANK_NAME = "BANK NAME";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data

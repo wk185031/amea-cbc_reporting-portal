@@ -110,6 +110,9 @@ public class ReportGenerationResource {
 						if (!executed) {
 							generateDailyReport();
 						}
+						if (executed) {
+							return;
+						}
 					}
 				}.start();
 			}
