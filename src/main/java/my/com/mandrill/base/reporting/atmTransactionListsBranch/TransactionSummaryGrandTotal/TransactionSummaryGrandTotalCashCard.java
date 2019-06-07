@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsBranch.TransactionSummaryGrandTotal;
+package my.com.mandrill.base.reporting.atmTransactionListsBranch.transactionSummaryGrandTotal;
 
 import java.io.File;
 import java.io.IOException;

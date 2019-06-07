@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsBranch.EftAtmTransactionList;
+package my.com.mandrill.base.reporting.atmTransactionListsBranch.eftAtmTransactionList;
 
 import java.io.File;
 import java.io.IOException;
