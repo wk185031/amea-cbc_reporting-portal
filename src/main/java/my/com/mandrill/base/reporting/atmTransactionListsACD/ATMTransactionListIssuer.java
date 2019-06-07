@@ -73,7 +73,7 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 			writeHeader(rgm);
 			for (String bankName : filterByCriteria(rgm)) {
 				StringBuilder line = new StringBuilder();
-				line.append("ACQUIRER BANK: ").append(";").append(bankName).append(";");
+				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankName).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 				writeBodyHeader(rgm);
@@ -217,6 +217,7 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 				if (getGlobalFieldValue(field, true) == null) {
 					line.append("");
 					line.append(field.getDelimiter());
+					line.append(getEol());
 				} else {
 					line.append(getGlobalFieldValue(field, true));
 					line.append(field.getDelimiter());
@@ -248,7 +249,8 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String txnQualifier, String voidCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -282,9 +284,30 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 					line.append(getFieldValue(field, fieldsMap, true));
 					line.append(field.getDelimiter());
 				}
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
+				if (!voidCode.equals("0")) {
+					line.append("");
+					line.append(field.getDelimiter());
+				} else {
+					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(field.getDelimiter());
+				}
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.VOID_CODE)) {
+				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
+					line.append(
+							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
+					line.append(field.getDelimiter());
+				} else {
+					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(field.getDelimiter());
+				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
 				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(field.getDelimiter());
+				} else if (txnQualifier.equals("R")
+						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+					line.append(ReportConstants.FULL_REVERSAL);
 					line.append(field.getDelimiter());
 				} else {
 					line.append("");
@@ -309,6 +332,8 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		String txnQualifier = null;
+		String voidCode = null;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -338,15 +363,20 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else if (key.equalsIgnoreCase(ReportConstants.TXN_QUALIFIER)) {
+								txnQualifier = result.toString();
+								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.VOID_CODE)) {
+								voidCode = result.toString();
+								field.setValue(result.toString());
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap);
+					writeBody(rgm, lineFieldsMap, txnQualifier, voidCode);
 				}
 			} catch (Exception e) {
 				rgm.errors++;

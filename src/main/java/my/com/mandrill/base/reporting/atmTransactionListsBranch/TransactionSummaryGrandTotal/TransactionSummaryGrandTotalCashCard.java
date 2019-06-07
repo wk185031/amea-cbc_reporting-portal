@@ -188,11 +188,23 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 							}
 						}
 					}
-					Map<String, Map<String, String>> branchNameMap = new HashMap<>();
-					Map<String, String> terminalList = new HashMap<>();
-					terminalList.put(terminal, cardProduct);
-					branchNameMap.put(branchName, terminalList);
-					criteriaMap.put(branchCode, branchNameMap);
+					if (criteriaMap.get(branchCode) == null) {
+						Map<String, Map<String, String>> tmpCriteriaMap = new HashMap<>();
+						Map<String, String> terminalList = new HashMap<>();
+						terminalList.put(terminal, cardProduct);
+						tmpCriteriaMap.put(branchName, terminalList);
+						criteriaMap.put(branchCode, tmpCriteriaMap);
+					} else {
+						Map<String, Map<String, String>> tmpCriteriaMap = criteriaMap.get(branchCode);
+						if (tmpCriteriaMap.get(branchName) == null) {
+							Map<String, String> terminalList = new HashMap<>();
+							terminalList.put(terminal, cardProduct);
+							tmpCriteriaMap.put(branchName, terminalList);
+						} else {
+							Map<String, String> terminalList = tmpCriteriaMap.get(branchName);
+							terminalList.put(terminal, cardProduct);
+						}
+					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -444,7 +456,6 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
@@ -539,7 +550,6 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {

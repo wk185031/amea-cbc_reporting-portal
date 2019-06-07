@@ -147,7 +147,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<String, Map<String, Set<String>>>();
+		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -181,11 +181,23 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 							}
 						}
 					}
-					Map<String, Set<String>> branchNameMap = new HashMap<String, Set<String>>();
-					Set<String> terminalList = new HashSet<>();
-					terminalList.add(terminal);
-					branchNameMap.put(branchName, terminalList);
-					criteriaMap.put(branchCode, branchNameMap);
+					if (criteriaMap.get(branchCode) == null) {
+						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
+						Set<String> terminalList = new HashSet<>();
+						terminalList.add(terminal);
+						tmpCriteriaMap.put(branchName, terminalList);
+						criteriaMap.put(branchCode, tmpCriteriaMap);
+					} else {
+						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
+						if (tmpCriteriaMap.get(branchName) == null) {
+							Set<String> terminalList = new HashSet<>();
+							terminalList.add(terminal);
+							tmpCriteriaMap.put(branchName, terminalList);
+						} else {
+							Set<String> terminalList = tmpCriteriaMap.get(branchName);
+							terminalList.add(terminal);
+						}
+					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -428,7 +440,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
@@ -523,7 +534,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {

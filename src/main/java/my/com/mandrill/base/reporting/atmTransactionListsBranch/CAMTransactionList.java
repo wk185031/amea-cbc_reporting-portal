@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsBranch.EftAtmTransactionList;
+package my.com.mandrill.base.reporting.atmTransactionListsBranch;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +30,9 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
+public class CAMTransactionList extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(EftAtmTransactionListOtherBranch.class);
+	private final Logger logger = LoggerFactory.getLogger(CAMTransactionList.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
@@ -40,7 +40,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.processPdfRecord()");
+		logger.debug("In CAMTransactionList.processPdfRecord()");
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
@@ -135,7 +135,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
-		logger.debug("In EftAtmTransactionListOtherBranch.execute()");
+		logger.debug("In CAMTransactionList.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -219,7 +219,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	}
 
 	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.filterByCriteria()");
+		logger.debug("In CAMTransactionList.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
@@ -227,7 +227,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<String, Map<String, Set<String>>>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -262,7 +262,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
+						Map<String, Set<String>> tmpCriteriaMap = new HashMap<String, Set<String>>();
 						Set<String> terminalList = new HashSet<>();
 						terminalList.add(terminal);
 						tmpCriteriaMap.put(branchName, terminalList);
@@ -297,7 +297,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOtherBranch.preProcessing()");
+		logger.debug("In CAMTransactionList.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
@@ -337,7 +337,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
 			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOtherBranch.preProcessing()");
+		logger.debug("In CAMTransactionList.preProcessing()");
 		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
@@ -359,7 +359,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In CAMTransactionList.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -384,7 +384,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOtherBranch.writePdfHeader()");
+		logger.debug("In CAMTransactionList.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -417,7 +417,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOtherBranch.writePdfBodyHeader()");
+		logger.debug("In CAMTransactionList.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {

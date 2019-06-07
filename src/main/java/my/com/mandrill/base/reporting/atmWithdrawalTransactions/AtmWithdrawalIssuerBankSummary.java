@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.glHandoffFinalProofSheet;
+package my.com.mandrill.base.reporting.atmWithdrawalTransactions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,12 +6,9 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -29,44 +26,17 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
+public class AtmWithdrawalIssuerBankSummary extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetIssuer.class);
+	private final Logger logger = LoggerFactory.getLogger(AtmWithdrawalIssuerBankSummary.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
+	private int success = 0;
 	private int pagination = 0;
-	private double total = 0.00;
-	private String debitBodyQuery = null;
-	private String creditBodyQuery = null;
-	private String criteriaQuery = null;
-
-	public String getDebitBodyQuery() {
-		return debitBodyQuery;
-	}
-
-	public void setDebitBodyQuery(String debitBodyQuery) {
-		this.debitBodyQuery = debitBodyQuery;
-	}
-
-	public String getCreditBodyQuery() {
-		return creditBodyQuery;
-	}
-
-	public void setCreditBodyQuery(String creditBodyQuery) {
-		this.creditBodyQuery = creditBodyQuery;
-	}
-
-	public String getCriteriaQuery() {
-		return criteriaQuery;
-	}
-
-	public void setCriteriaQuery(String criteriaQuery) {
-		this.criteriaQuery = criteriaQuery;
-	}
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.processPdfRecord()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.processPdfRecord()");
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
@@ -83,9 +53,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			float width = pageSize.getWidth() - 2 * margin;
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
-			String glDescription = null;
 
-			separateDebitCreditQuery(rgm);
 			preProcessing(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
@@ -96,23 +64,15 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-
-			Iterator<String> glDescriptionItr = filterByCriteria(rgm).iterator();
-
-			while (glDescriptionItr.hasNext()) {
-				glDescription = glDescriptionItr.next();
-				preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-				rgm.setBodyQuery(getDebitBodyQuery());
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize);
-				preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize);
-			}
-
-			writePdfTrailer(rgm, contentStream, leading);
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+					pdfFont, fontSize);
+			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
 			pageHeight += 1;
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
+			contentStream
+					.showText("                                                        " + "*** END OF REPORT ***");
+
 			contentStream.endText();
 			contentStream.close();
 
@@ -142,7 +102,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			}
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
 					e);
 		} finally {
 			if (doc != null) {
@@ -159,7 +119,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.processCsvTxtRecord()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
@@ -172,48 +132,46 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 				txnDate = df.format(rgm.getYesterdayDate());
 			}
 
-			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_TXT)) {
+			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_CSV)) {
 				if (rgm.errors == 0) {
 					if (fileLocation != null) {
 						File directory = new File(fileLocation);
 						if (!directory.exists()) {
 							directory.mkdirs();
 						}
-						pagination = 1;
 						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-								+ ReportConstants.TXT_FORMAT);
+								+ ReportConstants.CSV_FORMAT);
+						pagination = 1;
 						execute(rgm, file);
 					} else {
 						throw new Exception("Path: " + fileLocation + " not configured.");
 					}
 				} else {
 					throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.TXT_FORMAT);
+							+ ReportConstants.CSV_FORMAT);
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.TXT_FORMAT,
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.CSV_FORMAT,
 					e);
 		}
 	}
 
 	private void execute(ReportGenerationMgr rgm, File file) {
-		String glDescription = null;
+		StringBuilder line = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			writeHeader(rgm, pagination);
+			preProcessing(rgm);
+			pagination++;
+			writeHeader(rgm);
 			writeBodyHeader(rgm);
-			Iterator<String> glDescriptionItr = filterByCriteria(rgm).iterator();
-			while (glDescriptionItr.hasNext()) {
-				glDescription = glDescriptionItr.next();
-				preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-				rgm.setBodyQuery(getDebitBodyQuery());
-				executeBodyQuery(rgm);
-				preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				executeBodyQuery(rgm);
-			}
-			writeTrailer(rgm);
+			executeBodyQuery(rgm);
+			executeTrailerQuery(rgm);
+			line.append("*** END OF REPORT ***");
+			line.append(getEol());
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -233,67 +191,9 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 		}
 	}
 
-	private List<String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.filterByCriteria()");
-		String glDescription = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		List<String> glDescriptionList = new ArrayList<>();
-		rgm.setBodyQuery(getCriteriaQuery());
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.TRAN_PARTICULAR)) {
-								glDescription = result.toString();
-							}
-						}
-					}
-					glDescriptionList.add(glDescription);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return glDescriptionList;
-	}
-
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.preProcessing()");
-		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", ""));
-		}
-
+		logger.debug("In AtmWithdrawalIssuerBankSummary.preProcessing()");
 		if (rgm.isGenerate() == true) {
 			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
 					.concat(" ").concat(ReportConstants.START_TIME);
@@ -321,40 +221,11 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 
 			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		}
-
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String glDescription, String indicator)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.preProcessing()");
-		if (glDescription != null && getDebitBodyQuery() != null && indicator.equals(ReportConstants.DEBIT_IND)) {
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING, "TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + glDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
-		}
-		if (glDescription != null && getCreditBodyQuery() != null && indicator.equals(ReportConstants.CREDIT_IND)) {
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING, "TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + glDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
-		}
-	}
-
-	private void separateDebitCreditQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.separateDebitCreditquery()");
-		if (rgm.getBodyQuery() != null) {
-			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-			setCreditBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getDebitBodyQuery());
-		}
-	}
-
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -377,106 +248,33 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 		}
 	}
 
-	private void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writeHeader()");
+	private void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					line.append(String.valueOf(pagination));
+					line.append(pagination);
+					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+					line.append("");
+					line.append(field.getDelimiter());
+					line.append(getEol());
 				} else {
-					line.append(
-							String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(getGlobalFieldValue(field, true));
+					line.append(field.getDelimiter());
 					line.append(getEol());
 				}
 			} else {
 				if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+					line.append("");
+					line.append(field.getDelimiter());
 				} else {
-					line.append(
-							String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
-				}
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writeBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
-				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", field.getFieldName()));
-					line.append(getEol());
-				}
-			} else {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", field.getFieldName()));
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-				line.append(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-			} else {
-				line.append(
-						String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void writeTrailer(ReportGenerationMgr rgm)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writeTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
-					line.append(getEol());
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-					line.append(getEol());
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					line.append(getEol());
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
-					line.append(getEol());
-				}
-			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(getGlobalFieldValue(field, true));
+					line.append(field.getDelimiter());
 				}
 			}
 		}
@@ -486,7 +284,7 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
 			int pagination) throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writePdfHeader()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -513,31 +311,62 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 		}
 	}
 
+	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writeBodyHeader()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getSequence()) {
+			case 1:
+			case 2:
+			case 3:
+			case 8:
+				break;
+			default:
+				line.append(getGlobalFieldValue(field, true));
+				line.append(field.getDelimiter());
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writePdfBodyHeader()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
-				}
+				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
+				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
 			}
 		}
+	}
+
+	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+				line.append(getFieldValue(field, fieldsMap, true) + " DR");
+				line.append(field.getDelimiter());
+			} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
+				line.append(field.getDelimiter());
+			} else if (getFieldValue(field, fieldsMap, true) == null) {
+				line.append("");
+				line.append(field.getDelimiter());
+			} else {
+				line.append(getFieldValue(field, fieldsMap, true));
+				line.append(field.getDelimiter());
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
@@ -545,141 +374,39 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
-				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
-				}
-			}
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-				contentStream.showText(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-			} else {
-				contentStream.showText(
-						String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-			}
-		}
-		contentStream.newLineAtOffset(0, -leading);
-	}
-
-	private void writePdfTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.writePdfTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							getFieldValue(field, fieldsMap, true) + " DR"));
 					contentStream.newLineAtOffset(0, -leading);
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
 					contentStream.newLineAtOffset(0, -leading);
 				}
 			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
-					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_CODE)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+					contentStream.showText(
+							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
 					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
 				}
 			}
 		}
-	}
-
-	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
-			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.executePdfBodyQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getBodyQuery(rgm);
-		logger.info("Query for body line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream.endText();
-						contentStream.close();
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-						writePdfHeader(rgm, contentStream, leading, pagination);
-						pageHeight += 4;
-					}
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					pageHeight++;
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return contentStream;
 	}
 
 	private void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetIssuer.executeBodyQuery()");
+		logger.debug("In AtmWithdrawalIssuerBankSummary.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -726,6 +453,294 @@ public class GLHandoffFinalProofSheetIssuer extends GeneralReportProcess {
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
+			PDFont pdfFont, float fontSize) {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.executePdfBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					if (pageHeight > totalHeight) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream.endText();
+						contentStream.close();
+						page = new PDPage();
+						doc.addPage(page);
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+					}
+
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					success++;
+					pageHeight++;
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return contentStream;
+	}
+
+	private void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writeTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getSequence()) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				break;
+			default:
+				if (field.isEol()) {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+						line.append(getFieldValue(field, fieldsMap, true) + " DR");
+						line.append(field.getDelimiter());
+					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
+						line.append(field.getDelimiter());
+						line.append(getEol());
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
+						line.append("");
+						line.append(field.getDelimiter());
+						line.append(getEol());
+					} else {
+						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(field.getDelimiter());
+						line.append(getEol());
+					}
+				} else {
+					if (getFieldValue(field, fieldsMap, true) == null) {
+						line.append("");
+						line.append(field.getDelimiter());
+					} else {
+						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(field.getDelimiter());
+					}
+				}
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.writePdfTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				if (field.getFieldName().contains(ReportConstants.LINE)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
+							getFieldValue(field, fieldsMap, true).charAt(0)));
+					contentStream.newLineAtOffset(0, -leading);
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							getFieldValue(field, fieldsMap, true) + " DR"));
+					contentStream.newLineAtOffset(0, -leading);
+				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+					contentStream.newLineAtOffset(0, -leading);
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.newLineAtOffset(0, -leading);
+				}
+			} else {
+				if (field.getFieldName().contains(ReportConstants.LINE)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
+							getFieldValue(field, fieldsMap, true).charAt(0)));
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
+					contentStream.showText(
+							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				} else if (getFieldValue(field, fieldsMap, true) == null) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				} else {
+					contentStream.showText(
+							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				}
+			}
+		}
+	}
+
+	private void executeTrailerQuery(ReportGenerationMgr rgm) {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.executeTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeTrailer(rgm, lineFieldsMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
+	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
+		logger.debug("In AtmWithdrawalIssuerBankSummary.executePdfTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
 				try {
 					ps.close();

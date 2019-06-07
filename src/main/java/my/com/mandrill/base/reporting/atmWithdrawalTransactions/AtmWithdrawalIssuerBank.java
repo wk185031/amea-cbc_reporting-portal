@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsACD;
+package my.com.mandrill.base.reporting.atmWithdrawalTransactions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,10 +9,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -25,13 +22,14 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
+public class AtmWithdrawalIssuerBank extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(ATMTransactionListOnUsAcquirer.class);
+	private final Logger logger = LoggerFactory.getLogger(AtmWithdrawalIssuerBank.class);
+	private int pagination = 0;
 
 	@Override
 	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.processCsvTxtRecord()");
+		logger.debug("In AtmWithdrawalIssuerBank.processCsvTxtRecord()");
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
@@ -53,6 +51,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 						}
 						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
 								+ ReportConstants.CSV_FORMAT);
+						pagination = 1;
 						execute(rgm, file);
 					} else {
 						throw new Exception("Path: " + fileLocation + " not configured.");
@@ -69,37 +68,28 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 	}
 
 	private void execute(ReportGenerationMgr rgm, File file) {
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
 		StringBuilder breakLine = new StringBuilder();
+		String bankCode = null;
+		String bankName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
-					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
-					for (String terminalMap : branchNameMap.getValue()) {
-						StringBuilder line = new StringBuilder();
-						terminal = terminalMap;
-						line.append(branchName).append(";");
-						line.append(getEol());
-						line.append(ReportConstants.TERMINAL + " " + terminal).append(";");
-						line.append(getEol());
-						rgm.writeLine(line.toString().getBytes());
-						writeBodyHeader(rgm);
-						preProcessing(rgm, branchCode, branchName, terminal);
-						executeBodyQuery(rgm);
-					}
-				}
+			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteria(rgm).entrySet()) {
+				bankCode = bankCodeMap.getKey();
+				bankName = bankCodeMap.getValue();
+				StringBuilder line = new StringBuilder();
+				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankCode + " ").append(";")
+						.append(bankName).append(";");
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+				writeBodyHeader(rgm);
+				executeBodyQuery(rgm);
 				breakLine.append(getEol());
 				rgm.writeLine(breakLine.toString().getBytes());
+				rgm.fileOutputStream.flush();
+				rgm.fileOutputStream.close();
 			}
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
@@ -117,16 +107,15 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.filterByCriteria()");
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
+	private SortedMap<String, String> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In ATMTransactionListIssuer.filterByCriteria()");
+		String bankCode = null;
+		String bankName = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, String> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -149,34 +138,15 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 							continue;
 						}
 						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								branchCode = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+								bankCode = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-								branchName = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
-								terminal = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
 							}
 						}
 					}
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
-					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
-						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
-						}
-					}
+					criteriaMap.put(bankCode, bankName);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -196,14 +166,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ATMTransactionListOnUsAcquirer.preProcessing()");
-		if (rgm.getBodyQuery() != null) {
-			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-		}
-
+		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
 		if (rgm.isGenerate() == true) {
 			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
 					.concat(" ").concat(ReportConstants.START_TIME);
@@ -234,36 +197,16 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ATMTransactionListOnUsAcquirer.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
-		}
-
-		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery());
-			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
-			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
-		}
-	}
-
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In AtmWithdrawalIssuerBank.addPreProcessingFieldsToGlobalMap()");
+		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 
+		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
 		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
 		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
 
@@ -279,13 +222,17 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In ATMTransactionListOnUsAcquirer.writeHeader()");
+		logger.debug("In AtmWithdrawalIssuerBank.writeHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+					line.append(pagination);
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else if (getGlobalFieldValue(field, true) == null) {
 					line.append("");
 					line.append(field.getDelimiter());
 					line.append(getEol());
@@ -309,7 +256,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 	}
 
 	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In ATMTransactionListOnUsAcquirer.writeBodyHeader()");
+		logger.debug("In AtmWithdrawalIssuerBank.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -326,16 +273,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.ATM_CARD_NUMBER)) {
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					line.append(
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
-				}
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TRACE_NUMBER)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 					line.append(
@@ -345,8 +283,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 					line.append(getFieldValue(field, fieldsMap, true));
 					line.append(field.getDelimiter());
 				}
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)
-					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
 					line.append(
 							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
@@ -355,7 +292,8 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 					line.append(getFieldValue(field, fieldsMap, true));
 					line.append(field.getDelimiter());
 				}
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.DR_AMOUNT)
+					|| field.getFieldName().equalsIgnoreCase(ReportConstants.CR_AMOUNT)) {
 				if (!voidCode.equals("0")) {
 					line.append("");
 					line.append(field.getDelimiter());
@@ -397,7 +335,7 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 	}
 
 	private void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.executeBodyQuery()");
+		logger.debug("In AtmWithdrawalIssuerBank.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

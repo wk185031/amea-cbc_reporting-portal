@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmTransactionListsBranch.EftAtmTransactionList;
+package my.com.mandrill.base.reporting.atmTransactionListsBranch;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +30,12 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
+public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 
-	private final Logger logger = LoggerFactory.getLogger(EftAtmTransactionListOtherBranch.class);
+	private final Logger logger = LoggerFactory.getLogger(ListOfATMWithdrawalsReport.class);
+	public static final String ATM = "ATM";
+	public static final String CBS = "CBS";
+	public static final String OB = "OB";
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
@@ -40,7 +43,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.processPdfRecord()");
+		logger.debug("In ListOfATMWithdrawalsReport.processPdfRecord()");
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
@@ -60,6 +63,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String channel = null;
 
 			preProcessing(rgm);
 
@@ -67,23 +71,31 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
-					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+					preProcessing(rgm, branchCode, branchName, terminal, channel);
+					writePdfHeader(rgm, contentStream, leading, pagination);
 					pageHeight += 4;
-					for (String terminalMap : branchNameMap.getValue()) {
-						terminal = terminalMap;
-						contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + branchName);
-						pageHeight += 1;
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
+						contentStream.newLineAtOffset(0, -leading);
+						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + branchName);
+						pageHeight += 2;
 						contentStream.newLineAtOffset(0, -leading);
 						writePdfBodyHeader(rgm, contentStream, leading);
 						pageHeight += 2;
-						preProcessing(rgm, branchCode, branchName, terminal);
-						contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-								pdfFont, fontSize);
+						for (String channelMap : terminalMap.getValue()) {
+							channel = channelMap;
+							preProcessing(rgm, branchCode, branchName, terminal, channel);
+							contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+									pdfFont, fontSize);
+						}
+						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
 					}
 				}
@@ -135,7 +147,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
-		logger.debug("In EftAtmTransactionListOtherBranch.execute()");
+		logger.debug("In ListOfATMWithdrawalsReport.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -201,7 +213,6 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 					success++;
 					pageHeight++;
 				}
-				contentStream.newLineAtOffset(0, -leading);
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
@@ -218,16 +229,17 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 		return contentStream;
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.filterByCriteria()");
+	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In ListOfATMWithdrawalsReport.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String channel = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -259,23 +271,37 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
+							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
+						Map<String, Map<String, Set<String>>> tmpCriteriaMap = new HashMap<>();
+						Map<String, Set<String>> terminalList = new HashMap<>();
+						Set<String> channelList = new HashSet<>();
+						channelList.add(channel);
+						terminalList.put(terminal, channelList);
 						tmpCriteriaMap.put(branchName, terminalList);
 						criteriaMap.put(branchCode, tmpCriteriaMap);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
+						Map<String, Map<String, Set<String>>> tmpCriteriaMap = criteriaMap.get(branchCode);
 						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalList = new HashMap<>();
+							Set<String> channelList = new HashSet<>();
+							channelList.add(channel);
+							terminalList.put(terminal, channelList);
 							tmpCriteriaMap.put(branchName, terminalList);
 						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalList = tmpCriteriaMap.get(branchName);
+							if (terminalList.get(terminal) == null) {
+								Set<String> channelList = new HashSet<>();
+								channelList.add(channel);
+								terminalList.put(terminal, channelList);
+							} else {
+								Set<String> channelList = terminalList.get(terminal);
+								channelList.add(channel);
+							}
 						}
 					}
 				}
@@ -297,12 +323,13 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOtherBranch.preProcessing()");
+		logger.debug("In ListOfATMWithdrawalsReport.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
 
 		if (rgm.isGenerate() == true) {
@@ -336,8 +363,9 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In EftAtmTransactionListOtherBranch.preProcessing()");
+			String filterByTerminal, String filterByChannel)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In ListOfATMWithdrawalsReport.preProcessing()");
 		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 
@@ -356,10 +384,37 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
+
+		if (filterByChannel != null && rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			switch (filterByChannel) {
+			case ATM:
+				ReportGenerationFields atm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+						ReportGenerationFields.TYPE_STRING,
+						"CTR.CTR_CHANNEL = '" + filterByChannel + "' AND TXN.TRL_ISS_NAME = 'CBC'");
+				getGlobalFileFieldsMap().put(atm.getFieldName(), atm);
+				break;
+			case CBS:
+				ReportGenerationFields cbs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+						ReportGenerationFields.TYPE_STRING,
+						"CTR.CTR_CHANNEL = '" + filterByChannel + "' AND TXN.TRL_ISS_NAME = 'CBS'");
+				getGlobalFileFieldsMap().put(cbs.getFieldName(), cbs);
+				break;
+			case OB:
+				ReportGenerationFields ob = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+						ReportGenerationFields.TYPE_STRING,
+						"CTR.CTR_CHANNEL = '" + filterByChannel + "' AND TXN.TRL_ISS_NAME IS NULL");
+				getGlobalFileFieldsMap().put(ob.getFieldName(), ob);
+				break;
+			default:
+				break;
+			}
+
+		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBranch.addPreProcessingFieldsToGlobalMap()");
+		logger.debug("In ListOfATMWithdrawalsReport.addPreProcessingFieldsToGlobalMap()");
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -383,8 +438,8 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 	}
 
 	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
-			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOtherBranch.writePdfHeader()");
+			int pagination) throws IOException, JSONException {
+		logger.debug("In ListOfATMWithdrawalsReport.writePdfHeader()");
 		addPreProcessingFieldsToGlobalMap(rgm);
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -401,11 +456,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 					contentStream.newLineAtOffset(0, -leading);
 				}
 			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchCode));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
-				} else if (getGlobalFieldValue(field, true) == null) {
+				if (getGlobalFieldValue(field, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
 					contentStream.showText(
@@ -417,7 +468,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 
 	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
-		logger.debug("In EftAtmTransactionListOtherBranch.writePdfBodyHeader()");
+		logger.debug("In ListOfATMWithdrawalsReport.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -430,7 +481,7 @@ public class EftAtmTransactionListOtherBranch extends GeneralReportProcess {
 				}
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$2s", "")
+					contentStream.showText(String.format("%1$5s", "")
 							+ String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
 				} else if (getGlobalFieldValue(field, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));

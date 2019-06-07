@@ -1246,7 +1246,6 @@ public class GLHandoffBlocksheetMovingCash extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
@@ -1315,7 +1314,6 @@ public class GLHandoffBlocksheetMovingCash extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
@@ -1376,7 +1374,6 @@ public class GLHandoffBlocksheetMovingCash extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
@@ -1438,7 +1435,6 @@ public class GLHandoffBlocksheetMovingCash extends GeneralReportProcess {
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {

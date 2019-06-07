@@ -88,7 +88,9 @@ public final class ReportConstants {
 	public static final String LINE = "Line";
 	public static final String BRANCH_CODE = "BRANCH CODE";
 	public static final String BRANCH_NAME = "BRANCH NAME";
+	public static final String BRANCH = "BRANCH";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String CHANNEL = "CHANNEL";
 	public static final String CARD_PRODUCT = "CARD PRODUCT";
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
 	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
@@ -108,9 +110,22 @@ public final class ReportConstants {
 	public static final String CREDITS = "CREDITS";
 	public static final String TOTAL_DEBIT = "TOTAL DEBIT";
 	public static final String TOTAL_CREDIT = "TOTAL CREDIT";
-	public static final String CUSTOM_DATA = "CUSTOM DATA";
+	public static final String TOTAL_AMOUNT = "TOTAL AMOUNT";
+	public static final String SUB_TOTAL = "SUB-TOTAL";
+	public static final String OVERALL_TOTAL = "OVER-ALL TOTAL";
 	public static final String BP_BILLER_CODE = "BILLER CODE";
+	public static final String BANK_CODE = "BANK CODE";
 	public static final String BANK_NAME = "BANK NAME";
+	public static final String AMOUNT = "AMOUNT";
+	public static final String DR_AMOUNT = "DR AMOUNT";
+	public static final String CR_AMOUNT = "CR AMOUNT";
+	public static final String VOID_CODE = "VOID CODE";
+	public static final String TOTAL = "TOTAL";
+	public static final String AR_PER_TERMINAL = "A/R PER TERMINAL";
+	public static final String TOTAL_AR_AMOUNT = "TOTAL A/R AMOUNT";
+	public static final String NET_SETTLEMENT = "NET SETTLEMENT";
+	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
+	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data
@@ -118,6 +133,7 @@ public final class ReportConstants {
 
 	// Result Code Description
 	public static final String APPROVED = "Approved";
+	public static final String FULL_REVERSAL = "Full Reversal";
 
 	// Query
 	public static final String SUBSTRING_SELECT = "SELECT";

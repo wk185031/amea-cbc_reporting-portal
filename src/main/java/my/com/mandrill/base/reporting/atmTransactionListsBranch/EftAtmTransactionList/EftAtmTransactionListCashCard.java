@@ -145,6 +145,8 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		String txnQualifier = null;
+		String voidCode = null;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -186,15 +188,20 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else if (key.equalsIgnoreCase(ReportConstants.TXN_QUALIFIER)) {
+								txnQualifier = result.toString();
+								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.VOID_CODE)) {
+								voidCode = result.toString();
+								field.setValue(result.toString());
 							} else {
-								Class clazz = result.getClass();
 								field.setValue(result.toString());
 							}
 						} else {
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, txnQualifier, voidCode);
 					success++;
 					pageHeight++;
 				}
@@ -262,11 +269,23 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 							}
 						}
 					}
-					Map<String, Map<String, String>> branchNameMap = new HashMap<>();
-					Map<String, String> terminalList = new HashMap<>();
-					terminalList.put(terminal, cardProduct);
-					branchNameMap.put(branchName, terminalList);
-					criteriaMap.put(branchCode, branchNameMap);
+					if (criteriaMap.get(branchCode) == null) {
+						Map<String, Map<String, String>> tmpCriteriaMap = new HashMap<>();
+						Map<String, String> terminalList = new HashMap<>();
+						terminalList.put(terminal, cardProduct);
+						tmpCriteriaMap.put(branchName, terminalList);
+						criteriaMap.put(branchCode, tmpCriteriaMap);
+					} else {
+						Map<String, Map<String, String>> tmpCriteriaMap = criteriaMap.get(branchCode);
+						if (tmpCriteriaMap.get(branchName) == null) {
+							Map<String, String> terminalList = new HashMap<>();
+							terminalList.put(terminal, cardProduct);
+							tmpCriteriaMap.put(branchName, terminalList);
+						} else {
+							Map<String, String> terminalList = tmpCriteriaMap.get(branchName);
+							terminalList.put(terminal, cardProduct);
+						}
+					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -440,7 +459,7 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
+			PDPageContentStream contentStream, float leading, String txnQualifier, String voidCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -449,6 +468,11 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 					if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 						contentStream.showText(String.format("%1$5s", "") + String
 								.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+						contentStream.newLineAtOffset(0, -leading);
+					} else if (txnQualifier.equals("R")
+							&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+						contentStream.showText(String.format("%1$5s", "")
+								+ String.format("%1$-" + field.getPdfLength() + "s", ReportConstants.FULL_REVERSAL));
 						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -472,7 +496,8 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
 					}
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)) {
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)
+						|| field.getFieldName().equalsIgnoreCase(ReportConstants.TRACE_NUMBER)) {
 					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 						String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
 								.replace(' ', '0');
@@ -486,6 +511,22 @@ public class EftAtmTransactionListCashCard extends GeneralReportProcess {
 						String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
 								.replace(' ', '0');
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
+					if (!voidCode.equals("0")) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.VOID_CODE)) {
+					if (getFieldValue(field, fieldsMap, true).length() <= 3) {
+						String formatResultCode = String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true))
+								.replace(' ', '0');
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatResultCode));
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
