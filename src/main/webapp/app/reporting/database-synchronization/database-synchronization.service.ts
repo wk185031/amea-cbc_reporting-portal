@@ -18,6 +18,7 @@ export class DatabaseSynchronizationService {
     private resourceUrlNoPaging = SERVER_API_URL + 'api/databaseSynchronization-nopaging';
     private resourcGetParenteUrl = SERVER_API_URL + 'api/databaseSynchronization-parent-for-databaseSynchronization-and-user';
     private resourceDbSyncUrl = SERVER_API_URL + 'api/synchronize-database';
+    private resourceGetTableNameUrl =  SERVER_API_URL + 'api/getTableName';
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
 
@@ -78,6 +79,12 @@ export class DatabaseSynchronizationService {
             body.push(this.convertItemFromServer(jsonResponse[i]));
         }
         return res.clone({ body });
+    }
+
+    getTableName(req?: any): Observable<HttpResponse<string[]>> {
+        const options = createRequestOption(req);
+        return this.http.get<string[]>(this.resourceGetTableNameUrl, { params: options, observe: 'response' })
+            .map((res: HttpResponse<string[]>) => res);
     }
 
     /**

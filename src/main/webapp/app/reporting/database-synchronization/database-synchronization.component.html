@@ -48,21 +48,27 @@
         </div>
     </div>
     <br />
-    <div class="row ml-3">
-        <div class="col-3 table-sync-box">
-            <h6 class="mb-3" jhiTranslate="baseApp.databaseSynchronization.tableToSync">
-                Table(s) to be included in database synchronization :
-            </h6>
-            <div class="form-check" *ngFor="let table of tablesArr" (change)="setTableSync($event)">
-                <input class="form-check-input" name="{{ table }}" type="checkbox" [value]="table" [checked]="tablesMap.get(table)">
-                <label class="form-check-label" for="{{ table }}">
-                    {{table}}
-                </label>
+    <div class="ml-3">
+        <h6 class="row mb-3" jhiTranslate="baseApp.databaseSynchronization.tableToSync">
+            Table(s) to be included in database synchronization :
+        </h6>
+        <div class="row">
+            <div class="col-3 table-sync-box">
+                <div class="form-check" *ngFor="let table of tablesArr" (change)="setTableSync($event)">
+                    <input class="form-check-input" name="{{ table }}" type="checkbox" [value]="table" [checked]="tablesMap.get(table)">
+                    <label class="form-check-label" for="{{ table }}">
+                        {{table}}
+                    </label>
+                </div>
             </div>
-            <div class="float-right mt-2">
-                <button class="btn btn-success" (click)="saveTableSyncChanges()" jhiTranslate="entity.action.save">
-                    Save
-                </button>
+        </div>
+        <div class="row">
+            <div class="col-3">
+                <div class="float-right mt-2">
+                    <button class="btn btn-success" (click)="saveTableSyncChanges()" jhiTranslate="entity.action.save">
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
     </div>

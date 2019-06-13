@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -30,10 +31,13 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.codahale.metrics.annotation.Timed;
 
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
@@ -240,6 +244,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 	}
 
+	@SuppressWarnings("resource")
 	@PostMapping("/synchronize-database/{user}")
     public void synchronizeDatabase(@PathVariable String user) throws Exception {
         log.debug("REST request to Synchronize Database");
@@ -276,8 +281,25 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
     			try {
                 	log.debug("Synchronizing table " + table);
                 	start = System.nanoTime();
+                	
+//                	log.debug("Disabling constraint for table " + table);
+                	rs = stmt.executeQuery("SELECT CONSTRAINT_NAME FROM USER_CONSTRAINTS WHERE TABLE_NAME = '"+ table +"' AND CONSTRAINT_TYPE='P'");
+                	while (rs.next()) {
+                    	rs = stmt.executeQuery("ALTER TABLE " + table + " DISABLE CONSTRAINT " + rs.getString("CONSTRAINT_NAME") + " CASCADE");
+                    }
+//                	log.debug("Complete disabling constraint for table " + table);
+                	
+//                	log.debug("Disabling triggers for table " + table);
+                	rs = stmt.executeQuery("ALTER TABLE " + table + " DISABLE ALL TRIGGERS");
+//                	log.debug("Complete disabling triggers for table " + table);
+                	
+//                	log.debug("Truncating table " + table);
                 	rs = stmt.executeQuery("TRUNCATE TABLE " + table);
+//                	log.debug("Complete truncating table " + table);
+                	
+//                	log.debug("Inserting latest data into table " + table);
                 	rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@DBLINK_12C");
+//                	log.debug("Complete inserting latest data into table " + table);
                 	end = System.nanoTime();
                 	log.debug("Complete synchronizing table " + table + " in " + (TimeUnit.NANOSECONDS.toMillis(end - start)) + "ms");
     	        } catch (SQLException e ) {
@@ -298,7 +320,35 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         jobHistory2.setCreatedDate(ZonedDateTime.now());
         jobHistory2.setCreatedBy(user);
         jobHistoryResource.createJobHistory(jobHistory2);
+    }
+	
+	@GetMapping("/getTableName")
+    @Timed
+    public ArrayList<String> getTableName() throws SQLException {
+        log.debug("REST request to get list of tables to display");
+        Connection conn = DriverManager.getConnection(env.getProperty(ReportConstants.DB_URL), env.getProperty(ReportConstants.DB_USERNAME),
+				env.getProperty(ReportConstants.DB_PASSWORD));
         
+        Statement stmt = null;
+        ResultSet rs = null;
+        ArrayList<String> tablesArr = new ArrayList<String>();
+        stmt = conn.createStatement();
+        
+        try {
+        	rs = stmt.executeQuery("SELECT TDE_TABLE_NAME FROM TABLE_DETAILS");
+        } catch (SQLException e ) {
+        	log.error("Error is: ", e);
+        }
+        
+        while (rs.next()) {
+        	tablesArr.add(rs.getString("TDE_TABLE_NAME"));
+        }
+        
+        if (rs != null) { if (!rs.isClosed()) { rs.close(); } }
+        if (stmt != null) { stmt.close(); }
+        if (conn != null) { conn.close(); }
+
+        return tablesArr;
     }
 
 }

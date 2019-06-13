@@ -595,4 +595,6 @@ label .fa {
 .table-sync-box {
     border: black solid 1px;
     padding: 1rem;
+    overflow: scroll;
+    height: 450px;
 }

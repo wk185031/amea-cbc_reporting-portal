@@ -37,9 +37,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
     jobHistories: JobHistory[];
     tableSync: string[];
     tablesMap: Map<string, boolean>;
-    tablesArr: string[] = ['ATM_STATIONS','ATM_BRANCHES','CARD','CARD_PRODUCT','TRANSACTION_LOG',
-                            'CBC_BANK','CBC_BILLER','CBC_BIN','CBC_GL_ENTRY','CBC_GL_ACCOUNT',
-                            'CBC_GL_TRANSACTION','CBC_TRAN_CODE'];
+    tablesArr: string[];
     
     constructor(
         private databaseSynchronizationService: DatabaseSynchronizationService,
@@ -120,13 +118,16 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.loadJob();
         this.principal.identity().then((account) => {
             this.currentAccount = account;
         });
         this.readonlyInputs = true;
         this.spinners = false;
         this.tablesMap = new Map<string, boolean>();
+        this.databaseSynchronizationService.getTableName().subscribe((res: HttpResponse<string[]>) => { 
+            this.tablesArr = res.body;
+            this.loadJob();
+        }, (res: HttpErrorResponse) => this.onError(res.message));;
     }
 
     editScheduler() {
