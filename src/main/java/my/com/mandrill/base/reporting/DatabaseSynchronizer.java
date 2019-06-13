@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -250,19 +249,11 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         long end = 0;
         Statement stmt = null;
         ResultSet rs = null;
-        String[] tablesArr = null;
-        List<String> tables = null;
         stmt = conn.createStatement();
         Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
-        
-        if (job.getTableSync() != null) {
-        	tablesArr = job.getTableSync().split(",");
-        	tables = Arrays.asList(tablesArr);
-    	}
-        
-//        TaskGroup taskGroup = taskGroupRepository.findByJobId(job.getId());
-//        List<Task> tasks = taskRepository.findByTaskGroupId(taskGroup.getId());
-//        Collections.sort(tasks, (a, b) -> a.getSequence() - b.getSequence());
+        TaskGroup taskGroup = taskGroupRepository.findByJobId(job.getId());
+        List<Task> tasks = taskRepository.findByTaskGroupId(taskGroup.getId());
+        Collections.sort(tasks, (a, b) -> a.getSequence() - b.getSequence());
         
         JobHistory jobHistory1 = new JobHistory();
         jobHistory1.setJob(job);
@@ -271,24 +262,18 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
         jobHistory1.setCreatedBy(user);
         jobHistoryResource.createJobHistory(jobHistory1);
 			
-        if (tables != null) {
-        	for (String table: tables) {
-    			try {
-                	log.debug("Synchronizing table " + table);
-                	start = System.nanoTime();
-                	rs = stmt.executeQuery("TRUNCATE TABLE " + table);
-                	rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@DBLINK_12C");
-                	end = System.nanoTime();
-                	log.debug("Complete synchronizing table " + table + " in " + (TimeUnit.NANOSECONDS.toMillis(end - start)) + "ms");
-    	        } catch (SQLException e ) {
-    	        	log.error("Error is: ", e);
-    	        }
-    		}
-        } else {
-        	log.info("There is no table to sync");
-        }
-        
-        if (rs != null) { if (!rs.isClosed()) { rs.close(); } }
+        for (Task task: tasks) {
+			try {
+            	log.debug("Executing task " + task.getName());
+            	start = System.nanoTime();
+            	rs = stmt.executeQuery(task.getContent());
+            	end = System.nanoTime();
+            	log.debug("Complete executing task " + task.getName() + " in " + (TimeUnit.NANOSECONDS.toMillis(end - start)) + "ms");
+	        } catch (SQLException e ) {
+	        	log.error("Error is: ", e);
+	        }
+		}
+        if (!rs.isClosed()) { rs.close(); }
         if (stmt != null) { stmt.close(); }
         if (conn != null) { conn.close(); }
         

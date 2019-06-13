@@ -61,18 +61,6 @@ public class Job implements Serializable {
     @Size(max = 100)
     @Column(name = "created_by", length = 100, nullable = false)
     private String createdBy;
-    
-    @Size(max = 500)
-    @Column(name = "table_sync", length = 500)
-    private String tableSync;
-
-	public String getTableSync() {
-		return tableSync;
-	}
-
-	public void setTableSync(String tableSync) {
-		this.tableSync = tableSync;
-	}
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove

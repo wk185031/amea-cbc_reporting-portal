@@ -35,11 +35,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
     job: Job;
     jobHistory: JobHistory;
     jobHistories: JobHistory[];
-    tableSync: string[];
-    tablesMap: Map<string, boolean>;
-    tablesArr: string[] = ['ATM_STATIONS','ATM_BRANCHES','CARD','CARD_PRODUCT','TRANSACTION_LOG',
-                            'CBC_BANK','CBC_BILLER','CBC_BIN','CBC_GL_ENTRY','CBC_GL_ACCOUNT',
-                            'CBC_GL_TRANSACTION','CBC_TRAN_CODE'];
     
     constructor(
         private databaseSynchronizationService: DatabaseSynchronizationService,
@@ -63,14 +58,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     loadScheduleTime() {
-        this.tableSync = this.job.tableSync.split(',');
-        this.tablesArr.forEach(table => {
-            if (this.tableSync.indexOf(table) > -1) {
-                this.tablesMap.set(table, true);
-            } else {
-                this.tablesMap.set(table, false);
-            }
-        });
         if (!this.job) {
             this.time = {hour: 0, minute: 30, second: 0};
         } else {
@@ -81,30 +68,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
         this.periodicSyncTimeCheck();
     }
 
-    setTableSync(event) {
-        this.tablesMap.set(event.target.value, event.target.checked);
-    }
-
-    saveTableSyncChanges() {
-        let tablesString: string = null;
-        let count: number = 0;
-        this.tablesMap.forEach((value: boolean, key: string) => {
-            if (value) {
-                if (count == 0) {
-                    tablesString = key;
-                } else {
-                    tablesString = tablesString + ',' + key;
-                }
-                count++;
-            }
-        });
-
-        this.job.scheduleTime = this.datePipe.transform(this.job.scheduleTime, 'yyyy-MM-ddTHH:mm:ss');
-        this.job.createdDate = this.datePipe.transform(this.job.createdDate, 'yyyy-MM-ddTHH:mm:ss');
-        this.job.tableSync = tablesString;
-        this.subscribeToSaveResponse(this.jobService.update(this.job));
-    }
-
     ngOnInit() {
         this.loadJob();
         this.principal.identity().then((account) => {
@@ -112,7 +75,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
         });
         this.readonlyInputs = true;
         this.spinners = false;
-        this.tablesMap = new Map<string, boolean>();
     }
 
     editScheduler() {
@@ -155,9 +117,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
 
     private onSaveSuccess(result: Job) {
         this.eventManager.broadcast({ name: 'jobListModification', content: 'OK'});
-        if (this.p.isOpen()) {
-            this.p.close();
-        }
+        this.p.close();
     }
 
     private onSaveError() {
