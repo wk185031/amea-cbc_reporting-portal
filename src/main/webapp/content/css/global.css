@@ -591,8 +591,3 @@ label .fa {
 .report-definition-label {
     font-weight: 300 !important;
 }
-
-.table-sync-box {
-    border: black solid 1px;
-    padding: 1rem;
-}

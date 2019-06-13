@@ -23,8 +23,7 @@
             "synchronizeDatabase": "Synchronize Database",
             "synchronizationScheduler": "Synchronization Scheduler :",
             "notScheduledYet": "Not Scheduled Yet",
-            "lastSync": "Last Synchronization On",
-            "tableToSync": "Table(s) to be included in database synchronization :"
+            "lastSync": "Last Synchronization On"
         }
     }
 }
