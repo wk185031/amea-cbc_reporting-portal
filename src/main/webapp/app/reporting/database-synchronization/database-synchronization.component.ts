@@ -58,19 +58,29 @@ export class DatabaseSynchronizationComponent implements OnInit {
             name: "DB_SYNC"
         }).subscribe((res: HttpResponse<Job[]>) => { 
             this.job = res.body[0]; 
-            this.loadScheduleTime();
+            this.loadTableSync();
         }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
-    loadScheduleTime() {
-        this.tableSync = this.job.tableSync.split(',');
-        this.tablesArr.forEach(table => {
-            if (this.tableSync.indexOf(table) > -1) {
-                this.tablesMap.set(table, true);
-            } else {
+    loadTableSync() {
+        if (this.job.tableSync != null) {
+            this.tableSync = this.job.tableSync.split(',');
+            this.tablesArr.forEach(table => {
+                if (this.tableSync.indexOf(table) > -1) {
+                    this.tablesMap.set(table, true);
+                } else {
+                    this.tablesMap.set(table, false);
+                }
+            });
+        } else {
+            this.tablesArr.forEach(table => {
                 this.tablesMap.set(table, false);
-            }
-        });
+            });
+        }
+        this.loadScheduleTime();
+    }
+
+    loadScheduleTime() {
         if (!this.job) {
             this.time = {hour: 0, minute: 30, second: 0};
         } else {
@@ -79,6 +89,10 @@ export class DatabaseSynchronizationComponent implements OnInit {
         }
         this.getPreviousSyncTime();
         this.periodicSyncTimeCheck();
+    }
+
+    checkSelectedTableSync(table) {
+        return this.tablesMap.get(table);
     }
 
     setTableSync(event) {
