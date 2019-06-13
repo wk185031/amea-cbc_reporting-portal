@@ -9,6 +9,7 @@ export class Job implements BaseEntity {
         public status?: string,
         public createdBy?: string,
         public createdDate?: any,
+        public tableSync?: string,
     ) {
     }
 }
