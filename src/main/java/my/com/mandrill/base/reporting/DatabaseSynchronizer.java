@@ -282,27 +282,36 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
                 	log.debug("Synchronizing table " + table);
                 	start = System.nanoTime();
                 	
-//                	log.debug("Disabling constraint for table " + table);
+                	try {
+                    	rs = stmt.executeQuery("DROP TABLE " + table + "_BACKUP");
+                	} catch (SQLException e) {
+                		log.info("Missing table " + table + "_BACKUP");
+                	}
+                	rs = stmt.executeQuery("CREATE TABLE " + table + "_BACKUP AS SELECT * FROM " + table);
+
                 	rs = stmt.executeQuery("SELECT CONSTRAINT_NAME FROM USER_CONSTRAINTS WHERE TABLE_NAME = '"+ table +"' AND CONSTRAINT_TYPE='P'");
                 	while (rs.next()) {
                     	rs = stmt.executeQuery("ALTER TABLE " + table + " DISABLE CONSTRAINT " + rs.getString("CONSTRAINT_NAME") + " CASCADE");
                     }
-//                	log.debug("Complete disabling constraint for table " + table);
                 	
-//                	log.debug("Disabling triggers for table " + table);
                 	rs = stmt.executeQuery("ALTER TABLE " + table + " DISABLE ALL TRIGGERS");
-//                	log.debug("Complete disabling triggers for table " + table);
                 	
-//                	log.debug("Truncating table " + table);
-                	rs = stmt.executeQuery("TRUNCATE TABLE " + table);
-//                	log.debug("Complete truncating table " + table);
+                	try {
+                    	rs = stmt.executeQuery("TRUNCATE TABLE " + table);
+                	} catch (SQLException e) {
+                		log.error("Error is: ", e);
+                	}          
+
+                	try {
+                    	rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@DBLINK_12C");
+                	} catch (SQLException e) {
+                		rs = stmt.executeQuery("INSERT INTO " + table + " (SELECT * FROM " + table + "_BACKUP)");
+                		log.error("Error is: ", e);
+                	}
                 	
-//                	log.debug("Inserting latest data into table " + table);
-                	rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@DBLINK_12C");
-//                	log.debug("Complete inserting latest data into table " + table);
                 	end = System.nanoTime();
                 	log.debug("Complete synchronizing table " + table + " in " + (TimeUnit.NANOSECONDS.toMillis(end - start)) + "ms");
-    	        } catch (SQLException e ) {
+    	        } catch (SQLException e) {
     	        	log.error("Error is: ", e);
     	        }
     		}
