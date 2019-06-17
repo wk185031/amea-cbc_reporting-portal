@@ -38,6 +38,7 @@ public class GLHandoffFinalProofSheetInterEntity extends GeneralReportProcess {
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 	private double total = 0.00;
+	private boolean pdf = false;
 	private String acquirerDebitQuery = null;
 	private String acquirerCreditQuery = null;
 	private String debitBodyQuery = null;
@@ -90,6 +91,7 @@ public class GLHandoffFinalProofSheetInterEntity extends GeneralReportProcess {
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
+		pdf = true;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
@@ -239,6 +241,10 @@ public class GLHandoffFinalProofSheetInterEntity extends GeneralReportProcess {
 			String glDescription = null;
 			String branchCode = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
+			if (!pdf) {
+				separateQuery(rgm);
+				preProcessing(rgm);
+			}
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();

@@ -36,6 +36,7 @@ public class GLHandoffBlocksheetMiniStatement extends GeneralReportProcess {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
+	private boolean pdf = false;
 	private String acquirerDebitBodyQuery = null;
 	private String acquirerCreditBodyQuery = null;
 	private String acquirerDebitTrailerQuery = null;
@@ -137,6 +138,7 @@ public class GLHandoffBlocksheetMiniStatement extends GeneralReportProcess {
 		float startY = 0.0f;
 		String txnDate = null;
 		pagination = 0;
+		pdf = true;
 		try {
 			doc = new PDDocument();
 			String glDescription = null;
@@ -400,6 +402,10 @@ public class GLHandoffBlocksheetMiniStatement extends GeneralReportProcess {
 		String branchCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
+			if (!pdf) {
+				separateQuery(rgm);
+				preProcessing(rgm);
+			}
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();

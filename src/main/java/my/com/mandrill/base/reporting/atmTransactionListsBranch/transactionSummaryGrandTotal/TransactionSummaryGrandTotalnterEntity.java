@@ -60,6 +60,7 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String location = null;
 
 			preProcessing(rgm);
 
@@ -67,29 +68,34 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
+					preProcessing(rgm, branchCode, terminal);
 					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
 					pageHeight += 4;
-					for (String terminalMap : branchNameMap.getValue()) {
-						terminal = terminalMap;
-						contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + branchName);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
-						preProcessing(rgm, branchCode, branchName, terminal);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize);
-						pageHeight += 1;
-						executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
-								fontSize);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						pageHeight += 1;
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						for (String locationList : terminalMap.getValue()) {
+							location = locationList;
+							contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + location);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							preProcessing(rgm, branchCode, terminal);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize);
+							pageHeight += 1;
+							executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
+									fontSize);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+						}
 					}
 				}
 			}
@@ -137,16 +143,17 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
+	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalnterEntity.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -178,23 +185,37 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
+						Map<String, Set<String>> terminalMap = new HashMap<>();
+						Set<String> locationList = new HashSet<>();
+						locationList.add(location);
+						terminalMap.put(terminal, locationList);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
+						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Set<String>> terminalMap = new HashMap<>();
+							Set<String> locationList = new HashSet<>();
+							locationList.add(location);
+							terminalMap.put(terminal, locationList);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Set<String> locationList = new HashSet<>();
+								locationList.add(location);
+								terminalMap.put(terminal, locationList);
+							} else {
+								Set<String> locationList = terminalMap.get(terminal);
+								locationList.add(location);
+							}
 						}
 					}
 				}
@@ -220,7 +241,6 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 
@@ -254,19 +274,14 @@ public class TransactionSummaryGrandTotalnterEntity extends GeneralReportProcess
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalnterEntity.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {

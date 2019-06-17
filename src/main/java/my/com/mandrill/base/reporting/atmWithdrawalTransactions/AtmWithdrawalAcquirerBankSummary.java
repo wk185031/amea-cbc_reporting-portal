@@ -40,6 +40,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 	private int pagination = 0;
 	private boolean branchDetails = false;
 	private boolean bankDetails = false;
+	private boolean pdf = false;
 	private String branchDetailBodyQuery = null;
 	private String branchBodyQuery = null;
 	private String bankBodyQuery = null;
@@ -101,6 +102,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
+		pdf = true;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
@@ -117,6 +119,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String location = null;
 
 			separateQuery(rgm);
 			preProcessing(rgm);
@@ -131,24 +134,30 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			writeBranchPdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchDetails = true;
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
+					preProcessing(rgm, branchCode, terminal);
 					rgm.setBodyQuery(getBranchDetailBodyQuery());
 					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, branchDetails, bankDetails);
+							startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
 					pageHeight += 1;
-					for (String terminalMap : branchNameMap.getValue()) {
-						branchDetails = false;
-						terminal = terminalMap;
-						rgm.setBodyQuery(getBranchBodyQuery());
-						preProcessing(rgm, branchCode, branchName, terminal);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, branchDetails, bankDetails);
-						pageHeight += 1;
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						for (String locationList : terminalMap.getValue()) {
+							branchDetails = false;
+							location = locationList;
+							rgm.setBodyQuery(getBranchBodyQuery());
+							preProcessing(rgm, branchCode, terminal);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize, branchDetails, bankDetails, branchName,
+									location);
+							pageHeight += 1;
+						}
 					}
 				}
 			}
@@ -159,8 +168,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			contentStream.newLineAtOffset(0, -leading);
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 1;
-			contentStream
-					.showText("                                                        " + "*** END OF REPORT ***");
+			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
 			contentStream.endText();
 			contentStream.close();
 
@@ -179,7 +187,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			pageHeight += 2;
 			rgm.setBodyQuery(getBankBodyQuery());
 			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize, branchDetails, bankDetails);
+					pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
 			rgm.setTrailerQuery(getBankTrailerQuery());
 			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
 					bankDetails);
@@ -277,28 +285,37 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		StringBuilder branchLine = new StringBuilder();
 		StringBuilder bankLine = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			bankDetails = false;
+			if (!pdf) {
+				separateQuery(rgm);
+			}
 			preProcessing(rgm);
+			bankDetails = false;
 			writeHeader(rgm);
 			writeBranchBodyHeader(rgm);
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchDetails = true;
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
+					preProcessing(rgm, branchCode, terminal);
 					rgm.setBodyQuery(getBranchDetailBodyQuery());
-					executeBodyQuery(rgm, bankDetails);
-					for (String terminalMap : branchNameMap.getValue()) {
-						branchDetails = false;
-						terminal = terminalMap;
-						rgm.setBodyQuery(getBranchBodyQuery());
-						preProcessing(rgm, branchCode, branchName, terminal);
-						executeBodyQuery(rgm, bankDetails);
+					executeBodyQuery(rgm, bankDetails, branchName, location);
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						for (String locationList : terminalMap.getValue()) {
+							branchDetails = false;
+							location = locationList;
+							rgm.setBodyQuery(getBranchBodyQuery());
+							preProcessing(rgm, branchCode, terminal);
+							executeBodyQuery(rgm, bankDetails, branchName, location);
+						}
 					}
 				}
 			}
@@ -315,7 +332,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			writeHeader(rgm);
 			writeBankBodyHeader(rgm);
 			rgm.setBodyQuery(getBankBodyQuery());
-			executeBodyQuery(rgm, bankDetails);
+			executeBodyQuery(rgm, bankDetails, branchName, location);
 			rgm.setTrailerQuery(getBankTrailerQuery());
 			executeTrailerQuery(rgm, bankDetails);
 			bankLine.append("*** END OF REPORT ***");
@@ -342,16 +359,17 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.filterByCriteria()");
+	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In TransactionSummaryGrandTotalnterEntity.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
 		rgm.setBodyQuery(getCriteriaQuery());
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
@@ -384,23 +402,37 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
+						Map<String, Set<String>> terminalMap = new HashMap<>();
+						Set<String> locationList = new HashSet<>();
+						locationList.add(location);
+						terminalMap.put(terminal, locationList);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
+						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Set<String>> terminalMap = new HashMap<>();
+							Set<String> locationList = new HashSet<>();
+							locationList.add(location);
+							terminalMap.put(terminal, locationList);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Set<String> locationList = new HashSet<>();
+								locationList.add(location);
+								terminalMap.put(terminal, locationList);
+							} else {
+								Set<String> locationList = terminalMap.get(terminal);
+								locationList.add(location);
+							}
 						}
 					}
 				}
@@ -456,7 +488,6 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessing()");
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 
@@ -490,17 +521,13 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null) {
+		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null) {
@@ -722,7 +749,8 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		}
 	}
 
-	private void writeBranchBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	private void writeBranchBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String branchName, String location)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -737,7 +765,10 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				if (branchDetails) {
 					if (!field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
-						if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+							line.append(branchName);
+							line.append(field.getDelimiter());
+						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
 							line.append(field.getDelimiter());
 						} else if (getFieldValue(field, fieldsMap, true) == null) {
@@ -754,7 +785,10 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				} else {
 					if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
-						if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+							line.append(location);
+							line.append(field.getDelimiter());
+						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
 							line.append(field.getDelimiter());
 						} else if (getFieldValue(field, fieldsMap, true) == null) {
@@ -809,7 +843,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 	}
 
 	private void writeBranchPdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, boolean branchDetails)
+			PDPageContentStream contentStream, float leading, boolean branchDetails, String branchName, String location)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -833,10 +867,11 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (branchDetails) {
 						if (!field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)
 								&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
-							if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
-									|| field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+							if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
 										getFieldValue(field, fieldsMap, true)));
+							} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
 							} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 								contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 										String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
@@ -852,10 +887,11 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					} else {
 						if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
 								&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
-							if (field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)
-									|| field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+							if (field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
 										getFieldValue(field, fieldsMap, true)));
+							} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", location));
 							} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 								contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 										String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
@@ -920,7 +956,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 		}
 	}
 
-	private void executeBodyQuery(ReportGenerationMgr rgm, boolean bankDetails) {
+	private void executeBodyQuery(ReportGenerationMgr rgm, boolean bankDetails, String branchName, String location) {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -966,7 +1002,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (bankDetails) {
 						writeBankBody(rgm, lineFieldsMap);
 					} else {
-						writeBranchBody(rgm, lineFieldsMap);
+						writeBranchBody(rgm, lineFieldsMap, branchName, location);
 					}
 				}
 			} catch (Exception e) {
@@ -986,7 +1022,8 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize, boolean branchDetails, boolean bankDetails) {
+			PDFont pdfFont, float fontSize, boolean branchDetails, boolean bankDetails, String branchName,
+			String location) {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -1044,7 +1081,8 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (bankDetails) {
 						writeBankPdfBody(rgm, lineFieldsMap, contentStream, leading);
 					} else {
-						writeBranchPdfBody(rgm, lineFieldsMap, contentStream, leading, branchDetails);
+						writeBranchPdfBody(rgm, lineFieldsMap, contentStream, leading, branchDetails, branchName,
+								location);
 					}
 					success++;
 					pageHeight++;
@@ -1110,6 +1148,9 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						line.append(total);
 						line.append(field.getDelimiter());
+					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
+						line.append(field.getDelimiter());
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
 						line.append(field.getDelimiter());
@@ -1154,7 +1195,10 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 						line.append(getEol());
 					}
 				} else {
-					if (getFieldValue(field, fieldsMap, true) == null) {
+					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
+						line.append(field.getDelimiter());
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
 						line.append(field.getDelimiter());
 					} else {
@@ -1197,6 +1241,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+						contentStream.newLineAtOffset(0, -leading);
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 						contentStream.newLineAtOffset(0, -leading);
@@ -1217,6 +1262,9 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 								getFieldValue(field, fieldsMap, true)));
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", total));
+					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {
@@ -1272,6 +1320,9 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
 						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
+					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {

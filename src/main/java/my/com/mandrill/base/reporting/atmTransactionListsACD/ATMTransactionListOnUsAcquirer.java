@@ -72,27 +72,33 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		StringBuilder breakLine = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal);
-					for (String terminalMap : branchNameMap.getValue()) {
-						StringBuilder line = new StringBuilder();
-						terminal = terminalMap;
-						line.append(branchName).append(";");
-						line.append(getEol());
-						line.append(ReportConstants.TERMINAL + " " + terminal).append(";");
-						line.append(getEol());
-						rgm.writeLine(line.toString().getBytes());
-						writeBodyHeader(rgm);
-						preProcessing(rgm, branchCode, branchName, terminal);
-						executeBodyQuery(rgm);
+					preProcessing(rgm, branchCode, terminal);
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						for (String locationList : terminalMap.getValue()) {
+							StringBuilder line = new StringBuilder();
+							location = locationList;
+							line.append(branchName).append(";");
+							line.append(getEol());
+							line.append(ReportConstants.TERMINAL + " " + terminal + " AT " + location).append(";");
+							line.append(getEol());
+							rgm.writeLine(line.toString().getBytes());
+							writeBodyHeader(rgm);
+							preProcessing(rgm, branchCode, terminal);
+							executeBodyQuery(rgm);
+						}
 					}
 				}
 				breakLine.append(getEol());
@@ -117,16 +123,17 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.filterByCriteria()");
+	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
+		logger.debug("In CAMTransactionList.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -158,23 +165,37 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
+						Map<String, Set<String>> terminalMap = new HashMap<>();
+						Set<String> locationList = new HashSet<>();
+						locationList.add(location);
+						terminalMap.put(terminal, locationList);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
+						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Set<String>> terminalMap = new HashMap<>();
+							Set<String> locationList = new HashSet<>();
+							locationList.add(location);
+							terminalMap.put(terminal, locationList);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Set<String> locationList = new HashSet<>();
+								locationList.add(location);
+								terminalMap.put(terminal, locationList);
+							} else {
+								Set<String> locationList = terminalMap.get(terminal);
+								locationList.add(location);
+							}
 						}
 					}
 				}
@@ -200,7 +221,6 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 
@@ -234,19 +254,14 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListOnUsAcquirer.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
@@ -330,60 +345,53 @@ public class ATMTransactionListOnUsAcquirer extends GeneralReportProcess {
 				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
 					line.append(
 							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TRACE_NUMBER)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 					line.append(
 							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
 					line.append(
 							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (!voidCode.equals("0")) {
 					line.append("");
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.VOID_CODE)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
 					line.append(
 							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
 				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				} else if (txnQualifier.equals("R")
 						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(ReportConstants.FULL_REVERSAL);
-					line.append(field.getDelimiter());
 				} else {
 					line.append("");
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (getFieldValue(field, fieldsMap, true) == null) {
 				line.append("");
 				line.append(field.getDelimiter());

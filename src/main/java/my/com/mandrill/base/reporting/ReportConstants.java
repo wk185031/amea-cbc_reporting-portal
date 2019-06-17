@@ -42,11 +42,13 @@ public final class ReportConstants {
 	public static final String PARAM_TXN_DATE = "Txn_Date";
 	public static final String PARAM_BRANCH_CODE = "Branch_Code";
 	public static final String PARAM_BRANCH_NAME = "Branch_Name";
+	public static final String PARAM_BANK_CODE = "Bank_Code";
 	public static final String PARAM_TERMINAL = "Terminal";
 	public static final String PARAM_CARD_PRODUCT = "Card_Product";
 	public static final String PARAM_GL_DESCRIPTION = "GL_Description";
 	public static final String PARAM_CHANNEL = "Channel";
-	public static final String PARAM_BILLER = "Biller";
+	public static final String PARAM_BILLER_CODE = "Biller_Code";
+	public static final String PARAM_IBFT_CRITERIA = "IBFT_Criteria";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -90,6 +92,7 @@ public final class ReportConstants {
 	public static final String BRANCH_NAME = "BRANCH NAME";
 	public static final String BRANCH = "BRANCH";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String LOCATION = "LOCATION";
 	public static final String CHANNEL = "CHANNEL";
 	public static final String CARD_PRODUCT = "CARD PRODUCT";
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
@@ -114,6 +117,8 @@ public final class ReportConstants {
 	public static final String SUB_TOTAL = "SUB-TOTAL";
 	public static final String OVERALL_TOTAL = "OVER-ALL TOTAL";
 	public static final String BP_BILLER_CODE = "BILLER CODE";
+	public static final String BP_BILLER_MNEM = "BILLER MNEM";
+	public static final String BP_BILLER_NAME = "BILLER NAME";
 	public static final String BANK_CODE = "BANK CODE";
 	public static final String BANK_NAME = "BANK NAME";
 	public static final String AMOUNT = "AMOUNT";
@@ -126,10 +131,13 @@ public final class ReportConstants {
 	public static final String NET_SETTLEMENT = "NET SETTLEMENT";
 	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
 	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
+	public static final String SUBSCRIBER_ACCT_NUMBER = "SUBSCRIBER ACCT NUMBER";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data
+	public static final String CUSTOM_DATA = "CUSTOM DATA";
 	public static final String BILLER_CODE = "BILLERCODE";
+	public static final String BILLER_SUBN = "BILLERSUBN";
 
 	// Result Code Description
 	public static final String APPROVED = "Approved";

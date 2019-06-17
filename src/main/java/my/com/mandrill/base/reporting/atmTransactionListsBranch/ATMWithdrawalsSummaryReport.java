@@ -38,7 +38,6 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 	private int success = 0;
 	private int pagination = 0;
 
-	@SuppressWarnings("resource")
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In ATMWithdrawalsSummaryReport.processPdfRecord()");
@@ -61,6 +60,7 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String location = null;
 
 			preProcessing(rgm);
 
@@ -73,19 +73,24 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 
-			for (SortedMap.Entry<String, Map<String, Set<String>>> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
+					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Set<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					contentStream.showText(branchCode + "           " + branchName);
 					pageHeight += 1;
 					contentStream.newLineAtOffset(0, -leading);
-					for (String terminalMap : branchNameMap.getValue()) {
-						terminal = terminalMap;
-						preProcessing(rgm, branchCode, branchName, terminal);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize);
-						pageHeight += 1;
+					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						for (String locationMap : terminalMap.getValue()) {
+							location = locationMap;
+							preProcessing(rgm, branchCode, terminal);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize, location);
+							pageHeight += 1;
+						}
 					}
 					executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
 							fontSize, false);
@@ -94,8 +99,7 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 					pageHeight += 1;
 				}
 			}
-			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", ""));
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize, true);
 			contentStream.endText();
 			contentStream.close();
@@ -141,16 +145,17 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 		}
 	}
 
-	private SortedMap<String, Map<String, Set<String>>> filterByCriteria(ReportGenerationMgr rgm) {
+	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
 		logger.debug("In ATMWithdrawalsSummaryReport.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -182,23 +187,37 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
-						Set<String> terminalList = new HashSet<>();
-						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
+						Map<String, Set<String>> terminalMap = new HashMap<>();
+						Set<String> locationList = new HashSet<>();
+						locationList.add(location);
+						terminalMap.put(terminal, locationList);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
+						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Set<String>> terminalMap = new HashMap<>();
+							Set<String> locationList = new HashSet<>();
+							locationList.add(location);
+							terminalMap.put(terminal, locationList);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
+							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Set<String> locationList = new HashSet<>();
+								locationList.add(location);
+								terminalMap.put(terminal, locationList);
+							} else {
+								Set<String> locationList = terminalMap.get(terminal);
+								locationList.add(location);
+							}
 						}
 					}
 				}
@@ -258,19 +277,14 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMWithdrawalsSummaryReport.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
@@ -358,7 +372,7 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
+			PDPageContentStream contentStream, float leading, String location)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
@@ -374,8 +388,8 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 			} else {
 				if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-						contentStream.showText(String.format("%1$4s", "") + String
-								.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(String.format("%1$4s", "")
+								+ String.format("%1$-" + field.getPdfLength() + "s", location));
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {
@@ -391,7 +405,7 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
+			PDFont pdfFont, float fontSize, String location) {
 		logger.debug("In ATMWithdrawalsSummaryReport.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -446,7 +460,7 @@ public class ATMWithdrawalsSummaryReport extends GeneralReportProcess {
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, location);
 					success++;
 					pageHeight++;
 				}

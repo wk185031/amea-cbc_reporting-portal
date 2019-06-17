@@ -70,8 +70,7 @@ public class AtmWithdrawalIssuerBankSummary extends GeneralReportProcess {
 			pageHeight += 1;
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 1;
-			contentStream
-					.showText("                                                        " + "*** END OF REPORT ***");
+			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
 
 			contentStream.endText();
 			contentStream.close();
@@ -162,7 +161,6 @@ public class AtmWithdrawalIssuerBankSummary extends GeneralReportProcess {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
-			pagination++;
 			writeHeader(rgm);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
@@ -573,7 +571,10 @@ public class AtmWithdrawalIssuerBankSummary extends GeneralReportProcess {
 						line.append(getEol());
 					}
 				} else {
-					if (getFieldValue(field, fieldsMap, true) == null) {
+					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
+						line.append(field.getDelimiter());
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
 						line.append(field.getDelimiter());
 					} else {
@@ -622,6 +623,9 @@ public class AtmWithdrawalIssuerBankSummary extends GeneralReportProcess {
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
 					contentStream.showText(
 							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
 				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {

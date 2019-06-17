@@ -83,13 +83,14 @@ public class AtmWithdrawalIssuerBank extends GeneralReportProcess {
 						.append(bankName).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
+				preProcessing(rgm, bankCode);
 				writeBodyHeader(rgm);
 				executeBodyQuery(rgm);
 				breakLine.append(getEol());
 				rgm.writeLine(breakLine.toString().getBytes());
-				rgm.fileOutputStream.flush();
-				rgm.fileOutputStream.close();
 			}
+			rgm.fileOutputStream.flush();
+			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
@@ -167,6 +168,11 @@ public class AtmWithdrawalIssuerBank extends GeneralReportProcess {
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setTmpBodyQuery(rgm.getBodyQuery());
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+		}
+
 		if (rgm.isGenerate() == true) {
 			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
 					.concat(" ").concat(ReportConstants.START_TIME);
@@ -195,6 +201,17 @@ public class AtmWithdrawalIssuerBank extends GeneralReportProcess {
 			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		}
 		addPreProcessingFieldsToGlobalMap(rgm);
+	}
+
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
+		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
+					ReportGenerationFields.TYPE_STRING, "NVL(CBA.CBA_CODE, '0000') = '" + filterByBankCode + "'");
+			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
+		}
 	}
 
 	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -278,50 +295,44 @@ public class AtmWithdrawalIssuerBank extends GeneralReportProcess {
 				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 					line.append(
 							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
 					line.append(
 							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.DR_AMOUNT)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.CR_AMOUNT)) {
 				if (!voidCode.equals("0")) {
 					line.append("");
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.VOID_CODE)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
 					line.append(
 							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
 				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				} else if (txnQualifier.equals("R")
 						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(ReportConstants.FULL_REVERSAL);
-					line.append(field.getDelimiter());
 				} else {
 					line.append("");
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (getFieldValue(field, fieldsMap, true) == null) {
 				line.append("");
 				line.append(field.getDelimiter());

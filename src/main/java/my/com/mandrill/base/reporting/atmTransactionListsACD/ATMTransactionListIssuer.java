@@ -259,60 +259,53 @@ public class ATMTransactionListIssuer extends GeneralReportProcess {
 				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
 					line.append(
 							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TRACE_NUMBER)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 					line.append(
 							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)
 					|| field.getFieldName().equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
 					line.append(
 							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (!voidCode.equals("0")) {
 					line.append("");
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.VOID_CODE)) {
 				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
 					line.append(
 							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
 				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				} else if (txnQualifier.equals("R")
 						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(ReportConstants.FULL_REVERSAL);
-					line.append(field.getDelimiter());
 				} else {
 					line.append("");
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 			} else if (getFieldValue(field, fieldsMap, true) == null) {
 				line.append("");
 				line.append(field.getDelimiter());

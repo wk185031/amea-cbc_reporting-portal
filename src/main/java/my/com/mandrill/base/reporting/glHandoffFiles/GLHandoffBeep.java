@@ -407,7 +407,7 @@ public class GLHandoffBeep extends GeneralReportProcess {
 							.replace(' ', '0'));
 				} else {
 					line.append(String.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
-							.replace(' ', '0').replaceAll("null", "0000"));
+							.replace(' ', '0'));
 				}
 			} else if (getGlobalFieldValue(field, true) == null) {
 				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));

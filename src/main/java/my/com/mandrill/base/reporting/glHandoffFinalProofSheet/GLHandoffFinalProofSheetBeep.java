@@ -36,6 +36,7 @@ public class GLHandoffFinalProofSheetBeep extends GeneralReportProcess {
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 	private double total = 0.00;
+	private boolean pdf = false;
 	private String debitBodyQuery = null;
 	private String creditBodyQuery = null;
 	private String criteriaQuery = null;
@@ -70,6 +71,7 @@ public class GLHandoffFinalProofSheetBeep extends GeneralReportProcess {
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
+		pdf = true;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
@@ -201,6 +203,10 @@ public class GLHandoffFinalProofSheetBeep extends GeneralReportProcess {
 		try {
 			String glDescription = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
+			if (!pdf) {
+				separateQuery(rgm);
+				preProcessing(rgm);
+			}
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();

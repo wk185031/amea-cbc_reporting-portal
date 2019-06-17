@@ -33,6 +33,7 @@ public class ATMTransactionListSummary extends GeneralReportProcess {
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int success = 0;
 	private int pagination = 0;
+	private boolean pdf = false;
 	private String onUsBodyQuery = null;
 	private String issBodyQuery = null;
 	private String onUsTrailerQuery = null;
@@ -76,6 +77,7 @@ public class ATMTransactionListSummary extends GeneralReportProcess {
 		PDDocument doc = null;
 		String txnDate = null;
 		pagination = 1;
+		pdf = true;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
@@ -226,6 +228,9 @@ public class ATMTransactionListSummary extends GeneralReportProcess {
 		try {
 			pagination++;
 			rgm.fileOutputStream = new FileOutputStream(file);
+			if (!pdf) {
+				separateQuery(rgm);
+			}
 			preProcessing(rgm);
 			writeHeader(rgm, pagination);
 

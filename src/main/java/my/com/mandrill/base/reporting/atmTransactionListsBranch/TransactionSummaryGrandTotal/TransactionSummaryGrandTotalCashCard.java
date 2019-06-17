@@ -58,6 +58,7 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String location = null;
 			String cardProduct = null;
 
 			preProcessing(rgm);
@@ -66,34 +67,39 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> branchCodeMap : filterByCriteria(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal, cardProduct);
+					preProcessing(rgm, branchCode, terminal, cardProduct);
 					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
 					pageHeight += 4;
-					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
+							.entrySet()) {
 						terminal = terminalMap.getKey();
-						cardProduct = terminalMap.getValue();
-						contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + branchName);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						contentStream.showText(ReportConstants.CARD_PRODUCT + " : " + cardProduct);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
-						preProcessing(rgm, branchCode, branchName, terminal, cardProduct);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize);
-						pageHeight += 1;
-						executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
-								fontSize);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						pageHeight += 1;
+						for (SortedMap.Entry<String, String> locationMap : terminalMap.getValue().entrySet()) {
+							location = locationMap.getKey();
+							cardProduct = locationMap.getValue();
+							contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + location);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							contentStream.showText(ReportConstants.CARD_PRODUCT + " : " + cardProduct);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							preProcessing(rgm, branchCode, terminal, cardProduct);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize);
+							pageHeight += 1;
+							executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
+									fontSize);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+						}
 					}
 				}
 			}
@@ -141,17 +147,18 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 		}
 	}
 
-	private SortedMap<String, Map<String, Map<String, String>>> filterByCriteria(ReportGenerationMgr rgm) {
+	private SortedMap<String, Map<String, Map<String, Map<String, String>>>> filterByCriteria(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalCashCard.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		String cardProduct = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Map<String, String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -183,26 +190,40 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 							if (key.equalsIgnoreCase(ReportConstants.CARD_PRODUCT)) {
 								cardProduct = result.toString();
 							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, String>> tmpCriteriaMap = new HashMap<>();
-						Map<String, String> terminalList = new HashMap<>();
-						terminalList.put(terminal, cardProduct);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						Map<String, Map<String, Map<String, String>>> branchNameMap = new HashMap<>();
+						Map<String, Map<String, String>> terminalMap = new HashMap<>();
+						Map<String, String> locationMap = new HashMap<>();
+						locationMap.put(location, cardProduct);
+						terminalMap.put(terminal, locationMap);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Map<String, String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Map<String, String> terminalList = new HashMap<>();
-							terminalList.put(terminal, cardProduct);
-							tmpCriteriaMap.put(branchName, terminalList);
+						Map<String, Map<String, Map<String, String>>> branchNameMap = criteriaMap.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Map<String, String>> terminalMap = new HashMap<>();
+							Map<String, String> locationMap = new HashMap<>();
+							locationMap.put(location, cardProduct);
+							terminalMap.put(terminal, locationMap);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Map<String, String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.put(terminal, cardProduct);
+							Map<String, Map<String, String>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Map<String, String> locationMap = new HashMap<>();
+								locationMap.put(location, cardProduct);
+								terminalMap.put(terminal, locationMap);
+							} else {
+								Map<String, String> locationList = terminalMap.get(terminal);
+								locationList.put(location, cardProduct);
+							}
 						}
 					}
 				}
@@ -228,7 +249,6 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CARD_PRODUCT + "}", ""));
 		}
@@ -263,20 +283,14 @@ public class TransactionSummaryGrandTotalCashCard extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal, String filterByCardProduct)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,
+			String filterByCardProduct) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalCashCard.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {

@@ -8,12 +8,11 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -63,6 +62,7 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 			String branchCode = null;
 			String branchName = null;
 			String terminal = null;
+			String location = null;
 			String channel = null;
 
 			preProcessing(rgm);
@@ -71,32 +71,36 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, TreeSet<String>>>>> branchCodeMap : filterByCriteria(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
+				for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchNameMap : branchCodeMap
+						.getValue().entrySet()) {
 					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, branchName, terminal, channel);
+					preProcessing(rgm, branchCode, terminal, channel);
 					writePdfHeader(rgm, contentStream, leading, pagination);
 					pageHeight += 4;
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, Map<String, TreeSet<String>>> terminalMap : branchNameMap.getValue()
+							.entrySet()) {
 						terminal = terminalMap.getKey();
-						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
-						contentStream.newLineAtOffset(0, -leading);
-						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + branchName);
-						pageHeight += 2;
-						contentStream.newLineAtOffset(0, -leading);
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
-						for (String channelMap : terminalMap.getValue()) {
-							channel = channelMap;
-							preProcessing(rgm, branchCode, branchName, terminal, channel);
-							contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
+						for (SortedMap.Entry<String, TreeSet<String>> locationMap : terminalMap.getValue().entrySet()) {
+							location = locationMap.getKey();
+							contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
+							contentStream.newLineAtOffset(0, -leading);
+							contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
+							pageHeight += 2;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							for (String channelList : locationMap.getValue()) {
+								channel = channelList;
+								preProcessing(rgm, branchCode, terminal, channel);
+								contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX,
+										startY, pdfFont, fontSize);
+							}
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
 						}
-						contentStream.newLineAtOffset(0, -leading);
-						pageHeight += 1;
 					}
 				}
 			}
@@ -229,17 +233,19 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 		return contentStream;
 	}
 
-	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
+	private SortedMap<String, Map<String, Map<String, Map<String, TreeSet<String>>>>> filterByCriteria(
+			ReportGenerationMgr rgm) {
 		logger.debug("In ListOfATMWithdrawalsReport.filterByCriteria()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
+		String location = null;
 		String channel = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, Map<String, Map<String, TreeSet<String>>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -271,36 +277,53 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
 							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
 								channel = result.toString();
 							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Set<String>>> tmpCriteriaMap = new HashMap<>();
-						Map<String, Set<String>> terminalList = new HashMap<>();
-						Set<String> channelList = new HashSet<>();
+						Map<String, Map<String, Map<String, TreeSet<String>>>> branchNameMap = new HashMap<>();
+						Map<String, Map<String, TreeSet<String>>> terminalMap = new HashMap<>();
+						Map<String, TreeSet<String>> locationMap = new HashMap<>();
+						TreeSet<String> channelList = new TreeSet<>();
 						channelList.add(channel);
-						terminalList.put(terminal, channelList);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						locationMap.put(location, channelList);
+						terminalMap.put(terminal, locationMap);
+						branchNameMap.put(branchName, terminalMap);
+						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Map<String, Set<String>>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Map<String, Set<String>> terminalList = new HashMap<>();
-							Set<String> channelList = new HashSet<>();
+						Map<String, Map<String, Map<String, TreeSet<String>>>> branchNameMap = criteriaMap
+								.get(branchCode);
+						if (branchNameMap.get(branchName) == null) {
+							Map<String, Map<String, TreeSet<String>>> terminalMap = new HashMap<>();
+							Map<String, TreeSet<String>> locationMap = new HashMap<>();
+							TreeSet<String> channelList = new TreeSet<>();
 							channelList.add(channel);
-							terminalList.put(terminal, channelList);
-							tmpCriteriaMap.put(branchName, terminalList);
+							locationMap.put(location, channelList);
+							terminalMap.put(terminal, locationMap);
+							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Map<String, Set<String>> terminalList = tmpCriteriaMap.get(branchName);
-							if (terminalList.get(terminal) == null) {
-								Set<String> channelList = new HashSet<>();
+							Map<String, Map<String, TreeSet<String>>> terminalMap = branchNameMap.get(branchName);
+							if (terminalMap.get(terminal) == null) {
+								Map<String, TreeSet<String>> locationMap = new HashMap<>();
+								TreeSet<String> channelList = new TreeSet<>();
 								channelList.add(channel);
-								terminalList.put(terminal, channelList);
+								locationMap.put(location, channelList);
+								terminalMap.put(terminal, locationMap);
 							} else {
-								Set<String> channelList = terminalList.get(terminal);
-								channelList.add(channel);
+								Map<String, TreeSet<String>> locationMap = terminalMap.get(terminal);
+								if (locationMap.get(location) == null) {
+									TreeSet<String> channelList = new TreeSet<>();
+									channelList.add(channel);
+									locationMap.put(location, channelList);
+								} else {
+									TreeSet<String> channelList = locationMap.get(location);
+									channelList.add(channel);
+								}
 							}
 						}
 					}
@@ -327,7 +350,6 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
@@ -362,20 +384,14 @@ public class ListOfATMWithdrawalsReport extends GeneralReportProcess {
 		addPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName,
-			String filterByTerminal, String filterByChannel)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,
+			String filterByChannel) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ListOfATMWithdrawalsReport.preProcessing()");
-		if (filterByBranchCode != null && filterByBranchName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_NAME) = '" + filterByBranchName + "'");
-
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {

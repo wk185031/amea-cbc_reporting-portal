@@ -166,13 +166,13 @@ public class GeneralReportProcess implements IReportProcessor {
 	}
 
 	protected String getGlobalFieldValue(ReportGenerationFields fieldConfig, boolean fixedLength) {
-		String fieldValue = null;
+		String fieldValue = "";
 		if (fieldConfig.getDefaultValue() != null && !fieldConfig.getDefaultValue().equalsIgnoreCase("")) {
 			fieldValue = fieldConfig.getDefaultValue();
 		} else if (globalFileFieldsMap.containsKey(fieldConfig.getFieldName())) {
 			fieldValue = globalFileFieldsMap.get(fieldConfig.getFieldName()).getValue();
 		} else {
-			return null;
+			return "";
 		}
 		fieldConfig.setValue(fieldValue);
 
@@ -186,7 +186,7 @@ public class GeneralReportProcess implements IReportProcessor {
 
 	protected String getFieldValue(ReportGenerationFields fieldConfig,
 			HashMap<String, ReportGenerationFields> fieldsMap, boolean fixedLength) {
-		String fieldValue = null;
+		String fieldValue = "";
 		if (fieldConfig.getDefaultValue() != null && !fieldConfig.getDefaultValue().equalsIgnoreCase("")) {
 			fieldValue = fieldConfig.getDefaultValue();
 		} else if (fieldsMap.containsKey(fieldConfig.getFieldName())) {
@@ -194,7 +194,7 @@ public class GeneralReportProcess implements IReportProcessor {
 		} else if (globalFileFieldsMap.containsKey(fieldConfig.getFieldName())) {
 			fieldValue = globalFileFieldsMap.get(fieldConfig.getFieldName()).getValue();
 		} else {
-			return null;
+			return "";
 		}
 		fieldConfig.setValue(fieldValue);
 
