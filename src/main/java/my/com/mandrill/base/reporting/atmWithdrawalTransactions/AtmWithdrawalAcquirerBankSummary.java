@@ -6,15 +6,12 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -26,83 +23,25 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import my.com.mandrill.base.reporting.GeneralReportProcess;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
-public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
+public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(AtmWithdrawalAcquirerBankSummary.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
-	private int success = 0;
 	private int pagination = 0;
 	private boolean branchDetails = false;
 	private boolean bankDetails = false;
-	private boolean pdf = false;
-	private String branchDetailBodyQuery = null;
-	private String branchBodyQuery = null;
-	private String bankBodyQuery = null;
-	private String branchTrailerQuery = null;
-	private String bankTrailerQuery = null;
-	private String criteriaQuery = null;
-
-	public String getBranchDetailBodyQuery() {
-		return branchDetailBodyQuery;
-	}
-
-	public void setBranchDetailBodyQuery(String branchBodyQuery) {
-		this.branchDetailBodyQuery = branchBodyQuery;
-	}
-
-	public String getBranchBodyQuery() {
-		return branchBodyQuery;
-	}
-
-	public void setBranchBodyQuery(String branchBodyQuery) {
-		this.branchBodyQuery = branchBodyQuery;
-	}
-
-	public String getBankBodyQuery() {
-		return bankBodyQuery;
-	}
-
-	public void setBankBodyQuery(String bankBodyQuery) {
-		this.bankBodyQuery = bankBodyQuery;
-	}
-
-	public String getBranchTrailerQuery() {
-		return branchTrailerQuery;
-	}
-
-	public void setBranchTrailerQuery(String branchTrailerQuery) {
-		this.branchTrailerQuery = branchTrailerQuery;
-	}
-
-	public String getBankTrailerQuery() {
-		return bankTrailerQuery;
-	}
-
-	public void setBankTrailerQuery(String bankTrailerQuery) {
-		this.bankTrailerQuery = bankTrailerQuery;
-	}
-
-	public String getCriteriaQuery() {
-		return criteriaQuery;
-	}
-
-	public void setCriteriaQuery(String criteriaQuery) {
-		this.criteriaQuery = criteriaQuery;
-	}
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.processPdfRecord()");
 		PDDocument doc = null;
-		String txnDate = null;
 		pagination = 1;
-		pdf = true;
 		try {
 			doc = new PDDocument();
 			PDPage page = new PDPage();
@@ -134,6 +73,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			writeBranchPdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 
+			rgm.setBodyQuery(getCriteriaQuery());
 			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
 					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
@@ -194,40 +134,14 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			pageHeight += 1;
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 1;
-			contentStream
-					.showText("                                                        " + "*** END OF REPORT ***");
-
+			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
 			contentStream.endText();
 			contentStream.close();
 
-			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String fileLocation = rgm.getFileLocation();
-
-			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
-			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
-			}
-
-			if (rgm.errors == 0) {
-				if (fileLocation != null) {
-					File directory = new File(fileLocation);
-					if (!directory.exists()) {
-						directory.mkdirs();
-					}
-					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.PDF_FORMAT));
-				} else {
-					throw new Exception("Path: " + fileLocation + " not configured.");
-				}
-			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.PDF_FORMAT);
-			}
+			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
-					e);
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -242,61 +156,23 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 	}
 
 	@Override
-	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.processCsvTxtRecord()");
-		File file = null;
-		String txnDate = null;
-		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-
-		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
-			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
-			}
-
-			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_CSV)) {
-				if (rgm.errors == 0) {
-					if (fileLocation != null) {
-						File directory = new File(fileLocation);
-						if (!directory.exists()) {
-							directory.mkdirs();
-						}
-						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-								+ ReportConstants.CSV_FORMAT);
-						pagination = 1;
-						execute(rgm, file);
-					} else {
-						throw new Exception("Path: " + fileLocation + " not configured.");
-					}
-				} else {
-					throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.CSV_FORMAT);
-				}
-			}
-		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.CSV_FORMAT,
-					e);
-		}
-	}
-
-	private void execute(ReportGenerationMgr rgm, File file) {
+	protected void execute(ReportGenerationMgr rgm, File file) {
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
 		String location = null;
-		StringBuilder branchLine = new StringBuilder();
-		StringBuilder bankLine = new StringBuilder();
+		StringBuilder line = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			if (!pdf) {
-				separateQuery(rgm);
-			}
+			pagination = 1;
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
+			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
+			separateQuery(rgm);
 			preProcessing(rgm);
 			bankDetails = false;
-			writeHeader(rgm);
+			writeHeader(rgm, pagination);
 			writeBranchBodyHeader(rgm);
+			rgm.setBodyQuery(getCriteriaQuery());
 			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
 					.entrySet()) {
 				branchCode = branchCodeMap.getKey();
@@ -321,31 +197,32 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			}
 			rgm.setTrailerQuery(getBranchTrailerQuery());
 			executeTrailerQuery(rgm, bankDetails);
-			branchLine.append("*** END OF REPORT ***");
-			branchLine.append(getEol());
-			branchLine.append(getEol());
-			rgm.writeLine(branchLine.toString().getBytes());
+			line.append("*** END OF REPORT ***");
+			line.append(getEol());
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 
 			bankDetails = true;
-			bankLine.append(getEol());
+			line = new StringBuilder();
+			line.append(getEol());
 			pagination++;
-			writeHeader(rgm);
+			writeHeader(rgm, pagination);
 			writeBankBodyHeader(rgm);
 			rgm.setBodyQuery(getBankBodyQuery());
 			executeBodyQuery(rgm, bankDetails, branchName, location);
 			rgm.setTrailerQuery(getBankTrailerQuery());
 			executeTrailerQuery(rgm, bankDetails);
-			bankLine.append("*** END OF REPORT ***");
-			bankLine.append(getEol());
-			bankLine.append(getEol());
-			rgm.writeLine(bankLine.toString().getBytes());
+			line.append("*** END OF REPORT ***");
+			line.append(getEol());
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
-			logger.error("Error in generating CSV/TXT file", e);
+			logger.error("Error in generating CSV file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -357,99 +234,6 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
-	}
-
-	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalnterEntity.filterByCriteria()");
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
-		String location = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
-		rgm.setBodyQuery(getCriteriaQuery());
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								branchCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-								branchName = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
-								terminal = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
-								location = result.toString();
-							}
-						}
-					}
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
-						Map<String, Set<String>> terminalMap = new HashMap<>();
-						Set<String> locationList = new HashSet<>();
-						locationList.add(location);
-						terminalMap.put(terminal, locationList);
-						branchNameMap.put(branchName, terminalMap);
-						criteriaMap.put(branchCode, branchNameMap);
-					} else {
-						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
-						if (branchNameMap.get(branchName) == null) {
-							Map<String, Set<String>> terminalMap = new HashMap<>();
-							Set<String> locationList = new HashSet<>();
-							locationList.add(location);
-							terminalMap.put(terminal, locationList);
-							branchNameMap.put(branchName, terminalMap);
-						} else {
-							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
-							if (terminalMap.get(terminal) == null) {
-								Set<String> locationList = new HashSet<>();
-								locationList.add(location);
-								terminalMap.put(terminal, locationList);
-							} else {
-								Set<String> locationList = terminalMap.get(terminal);
-								locationList.add(location);
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return criteriaMap;
 	}
 
 	private void separateQuery(ReportGenerationMgr rgm) {
@@ -472,6 +256,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					.replace("\"BRANCH NAME\" ASC,", "\"BRANCH NAME\" ASC"));
 			setCriteriaQuery(getBranchBodyQuery());
 		}
+
 		if (rgm.getTrailerQuery() != null) {
 			setBranchTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
@@ -490,35 +275,7 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
-
-		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
-		addPreProcessingFieldsToGlobalMap(rgm);
+		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
@@ -534,93 +291,6 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
-		}
-	}
-
-	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.addPreProcessingFieldsToGlobalMap()");
-		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-
-		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
-		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-
-		if (rgm.isGenerate() == true) {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		}
-	}
-
-	private void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.writeHeader()");
-		addPreProcessingFieldsToGlobalMap(rgm);
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					line.append(pagination);
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				}
-			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-					line.append(field.getDelimiter());
-				}
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
-			int pagination) throws IOException, JSONException {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.writePdfHeader()");
-		addPreProcessingFieldsToGlobalMap(rgm);
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					contentStream.showText(String.valueOf(pagination));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
-			}
 		}
 	}
 
@@ -692,12 +362,11 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				if (field.isEol()) {
 					if (getGlobalFieldValue(field, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream
 								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (getGlobalFieldValue(field, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -728,12 +397,11 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				if (field.isEol()) {
 					if (getGlobalFieldValue(field, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream
 								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (getGlobalFieldValue(field, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -767,17 +435,14 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(branchName);
-							line.append(field.getDelimiter());
 						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-							line.append(field.getDelimiter());
 						} else if (getFieldValue(field, fieldsMap, true) == null) {
 							line.append("");
-							line.append(field.getDelimiter());
 						} else {
 							line.append(getFieldValue(field, fieldsMap, true));
-							line.append(field.getDelimiter());
 						}
+						line.append(field.getDelimiter());
 					} else {
 						line.append("");
 						line.append(field.getDelimiter());
@@ -787,17 +452,14 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(location);
-							line.append(field.getDelimiter());
 						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-							line.append(field.getDelimiter());
 						} else if (getFieldValue(field, fieldsMap, true) == null) {
 							line.append("");
-							line.append(field.getDelimiter());
 						} else {
 							line.append(getFieldValue(field, fieldsMap, true));
-							line.append(field.getDelimiter());
 						}
+						line.append(field.getDelimiter());
 					} else {
 						line.append("");
 						line.append(field.getDelimiter());
@@ -822,17 +484,14 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 			case 27:
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
 					line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					line.append(field.getDelimiter());
 				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					line.append(field.getDelimiter());
 				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					line.append("");
-					line.append(field.getDelimiter());
 				} else {
 					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
 				}
+				line.append(field.getDelimiter());
 				break;
 			default:
 				break;
@@ -857,12 +516,11 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				if (field.isEol()) {
 					if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (branchDetails) {
 						if (!field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)
@@ -925,15 +583,13 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true) + " DR"));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_CODE)
 							|| field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_NAME)) {
@@ -1084,7 +740,6 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 						writeBranchPdfBody(rgm, lineFieldsMap, contentStream, leading, branchDetails, branchName,
 								location);
 					}
-					success++;
 					pageHeight++;
 				}
 			} catch (Exception e) {
@@ -1130,34 +785,27 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				if (field.isEol()) {
 					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						line.append(field.getDelimiter());
-						line.append(getEol());
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
-						line.append(field.getDelimiter());
-						line.append(getEol());
 					} else {
 						line.append(getFieldValue(field, fieldsMap, true));
-						line.append(field.getDelimiter());
-						line.append(getEol());
 					}
+					line.append(field.getDelimiter());
+					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 						total = getFieldValue(field, fieldsMap, true);
 					}
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						line.append(total);
-						line.append(field.getDelimiter());
 					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						line.append(field.getDelimiter());
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
-						line.append(field.getDelimiter());
 					} else {
 						line.append(getFieldValue(field, fieldsMap, true));
-						line.append(field.getDelimiter());
 					}
+					line.append(field.getDelimiter());
 				}
 				break;
 			}
@@ -1183,8 +831,6 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 						line.append(field.getDelimiter());
 					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						line.append(field.getDelimiter());
-						line.append(getEol());
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
 						line.append(field.getDelimiter());
@@ -1197,14 +843,12 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 				} else {
 					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						line.append(field.getDelimiter());
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						line.append("");
-						line.append(field.getDelimiter());
 					} else {
 						line.append(getFieldValue(field, fieldsMap, true));
-						line.append(field.getDelimiter());
 					}
+					line.append(field.getDelimiter());
 				}
 				break;
 			default:
@@ -1237,19 +881,16 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (field.getFieldName().contains(ReportConstants.LINE)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
 								getFieldValue(field, fieldsMap, true).charAt(0)));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 						total = getFieldValue(field, fieldsMap, true);
@@ -1296,23 +937,19 @@ public class AtmWithdrawalAcquirerBankSummary extends GeneralReportProcess {
 					if (field.getFieldName().contains(ReportConstants.LINE)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
 								getFieldValue(field, fieldsMap, true).charAt(0)));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true) + " DR"));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-						contentStream.newLineAtOffset(0, -leading);
 					} else if (getFieldValue(field, fieldsMap, true) == null) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
-						contentStream.newLineAtOffset(0, -leading);
 					}
+					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().contains(ReportConstants.LINE)) {
 						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',

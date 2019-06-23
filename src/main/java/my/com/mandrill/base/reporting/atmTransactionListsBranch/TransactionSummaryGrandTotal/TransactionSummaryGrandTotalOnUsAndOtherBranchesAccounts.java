@@ -1,19 +1,15 @@
 package my.com.mandrill.base.reporting.atmTransactionListsBranch.transactionSummaryGrandTotal;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -25,25 +21,23 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import my.com.mandrill.base.reporting.GeneralReportProcess;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
-public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends GeneralReportProcess {
+public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory
 			.getLogger(TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
-	private int success = 0;
 	private int pagination = 0;
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.processPdfRecord()");
 		PDDocument doc = null;
-		String txnDate = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -103,34 +97,10 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 			contentStream.endText();
 			contentStream.close();
 
-			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String fileLocation = rgm.getFileLocation();
-
-			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
-			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
-			}
-
-			if (rgm.errors == 0) {
-				if (fileLocation != null) {
-					File directory = new File(fileLocation);
-					if (!directory.exists()) {
-						directory.mkdirs();
-					}
-					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.PDF_FORMAT));
-				} else {
-					throw new Exception("Path: " + fileLocation + " not configured.");
-				}
-			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.PDF_FORMAT);
-			}
+			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
-					e);
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -144,98 +114,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 		}
 	}
 
-	private SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.filterByCriteria()");
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
-		String location = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								branchCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-								branchName = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
-								terminal = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
-								location = result.toString();
-							}
-						}
-					}
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
-						Map<String, Set<String>> terminalMap = new HashMap<>();
-						Set<String> locationList = new HashSet<>();
-						locationList.add(location);
-						terminalMap.put(terminal, locationList);
-						branchNameMap.put(branchName, terminalMap);
-						criteriaMap.put(branchCode, branchNameMap);
-					} else {
-						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
-						if (branchNameMap.get(branchName) == null) {
-							Map<String, Set<String>> terminalMap = new HashMap<>();
-							Set<String> locationList = new HashSet<>();
-							locationList.add(location);
-							terminalMap.put(terminal, locationList);
-							branchNameMap.put(branchName, terminalMap);
-						} else {
-							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
-							if (terminalMap.get(terminal) == null) {
-								Set<String> locationList = new HashSet<>();
-								locationList.add(location);
-								terminalMap.put(terminal, locationList);
-							} else {
-								Set<String> locationList = terminalMap.get(terminal);
-								locationList.add(location);
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return criteriaMap;
-	}
-
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.preProcessing()");
@@ -244,35 +122,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
-
-		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
-		addPreProcessingFieldsToGlobalMap(rgm);
+		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
@@ -293,64 +143,8 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 		}
 	}
 
-	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.addPreProcessingFieldsToGlobalMap()");
-		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-
-		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
-		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-
-		if (rgm.isGenerate() == true) {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		}
-	}
-
-	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
-			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.writePdfHeader()");
-		addPreProcessingFieldsToGlobalMap(rgm);
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					contentStream.showText(String.valueOf(pagination));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchCode));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
-			}
-		}
-	}
-
-	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
+	@Override
+	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
@@ -371,34 +165,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
 					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
-			}
-		}
-	}
-
-	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
 				}
 			}
 		}
@@ -462,7 +228,6 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 						}
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					success++;
 					pageHeight++;
 				}
 			} catch (Exception e) {
@@ -479,96 +244,5 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Ge
 			}
 		}
 		return contentStream;
-	}
-
-	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.writePdfTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
-			}
-		}
-	}
-
-	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
-			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
-		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.executePdfTrailerQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getTrailerQuery(rgm);
-		logger.info("Query for trailer line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the trailer query ", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
 	}
 }

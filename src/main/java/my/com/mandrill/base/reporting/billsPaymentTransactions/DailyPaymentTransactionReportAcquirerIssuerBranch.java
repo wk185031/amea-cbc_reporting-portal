@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,37 +25,17 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import my.com.mandrill.base.reporting.GeneralReportProcess;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
-public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralReportProcess {
+public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(DailyPaymentTransactionReportAcquirerIssuerBranch.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
-	private int success = 0;
 	private int pagination = 0;
-	private boolean pdf = false;
-	private String criteriaQuery = null;
-	private String tmpTrailerQuery = null;
-
-	public String getCriteriaQuery() {
-		return criteriaQuery;
-	}
-
-	public void setCriteriaQuery(String criteriaQuery) {
-		this.criteriaQuery = criteriaQuery;
-	}
-
-	public String getTmpTrailerQuery() {
-		return tmpTrailerQuery;
-	}
-
-	public void setTmpTrailerQuery(String tmpTrailerQuery) {
-		this.tmpTrailerQuery = tmpTrailerQuery;
-	}
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
@@ -72,9 +51,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		float width = 0.0f;
 		float startX = 0.0f;
 		float startY = 0.0f;
-		String txnDate = null;
 		pagination = 0;
-		pdf = true;
 		try {
 			doc = new PDDocument();
 			String branchCode = null;
@@ -83,7 +60,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 			separateQuery(rgm);
 			preProcessing(rgm);
 
-			for (SortedMap.Entry<String, String> branchCodeMap : filterByCriteria(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> branchCodeMap : filterByCriteriaByBranch(rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
 				branchName = branchCodeMap.getValue();
 				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
@@ -105,67 +82,19 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 				pageHeight += 2;
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 1;
-				preProcessing(rgm, branchCode, false);
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize, false);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 1;
-				contentStream.showText("BRANCH AS ACQUIRER/ISSUER");
-				contentStream.newLineAtOffset(0, -leading);
-				contentStream.showText("FOR THIS BRANCH");
-				contentStream.newLineAtOffset(0, -leading);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 3;
-				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 1;
+				pdfAcqIssDetails(rgm, branchCode, false, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize);
+				pdfIssFromOtherBankDetails(rgm, branchCode, true, doc, page, contentStream, pageSize, leading, startX,
+						startY, pdfFont, fontSize);
 
-				preProcessing(rgm, branchCode, true);
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize, true);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 1;
-				contentStream.showText("BRANCH AS ISSUER");
-				contentStream.newLineAtOffset(0, -leading);
-				contentStream.showText("FROM OTHER BANKS");
-				contentStream.newLineAtOffset(0, -leading);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 3;
-				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 1;
 				contentStream.endText();
 				contentStream.close();
 			}
 
-			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-			String fileLocation = rgm.getFileLocation();
-
-			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
-			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
-			}
-
-			if (rgm.errors == 0) {
-				if (fileLocation != null) {
-					File directory = new File(fileLocation);
-					if (!directory.exists()) {
-						directory.mkdirs();
-					}
-					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.PDF_FORMAT));
-				} else {
-					throw new Exception("Path: " + fileLocation + " not configured.");
-				}
-			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.PDF_FORMAT);
-			}
+			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT,
-					e);
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -179,95 +108,83 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	@Override
-	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.processCsvTxtRecord()");
-		File file = null;
-		String txnDate = null;
-		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-
+	private void pdfAcqIssDetails(ReportGenerationMgr rgm, String branchCode, boolean indicator, PDDocument doc,
+			PDPage page, PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX,
+			float startY, PDFont pdfFont, float fontSize) {
+		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.pdfAcqIssDetails()");
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
-			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
-			}
-
-			if (rgm.getFileFormat().equalsIgnoreCase(ReportConstants.FILE_CSV)) {
-				if (rgm.errors == 0) {
-					if (fileLocation != null) {
-						File directory = new File(fileLocation);
-						if (!directory.exists()) {
-							directory.mkdirs();
-						}
-						file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-								+ ReportConstants.CSV_FORMAT);
-						pagination = 0;
-						execute(rgm, file);
-					} else {
-						throw new Exception("Path: " + fileLocation + " not configured.");
-					}
-				} else {
-					throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.CSV_FORMAT);
-				}
-			}
-		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.CSV_FORMAT,
-					e);
+			preProcessing(rgm, branchCode, indicator);
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+					pdfFont, fontSize, indicator);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
+			contentStream.showText("BRANCH AS ACQUIRER/ISSUER");
+			contentStream.newLineAtOffset(0, -leading);
+			contentStream.showText("FOR THIS BRANCH");
+			contentStream.newLineAtOffset(0, -leading);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 3;
+			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException e) {
+			rgm.errors++;
+			logger.error("Error in pdfAcqIssDetails", e);
 		}
 	}
 
-	private void execute(ReportGenerationMgr rgm, File file) {
+	private void pdfIssFromOtherBankDetails(ReportGenerationMgr rgm, String branchCode, boolean indicator,
+			PDDocument doc, PDPage page, PDPageContentStream contentStream, PDRectangle pageSize, float leading,
+			float startX, float startY, PDFont pdfFont, float fontSize) {
+		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.pdfIssFromOtherBankDetails()");
+		try {
+			preProcessing(rgm, branchCode, indicator);
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+					pdfFont, fontSize, indicator);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
+			contentStream.showText("BRANCH AS ISSUER");
+			contentStream.newLineAtOffset(0, -leading);
+			contentStream.showText("FROM OTHER BANKS");
+			contentStream.newLineAtOffset(0, -leading);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 3;
+			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException e) {
+			rgm.errors++;
+			logger.error("Error in pdfIssFromOtherBankDetails", e);
+		}
+	}
+
+	@Override
+	protected void execute(ReportGenerationMgr rgm, File file) {
 		String branchCode = null;
 		String branchName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			if (!pdf) {
-				separateQuery(rgm);
-			}
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
+			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
+			separateQuery(rgm);
+
+			pagination = 0;
 			preProcessing(rgm);
-			for (SortedMap.Entry<String, String> branchCodeMap : filterByCriteria(rgm).entrySet()) {
-				StringBuilder acquirerLine = new StringBuilder();
-				StringBuilder issuerLine = new StringBuilder();
-				StringBuilder acqBreakLine = new StringBuilder();
-				StringBuilder issBreakLine = new StringBuilder();
+			for (SortedMap.Entry<String, String> branchCodeMap : filterByCriteriaByBranch(rgm).entrySet()) {
 				pagination++;
 				branchCode = branchCodeMap.getKey();
 				branchName = branchCodeMap.getValue();
 				writeHeader(rgm, pagination, branchCode, branchName);
 				writeBodyHeader(rgm);
-				preProcessing(rgm, branchCode, false);
-				executeBodyQuery(rgm, false);
-				acquirerLine.append(getEol());
-				acquirerLine.append("BRANCH AS ACQUIRER/ISSUER");
-				acquirerLine.append(getEol());
-				acquirerLine.append("FOR THIS BRANCH");
-				acquirerLine.append(getEol());
-				rgm.writeLine(acquirerLine.toString().getBytes());
-				executeTrailerQuery(rgm);
-				acqBreakLine.append(getEol());
-				rgm.writeLine(acqBreakLine.toString().getBytes());
-
-				preProcessing(rgm, branchCode, true);
-				executeBodyQuery(rgm, true);
-				issuerLine.append(getEol());
-				issuerLine.append("BRANCH AS ISSUER");
-				issuerLine.append(getEol());
-				issuerLine.append("FROM OTHER BANKS");
-				issuerLine.append(getEol());
-				rgm.writeLine(issuerLine.toString().getBytes());
-				executeTrailerQuery(rgm);
-				issBreakLine.append(getEol());
-				rgm.writeLine(issBreakLine.toString().getBytes());
+				acqIssDetails(rgm, branchCode, false);
+				issFromOtherBankDetails(rgm, branchCode, true);
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
-			logger.error("Error in generating CSV/TXT file", e);
+			logger.error("Error in generating CSV file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -281,8 +198,52 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	private SortedMap<String, String> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.filterByCriteria()");
+	private void acqIssDetails(ReportGenerationMgr rgm, String branchCode, boolean indicator) {
+		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.acqIssDetails()");
+		StringBuilder line = new StringBuilder();
+		try {
+			preProcessing(rgm, branchCode, indicator);
+			executeBodyQuery(rgm, indicator);
+			line.append(getEol());
+			line.append("BRANCH AS ACQUIRER/ISSUER");
+			line.append(getEol());
+			line.append("FOR THIS BRANCH");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+			executeTrailerQuery(rgm);
+			line = new StringBuilder();
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException e) {
+			rgm.errors++;
+			logger.error("Error in acqIssDetails", e);
+		}
+	}
+
+	private void issFromOtherBankDetails(ReportGenerationMgr rgm, String branchCode, boolean indicator) {
+		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.issFromOtherBankDetails()");
+		StringBuilder line = new StringBuilder();
+		try {
+			preProcessing(rgm, branchCode, indicator);
+			executeBodyQuery(rgm, indicator);
+			line.append(getEol());
+			line.append("BRANCH AS ISSUER");
+			line.append(getEol());
+			line.append("FROM OTHER BANKS");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+			executeTrailerQuery(rgm);
+			line = new StringBuilder();
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException e) {
+			rgm.errors++;
+			logger.error("Error in issFromOtherBankDetails", e);
+		}
+	}
+
+	private SortedMap<String, String> filterByCriteriaByBranch(ReportGenerationMgr rgm) {
+		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.filterByCriteriaByBranch()");
 		String branchCode = null;
 		String branchName = null;
 		ResultSet rs = null;
@@ -344,6 +305,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 			setCriteriaQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 		}
+
 		if (rgm.getTrailerQuery() != null) {
 			setTmpTrailerQuery(rgm.getTrailerQuery());
 		}
@@ -352,34 +314,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.preProcessing()");
-		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
-		addPreProcessingFieldsToGlobalMap(rgm);
+		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, boolean asIssuer)
@@ -408,105 +343,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	private void addPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.addPreProcessingFieldsToGlobalMap()");
-		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-
-		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
-		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-
-		if (rgm.isGenerate() == true) {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		}
-	}
-
-	private void writePdfHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
-			int pagination, String branchCode, String branchName) throws IOException, JSONException {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writePdfHeader()");
-		addPreProcessingFieldsToGlobalMap(rgm);
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					contentStream.showText(String.valueOf(pagination));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchCode));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
-			}
-		}
-	}
-
-	private void writeHeader(ReportGenerationMgr rgm, int pagination, String branchCode, String branchName)
-			throws IOException, JSONException {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writeHeader()");
-		addPreProcessingFieldsToGlobalMap(rgm);
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					line.append(String.valueOf(pagination));
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				}
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					line.append(branchCode);
-					line.append(field.getDelimiter());
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					line.append(branchName);
-					line.append(field.getDelimiter());
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-					line.append(field.getDelimiter());
-				}
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
+	@Override
+	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, JSONException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writePdfBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
@@ -524,7 +362,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	private void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+	@Override
+	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -559,24 +398,22 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.SUBSCRIBER_ACCT_NUMBER)) {
 					if (extractBillerSubn(customData).length() <= 16) {
-						String formatAccNo = String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ',
-								'0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0')));
 					} else {
 						contentStream.showText(
 								String.format("%1$" + field.getPdfLength() + "s", extractBillerSubn(customData)));
 					}
-					contentStream.newLineAtOffset(0, -leading);
 				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
 							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)) {
+				switch (field.getFieldName()) {
+				case ReportConstants.TERMINAL:
 					if (bancnetIndicator && getFieldValue(field, fieldsMap, true).length() == 8) {
 						String terminalId = getFieldValue(field, fieldsMap, true);
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
@@ -585,29 +422,33 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
 					}
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)) {
+					break;
+				case ReportConstants.SEQ_NUMBER:
 					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						String formatStan = String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatStan));
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
+								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
 					}
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+					break;
+				case ReportConstants.ACCOUNT_NUMBER:
 					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						String formatAccNo = String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
+								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								getFieldValue(field, fieldsMap, true)));
 					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					break;
+				default:
+					if (getFieldValue(field, fieldsMap, true) == null) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+					break;
 				}
 			}
 		}
@@ -619,14 +460,16 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.SUBSCRIBER_ACCT_NUMBER)) {
+			switch (field.getFieldName()) {
+			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
 				if (extractBillerSubn(customData).length() <= 16) {
 					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
 				} else {
 					line.append(extractBillerSubn(customData));
 				}
 				line.append(field.getDelimiter());
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)) {
+				break;
+			case ReportConstants.TERMINAL:
 				if (bancnetIndicator && getFieldValue(field, fieldsMap, true).length() == 8) {
 					String terminalId = getFieldValue(field, fieldsMap, true);
 					line.append(terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4));
@@ -634,7 +477,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 					line.append(getFieldValue(field, fieldsMap, true));
 				}
 				line.append(field.getDelimiter());
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.SEQ_NUMBER)) {
+				break;
+			case ReportConstants.SEQ_NUMBER:
 				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
 					line.append(
 							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
@@ -642,7 +486,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 					line.append(getFieldValue(field, fieldsMap, true));
 				}
 				line.append(field.getDelimiter());
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ACCOUNT_NUMBER)) {
+				break;
+			case ReportConstants.ACCOUNT_NUMBER:
 				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
 					line.append(
 							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
@@ -650,12 +495,16 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 					line.append(getFieldValue(field, fieldsMap, true));
 				}
 				line.append(field.getDelimiter());
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
-				line.append(field.getDelimiter());
-			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
-				line.append(field.getDelimiter());
+				break;
+			default:
+				if (getFieldValue(field, fieldsMap, true) == null) {
+					line.append("");
+					line.append(field.getDelimiter());
+				} else {
+					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(field.getDelimiter());
+				}
+				break;
 			}
 		}
 		line.append(getEol());
@@ -724,7 +573,6 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 						}
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading, customData, bancnetIndicator);
-					success++;
 					pageHeight++;
 				}
 			} catch (Exception e) {
@@ -807,7 +655,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	private void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+	@Override
+	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writePdfTrailer()");
@@ -839,7 +688,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 	}
 
-	private void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	@Override
+	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
@@ -859,127 +709,6 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends GeneralRe
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void executePdfTrailerQuery(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
-			PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont, float fontSize) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.executePdfTrailerQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getTrailerQuery(rgm);
-		logger.info("Query for trailer line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the trailer query ", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-	}
-
-	private void executeTrailerQuery(ReportGenerationMgr rgm) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.executeTrailerQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getTrailerQuery(rgm);
-		logger.info("Query for trailer line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writeTrailer(rgm, lineFieldsMap);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the trailer query ", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
 	}
 
 	private String extractBillerSubn(String customData) {

@@ -13,32 +13,60 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
+import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
+import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
+
 public class ReportGenerationMgr extends ReportGenerationFields {
 
 	private final Logger logger = LoggerFactory.getLogger(ReportGenerationMgr.class);
-	public IReportProcessor reportProcessor;
+	public IPdfReportProcessor pdfReportProcessor;
+	public ICsvReportProcessor csvReportProcessor;
+	public ITxtReportProcessor txtReportProcessor;
 	public Connection connection;
 	public FileOutputStream fileOutputStream;
 	public int errors = 0;
+	private String fixBodyQuery;
+	private String fixTrailerQuery;
+
+	public String getFixBodyQuery() {
+		return fixBodyQuery;
+	}
+
+	public void setFixBodyQuery(String fixBodyQuery) {
+		this.fixBodyQuery = fixBodyQuery;
+	}
+
+	public String getFixTrailerQuery() {
+		return fixTrailerQuery;
+	}
+
+	public void setFixTrailerQuery(String fixTrailerQuery) {
+		this.fixTrailerQuery = fixTrailerQuery;
+	}
 
 	public void run(String url, String username, String password) {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;
 		initialiseDBConnection(url, username, password);
-		createReportInstance(this);
 		this.setFileFormatTmp(this.getFileFormat());
+		setFixBodyQuery(getBodyQuery());
+		setFixTrailerQuery(getTrailerQuery());
 
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_PDF)) {
 			this.setFileFormat(ReportConstants.FILE_PDF);
-			reportProcessor.processPdfRecord(this);
+			createPdfReportInstance(this);
+			pdfReportProcessor.processPdfRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_CSV)) {
 			this.setFileFormat(ReportConstants.FILE_CSV);
-			reportProcessor.processCsvTxtRecord(this);
+			createCsvReportInstance(this);
+			csvReportProcessor.processCsvRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_TXT)) {
 			this.setFileFormat(ReportConstants.FILE_TXT);
-			reportProcessor.processCsvTxtRecord(this);
+			createTxtReportInstance(this);
+			txtReportProcessor.processTxtRecord(this);
 		}
 	}
 
@@ -63,14 +91,36 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		}
 	}
 
-	private void createReportInstance(ReportGenerationMgr rgm) {
-		logger.debug("In ReportGenerationMgr.createReportInstance()");
+	private void createPdfReportInstance(ReportGenerationMgr rgm) {
+		logger.debug("In ReportGenerationMgr.createPdfReportInstance()");
 		try {
 			Class<?> newClass = Class.forName(rgm.getProcessingClass());
-			reportProcessor = (IReportProcessor) newClass.newInstance();
+			pdfReportProcessor = (IPdfReportProcessor) newClass.newInstance();
 		} catch (Exception e) {
 			errors++;
-			logger.error("Error creating batch processor instance", e);
+			logger.error("Error creating pdf report instance", e);
+		}
+	}
+
+	private void createCsvReportInstance(ReportGenerationMgr rgm) {
+		logger.debug("In ReportGenerationMgr.createCsvReportInstance()");
+		try {
+			Class<?> newClass = Class.forName(rgm.getProcessingClass());
+			csvReportProcessor = (ICsvReportProcessor) newClass.newInstance();
+		} catch (Exception e) {
+			errors++;
+			logger.error("Error creating csv report instance", e);
+		}
+	}
+
+	private void createTxtReportInstance(ReportGenerationMgr rgm) {
+		logger.debug("In ReportGenerationMgr.createTxtReportInstance()");
+		try {
+			Class<?> newClass = Class.forName(rgm.getProcessingClass());
+			txtReportProcessor = (ITxtReportProcessor) newClass.newInstance();
+		} catch (Exception e) {
+			errors++;
+			logger.error("Error creating txt report instance", e);
 		}
 	}
 

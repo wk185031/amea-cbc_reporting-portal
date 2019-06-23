@@ -49,6 +49,8 @@ public final class ReportConstants {
 	public static final String PARAM_CHANNEL = "Channel";
 	public static final String PARAM_BILLER_CODE = "Biller_Code";
 	public static final String PARAM_IBFT_CRITERIA = "IBFT_Criteria";
+	public static final String PARAM_CORPORATE_COUNT = "Corporate_Count";
+	public static final String PARAM_CORPORATE_INCOME = "Corporate_Income";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -121,6 +123,7 @@ public final class ReportConstants {
 	public static final String BP_BILLER_NAME = "BILLER NAME";
 	public static final String BANK_CODE = "BANK CODE";
 	public static final String BANK_NAME = "BANK NAME";
+	public static final String ACQUIRER_BANK_MNEM = "ACQUIRER BANK MNEM";
 	public static final String AMOUNT = "AMOUNT";
 	public static final String DR_AMOUNT = "DR AMOUNT";
 	public static final String CR_AMOUNT = "CR AMOUNT";
@@ -132,6 +135,13 @@ public final class ReportConstants {
 	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
 	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
 	public static final String SUBSCRIBER_ACCT_NUMBER = "SUBSCRIBER ACCT NUMBER";
+	public static final String ISSUER_BRANCH_CODE = "ISSUER BRANCH CODE";
+	public static final String ISSUER_BRANCH_NAME = "ISSUER BRANCH NAME";
+	public static final String RECEIVING_BRANCH_CODE = "RECEIVING BRANCH CODE";
+	public static final String RECEIVING_BRANCH_NAME = "RECEIVING BRANCH NAME";
+	public static final String ISSUER_EXPENSE = "ISSUER EXPENSE";
+	public static final String ISSUER_INCOME = "ISSUER INCOME";
+	public static final String CORP_INCOME = "CORP. INCOME";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data

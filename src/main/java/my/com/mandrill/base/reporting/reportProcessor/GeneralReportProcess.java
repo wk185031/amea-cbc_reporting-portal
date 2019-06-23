@@ -1,6 +1,8 @@
-package my.com.mandrill.base.reporting;
+package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class GeneralReportProcess implements IReportProcessor {
+import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.ReportGenerationFields;
+import my.com.mandrill.base.reporting.ReportGenerationMgr;
+
+public class GeneralReportProcess {
 
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
 	private HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
@@ -39,19 +45,6 @@ public class GeneralReportProcess implements IReportProcessor {
 		this.eol = eol;
 	}
 
-	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void processCsvTxtRecord(ReportGenerationMgr rgm) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public String getBodyQuery(ReportGenerationMgr rgm) {
 		String query = rgm.getBodyQuery();
 		StringBuffer sb = new StringBuffer();
@@ -75,7 +68,6 @@ public class GeneralReportProcess implements IReportProcessor {
 		return sb.toString();
 	}
 
-	@Override
 	public String getTrailerQuery(ReportGenerationMgr rgm) {
 		String query = rgm.getTrailerQuery();
 		StringBuffer sb = new StringBuffer();
@@ -204,6 +196,103 @@ public class GeneralReportProcess implements IReportProcessor {
 		// eky_id = SecurityManager.getCurrentKeyIndex();
 		// }
 		return fieldConfig.format(eol, fixedLength, eky_id);
+	}
+
+	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+		logger.debug("In GeneralReportProcess.addPreProcessingFieldsToGlobalMap()");
+		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+
+		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
+		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
+		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
+
+		if (rgm.isGenerate() == true) {
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
+					.concat(" ").concat(ReportConstants.START_TIME);
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
+					.concat(ReportConstants.END_TIME);
+
+			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
+
+			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+		} else {
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
+					.concat(" ").concat(ReportConstants.START_TIME);
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
+					.concat(ReportConstants.END_TIME);
+
+			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
+
+			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+		}
+	}
+
+	protected void addBatchPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+		logger.debug("In GeneralReportProcess.addBatchPreProcessingFieldsToGlobalMap()");
+		if (rgm.isGenerate() == true) {
+			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
+			String fileTxnDate = df.format(rgm.getTxnEndDate());
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate()) + " "
+					+ ReportConstants.START_TIME;
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()) + " "
+					+ ReportConstants.END_TIME;
+
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
+			ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
+			ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
+					ReportGenerationFields.TYPE_STRING,
+					rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
+
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+			getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
+			getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
+		} else {
+			SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
+			String fileTxnDate = df.format(rgm.getYesterdayDate());
+			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
+					.concat(" ").concat(ReportConstants.START_TIME);
+			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
+					.concat(ReportConstants.END_TIME);
+
+			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
+			ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
+					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
+			ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
+					ReportGenerationFields.TYPE_STRING,
+					rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
+
+			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+			getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
+			getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
+		}
 	}
 
 	protected void performTransformations(HashMap<String, ReportGenerationFields> fieldsMap)

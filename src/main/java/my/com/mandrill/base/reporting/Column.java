@@ -14,7 +14,6 @@ public class Column {
 	private String sequenceName;
 	private String format;
 	private String defaultValue;
-	private boolean sequenceIncreased = false;
 
 	public String getColumnName() {
 		return this.columnName;
