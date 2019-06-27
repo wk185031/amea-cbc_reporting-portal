@@ -132,6 +132,7 @@ public final class ReportConstants {
 	public static final String CR_AMOUNT = "CR AMOUNT";
 	public static final String VOID_CODE = "VOID CODE";
 	public static final String TOTAL = "TOTAL";
+	public static final String TOTAL_TRAN = "TOTAL TRAN";
 	public static final String AR_PER_TERMINAL = "A/R PER TERMINAL";
 	public static final String TOTAL_AR_AMOUNT = "TOTAL A/R AMOUNT";
 	public static final String TRANSMITTING_TOTAL = "TRANSMITTING TOTAL";
@@ -147,6 +148,7 @@ public final class ReportConstants {
 	public static final String ISSUER_EXPENSE = "ISSUER EXPENSE";
 	public static final String ISSUER_INCOME = "ISSUER INCOME";
 	public static final String CORP_INCOME = "CORP. INCOME";
+	public static final String BALANCE = "BALANCE";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data
