@@ -146,6 +146,36 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
+	
+	@Override
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+				line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
+						getFieldValue(field, fieldsMap, true).charAt(0)));
+			} else if (getFieldValue(field, fieldsMap, true) == null) {
+				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+			} else {
+				line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+						getFieldValue(field, fieldsMap, true)));
+			}
+			line.append(getEol());
+		} else {
+			if (getFieldValue(field, fieldsMap, true) == null) {
+				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+			} else {
+				line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+						getFieldValue(field, fieldsMap, true)));
+			}
+		}
+	}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
 
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
