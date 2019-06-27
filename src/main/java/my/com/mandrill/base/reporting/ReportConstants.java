@@ -49,6 +49,8 @@ public final class ReportConstants {
 	public static final String PARAM_CHANNEL = "Channel";
 	public static final String PARAM_BILLER_CODE = "Biller_Code";
 	public static final String PARAM_IBFT_CRITERIA = "IBFT_Criteria";
+	public static final String PARAM_FIELD_CRITERIA = "Field_Criteria";
+	public static final String PARAM_JOIN_CRITERIA = "Join_Criteria";
 	public static final String PARAM_CORPORATE_COUNT = "Corporate_Count";
 	public static final String PARAM_CORPORATE_INCOME = "Corporate_Income";
 
@@ -104,6 +106,7 @@ public final class ReportConstants {
 	public static final String DESCRIPTION = "DESCRIPTION";
 	public static final String ATM_CARD_NUMBER = "ATM CARD NUMBER";
 	public static final String ACCOUNT = "ACCOUNT";
+	public static final String ACCOUNT_NAME = "ACCOUNT NAME";
 	public static final String FROM_ACCOUNT_NO = "FROM ACCOUNT NO";
 	public static final String TO_ACCOUNT_NO = "TO ACCOUNT NO";
 	public static final String SEQ_NUMBER = "SEQ NUMBER";
@@ -131,6 +134,8 @@ public final class ReportConstants {
 	public static final String TOTAL = "TOTAL";
 	public static final String AR_PER_TERMINAL = "A/R PER TERMINAL";
 	public static final String TOTAL_AR_AMOUNT = "TOTAL A/R AMOUNT";
+	public static final String TRANSMITTING_TOTAL = "TRANSMITTING TOTAL";
+	public static final String RECEIVING_TOTAL = "RECEIVING TOTAL";
 	public static final String NET_SETTLEMENT = "NET SETTLEMENT";
 	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
 	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
