@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,15 +20,11 @@ import org.slf4j.LoggerFactory;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.reporting.billsPaymentExtractFiles.BillsPaymentExtractFilesDetailedTransactions;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 
 public class CasaTransactionLogFile extends TxtReportProcessor {
-	
-	private final Logger logger = LoggerFactory.getLogger(BillsPaymentExtractFilesDetailedTransactions.class);
-	private int success = 0;
-	private double fileHash = 0.00;
-	private String groupIdDate = null;
+
+	private final Logger logger = LoggerFactory.getLogger(CasaTransactionLogFile.class);
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -40,10 +35,10 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			executeBodyQuery(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
+				| ClassNotFoundException e) {
 			rgm.errors++;
-			logger.error("Error in generating GL file", e);
+			logger.error("Error in generating TXT file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -56,29 +51,16 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			}
 		}
 	}
-	
+
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffIssuer.preProcessing()");
-		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", ""));
-		}
-
-		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_03);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_03);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
-		}
+		logger.debug("In CasaTransactionLogFile.preProcessing()");
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
-	
+
 	@Override
 	protected void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In CsvReportProcessor.writeHeader()");
+		logger.debug("In CasaTransactionLogFile.writeHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -102,12 +84,23 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, String customData)
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String customData)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
+			case ReportConstants.FROM_ACCOUNT_NO:
+			case ReportConstants.TO_ACCOUNT_NO:
+				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
+				} else {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap, true)));
+				}
+				break;
 			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
 				if (extractBillerSubn(customData).length() <= 16) {
 					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
@@ -118,11 +111,10 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			default:
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_AMOUNT)) {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 						line.append(String
 								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0'));
-						fileHash += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+								.replace(' ', '0').concat("00"));
 					} else {
 						line.append(String
 								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
@@ -143,7 +135,7 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.executeBodyQuery()");
+		logger.debug("In CasaTransactionLogFile.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -190,7 +182,6 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 						}
 					}
 					writeBody(rgm, lineFieldsMap, customData);
-					success++;
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -206,7 +197,7 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			}
 		}
 	}
-	
+
 	private String extractBillerSubn(String customData) {
 		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
 		Matcher matcher = pattern.matcher(customData);
@@ -223,6 +214,4 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 		}
 		return "";
 	}
-
-
 }

@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.atmWithdrawalTransactions;
+package my.com.mandrill.base.reporting.interEntityAtmWithdrawalTransactions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,9 +21,9 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
-public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
+public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(AtmWithdrawalIssuerBank.class);
+	private final Logger logger = LoggerFactory.getLogger(InterEntityAtmWithdrawalIssuerBank.class);
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -68,7 +68,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 	}
 
 	private SortedMap<String, String> filterByCriteriaByBank(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListIssuer.filterByCriteriaByBank()");
+		logger.debug("In InterEntityAtmWithdrawalIssuerBank.filterByCriteriaByBank()");
 		String bankCode = null;
 		String bankName = null;
 		ResultSet rs = null;
@@ -126,7 +126,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
+		logger.debug("In InterEntityAtmWithdrawalIssuerBank.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
@@ -136,7 +136,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
+		logger.debug("In InterEntityAtmWithdrawalIssuerBank.preProcessing()");
 		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
@@ -227,7 +227,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalIssuerBank.executeBodyQuery()");
+		logger.debug("In InterEntityAtmWithdrawalIssuerBank.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

@@ -244,11 +244,10 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 			if (field.isEol()) {
 				if (getGlobalFieldValue(field, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
 					contentStream.showText(String.format("%1$2s", "")

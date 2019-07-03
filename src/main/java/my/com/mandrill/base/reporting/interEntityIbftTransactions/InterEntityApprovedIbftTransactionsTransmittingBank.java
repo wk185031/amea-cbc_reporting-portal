@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.ibftTransactions;
+package my.com.mandrill.base.reporting.interEntityIbftTransactions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,9 +16,9 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.IbftReportProcessor;
 
-public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcessor {
+public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(ApprovedIbftTransactionsTransmittingBank.class);
+	private final Logger logger = LoggerFactory.getLogger(InterEntityApprovedIbftTransactionsTransmittingBank.class);
 	private int pagination = 0;
 
 	@Override
@@ -74,7 +74,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void retailDetails(ReportGenerationMgr rgm, String bankCode, String bankName) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.retailDetails()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.retailDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
 			preProcessingFilter(rgm, bankCode);
@@ -95,7 +95,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void corporateDetails(ReportGenerationMgr rgm, String bankCode, String bankName) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.corporateDetails()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.corporateDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
 			preProcessingFilter(rgm, bankCode);
@@ -116,7 +116,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void retailSummaryDetails(ReportGenerationMgr rgm) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.retailDetails()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.retailDetails()");
 		try {
 			preProcessing(rgm, "retail", null);
 			StringBuilder retailLine = new StringBuilder();
@@ -138,7 +138,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void corporateSummaryDetails(ReportGenerationMgr rgm) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.corporateDetails()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.corporateDetails()");
 		try {
 			preProcessing(rgm, "corporate", null);
 			StringBuilder corporateLine = new StringBuilder();
@@ -160,7 +160,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void consolidatedSummaryDetails(ReportGenerationMgr rgm) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.consolidatedDetails()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.consolidatedDetails()");
 		try {
 			StringBuilder consolidatedLine = new StringBuilder();
 			consolidatedLine.append("CONSOLIDATED TRANSACTIONS");
@@ -184,7 +184,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void separateQuery(ReportGenerationMgr rgm) {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.separateQuery()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -208,7 +208,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterType, String queryType)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.preProcessing()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.preProcessing()");
 		// TBD - retrieve clear PAN from decryption
 		if (filterType.equalsIgnoreCase("retail")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
@@ -229,14 +229,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 						"CASE WHEN TXN.TRL_PAN = '100200003990000021' THEN TXN.TRL_ID END AS \"CORPORATE COUNT\"");
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
-						"125.00 * COUNT(\"CORPORATE COUNT\") AS \"CORP. INCOME\"");
+						"135.00 * COUNT(\"CORPORATE COUNT\") AS \"CORP. INCOME\"");
 
 				getGlobalFileFieldsMap().put(corporateCount.getFieldName(), corporateCount);
 				getGlobalFileFieldsMap().put(corporateIncome.getFieldName(), corporateIncome);
 			} else {
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
-						"SUM(125.00 * COUNT(CASE WHEN TXN.TRL_PAN = '100200003990000021' THEN TXN.TRL_ID END)) AS \"CORP. INCOME\"");
+						"SUM(135.00 * COUNT(CASE WHEN TXN.TRL_PAN = '100200003990000021' THEN TXN.TRL_ID END)) AS \"CORP. INCOME\"");
 				getGlobalFileFieldsMap().put(corporateIncome.getFieldName(), corporateIncome);
 			}
 		}
@@ -245,7 +245,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 
 	private void preProcessingFilter(ReportGenerationMgr rgm, String filterByBankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.preProcessing()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.preProcessing()");
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
@@ -255,13 +255,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void writeRetailHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeRetailHeader()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeRetailHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
 			case 12:
+			case 13:
 				break;
 			default:
 				if (field.isEol()) {
@@ -290,13 +291,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void writeCorporateHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeCorporateHeader()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeCorporateHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
 			case 11:
+			case 13:
 				break;
 			default:
 				if (field.isEol()) {
@@ -326,16 +328,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 
 	@Override
 	protected void writeSummaryHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeSummaryHeader()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeSummaryHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 3:
 			case 11:
-				break;
 			case 12:
-				line.append(field.getDelimiter());
 				break;
 			default:
 				if (field.isEol()) {
@@ -365,7 +365,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 
 	@Override
 	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeBodyHeader()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -411,7 +411,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	}
 
 	private void writeSummaryBodyHeader(ReportGenerationMgr rgm, String filterType) throws IOException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeSummaryBodyHeader()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeSummaryBodyHeader()");
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -589,7 +589,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 	@Override
 	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In ApprovedIbftTransactionsTransmittingBank.writeTrailer()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {

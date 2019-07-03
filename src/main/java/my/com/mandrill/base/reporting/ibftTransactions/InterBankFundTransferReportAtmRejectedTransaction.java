@@ -541,7 +541,7 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 				} else {
 					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));

@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,8 +27,43 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 	private final Logger logger = LoggerFactory.getLogger(BillsPaymentExtractFilesDetailedTransactions.class);
 	private int success = 0;
-	private double fileHash = 0.00;
-	private String groupIdDate = null;
+	private double totalPayments = 0.00;
+
+	@Override
+	public void processTxtRecord(ReportGenerationMgr rgm) {
+		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.processTxtRecord()");
+		File file = null;
+		String txnDate = null;
+		String fileLocation = rgm.getFileLocation();
+		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
+
+		try {
+			if (rgm.isGenerate() == true) {
+				txnDate = df.format(rgm.getFileDate());
+			} else {
+				txnDate = df.format(rgm.getYesterdayDate());
+			}
+
+			if (rgm.errors == 0) {
+				if (fileLocation != null) {
+					File directory = new File(fileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
+					}
+					file = new File(
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT);
+					execute(rgm, file);
+				} else {
+					throw new Exception("Path is not configured.");
+				}
+			} else {
+				throw new Exception(
+						"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT);
+			}
+		} catch (Exception e) {
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT, e);
+		}
+	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -45,7 +78,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
-			logger.error("Error in generating GL file", e);
+			logger.error("Error in generating TXT file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -58,23 +91,10 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 			}
 		}
 	}
-	
+
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffIssuer.preProcessing()");
-		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", ""));
-		}
-
-		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_03);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_03);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
-		}
+		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.preProcessing()");
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
 
@@ -92,15 +112,16 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, String customData)
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String customData)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
-				if (extractBillerSubn(customData).length() <= 16) {
-					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
+				if (extractBillerSubn(customData).length() <= 20) {
+					line.append(String.format("%1$" + 20 + "s", extractBillerSubn(customData)).replace(' ', '0'));
 				} else {
 					line.append(extractBillerSubn(customData));
 				}
@@ -109,16 +130,10 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_AMOUNT)) {
-						fileHash += Double.parseDouble(getFieldValue(field, fieldsMap, true));
-						if (getFieldValue(field, fieldsMap, true).indexOf(".") !=-1) {
-							line.append(String
-									.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-									.replace(' ', '0').replace(".", ""));
-						} else {
-							line.append(String
-									.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
-									.replace(' ', '0'));
-						}
+						totalPayments += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+						line.append(String
+								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
+								.replace(' ', '0').concat("00"));
 					} else {
 						line.append(String
 								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
@@ -144,15 +159,13 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 					|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.FILE_HASH)) {
-					if (String.valueOf(fileHash).indexOf(".") !=-1) {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", fileHash)
-								.replace(' ', '0').replace(".", ""));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_PAYMENTS)) {
+					if (String.valueOf(totalPayments).indexOf(".") != -1) {
+						line.append(String.format("%" + field.getCsvTxtLength() + "s", totalPayments).replace(' ', '0')
+								.replace(".", "0"));
 					} else {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", fileHash)
-								.replace(' ', '0'));
+						line.append(
+								String.format("%" + field.getCsvTxtLength() + "s", totalPayments).replace(' ', '0'));
 					}
 				} else {
 					line.append(String.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
@@ -233,7 +246,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 			}
 		}
 	}
-	
+
 	private String extractBillerSubn(String customData) {
 		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
 		Matcher matcher = pattern.matcher(customData);

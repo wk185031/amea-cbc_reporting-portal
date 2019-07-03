@@ -27,9 +27,16 @@ spring:
             enabled: false
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:mariadb://localhost:3306/base
-        username: mandrill
-        password: mandrill
+        # url: jdbc:mariadb://localhost:3306/base
+        # username: mandrill
+        # password: mandrill
+        # url: jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain
+        # username: CBC_OWNER
+        # password: CBC_OWNER
+        url: jdbc:oracle:thin:@153.77.198.105:1521/orcl
+        username: REPORTING_OWNER
+        password: REPORTING_OWNER
+        driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
                 cachePrepStmts: true
@@ -37,8 +44,10 @@ spring:
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
     jpa:
-        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-        database: MYSQL
+        #database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        #database: MYSQL
+        database-platform: org.hibernate.dialect.Oracle12cDialect
+        database: Oracle
         show-sql: false
         properties:
             hibernate.id.new_generator_mappings: true
@@ -128,7 +137,7 @@ jhipster:
         jmx.enabled: true
         graphite:
             enabled: false
-            host: localhost
+            host: 153.77.198.105
             port: 2003
             prefix: base
         prometheus:
@@ -140,7 +149,7 @@ jhipster:
     logging:
         logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
             enabled: false
-            host: localhost
+            host: 153.77.198.105
             port: 5000
             queue-size: 512
 

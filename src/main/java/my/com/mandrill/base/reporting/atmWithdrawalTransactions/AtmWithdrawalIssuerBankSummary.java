@@ -353,23 +353,19 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
 							getFieldValue(field, fieldsMap, true).charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 							getFieldValue(field, fieldsMap, true) + " DR"));
-					contentStream.newLineAtOffset(0, -leading);
 				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
 							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					contentStream.newLineAtOffset(0, -leading);
 				} else if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
 							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',

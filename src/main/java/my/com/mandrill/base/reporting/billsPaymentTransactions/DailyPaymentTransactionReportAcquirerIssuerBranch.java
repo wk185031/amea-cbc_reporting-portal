@@ -665,12 +665,11 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			if (field.isEol()) {
 				if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
 							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
 					contentStream.showText(String.format("%1$3s", "") + String
@@ -697,15 +696,12 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				line.append(field.getDelimiter());
 			} else if (getFieldValue(field, fieldsMap, true) == null) {
 				line.append("");
-				line.append(field.getDelimiter());
 			} else {
 				line.append(getFieldValue(field, fieldsMap, true));
-				line.append(field.getDelimiter());
 			}
-
+			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());

@@ -264,7 +264,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+					if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 						total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 					} else {
 						total += Double.parseDouble(getFieldValue(field, fieldsMap, true));

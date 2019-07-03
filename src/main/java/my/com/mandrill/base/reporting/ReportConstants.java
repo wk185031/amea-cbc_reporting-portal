@@ -53,6 +53,7 @@ public final class ReportConstants {
 	public static final String PARAM_JOIN_CRITERIA = "Join_Criteria";
 	public static final String PARAM_CORPORATE_COUNT = "Corporate_Count";
 	public static final String PARAM_CORPORATE_INCOME = "Corporate_Income";
+	public static final String PARAM_TXN_CRITERIA = "Txn_Criteria";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -74,8 +75,11 @@ public final class ReportConstants {
 	public static final String PDF_FORMAT = ".pdf";
 	public static final String CSV_FORMAT = ".csv";
 	public static final String TXT_FORMAT = ".txt";
+	public static final String DPS_FORMAT = ".dps";
+	public static final String SUM_FORMAT = ".sum";
 
 	// Report Fields
+	public static final String TOTAL_PAYMENTS = "Total Payments";
 	public static final String PAGE_NUMBER = "Page Number";
 	public static final String TODAYS_DATE_VALUE = "Todays Date Value";
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
@@ -148,7 +152,12 @@ public final class ReportConstants {
 	public static final String ISSUER_EXPENSE = "ISSUER EXPENSE";
 	public static final String ISSUER_INCOME = "ISSUER INCOME";
 	public static final String CORP_INCOME = "CORP. INCOME";
+	public static final String BEG_BALANCE = "BEG. BALANCE";
 	public static final String BALANCE = "BALANCE";
+	public static final String CUSTOMER_ID = "CUSTOMER ID";
+	public static final String CUSTOMER_NAME = "CUSTOMER NAME";
+	public static final String TRANSACTION_TYPE = "TRANSACTION TYPE";
+	public static final String REASON = "REASON";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data

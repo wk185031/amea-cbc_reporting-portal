@@ -8,7 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -29,12 +33,15 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 	private final Logger logger = LoggerFactory.getLogger(CashCardSuccessfulTransactions.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
+	public static final String CHINABANK_ATM = "ChinaBank ATM";
+	public static final String OTHER_BANK_ATM = "Other Bank ATM";
 	private int pagination = 0;
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardSuccessfulTransactions.processPdfRecord()");
 		PDDocument doc = null;
+		String channel = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -49,23 +56,24 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 			float width = pageSize.getWidth() - 2 * margin;
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
-
-			preProcessing(rgm);
-
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
+			preProcessing(rgm);
 			writePdfHeader(rgm, contentStream, leading, pagination);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize);
-			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
-			pageHeight += 1;
-			contentStream.newLineAtOffset(0, -leading);
-
+			for (SortedMap.Entry<String, Set<String>> channelMap : filterByChannel(rgm).entrySet()) {
+				channel = channelMap.getKey();
+				for (String txnType : channelMap.getValue()) {
+					preProcessing(rgm, channel, txnType);
+					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+							startY, pdfFont, fontSize);
+					pageHeight += 1;
+				}
+			}
 			contentStream.endText();
 			contentStream.close();
 
@@ -88,20 +96,21 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		StringBuilder line = new StringBuilder();
+		String channel = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			preProcessing(rgm);
-			writeHeader(rgm);
+			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
-			executeTrailerQuery(rgm);
-			line.append("*** END OF REPORT ***");
-			line.append(getEol());
-			line.append(getEol());
-			rgm.writeLine(line.toString().getBytes());
-
+			for (SortedMap.Entry<String, Set<String>> channelMap : filterByChannel(rgm).entrySet()) {
+				channel = channelMap.getKey();
+				for (String txnType : channelMap.getValue()) {
+					preProcessing(rgm, channel, txnType);
+					executeBodyQuery(rgm);
+				}
+			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -124,29 +133,29 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In CashCardSuccessfulTransactions.preProcessing()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setTmpBodyQuery(rgm.getBodyQuery());
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
+		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	@Override
-	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In CashCardSuccessfulTransactions.writeBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			switch (field.getSequence()) {
-			case 1:
-			case 2:
-			case 3:
-			case 8:
-				break;
-			default:
-				line.append(getGlobalFieldValue(field, true));
-				line.append(field.getDelimiter());
-				break;
-			}
+	private void preProcessing(ReportGenerationMgr rgm, String filterByChannel, String filterByTxnType)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In CashCardSuccessfulTransactions.preProcessing()");
+		rgm.setBodyQuery(rgm.getTmpBodyQuery());
+		if (filterByChannel.equalsIgnoreCase(CHINABANK_ATM) && filterByTxnType != null) {
+			ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TSC.TSC_DESCRIPTION = '" + filterByTxnType + "'");
+			getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
+		} else {
+			ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TSC.TSC_DESCRIPTION = '" + filterByTxnType
+							+ "'");
+			getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
 		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
 	}
 
 	@Override
@@ -165,25 +174,6 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
-			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
-			}
-			line.append(field.getDelimiter());
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
 	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
@@ -198,14 +188,23 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%-" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
+				switch (field.getFieldName()) {
+				case ReportConstants.CHANNEL:
+				case ReportConstants.TRANSACTION_TYPE:
 					contentStream.showText(
 							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					break;
+				default:
+					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
+								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
+					} else if (getFieldValue(field, fieldsMap, true) == null) {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					} else {
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+								getFieldValue(field, fieldsMap, true)));
+					}
+					break;
 				}
 			}
 		}
@@ -287,94 +286,74 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 		return contentStream;
 	}
 
-	@Override
-	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In CashCardSuccessfulTransactions.writeTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			switch (field.getSequence()) {
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-				break;
-			default:
-				if (field.isEol()) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-				}
-				break;
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
+	protected SortedMap<String, Set<String>> filterByChannel(ReportGenerationMgr rgm) {
+		logger.debug("In CashCardSuccessfulTransactions.filterByChannel()");
+		String channel = null;
+		String txnType = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, Set<String>> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter channel: {}", query);
 
-	@Override
-	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In CashCardSuccessfulTransactions.writePdfTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							getFieldValue(field, fieldsMap, true) + " DR"));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TRANSACTION_TYPE)) {
+								txnType = result.toString();
+							}
+						}
+					}
+					if (criteriaMap.get(channel) == null) {
+						Set<String> txnTypeList = new HashSet<>();
+						txnTypeList.add(txnType);
+						criteriaMap.put(channel, txnTypeList);
+					} else {
+						Set<String> channelList = criteriaMap.get(channel);
+						if (channelList == null) {
+							Set<String> txnTypeList = new HashSet<>();
+							txnTypeList.add(txnType);
+							criteriaMap.put(channel, txnTypeList);
+						} else {
+							Set<String> txnTypeList = channelList;
+							txnTypeList.add(txnType);
+						}
+					}
 				}
-			} else {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
 				}
 			}
 		}
+		return criteriaMap;
 	}
 }

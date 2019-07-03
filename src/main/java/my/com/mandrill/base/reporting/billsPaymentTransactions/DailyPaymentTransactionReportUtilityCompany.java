@@ -364,13 +364,13 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 				} else {
 					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));
 				}
 			}
-			
+
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.SUBSCRIBER_ACCT_NUMBER)) {
 					if (extractBillerSubn(customData).length() <= 16) {
@@ -438,13 +438,13 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 				} else {
 					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));
 				}
 			}
-			
+
 			switch (field.getFieldName()) {
 			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
 				if (extractBillerSubn(customData).length() <= 16) {
@@ -650,12 +650,11 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			if (field.isEol()) {
 				if (getFieldValue(field, fieldsMap, true) == null) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					contentStream.showText(
 							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
@@ -679,15 +678,12 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
 				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				line.append(field.getDelimiter());
 			} else if (getFieldValue(field, fieldsMap, true) == null) {
 				line.append("");
-				line.append(field.getDelimiter());
 			} else {
 				line.append(getFieldValue(field, fieldsMap, true));
-				line.append(field.getDelimiter());
 			}
-
+			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());

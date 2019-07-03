@@ -31,6 +31,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String receivingBodyQuery = null;
 	private String ibftBodyQuery = null;
 	private String summaryBodyQuery = null;
+	private String summaryDetailBodyQuery = null;
 	private String ibftTrailerQuery = null;
 	private String summaryTrailerQuery = null;
 	private String criteriaQuery = null;
@@ -73,6 +74,14 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setSummaryBodyQuery(String summaryBodyQuery) {
 		this.summaryBodyQuery = summaryBodyQuery;
+	}
+
+	public String getSummaryDetailBodyQuery() {
+		return summaryDetailBodyQuery;
+	}
+
+	public void setSummaryDetailBodyQuery(String summaryDetailBodyQuery) {
+		this.summaryDetailBodyQuery = summaryDetailBodyQuery;
 	}
 
 	public String getIbftTrailerQuery() {

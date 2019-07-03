@@ -252,7 +252,7 @@ public class GLHandoffFinalProofSheetPos extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 				} else {
 					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
@@ -340,7 +340,7 @@ public class GLHandoffFinalProofSheetPos extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != 0) {
+				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
 					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
 				} else {
 					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
