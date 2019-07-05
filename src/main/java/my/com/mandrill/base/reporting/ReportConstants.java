@@ -158,6 +158,8 @@ public final class ReportConstants {
 	public static final String CUSTOMER_NAME = "CUSTOMER NAME";
 	public static final String TRANSACTION_TYPE = "TRANSACTION TYPE";
 	public static final String REASON = "REASON";
+	public static final String INDEX = "INDEX";
+
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data
