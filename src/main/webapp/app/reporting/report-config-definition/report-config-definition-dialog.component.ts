@@ -9,6 +9,7 @@ import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
 import { ReportConfigDefinitionPopupService } from './report-config-definition-popup.service';
+import { isNullOrUndefined, isUndefined } from 'util';
 
 @Component({
     selector: 'report-config-definition-dialog',
@@ -37,6 +38,31 @@ export class ReportConfigDefinitionDialogComponent implements OnInit {
         } else {
             this.reportDefinition.headerSection = JSON.parse(this.reportDefinition.headerFields);
             this.reportDefinition.bodySection = JSON.parse(this.reportDefinition.bodyFields);
+            this.reportDefinition.bodySection.forEach(section => {
+               if (section.bodyHeader == true) {
+                   section.justifyLeft = true;
+               } else {
+                   section.justifyLeft = false;
+               }
+               if (isUndefined(section.decrypt)) {
+                   section.decrypt = false;
+                   section.decryptionKey = null
+               } else {
+                   if (section.decrypt == true) {
+                       section.enableDecryption = true;
+                   }
+               }
+               if(isUndefined(section.fieldPadding)) {
+                   section.fieldPadding = null;
+                   section.padFieldLength = null;
+                   section.padFieldType = null;
+                   section.padFieldString = null;
+               } else {
+                   if (section.fieldPadding) {
+                       section.enablePadFieldLength = true;
+                   }
+               }
+            });
             this.reportDefinition.trailerSection = JSON.parse(this.reportDefinition.trailerFields);
         }
         this.canSave = this.checking();

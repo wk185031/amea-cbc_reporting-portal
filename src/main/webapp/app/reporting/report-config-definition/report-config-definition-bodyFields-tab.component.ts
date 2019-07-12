@@ -15,6 +15,12 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
 
     sectionCollapsed = [0];
 
+    fieldTypeOptions: string[] = ['String', 'Number', 'Decimal', 'Date'];
+    fieldLengthTypeOptions: string[] = ['Leading', 'Trailing'];
+    padFieldLength: string;
+    fieldLengthType: string;
+    padFieldString: string;
+
     ngOnChanges() {
         if (!this.reportDefinition.id) {
             if (!this.reportDefinition.bodySection || this.reportDefinition.bodySection.length === 0) {
@@ -30,10 +36,22 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
             this.reportDefinition.bodySection = [];
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '1';
+            reportDefinitionSections.fieldType = 'String';
+            reportDefinitionSections.padFieldLength = null;
+            reportDefinitionSections.justifyLeft = false;
+            reportDefinitionSections.enablePadFieldLength = false;
+            reportDefinitionSections.decrypt = false;
+            reportDefinitionSections.enableDecryption = false;
             this.reportDefinition.bodySection.push(reportDefinitionSections);
         } else {
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '' + (this.reportDefinition.bodySection.length + 1);
+            reportDefinitionSections.fieldType = 'String';
+            reportDefinitionSections.padFieldLength = null;
+            reportDefinitionSections.justifyLeft = false;
+            reportDefinitionSections.enablePadFieldLength = false;
+            reportDefinitionSections.decrypt = false;
+            reportDefinitionSections.enableDecryption = false;
             this.reportDefinition.bodySection.push(reportDefinitionSections);
         }
         this.valueChange();
@@ -101,5 +119,48 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
 
     valueChange() {
         this.onValueChange.emit(true);
+    }
+
+    fieldLengthChange(section: ReportDefinitionSection, field: string, event: any) {
+        if (field == 'length') {
+            if (event.target.value == '') {
+                section.enablePadFieldLength = false;
+                section.padFieldLength = null;
+                section.padFieldType = null;
+                section.padFieldString = null;
+            } else {
+                section.enablePadFieldLength = true;
+                if (!section.padFieldType) {
+                    section.padFieldType = 'Leading';
+                }
+                if (!section.padFieldString) {
+                    section.padFieldString = null;
+                }
+            }
+        } else if (field == 'type') {
+            section.padFieldType = event.target.value;
+        }
+        section.fieldPadding = section.padFieldLength + ',' + section.padFieldType + ',' + section.padFieldString;
+        this.valueChange();
+    }
+
+    bodyHeaderValueChange(section: ReportDefinitionSection) {
+        if (section.bodyHeader == true) {
+            section.justifyLeft = true;
+        } else {
+            section.justifyLeft = false;
+        }
+        this.valueChange();
+    }
+
+    isDecrypt(section: ReportDefinitionSection) {
+        if (section.decrypt == true) {
+            section.enableDecryption = true;
+            section.decryptionKey = null;
+        } else {
+            section.enableDecryption = false;
+            section.decryptionKey = null;
+        }
+        this.valueChange();
     }
 }

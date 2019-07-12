@@ -15,7 +15,18 @@ export class ReportDefinitionSection implements BaseEntity {
         public firstField?: boolean,
         public bodyHeader?: boolean,
         public eol?: boolean,
+        public justifyLeft?: boolean,
+        public decrypt?: boolean,
+        public decryptionKey?: string,
+        public fieldPadding?: string,
         public reportDefinition?: BaseEntity,
+
+        public enablePadFieldLength?: boolean,
+        public padFieldLength?: string,
+        public padFieldType?: string,
+        public padFieldString?: string,
+
+        public enableDecryption?: boolean,
     ) {
     }
 }

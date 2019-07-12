@@ -48,7 +48,11 @@
             "section": "Section",
             "addSection": "New Section",
             "removeSection": "Remove Section",
-            "enterQueryLabel": "SQL query :"
+            "enterQueryLabel": "SQL query :",
+            "justifyLeft": "Left Justified :",
+            "justifyRight": "Right Justified :",
+            "padFieldLength": "Pad Field Length :",
+            "decrypt": "Decrypt :"
         }
     }
 }
