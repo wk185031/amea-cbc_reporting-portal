@@ -52,7 +52,7 @@ public class PosTransactionFees extends CsvReportProcessor {
 			}
 		}
 	}
-	
+
 	@Override
 	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
 		logger.debug("In PosTransactionFees.writeBodyHeader()");
@@ -60,18 +60,18 @@ public class PosTransactionFees extends CsvReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
-	
+
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
 		logger.debug("In PosTransactionFees.executeBodyQuery()");
@@ -112,7 +112,7 @@ public class PosTransactionFees extends CsvReportProcessor {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							}  else {
+							} else {
 								field.setValue(result.toString());
 							}
 						} else {
@@ -136,7 +136,7 @@ public class PosTransactionFees extends CsvReportProcessor {
 			}
 		}
 	}
-	
+
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, int index)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
@@ -144,12 +144,8 @@ public class PosTransactionFees extends CsvReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.INDEX)) {
 				line.append(index);
-			} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
 			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
+				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 			line.append(field.getDelimiter());
 		}
