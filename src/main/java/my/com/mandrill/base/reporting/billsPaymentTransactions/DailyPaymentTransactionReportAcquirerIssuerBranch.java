@@ -77,6 +77,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				contentStream.newLineAtOffset(startX, startY);
 
 				writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 4;
 				writePdfBodyHeader(rgm, contentStream, leading);
 				pageHeight += 2;
@@ -379,7 +380,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			case 8:
 			case 9:
 			case 10:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -404,50 +405,23 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						contentStream.showText(
 								String.format("%1$" + field.getPdfLength() + "s", extractBillerSubn(customData)));
 					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.TERMINAL:
-					if (bancnetIndicator && getFieldValue(field, fieldsMap, true).length() == 8) {
-						String terminalId = getFieldValue(field, fieldsMap, true);
+					if (bancnetIndicator && getFieldValue(field, fieldsMap).trim().length() == 8) {
+						String terminalId = getFieldValue(field, fieldsMap);
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4)));
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.SEQ_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.ACCOUNT_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					break;
 				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			}
@@ -470,40 +444,17 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.TERMINAL:
-				if (bancnetIndicator && getFieldValue(field, fieldsMap, true).length() == 8) {
-					String terminalId = getFieldValue(field, fieldsMap, true);
+				if (bancnetIndicator && getFieldValue(field, fieldsMap).trim().length() == 8) {
+					String terminalId = getFieldValue(field, fieldsMap).trim();
 					line.append(terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4));
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.SEQ_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-					line.append(
-							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.ACCOUNT_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-					line.append(field.getDelimiter());
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 				break;
 			}
 		}
@@ -663,25 +614,15 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$3s", "") + String
-							.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					setFieldFormatException(true);
+					contentStream.showText(String.format("%1$3s", "") + getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}
@@ -694,13 +635,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
-			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
-			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
 		line.append(getEol());

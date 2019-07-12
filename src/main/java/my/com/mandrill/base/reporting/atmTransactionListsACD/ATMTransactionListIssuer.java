@@ -27,7 +27,6 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		StringBuilder breakLine = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
@@ -39,9 +38,10 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 				rgm.writeLine(line.toString().getBytes());
 				writeBodyHeader(rgm);
 				executeBodyQuery(rgm);
+				line = new StringBuilder();
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
 			}
-			breakLine.append(getEol());
-			rgm.writeLine(breakLine.toString().getBytes());
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException

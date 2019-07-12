@@ -348,20 +348,12 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					contentStream.showText(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
 		}
 	}
@@ -374,11 +366,8 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					contentStream.showText(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
@@ -386,11 +375,8 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchCode));
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
@@ -402,18 +388,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
 		}
 	}
@@ -424,23 +402,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}
@@ -452,79 +417,30 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
-					if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
-						contentStream.showText(String.format("%1$5s", "") + String
-								.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					if (!getFieldValue(field, fieldsMap).trim().equalsIgnoreCase(ReportConstants.APPROVED)) {
+						contentStream.showText(String.format("%1$5s", "") + getFieldValue(field, fieldsMap));
 					} else if (txnQualifier.equals("R")
-							&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+							&& getFieldValue(field, fieldsMap).trim().equalsIgnoreCase(ReportConstants.APPROVED)) {
 						contentStream.showText(String.format("%1$5s", "")
 								+ String.format("%1$-" + field.getPdfLength() + "s", ReportConstants.FULL_REVERSAL));
 					} else {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					}
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				switch (field.getFieldName()) {
-				case ReportConstants.ATM_CARD_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.ACCOUNT:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
 				case ReportConstants.AMOUNT:
 					if (!voidCode.equals("0")) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.VOID_CODE:
-					if (getFieldValue(field, fieldsMap, true).length() <= 3) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					break;
 				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			}
@@ -538,23 +454,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}

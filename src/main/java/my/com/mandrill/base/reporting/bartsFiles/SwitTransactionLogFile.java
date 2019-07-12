@@ -65,18 +65,10 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(getEol());
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 			}
 		}
 		line.append(getEol());
@@ -91,16 +83,6 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.FROM_ACCOUNT_NO:
-			case ReportConstants.TO_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
-				break;
 			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
 				if (extractBillerSubn(customData).length() <= 16) {
 					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
@@ -112,19 +94,14 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0').concat("00"));
+						line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0').concat("00"));
 					} else {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0'));
+						line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0'));
 					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					setFieldFormatException(true);
+					line.append(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				}
 				break;
 			}

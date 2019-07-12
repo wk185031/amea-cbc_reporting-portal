@@ -226,11 +226,11 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 			case 8:
 			case 9:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -262,11 +262,11 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 			case 31:
 			case 32:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -295,57 +295,20 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 			case 17:
 			case 18:
 				switch (field.getFieldName()) {
-				case ReportConstants.ATM_CARD_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						line.append(String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						line.append(String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.ACCOUNT:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						line.append(String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
 				case ReportConstants.DR_AMOUNT:
 				case ReportConstants.CR_AMOUNT:
 					if (!voidCode.equals("0")) {
 						line.append("");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.VOID_CODE:
-					if (getFieldValue(field, fieldsMap, true).length() <= 3) {
-						line.append(String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 					break;
 				case ReportConstants.COMMENT:
-					if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
-						line.append(getFieldValue(field, fieldsMap, true));
+					if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					} else if (txnQualifier.equals("R")
-							&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+							&& getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
 						line.append(ReportConstants.FULL_REVERSAL);
 					} else {
 						line.append("");
@@ -353,11 +316,7 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 					line.append(field.getDelimiter());
 					break;
 				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					break;
 				}
@@ -389,12 +348,8 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(branchName);
-						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						} else if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append("");
 						} else {
-							line.append(getFieldValue(field, fieldsMap, true));
+							line.append(getFieldValue(rgm, field, fieldsMap));
 						}
 						line.append(field.getDelimiter());
 					} else {
@@ -406,12 +361,8 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(location);
-						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						} else if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append("");
 						} else {
-							line.append(getFieldValue(field, fieldsMap, true));
+							line.append(getFieldValue(rgm, field, fieldsMap));
 						}
 						line.append(field.getDelimiter());
 					} else {
@@ -447,36 +398,24 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 			default:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-						if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-							grandTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+						if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+							grandTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 						} else {
-							grandTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+							grandTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 						}
 					}
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_TRAN)) {
-						if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-							totalCount += Integer.parseInt(getFieldValue(field, fieldsMap, true).replace(",", ""));
+						if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+							totalCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
 						} else {
-							totalCount += Integer.parseInt(getFieldValue(field, fieldsMap, true));
+							totalCount += Integer.parseInt(getFieldValue(field, fieldsMap));
 						}
 					}
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -503,27 +442,17 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 			case 12:
 			case 13:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
-						total = getFieldValue(field, fieldsMap, true);
+						total = getFieldValue(field, fieldsMap);
 					}
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						line.append(total);
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 				}

@@ -59,6 +59,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			contentStream.newLineAtOffset(startX, startY);
 
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -105,7 +106,6 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			line.append(getEol());
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
-
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -141,46 +141,12 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			case 1:
 			case 2:
 			case 3:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				break;
 			default:
 				break;
 			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In DailyPaymentTransactionReportTellerCardSummaryUtilityCompany.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-			}
-		}
-	}
-
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
-			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
-			}
-			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -193,25 +159,15 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BP_BILLER_NAME)) {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					setFieldFormatException(true);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}
@@ -308,21 +264,11 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -340,34 +286,15 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
+					setFieldFormatException(true);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}

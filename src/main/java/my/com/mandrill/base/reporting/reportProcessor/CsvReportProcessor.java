@@ -421,19 +421,11 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}
@@ -449,19 +441,13 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					line.append(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
-				} else {
-					line.append(getGlobalFieldValue(field, true));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}
@@ -478,10 +464,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					line.append(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(field.getDelimiter());
 				line.append(getEol());
@@ -490,10 +474,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 					line.append(branchCode);
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 					line.append(branchName);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(field.getDelimiter());
 			}
@@ -519,13 +501,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
-			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
-			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
@@ -545,57 +521,19 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					line.append(
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.SEQ_NUMBER:
-			case ReportConstants.TRACE_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-					line.append(
-							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.FROM_ACCOUNT_NO:
-			case ReportConstants.TO_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
 			case ReportConstants.AMOUNT:
 				if (!voidCode.equals("0")) {
 					line.append("");
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.VOID_CODE:
-				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
-					line.append(
-							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.COMMENT:
-				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
-					line.append(getFieldValue(field, fieldsMap, true));
+				if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				} else if (txnQualifier.equals("R")
-						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+						&& getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(ReportConstants.FULL_REVERSAL);
 				} else {
 					line.append("");
@@ -603,11 +541,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				line.append(field.getDelimiter());
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
 			}
@@ -625,21 +559,13 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					line.append(getEol());
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-					line.append(field.getDelimiter());
-					line.append(getEol());
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				}
 			} else {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 			}
 		}

@@ -71,11 +71,11 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}
@@ -91,29 +91,23 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRANSMITTING_TOTAL:
-				line.append(getFieldValue(field, fieldsMap, true) + " DR");
+				line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.RECEIVING_TOTAL:
-				line.append(getFieldValue(field, fieldsMap, true) + " CR");
+				line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.NET_SETTLEMENT:
 				if (dr != null) {
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else if (cr != null) {
-					line.append(getFieldValue(field, fieldsMap, true) + " CR");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
 				}
 				line.append(field.getDelimiter());
 				break;
 			default:
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
 			}
@@ -131,29 +125,23 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRANSMITTING_TOTAL:
-				line.append(getFieldValue(field, fieldsMap, true) + " DR");
+				line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.RECEIVING_TOTAL:
-				line.append(getFieldValue(field, fieldsMap, true) + " CR");
+				line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.NET_SETTLEMENT:
 				if (dr != null) {
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else if (cr != null) {
-					line.append(getFieldValue(field, fieldsMap, true) + " CR");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
 				}
 				line.append(field.getDelimiter());
 				break;
 			default:
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
 			}

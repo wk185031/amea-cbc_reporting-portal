@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -64,7 +62,7 @@ public class BatchProcessor extends TxtReportProcessor {
 	protected void execute(File file, ReportGenerationMgr rgm) {
 		// To be overriden
 	}
-	
+
 	@Override
 	protected List<String> filterByGlDescription(ReportGenerationMgr rgm) {
 		logger.debug("In BatchProcessor.filterByGlDescription()");
@@ -127,12 +125,10 @@ public class BatchProcessor extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
-						.replace(' ', '0'));
-			} else if (getGlobalFieldValue(field, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+				line.append(String.format("%-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field)).replace(' ',
+						'0'));
 			} else {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field)));
 			}
 		}
 		line.append(getEol());

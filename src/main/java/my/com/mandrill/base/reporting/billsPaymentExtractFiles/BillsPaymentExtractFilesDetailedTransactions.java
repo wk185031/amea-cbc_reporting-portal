@@ -130,20 +130,17 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_AMOUNT)) {
-						totalPayments += Double.parseDouble(getFieldValue(field, fieldsMap, true));
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0').concat("00"));
+						totalPayments += Double.parseDouble(getFieldValue(field, fieldsMap));
+						line.append(
+								String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap))
+										.replace(' ', '0').concat("00"));
 					} else {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
-								.replace(' ', '0'));
+						line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0'));
 					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					setFieldFormatException(true);
+					line.append(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -168,13 +165,12 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 								String.format("%" + field.getCsvTxtLength() + "s", totalPayments).replace(' ', '0'));
 					}
 				} else {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
-							.replace(' ', '0'));
+					line.append(getGlobalFieldValue(rgm, field).replace(' ', '0'));
 				}
-			} else if (getGlobalFieldValue(field, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 			} else {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+				setFieldFormatException(true);
+				line.append(getGlobalFieldValue(rgm, field));
+				setFieldFormatException(false);
 			}
 		}
 		line.append(getEol());

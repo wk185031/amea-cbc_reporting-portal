@@ -51,7 +51,8 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 							location = locationList;
 							line.append(branchName).append(";");
 							line.append(getEol());
-							line.append(ReportConstants.TERMINAL + " " + terminal + " AT " + location).append(";");
+							line.append(ReportConstants.TERMINAL + " " + terminal).append(";").append(" AT " + location)
+									.append(";");
 							line.append(getEol());
 							rgm.writeLine(line.toString().getBytes());
 							writeBodyHeader(rgm);

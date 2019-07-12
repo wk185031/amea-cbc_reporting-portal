@@ -69,6 +69,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 
 			bankDetails = false;
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writeBranchPdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -122,6 +123,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writeBankPdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -313,7 +315,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 23:
 				break;
 			default:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				break;
 			}
@@ -332,7 +334,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 20:
 			case 21:
 			case 22:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -360,20 +362,10 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 				break;
 			default:
 				if (field.isEol()) {
-					if (getGlobalFieldValue(field, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream
-								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					}
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream
-								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					}
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				break;
 			}
@@ -395,20 +387,10 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 22:
 			case 23:
 				if (field.isEol()) {
-					if (getGlobalFieldValue(field, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream
-								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					}
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream
-								.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					}
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				break;
 			default:
@@ -435,12 +417,8 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(branchName);
-						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						} else if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append("");
 						} else {
-							line.append(getFieldValue(field, fieldsMap, true));
+							line.append(getFieldValue(rgm, field, fieldsMap));
 						}
 						line.append(field.getDelimiter());
 					} else {
@@ -452,12 +430,8 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 							&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 							line.append(location);
-						} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-							line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-						} else if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append("");
 						} else {
-							line.append(getFieldValue(field, fieldsMap, true));
+							line.append(getFieldValue(rgm, field, fieldsMap));
 						}
 						line.append(field.getDelimiter());
 					} else {
@@ -483,13 +457,9 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 26:
 			case 27:
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
@@ -514,30 +484,20 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 				break;
 			default:
 				if (field.isEol()) {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (branchDetails) {
 						if (!field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)
 								&& !field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
 							if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
+								setFieldFormatException(true);
+								contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+								setFieldFormatException(false);
 							} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
-							} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-								contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-										String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-							} else if (getFieldValue(field, fieldsMap, true) == null) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
+								contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 							}
 						} else {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -546,18 +506,13 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 						if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)
 								&& !field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 							if (field.getFieldName().equalsIgnoreCase(ReportConstants.TERMINAL)) {
-								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
+								setFieldFormatException(true);
+								contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+								setFieldFormatException(false);
 							} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 								contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", location));
-							} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-								contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-										String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-							} else if (getFieldValue(field, fieldsMap, true) == null) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
+								contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 							}
 						} else {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -581,28 +536,19 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 27:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true) + " DR"));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_CODE)
 							|| field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						setFieldFormatException(true);
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						setFieldFormatException(false);
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 				}
 				break;
@@ -783,27 +729,17 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
-						total = getFieldValue(field, fieldsMap, true);
+						total = getFieldValue(rgm, field, fieldsMap);
 					}
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						line.append(total);
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 				}
@@ -827,27 +763,15 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 20:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 						line.append(field.getDelimiter());
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-						line.append(field.getDelimiter());
-						line.append(getEol());
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 						line.append(field.getDelimiter());
 						line.append(getEol());
 					}
 				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -878,39 +802,20 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldName().contains(ReportConstants.LINE)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-								getFieldValue(field, fieldsMap, true).charAt(0)));
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AR_PER_TERMINAL)) {
-						total = getFieldValue(field, fieldsMap, true);
+						total = getFieldValue(field, fieldsMap);
 					}
-					if (field.getFieldName().contains(ReportConstants.LINE)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-								getFieldValue(field, fieldsMap, true).charAt(0)));
-					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
+						setFieldFormatException(true);
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						setFieldFormatException(false);
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AR_AMOUNT)) {
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", total));
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 				}
 				break;
@@ -934,37 +839,19 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			case 19:
 			case 20:
 				if (field.isEol()) {
-					if (field.getFieldName().contains(ReportConstants.LINE)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-								getFieldValue(field, fieldsMap, true).charAt(0)));
-					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true) + " DR"));
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					if (field.getFieldName().contains(ReportConstants.LINE)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-								getFieldValue(field, fieldsMap, true).charAt(0)));
-					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
+						setFieldFormatException(true);
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						setFieldFormatException(false);
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 				}
 				break;

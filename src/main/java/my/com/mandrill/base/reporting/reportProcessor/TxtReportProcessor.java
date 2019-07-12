@@ -68,20 +68,12 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					line.append(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(
-							String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(getEol());
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(
-							String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
-				}
+				line.append(getGlobalFieldValue(rgm, field));
 			}
 		}
 		line.append(getEol());
@@ -96,14 +88,13 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
+					line.append(getGlobalFieldValue(rgm, field));
 				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", field.getFieldName()));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(getEol());
 				}
 			} else {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", field.getFieldName()));
+				line.append(getGlobalFieldValue(rgm, field));
 			}
 		}
 		line.append(getEol());
@@ -124,23 +115,10 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(getEol());
 			} else {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 		line.append(getEol());
@@ -154,23 +132,10 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(getEol());
 			} else {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 		line.append(getEol());

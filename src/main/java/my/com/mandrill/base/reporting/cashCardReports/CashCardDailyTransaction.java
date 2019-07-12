@@ -65,6 +65,7 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 				contentStream.newLineAtOffset(startX, startY);
 
 				writePdfHeader(rgm, contentStream, leading, pagination, cardProduct);
+				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 4;
 				contentStream.newLineAtOffset(0, -leading);
 				writePdfBodyHeader(rgm, contentStream, leading);
@@ -238,20 +239,16 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					line.append(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.CARD_PRODUCT)) {
 					line.append(cardProduct);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append("");
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(field.getDelimiter());
 			}
@@ -268,21 +265,15 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					contentStream.showText(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.CARD_PRODUCT)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.CARD_PRODUCT)) {
 					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", cardProduct));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
@@ -295,11 +286,11 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}
@@ -314,66 +305,16 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$2s", "")
-							+ String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.showText(String.format("%1$2s", "") + getGlobalFieldValue(rgm, field));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
-	}
-
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					line.append(
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.FROM_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			default:
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
 	}
 
 	@Override
@@ -383,42 +324,19 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
-				break;
-			case ReportConstants.FROM_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
-				break;
 			case ReportConstants.BEG_BALANCE:
 			case ReportConstants.DR_AMOUNT:
 			case ReportConstants.CR_AMOUNT:
-				contentStream.showText(
-						String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.BALANCE:
-				contentStream.showText(
-						String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				setFieldFormatException(true);
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				setFieldFormatException(false);
 				break;
 			}
 		}

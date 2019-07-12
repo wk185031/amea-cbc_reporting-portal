@@ -54,6 +54,7 @@ public final class ReportConstants {
 	public static final String PARAM_CORPORATE_COUNT = "Corporate_Count";
 	public static final String PARAM_CORPORATE_INCOME = "Corporate_Income";
 	public static final String PARAM_TXN_CRITERIA = "Txn_Criteria";
+	public static final String PARAM_MERCHANT = "Merchant";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -106,18 +107,14 @@ public final class ReportConstants {
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
 	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
 	public static final String CODE = "CODE";
-	public static final String ACCOUNT_NUMBER = "ACCOUNT NUMBER";
 	public static final String DESCRIPTION = "DESCRIPTION";
 	public static final String ATM_CARD_NUMBER = "ATM CARD NUMBER";
-	public static final String ACCOUNT = "ACCOUNT";
 	public static final String ACCOUNT_NAME = "ACCOUNT NAME";
 	public static final String FROM_ACCOUNT_NO = "FROM ACCOUNT NO";
 	public static final String TO_ACCOUNT_NO = "TO ACCOUNT NO";
 	public static final String SEQ_NUMBER = "SEQ NUMBER";
 	public static final String TRACE_NUMBER = "TRACE NUMBER";
 	public static final String COMMENT = "COMMENT";
-	public static final String DEBIT = "DEBIT";
-	public static final String CREDIT = "CREDIT";
 	public static final String DEBITS = "DEBITS";
 	public static final String CREDITS = "CREDITS";
 	public static final String TOTAL_DEBIT = "TOTAL DEBIT";
@@ -132,6 +129,7 @@ public final class ReportConstants {
 	public static final String BANK_NAME = "BANK NAME";
 	public static final String ACQUIRER_BANK_MNEM = "ACQUIRER BANK MNEM";
 	public static final String AMOUNT = "AMOUNT";
+	public static final String REV_AMOUNT = "REV AMOUNT";
 	public static final String DR_AMOUNT = "DR AMOUNT";
 	public static final String CR_AMOUNT = "CR AMOUNT";
 	public static final String VOID_CODE = "VOID CODE";
@@ -158,14 +156,23 @@ public final class ReportConstants {
 	public static final String CUSTOMER_NAME = "CUSTOMER NAME";
 	public static final String TRANSACTION_TYPE = "TRANSACTION TYPE";
 	public static final String REASON = "REASON";
+	public static final String MERCHANT_NAME = "MERCHANT NAME";
+	public static final String POS_COMMISSION = "COMMISSION";
+	public static final String POS_REV_COMMISSION = "REV COMMISSION";
+	public static final String POS_COMMISSION_AMOUNT = "COMMISSION AMOUNT";
+	public static final String POS_NET_SETT_AMT = "NET SETT. AMOUNT";
+	public static final String TRAN_COUNT = "TRAN COUNT";
+	public static final String REV_TRAN_COUNT = "REV TRAN COUNT";
+	public static final String HOUR = "HOUR";
 	public static final String INDEX = "INDEX";
-
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 
 	// Custom Data
 	public static final String CUSTOM_DATA = "CUSTOM DATA";
 	public static final String BILLER_CODE = "BILLERCODE";
 	public static final String BILLER_SUBN = "BILLERSUBN";
+	public static final String COMMISSION = "Commission";
+	public static final String DEPOSITORY_BANK = "DepositoryBank";
 
 	// Result Code Description
 	public static final String APPROVED = "Approved";

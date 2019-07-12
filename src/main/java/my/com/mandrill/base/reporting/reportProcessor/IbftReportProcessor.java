@@ -93,19 +93,13 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
-					} else if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
 					} else {
-						line.append(getGlobalFieldValue(field, true));
+						line.append(getGlobalFieldValue(rgm, field));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
-					} else {
-						line.append(getGlobalFieldValue(field, true));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -127,19 +121,13 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
-					} else if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
 					} else {
-						line.append(getGlobalFieldValue(field, true));
+						line.append(getGlobalFieldValue(rgm, field));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
-					} else {
-						line.append(getGlobalFieldValue(field, true));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -161,13 +149,9 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 54:
 			case 55:
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
@@ -202,12 +186,8 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 						line.append(location);
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 				} else {
 					line.append("");
@@ -363,24 +343,14 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 11:
 			case 12:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AMOUNT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 				}
@@ -408,26 +378,16 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 16:
 			case 17:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AMOUNT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ISSUER_EXPENSE)) {
-						line.append("(" + getFieldValue(field, fieldsMap, true) + ")");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
+						line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 				}
@@ -436,7 +396,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				if (filterType.equalsIgnoreCase("retail")) {
 					line.append(getEol());
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				}

@@ -65,6 +65,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 			contentStream.newLineAtOffset(startX, startY);
 
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -329,10 +330,10 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+					total += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
@@ -342,8 +343,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 						&& indicator.equals(ReportConstants.CREDIT_IND))) {
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", "5008"));
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
@@ -351,23 +351,17 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
 						&& indicator.equals(ReportConstants.CREDIT_IND)) {
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap, true)));
+							branchCode + getFieldValue(field, fieldsMap)));
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				break;
 			case ReportConstants.GL_ACCOUNT_NAME:
 				line.append(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
+						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				break;
 			}
 		}
@@ -382,57 +376,24 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
+				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 				line.append(getEol());
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+					line.append(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
-			}
-		}
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
@@ -441,10 +402,10 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+					total += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
@@ -454,8 +415,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 						&& indicator.equals(ReportConstants.CREDIT_IND))) {
 					contentStream.showText(String.format("%1$" + field.getCsvTxtLength() + "s", "5008"));
 				} else {
-					contentStream.showText(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
@@ -463,23 +423,17 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
 						&& indicator.equals(ReportConstants.CREDIT_IND)) {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap, true)));
+							branchCode + getFieldValue(field, fieldsMap)));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				break;
 			case ReportConstants.GL_ACCOUNT_NAME:
 				contentStream.showText(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap)));
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				break;
 			}
 		}
@@ -492,28 +446,19 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getGlobalFieldValue(field, true).charAt(0)));
-				} else if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
+				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}

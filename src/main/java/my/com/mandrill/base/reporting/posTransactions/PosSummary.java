@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.bartsFiles;
+package my.com.mandrill.base.reporting.posTransactions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,25 +21,32 @@ import org.slf4j.LoggerFactory;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
+import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
-public class CasaTransactionLogFile extends TxtReportProcessor {
+public class PosSummary extends PdfReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(CasaTransactionLogFile.class);
+	private final Logger logger = LoggerFactory.getLogger(PosSummary.class);
+	private int pagination = 0;
+	private int txnCount = 0;
+	private double total = 0.00;
+	private double totalCommission = 0.00;
+	private double totalNetSettAmt = 0.00;
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			preProcessing(rgm);
-			writeHeader(rgm);
+			pagination++;
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm, pagination);
+			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
+			writeTotal(rgm, txnCount, total, totalCommission, totalNetSettAmt);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
-			logger.error("Error in generating TXT file", e);
+			logger.error("Error in generating CSV file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -52,23 +60,32 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 		}
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CasaTransactionLogFile.preProcessing()");
-		addBatchPreProcessingFieldsToGlobalMap(rgm);
+	private void writeTotal(ReportGenerationMgr rgm, int txnCount, double total, double totalCommission,
+			double totalNetSettAmt) throws IOException {
+		logger.debug("In PosSummary.writeTotal()");
+		DecimalFormat formatter = new DecimalFormat("#,##0.00");
+		StringBuilder line = new StringBuilder();
+		line.append(";").append("GRAND TOTAL : ").append(";").append(String.format("%,d", txnCount)).append(";")
+				.append(formatter.format(total)).append(";").append(";").append(formatter.format(totalCommission))
+				.append(";").append(formatter.format(totalNetSettAmt)).append(";");
+		line.append(getEol());
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
 	}
 
 	@Override
-	protected void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In CasaTransactionLogFile.writeHeader()");
-		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In PosSummary.writeBodyHeader()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
 				line.append(getEol());
 			} else {
 				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
 			}
 		}
 		line.append(getEol());
@@ -81,28 +98,59 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
+		double txnAmt = 0.00;
+		double commission = 0.00;
+		double netSettAmt = 0.00;
 		for (ReportGenerationFields field : fields) {
-			switch (field.getFieldName()) {
-			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
-				if (extractBillerSubn(customData).length() <= 16) {
-					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					line.append(extractBillerSubn(customData));
+					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+					total += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
+			}
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap));
+				}
+			}
+
+			switch (field.getFieldName()) {
+			case ReportConstants.POS_COMMISSION:
+				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
+					line.append(extractCommission(customData) + "%");
+				} else {
+					line.append("0.00%");
+				}
+				line.append(field.getDelimiter());
+				break;
+			case ReportConstants.POS_COMMISSION_AMOUNT:
+				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
+				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
+					commission = Double.parseDouble(extractCommission(customData));
+					commission = txnAmt * commission / 100;
+					totalCommission += commission;
+					line.append(formatter.format(commission));
+				} else {
+					totalCommission += commission;
+					line.append(formatter.format(commission));
+				}
+				line.append(field.getDelimiter());
+				break;
+			case ReportConstants.POS_NET_SETT_AMT:
+				DecimalFormat amtFormatter = new DecimalFormat(field.getFieldFormat());
+				netSettAmt = txnAmt - commission;
+				totalNetSettAmt += netSettAmt;
+				line.append(amtFormatter.format(netSettAmt));
+				line.append(field.getDelimiter());
 				break;
 			default:
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
-						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-						line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0').concat("00"));
-					} else {
-						line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0'));
-					}
-				} else {
-					setFieldFormatException(true);
-					line.append(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 				break;
 			}
 		}
@@ -112,7 +160,7 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In CasaTransactionLogFile.executeBodyQuery()");
+		logger.debug("In PosSummary.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -173,9 +221,10 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 				}
 			}
 		}
+
 	}
 
-	private String extractBillerSubn(String customData) {
+	private String extractCommission(String customData) {
 		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
 		Matcher matcher = pattern.matcher(customData);
 		Map<String, String> map = new HashMap<>();
@@ -185,8 +234,8 @@ public class CasaTransactionLogFile extends TxtReportProcessor {
 			String key = xmlElem.substring(1, xmlElem.indexOf('>'));
 			String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
 			map.put(key, value);
-			if (map.get(ReportConstants.BILLER_SUBN) != null) {
-				return map.get(ReportConstants.BILLER_SUBN);
+			if (map.get(ReportConstants.COMMISSION) != null) {
+				return map.get(ReportConstants.COMMISSION);
 			}
 		}
 		return "";

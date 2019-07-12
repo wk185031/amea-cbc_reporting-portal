@@ -63,6 +63,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 			contentStream.newLineAtOffset(startX, startY);
 
 			writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -153,20 +154,12 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 					contentStream.showText(String.valueOf(pagination));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
 		}
 	}
@@ -177,23 +170,15 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 						contentStream.showText(String.format("%1$4s", "")
 								+ String.format("%1$-" + field.getPdfLength() + "s", location));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 				} else {
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
@@ -285,23 +270,14 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-					contentStream.newLineAtOffset(0, -leading);
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (overallTotal && field.getFieldName().equalsIgnoreCase(ReportConstants.SUB_TOTAL)) {
 					contentStream.showText(
 							String.format("%1$-" + field.getPdfLength() + "s", ReportConstants.OVERALL_TOTAL));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}

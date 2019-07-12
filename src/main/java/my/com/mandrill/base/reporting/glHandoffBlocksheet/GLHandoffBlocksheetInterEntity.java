@@ -210,6 +210,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		try {
 			preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -229,6 +230,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		try {
 			preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -444,7 +446,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					.replace(
 							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN ('INTER-ENTITY AP ATM WITHDRAWAL', 'INTER-ENTITY AR ATM WITHDRAWAL', 'INTER-ENTITY FUND TRANSFER DR', 'INTER-ENTITY FUND TRANSFER CR') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS \"DEBIT\",",
 							"")
-					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"ACCOUNT NUMBER\",", "").replace("TXN.TRL_AMT_TXN,", "")
+					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "").replace("TXN.TRL_AMT_TXN,", "")
 					.replace("TXN.TRL_ACQ_CHARGE_AMT,", "").replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));
 			setDebitBodyQuery(getDebitBodyQuery().replace(getDebitBodyQuery()
 					.substring(getDebitBodyQuery().indexOf("GROUP BY"), getDebitBodyQuery().indexOf("ORDER BY")), ""));
@@ -508,35 +510,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					}
 					break;
 				default:
-					switch (field.getFieldName()) {
-					case ReportConstants.CODE:
-						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-									.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					case ReportConstants.ACCOUNT_NUMBER:
-						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-											'0')));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					default:
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			} else {
@@ -546,8 +520,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 							&& indicator.equals(ReportConstants.CREDIT_IND))) {
 						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", "5008"));
 					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					fieldLength += field.getCsvTxtLength();
 					break;
@@ -556,71 +529,46 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 							&& glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)
 							&& indicator.equals(ReportConstants.CREDIT_IND)) {
 						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								branchCode + getFieldValue(field, fieldsMap, true)));
+								branchCode + getFieldValue(field, fieldsMap)));
 					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					fieldLength += field.getCsvTxtLength();
 					break;
 				case ReportConstants.GL_ACCOUNT_NAME:
-					if (getFieldValue(field, fieldsMap, true).contains("Payable")) {
+					if (getFieldValue(field, fieldsMap).contains("Payable")) {
 						line.append(String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true).substring(0, 23)));
-						payableValue = getFieldValue(field, fieldsMap, true).substring(23,
-								getFieldValue(field, fieldsMap, true).length());
+								getFieldValue(field, fieldsMap).substring(0, 23)));
+						payableValue = getFieldValue(field, fieldsMap).substring(23,
+								getFieldValue(field, fieldsMap).length());
 						payable = true;
-					} else if (getFieldValue(field, fieldsMap, true).contains("Receivable")) {
-						if (getFieldValue(field, fieldsMap, true).contains("Withdrawal")) {
+					} else if (getFieldValue(field, fieldsMap).contains("Receivable")) {
+						if (getFieldValue(field, fieldsMap).contains("Withdrawal")) {
 							line.append(
 									String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
-											getFieldValue(field, fieldsMap, true).substring(0, 24)));
-							receivableValue = getFieldValue(field, fieldsMap, true).substring(24,
-									getFieldValue(field, fieldsMap, true).length());
+											getFieldValue(field, fieldsMap).substring(0, 24)));
+							receivableValue = getFieldValue(field, fieldsMap).substring(24,
+									getFieldValue(field, fieldsMap).length());
 						} else {
 							line.append(
 									String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
-											getFieldValue(field, fieldsMap, true).substring(0, 26)));
-							receivableValue = getFieldValue(field, fieldsMap, true).substring(26,
-									getFieldValue(field, fieldsMap, true).length());
+											getFieldValue(field, fieldsMap).substring(0, 26)));
+							receivableValue = getFieldValue(field, fieldsMap).substring(26,
+									getFieldValue(field, fieldsMap).length());
 						}
 						receivable = true;
-					} else if (getFieldValue(field, fieldsMap, true).contains("ACD Inter-Entity IBFT")) {
+					} else if (getFieldValue(field, fieldsMap).contains("ACD Inter-Entity IBFT")) {
 						line.append(String.format("%1$4s", "") + String.format("%1$-" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true).substring(0, 22)));
-						acdIbftValue = getFieldValue(field, fieldsMap, true).substring(22,
-								getFieldValue(field, fieldsMap, true).length());
+								getFieldValue(field, fieldsMap).substring(0, 22)));
+						acdIbftValue = getFieldValue(field, fieldsMap).substring(22,
+								getFieldValue(field, fieldsMap).length());
 						acdIbft = true;
 					} else {
-						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.CODE:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.ACCOUNT_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						line.append(String.format("%1$4s", "") + getFieldValue(rgm, field, fieldsMap));
 					}
 					break;
 				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			}
@@ -647,35 +595,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		rgm.writeLine(line.toString().getBytes());
 		firstRecord = false;
 	}
-
-	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetInterEntity.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
-			}
-		}
-	}
-
+	
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading, String glDescription, String branchCode, String indicator)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
@@ -708,55 +628,16 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					break;
 				default:
 					if (field.isEol()) {
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						contentStream.newLineAtOffset(0, -leading);
 					} else {
-						switch (field.getFieldName()) {
-						case ReportConstants.CODE:
-							if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
-												.replace(' ', '0')));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						case ReportConstants.ACCOUNT_NUMBER:
-							if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
-												.replace(' ', '0')));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						default:
-							if (getFieldValue(field, fieldsMap, true) == null) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					break;
 				}
 			} else {
 				if (field.isEol()) {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					switch (field.getFieldName()) {
@@ -765,8 +646,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 								&& indicator.equals(ReportConstants.CREDIT_IND))) {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", "5008"));
 						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
+							contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						}
 						fieldLength += field.getPdfLength();
 						break;
@@ -775,74 +655,48 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 								&& glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)
 								&& indicator.equals(ReportConstants.CREDIT_IND)) {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									branchCode + getFieldValue(field, fieldsMap, true)));
+									branchCode + getFieldValue(field, fieldsMap)));
 						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
+							contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						}
 						fieldLength += field.getPdfLength();
 						break;
 					case ReportConstants.GL_ACCOUNT_NAME:
-						if (getFieldValue(field, fieldsMap, true).contains("Payable")) {
+						if (getFieldValue(field, fieldsMap).contains("Payable")) {
 							contentStream.showText(
 									String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
-											getFieldValue(field, fieldsMap, true).substring(0, 23)));
-							payableValue = getFieldValue(field, fieldsMap, true).substring(23,
-									getFieldValue(field, fieldsMap, true).length());
+											getFieldValue(field, fieldsMap).substring(0, 23)));
+							payableValue = getFieldValue(field, fieldsMap).substring(23,
+									getFieldValue(field, fieldsMap).length());
 							payable = true;
-						} else if (getFieldValue(field, fieldsMap, true).contains("Receivable")) {
-							if (getFieldValue(field, fieldsMap, true).contains("Withdrawal")) {
+						} else if (getFieldValue(field, fieldsMap).contains("Receivable")) {
+							if (getFieldValue(field, fieldsMap).contains("Withdrawal")) {
 								contentStream.showText(
 										String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
-												getFieldValue(field, fieldsMap, true).substring(0, 24)));
-								receivableValue = getFieldValue(field, fieldsMap, true).substring(24,
-										getFieldValue(field, fieldsMap, true).length());
+												getFieldValue(field, fieldsMap).substring(0, 24)));
+								receivableValue = getFieldValue(field, fieldsMap).substring(24,
+										getFieldValue(field, fieldsMap).length());
 							} else {
 								contentStream.showText(
 										String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
-												getFieldValue(field, fieldsMap, true).substring(0, 26)));
-								receivableValue = getFieldValue(field, fieldsMap, true).substring(26,
-										getFieldValue(field, fieldsMap, true).length());
+												getFieldValue(field, fieldsMap).substring(0, 26)));
+								receivableValue = getFieldValue(field, fieldsMap).substring(26,
+										getFieldValue(field, fieldsMap).length());
 							}
 							receivable = true;
-						} else if (getFieldValue(field, fieldsMap, true).contains("ACD Inter-Entity IBFT")) {
+						} else if (getFieldValue(field, fieldsMap).contains("ACD Inter-Entity IBFT")) {
 							contentStream.showText(
 									String.format("%1$4s", "") + String.format("%1$-" + field.getPdfLength() + "s",
-											getFieldValue(field, fieldsMap, true).substring(0, 22)));
-							acdIbftValue = getFieldValue(field, fieldsMap, true).substring(22,
-									getFieldValue(field, fieldsMap, true).length());
+											getFieldValue(field, fieldsMap).substring(0, 22)));
+							acdIbftValue = getFieldValue(field, fieldsMap).substring(22,
+									getFieldValue(field, fieldsMap).length());
 							acdIbft = true;
 						} else {
-							contentStream.showText(String.format("%1$4s", "") + String
-									.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					case ReportConstants.CODE:
-						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-									.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					case ReportConstants.ACCOUNT_NUMBER:
-						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-											'0')));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
+							contentStream.showText(String.format("%1$4s", "") + getFieldValue(rgm, field, fieldsMap));
 						}
 						break;
 					default:
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						break;
 					}
 				}
@@ -901,6 +755,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 						contentStream.beginText();
 						contentStream.newLineAtOffset(startX, startY);
 						writePdfHeader(rgm, contentStream, leading, pagination);
+						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 4;
 					}
 					for (String key : lineFieldsMap.keySet()) {

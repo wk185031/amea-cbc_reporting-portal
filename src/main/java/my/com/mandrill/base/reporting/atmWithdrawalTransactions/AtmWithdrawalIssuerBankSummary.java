@@ -58,6 +58,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			contentStream.newLineAtOffset(startX, startY);
 
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -143,7 +144,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			case 8:
 				break;
 			default:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 				break;
 			}
@@ -153,34 +154,15 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 	}
 
 	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In AtmWithdrawalIssuerBankSummary.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-			}
-		}
-	}
-
-	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-				line.append(getFieldValue(field, fieldsMap, true) + " DR");
-			} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append("");
+				line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 			} else {
-				line.append(getFieldValue(field, fieldsMap, true));
+				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 			line.append(field.getDelimiter());
 		}
@@ -196,28 +178,19 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							getFieldValue(field, fieldsMap, true) + " DR"));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_CODE)
 						|| field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					setFieldFormatException(true);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}
@@ -315,24 +288,14 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			default:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -350,37 +313,19 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							getFieldValue(field, fieldsMap, true) + " DR"));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							getFieldValue(field, fieldsMap, true).charAt(0)));
-				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-							String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
+					setFieldFormatException(true);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}

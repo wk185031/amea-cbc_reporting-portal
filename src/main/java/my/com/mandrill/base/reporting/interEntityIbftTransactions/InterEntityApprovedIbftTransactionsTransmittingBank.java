@@ -268,19 +268,13 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
-					} else if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
 					} else {
-						line.append(getGlobalFieldValue(field, true));
+						line.append(getGlobalFieldValue(rgm, field));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
-					} else {
-						line.append(getGlobalFieldValue(field, true));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -304,19 +298,13 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
-					} else if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
 					} else {
-						line.append(getGlobalFieldValue(field, true));
+						line.append(getGlobalFieldValue(rgm, field));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
-					} else {
-						line.append(getGlobalFieldValue(field, true));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -341,19 +329,13 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
-					} else if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
 					} else {
-						line.append(getGlobalFieldValue(field, true));
+						line.append(getGlobalFieldValue(rgm, field));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (getGlobalFieldValue(field, true) == null) {
-						line.append("");
-					} else {
-						line.append(getGlobalFieldValue(field, true));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -395,11 +377,11 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			case 23:
 			case 24:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -428,11 +410,11 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			case 46:
 			case 47:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -448,11 +430,11 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			case 53:
 			case 54:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -460,7 +442,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 				if (filterType.equalsIgnoreCase("retail")) {
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				}
@@ -491,45 +473,8 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			case 34:
 			case 35:
 			case 36:
-				switch (field.getFieldName()) {
-				case ReportConstants.ATM_CARD_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						line.append(String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						line.append(String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.FROM_ACCOUNT_NO:
-				case ReportConstants.TO_ACCOUNT_NO:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						line.append(String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 				break;
 			default:
 				break;
@@ -555,26 +500,20 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			case 61:
 				switch (field.getFieldName()) {
 				case ReportConstants.AMOUNT:
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					break;
 				case ReportConstants.ISSUER_EXPENSE:
-					line.append("(" + getFieldValue(field, fieldsMap, true) + ")");
+					line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
 					break;
 				default:
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 				line.append(field.getDelimiter());
 				break;
 			case 62:
 				if (filterType.equalsIgnoreCase("corporate")) {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -604,23 +543,11 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;

@@ -154,57 +154,20 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					line.append(
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.SEQ_NUMBER:
-			case ReportConstants.TRACE_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-					line.append(
-							String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.ACCOUNT:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
 			case ReportConstants.DR_AMOUNT:
 			case ReportConstants.CR_AMOUNT:
 				if (!voidCode.equals("0")) {
 					line.append("");
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.VOID_CODE:
-				if (getFieldValue(field, fieldsMap, true).length() <= 3) {
-					line.append(
-							String.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.COMMENT:
-				if (!getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
-					line.append(getFieldValue(field, fieldsMap, true));
+				if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				} else if (txnQualifier.equals("R")
-						&& getFieldValue(field, fieldsMap, true).equalsIgnoreCase(ReportConstants.APPROVED)) {
+						&& getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(ReportConstants.FULL_REVERSAL);
 				} else {
 					line.append("");
@@ -212,11 +175,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 				line.append(field.getDelimiter());
 				break;
 			default:
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
 			}

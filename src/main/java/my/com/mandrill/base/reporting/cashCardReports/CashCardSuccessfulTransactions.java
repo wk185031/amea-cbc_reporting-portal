@@ -62,6 +62,7 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 
 			preProcessing(rgm);
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -159,51 +160,24 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 	}
 
 	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In CashCardSuccessfulTransactions.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-			}
-		}
-	}
-
-	@Override
 	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.CHANNEL:
 				case ReportConstants.TRANSACTION_TYPE:
-					contentStream.showText(
-							String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
+					setFieldFormatException(true);
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 					break;
 				default:
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			}

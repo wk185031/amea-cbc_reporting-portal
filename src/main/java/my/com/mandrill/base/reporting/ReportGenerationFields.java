@@ -4,24 +4,13 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ReportGenerationFields {
 
-	private final Logger logger = LoggerFactory.getLogger(ReportGenerationFields.class);
-	public static final String TYPE_NUMBER = "NUMBER";
-	public static final String TYPE_SPECIAL_NUMBER = "SPECIAL_NUMBER";
-	public static final String TYPE_FORMAT_NUMBER = "FORMAT_NUMBER";
-	public static final String TYPE_DECIMAL = "DECIMAL";
-	public static final String TYPE_SPECIAL_DECIMAL = "SPECIAL_DECIMAL";
-	public static final String TYPE_FORMAT_DECIMAL = "FORMAT_DECIMAL";
-	public static final String TYPE_DECIMAL_WITHOUT_LEADING_ZEROS = "DECIMAL_WITHOUT_LEADING_ZEROS";
-	public static final String TYPE_DATE = "DATE";
-	public static final String TYPE_STRING = "STRING";
-	public static final String TYPE_SPECIAL_STRING = "SPECIAL_STRING";
-	public static final String TYPE_BIN = "BIN";
-	public static final String TYPE_ENCRYPTED_STRING = "ENCRYPTED";
+	public static final String TYPE_NUMBER = "Number";
+	public static final String TYPE_DECIMAL = "Decimal";
+	public static final String TYPE_DATE = "Date";
+	public static final String TYPE_STRING = "String";
+	public static final String TYPE_ENCRYPTED_STRING = "Encrypted";
 	public static final String DEFAULT_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
 
 	// Report Definition
@@ -344,37 +333,522 @@ public class ReportGenerationFields {
 		this.source = source;
 	}
 
-	public String format(String eol, boolean fixedLength, Integer eky_id) {
+	public String format(Integer eky_id) {
 		String tempValue = null;
-		if (value == null || value.length() < 1) {
-			tempValue = "";
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_ENCRYPTED_STRING)) {
-			if (value != null && !value.isEmpty()) {
-				// tempValue = (SecureField.fromDatabase(value, eky_id)).getClear();
-			}
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DATE)) {
-			if (fieldFormat == null) {
+		switch (fieldType) {
+		case ReportGenerationFields.TYPE_DATE:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
 				fieldFormat = DEFAULT_DATE_FORMAT;
 			}
 			SimpleDateFormat df = new SimpleDateFormat(fieldFormat);
 			Date date = new Date(Long.parseLong(value));
 			tempValue = df.format(date);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
+			break;
+		case ReportGenerationFields.TYPE_DECIMAL:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				fieldFormat = "#,##0.00";
+			}
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue);
-		} else if (fieldType.equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
+			break;
+		case ReportGenerationFields.TYPE_NUMBER:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				tempValue = value;
+			} else {
+				tempValue = String.format("%,d", Integer.parseInt(value));
+			}
+			break;
+		case ReportGenerationFields.TYPE_STRING:
 			tempValue = value;
+			break;
+		case ReportGenerationFields.TYPE_ENCRYPTED_STRING:
+			if (value != null && !value.isEmpty()) {
+				// tempValue = (SecureField.fromDatabase(value, eky_id)).getClear();
+			}
+			break;
+		default:
+			tempValue = "";
+			break;
+		}
+		return tempValue;
+	}
+
+	public String format(ReportGenerationMgr rgm, boolean header, boolean bodyHeader, boolean body, boolean trailer,
+			boolean fieldFormatException, Integer eky_id) {
+		String tempValue = null;
+		switch (fieldType) {
+		case ReportGenerationFields.TYPE_DATE:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				fieldFormat = DEFAULT_DATE_FORMAT;
+			}
+			SimpleDateFormat df = new SimpleDateFormat(fieldFormat);
+			Date date = new Date(Long.parseLong(value));
+			tempValue = df.format(date);
+			break;
+		case ReportGenerationFields.TYPE_DECIMAL:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				fieldFormat = "#,##0.00";
+			}
+			double doubleValue = Double.parseDouble(value);
+			DecimalFormat formatter = new DecimalFormat(fieldFormat);
+			tempValue = formatter.format(doubleValue);
+			break;
+		case ReportGenerationFields.TYPE_NUMBER:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				tempValue = value;
+			} else {
+				tempValue = String.format("%,d", Integer.parseInt(value));
+			}
+			break;
+		case ReportGenerationFields.TYPE_STRING:
+			tempValue = value;
+			break;
+		case ReportGenerationFields.TYPE_ENCRYPTED_STRING:
+			if (value != null && !value.isEmpty()) {
+				// tempValue = (SecureField.fromDatabase(value, eky_id)).getClear();
+			}
+			break;
+		default:
+			tempValue = "";
+			break;
+		}
+
+		if (rgm.getFileFormat().equals(ReportConstants.FILE_PDF)) {
+			return formatPdfValue(rgm, tempValue, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
+		}
+
+		if (rgm.getFileFormat().equals(ReportConstants.FILE_TXT)) {
+			return formatTxtValue(rgm, tempValue, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
+		}
+
+		if (rgm.getFileFormat().equals(ReportConstants.FILE_CSV)) {
+			return formatFixCsvValue(tempValue, body);
+		}
+		return tempValue;
+	}
+
+	public String formatPdfValue(ReportGenerationMgr rgm, String tempValue, boolean header, boolean bodyHeader,
+			boolean body, boolean trailer, boolean fieldFormatException, Integer eky_id) {
+		if (header) {
+			return formatPdfHeaderValue(tempValue, fieldFormatException);
+		} else if (bodyHeader) {
+			return formatPdfBodyHeaderValue(tempValue, fieldFormatException);
+		} else if (body) {
+			return formatPdfBodyValue(tempValue, fieldFormatException);
 		} else {
-			tempValue = value.replaceAll(eol, " ");
+			return formatPdfTrailerValue(tempValue, fieldFormatException);
+		}
+	}
+
+	public String formatPdfHeaderValue(String tempValue, boolean fieldFormatException) {
+		if (tempValue.trim().length() == 0) {
+			tempValue = String.format("%1$" + pdfLength + "s", "");
+		} else {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+		}
+		return tempValue;
+	}
+
+	public String formatPdfBodyHeaderValue(String tempValue, boolean fieldFormatException) {
+		if (fieldName != null) {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$" + pdfLength + "s", fieldName);
+			} else {
+				if (fieldName.contains(ReportConstants.LINE)) {
+					tempValue = String.format("%" + pdfLength + "s", " ").replace(' ', tempValue.charAt(0));
+				} else {
+					tempValue = String.format("%1$-" + pdfLength + "s", fieldName);
+				}
+			}
+		} else {
+			tempValue = String.format("%1$-" + pdfLength + "s", "");
+		}
+		return tempValue;
+	}
+
+	public String formatPdfBodyValue(String tempValue, boolean fieldFormatException) {
+		if (fieldFormatException) {
+			return formatFixLeftJustifiedPdfValue(tempValue);
+		} else {
+			return formatFixPdfValue(tempValue);
+		}
+	}
+
+	public String formatPdfTrailerValue(String tempValue, boolean fieldFormatException) {
+		if (tempValue.trim().length() == 0) {
+			tempValue = String.format("%1$" + pdfLength + "s", "");
+		} else {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			} else {
+				if (fieldName.contains(ReportConstants.LINE)) {
+					tempValue = String.format("%" + pdfLength + "s", " ").replace(' ', tempValue.charAt(0));
+				} else {
+					tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+				}
+			}
+		}
+		return tempValue;
+	}
+
+	public String formatFixPdfValue(String tempValue) {
+		switch (fieldName) {
+		case ReportConstants.ATM_CARD_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 19) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.CODE:
+		case ReportConstants.SEQ_NUMBER:
+		case ReportConstants.TRACE_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 6) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.FROM_ACCOUNT_NO:
+		case ReportConstants.TO_ACCOUNT_NO:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 16) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.VOID_CODE:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 3) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			}
+			break;
+		default:
+			tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			break;
+		}
+		return tempValue;
+	}
+
+	public String formatFixLeftJustifiedPdfValue(String tempValue) {
+		switch (fieldName) {
+		case ReportConstants.ATM_CARD_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 19) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.CODE:
+		case ReportConstants.SEQ_NUMBER:
+		case ReportConstants.TRACE_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 6) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.FROM_ACCOUNT_NO:
+		case ReportConstants.TO_ACCOUNT_NO:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 16) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.VOID_CODE:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 3) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+			break;
+		default:
+			tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			break;
+		}
+		return tempValue;
+	}
+
+	public String formatTxtValue(ReportGenerationMgr rgm, String tempValue, boolean header, boolean bodyHeader,
+			boolean body, boolean trailer, boolean fieldFormatException, Integer eky_id) {
+		if (header) {
+			return formatTxtHeaderValue(tempValue, fieldFormatException);
+		} else if (bodyHeader) {
+			return formatTxtBodyHeaderValue(tempValue, fieldFormatException);
+		} else if (body) {
+			return formatTxtBodyValue(tempValue, fieldFormatException);
+		} else {
+			return formatTxtTrailerValue(tempValue, fieldFormatException);
+		}
+	}
+
+	public String formatTxtHeaderValue(String tempValue, boolean fieldFormatException) {
+		if (tempValue.trim().length() == 0) {
+			tempValue = String.format("%1$" + csvTxtLength + "s", "");
+		} else {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			} else {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			}
+		}
+		return tempValue;
+	}
+
+	public String formatTxtBodyHeaderValue(String tempValue, boolean fieldFormatException) {
+		if (fieldName != null) {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$" + csvTxtLength + "s", fieldName);
+			} else {
+				if (fieldName.contains(ReportConstants.LINE)) {
+					tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
+				} else {
+					tempValue = String.format("%1$-" + csvTxtLength + "s", fieldName);
+				}
+			}
+		} else {
+			tempValue = String.format("%1$-" + csvTxtLength + "s", "");
+		}
+		return tempValue;
+	}
+
+	public String formatTxtBodyValue(String tempValue, boolean fieldFormatException) {
+		if (fieldFormatException) {
+			return formatFixLeftJustifiedTxtValue(tempValue);
+		} else {
+			return formatFixTxtValue(tempValue);
+		}
+	}
+
+	public String formatTxtTrailerValue(String tempValue, boolean fieldFormatException) {
+		if (tempValue.trim().length() == 0) {
+			tempValue = String.format("%1$" + csvTxtLength + "s", "");
+		} else {
+			if (fieldFormatException) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			} else {
+				if (fieldName.contains(ReportConstants.LINE)) {
+					tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
+				} else {
+					tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+				}
+			}
+		}
+		return tempValue;
+	}
+
+	public String formatFixTxtValue(String tempValue) {
+		switch (fieldName) {
+		case ReportConstants.ATM_CARD_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 19) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.CODE:
+		case ReportConstants.SEQ_NUMBER:
+		case ReportConstants.TRACE_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 6) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.FROM_ACCOUNT_NO:
+		case ReportConstants.TO_ACCOUNT_NO:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 16) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.VOID_CODE:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 3) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		default:
+			tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+			break;
+		}
+		return tempValue;
+	}
+
+	public String formatFixLeftJustifiedTxtValue(String tempValue) {
+		switch (fieldName) {
+		case ReportConstants.ATM_CARD_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 19) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.CODE:
+		case ReportConstants.SEQ_NUMBER:
+		case ReportConstants.TRACE_NUMBER:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 6) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.FROM_ACCOUNT_NO:
+		case ReportConstants.TO_ACCOUNT_NO:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 16) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		case ReportConstants.VOID_CODE:
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+			if (tempValue.length() <= 3) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
+			} else {
+				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			}
+			break;
+		default:
+			tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			break;
+		}
+		return tempValue;
+	}
+
+	public String formatFixCsvValue(String tempValue, boolean body) {
+		if (fieldName != null) {
+			if (body) {
+				switch (fieldName) {
+				case ReportConstants.ATM_CARD_NUMBER:
+					if (tempValue.trim().length() == 0) {
+						tempValue = " ";
+					}
+					if (tempValue.length() <= 19) {
+						tempValue = String.format("%1$" + 19 + "s", tempValue).replace(' ', '0');
+					} else {
+						return tempValue;
+					}
+					break;
+				case ReportConstants.CODE:
+				case ReportConstants.SEQ_NUMBER:
+				case ReportConstants.TRACE_NUMBER:
+					if (tempValue.trim().length() == 0) {
+						tempValue = " ";
+					}
+					if (tempValue.length() <= 6) {
+						tempValue = String.format("%1$" + 6 + "s", tempValue).replace(' ', '0');
+					} else {
+						return tempValue;
+					}
+					break;
+				case ReportConstants.FROM_ACCOUNT_NO:
+				case ReportConstants.TO_ACCOUNT_NO:
+					if (tempValue.trim().length() == 0) {
+						tempValue = " ";
+					}
+					if (tempValue.length() <= 16) {
+						tempValue = String.format("%1$" + 16 + "s", tempValue).replace(' ', '0');
+					} else {
+						return tempValue;
+					}
+					break;
+				case ReportConstants.VOID_CODE:
+					if (tempValue.trim().length() == 0) {
+						tempValue = " ";
+					}
+					if (tempValue.length() <= 3) {
+						tempValue = String.format("%1$" + 3 + "s", tempValue).replace(' ', '0');
+					} else {
+						return tempValue;
+					}
+					break;
+				default:
+					return tempValue;
+				}
+			} else {
+				return tempValue;
+			}
 		}
 		return tempValue;
 	}
 
 	@Override
 	public String toString() {
-		return "ReportGenerationFields [logger=" + logger + ", reportCategory=" + reportCategory + ", fileName="
-				+ fileName + ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
+		return "ReportGenerationFields [" + "reportCategory=" + reportCategory + ", fileName=" + fileName
+				+ ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
 				+ fileFormatTmp + ", fileLocation=" + fileLocation + ", processingClass=" + processingClass
 				+ ", headerFields=" + headerFields + ", bodyFields=" + bodyFields + ", trailerFields=" + trailerFields
 				+ ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery + ", tmpBodyQuery=" + tmpBodyQuery

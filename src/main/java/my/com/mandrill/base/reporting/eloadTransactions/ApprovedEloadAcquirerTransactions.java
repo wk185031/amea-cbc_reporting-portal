@@ -163,11 +163,11 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			case 23:
 			case 24:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -193,11 +193,11 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			case 43:
 			case 44:
 				if (field.isEol()) {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getGlobalFieldValue(field, true));
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -227,45 +227,8 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			case 34:
 			case 35:
 			case 36:
-				switch (field.getFieldName()) {
-				case ReportConstants.ATM_CARD_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						line.append(String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						line.append(String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				case ReportConstants.FROM_ACCOUNT_NO:
-				case ReportConstants.TO_ACCOUNT_NO:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						line.append(String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-								'0'));
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
-					line.append(field.getDelimiter());
-					break;
-				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 				break;
 			default:
 				break;
@@ -287,13 +250,9 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			case 47:
 			case 48:
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					line.append(getFieldValue(field, fieldsMap, true) + " DR");
-				} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
+					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
+					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
 				line.append(field.getDelimiter());
 				break;
@@ -320,24 +279,14 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 				}
@@ -362,24 +311,14 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			case 15:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AMOUNT)) {
-						line.append(getFieldValue(field, fieldsMap, true) + " DR");
-					} else if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
+						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
+						line.append(getFieldValue(rgm, field, fieldsMap));
 					}
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append("");
-					} else {
-						line.append(getFieldValue(field, fieldsMap, true));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
 				break;

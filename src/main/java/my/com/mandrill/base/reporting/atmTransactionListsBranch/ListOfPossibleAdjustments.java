@@ -72,6 +72,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal);
 					writePdfHeader(rgm, contentStream, leading, pagination);
+					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 4;
 					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
@@ -229,20 +230,13 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$5s", "")
-							+ String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.showText(String.format("%1$5s", "") + getGlobalFieldValue(rgm, field));
 				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
@@ -255,69 +249,17 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getFieldValue(field, fieldsMap, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-						total += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+					if (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1) {
+						total += Double.parseDouble(getFieldValue(field, fieldsMap).trim().replace(",", ""));
 					} else {
-						total += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+						total += Double.parseDouble(getFieldValue(field, fieldsMap).trim());
 					}
 				}
-
-				switch (field.getFieldName()) {
-				case ReportConstants.ATM_CARD_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.ACCOUNT:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.VOID_CODE:
-					if (getFieldValue(field, fieldsMap, true).length() <= 3) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-								.format("%1$" + 3 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}
@@ -331,20 +273,12 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_AMOUNT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getGlobalFieldValue(field, true)));
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
 		}
 	}

@@ -59,6 +59,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			contentStream.newLineAtOffset(startX, startY);
 
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 
 			rgm.setBodyQuery(getOnUsBodyQuery());
@@ -207,21 +208,13 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$2s", "")
-							+ String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.showText(String.format("%1$2s", "") + getGlobalFieldValue(rgm, field));
 				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}
@@ -247,7 +240,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			case 23:
 				break;
 			default:
-				line.append(getGlobalFieldValue(field, true));
+				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
 			}
 		}

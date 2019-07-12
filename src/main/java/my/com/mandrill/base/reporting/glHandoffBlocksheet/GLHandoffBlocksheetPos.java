@@ -142,6 +142,7 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 		logger.debug("In GLHandoffBlocksheetPos.pdfProcessingDetail()");
 		try {
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
@@ -255,7 +256,7 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 			setCriteriaQuery(
 					getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "").replace("TXN.TRL_DEST_STAN,", "")
 							.replace("TXN.TRL_DEST_STAN ASC,", "").replace("TXN.TRL_AMT_TXN \"DEBIT\",", "")
-							.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"ACCOUNT NUMBER\",", "").replace("TXN.TRL_AMT_TXN,", "")
+							.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "").replace("TXN.TRL_AMT_TXN,", "")
 							.replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));
 			setDebitBodyQuery(getDebitBodyQuery().replace(getDebitBodyQuery()
 					.substring(getDebitBodyQuery().indexOf("GROUP BY"), getDebitBodyQuery().indexOf("ORDER BY")), ""));
@@ -292,68 +293,16 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 					}
 					break;
 				default:
-					switch (field.getFieldName()) {
-					case ReportConstants.CODE:
-						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-									.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					case ReportConstants.ACCOUNT_NUMBER:
-						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-											'0')));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					default:
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-						} else {
-							line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.GL_ACCOUNT_NAME:
-					line.append(String.format("%1$4s", "") + String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-					break;
-				case ReportConstants.CODE:
-					if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-								.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
-					break;
-				case ReportConstants.ACCOUNT_NUMBER:
-					if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", String
-								.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					line.append(String.format("%1$4s", "") + getFieldValue(rgm, field, fieldsMap));
 					break;
 				default:
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				}
 			}
@@ -361,34 +310,6 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 		firstRecord = false;
-	}
-
-	@Override
-	protected void writePdfBodyHeader(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
-			throws IOException, JSONException {
-		logger.debug("In GLHandoffBlocksheetPos.writePdfBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.LINE)) {
-					contentStream.showText(String.format("%" + field.getPdfLength() + "s", " ").replace(' ',
-							field.getDefaultValue().charAt(0)));
-					contentStream.newLineAtOffset(0, -leading);
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
-				}
-			} else {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				}
-			}
-		}
 	}
 
 	@Override
@@ -417,88 +338,24 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 					break;
 				default:
 					if (field.isEol()) {
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						contentStream.newLineAtOffset(0, -leading);
 					} else {
-						switch (field.getFieldName()) {
-						case ReportConstants.CODE:
-							if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										String.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true))
-												.replace(' ', '0')));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						case ReportConstants.ACCOUNT_NUMBER:
-							if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true))
-												.replace(' ', '0')));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						default:
-							if (getFieldValue(field, fieldsMap, true) == null) {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-							} else {
-								contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-										getFieldValue(field, fieldsMap, true)));
-							}
-							break;
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					break;
 				}
 			} else {
 				if (field.isEol()) {
-					if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					switch (field.getFieldName()) {
 					case ReportConstants.GL_ACCOUNT_NAME:
-						contentStream.showText(String.format("%1$4s", "") + String
-								.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-						break;
-					case ReportConstants.CODE:
-						if (getFieldValue(field, fieldsMap, true).length() <= 6) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", String
-									.format("%1$" + 6 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
-						break;
-					case ReportConstants.ACCOUNT_NUMBER:
-						if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ',
-											'0')));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
+						contentStream.showText(String.format("%1$4s", "") + getFieldValue(rgm, field, fieldsMap));
 						break;
 					default:
-						if (getFieldValue(field, fieldsMap, true) == null) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									getFieldValue(field, fieldsMap, true)));
-						}
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						break;
 					}
 				}
@@ -539,6 +396,7 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 						contentStream.beginText();
 						contentStream.newLineAtOffset(startX, startY);
 						writePdfHeader(rgm, contentStream, leading, pagination);
+						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 4;
 					}
 					for (String key : lineFieldsMap.keySet()) {

@@ -70,6 +70,7 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal, cardProduct);
 					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 4;
 					for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
 							.entrySet()) {
@@ -162,21 +163,13 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-					contentStream.newLineAtOffset(0, -leading);
-				}
+				contentStream.showText(getGlobalFieldValue(rgm, field));
+				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$2s", "")
-							+ String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
-				} else if (getGlobalFieldValue(field, true) == null) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+					contentStream.showText(String.format("%1$2s", "") + getGlobalFieldValue(rgm, field));
 				} else {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", field.getFieldName()));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
 			}
 		}

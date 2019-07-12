@@ -71,7 +71,6 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 			line.append(getEol());
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
-
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -104,13 +103,11 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().contains(ReportConstants.BP_BILLER_NAME)) {
-				line.append(
-						String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
-			} else if (getFieldValue(field, fieldsMap, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+				setFieldFormatException(true);
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				setFieldFormatException(false);
 			} else {
-				line.append(
-						String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true)));
+				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 		line.append(getEol());

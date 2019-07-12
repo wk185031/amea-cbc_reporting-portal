@@ -205,17 +205,16 @@ public class GLHandoffMiniStatement extends BatchProcessor {
 						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
 						&& indicator.equals(ReportConstants.CREDIT_IND)) {
 					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap, true)));
-					String glAccNo = branchCode + getFieldValue(field, fieldsMap, true);
+							branchCode + getFieldValue(field, fieldsMap)));
+					String glAccNo = branchCode + getFieldValue(field, fieldsMap);
 					int[] glAccNoArray = new int[glAccNo.length()];
 					for (int i = 0; i < glAccNoArray.length; i++) {
 						glAccNoArray[i] = glAccNo.charAt(i);
 						fileHash += glAccNoArray[i];
 					}
 				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
-					String glAccNo = getFieldValue(field, fieldsMap, true);
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
+					String glAccNo = getFieldValue(field, fieldsMap);
 					int[] glAccNoArray = new int[glAccNo.length()];
 					for (int i = 0; i < glAccNoArray.length; i++) {
 						glAccNoArray[i] = glAccNo.charAt(i);
@@ -230,20 +229,17 @@ public class GLHandoffMiniStatement extends BatchProcessor {
 				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 						|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_AMOUNT)) {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
+						line.append(String.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap))
 								.replace(' ', '0'));
-						fileHash += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+						fileHash += Double.parseDouble(getFieldValue(field, fieldsMap));
 					} else {
-						line.append(String
-								.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap, true))
+						line.append(String.format("%" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap))
 								.replace(' ', '0'));
 					}
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap, true)));
+					setFieldFormatException(true);
+					line.append(getFieldValue(rgm, field, fieldsMap));
+					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -264,13 +260,13 @@ public class GLHandoffMiniStatement extends BatchProcessor {
 					line.append(String.format("%" + field.getCsvTxtLength() + "s", formatter.format(fileHash))
 							.replace(' ', '0'));
 				} else {
-					line.append(String.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true))
+					line.append(String.format("%" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field))
 							.replace(' ', '0'));
 				}
-			} else if (getGlobalFieldValue(field, true) == null) {
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
 			} else {
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getGlobalFieldValue(field, true)));
+				setFieldFormatException(true);
+				line.append(getGlobalFieldValue(rgm, field));
+				setFieldFormatException(false);
 			}
 		}
 		line.append(getEol());

@@ -64,6 +64,7 @@ public class CashCardBalance extends PdfReportProcessor {
 
 			preProcessing(rgm);
 			writePdfHeader(rgm, contentStream, leading, pagination);
+			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			contentStream.newLineAtOffset(0, -leading);
 			writePdfBodyHeader(rgm, contentStream, leading);
@@ -258,7 +259,7 @@ public class CashCardBalance extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			line.append(getGlobalFieldValue(field, true));
+			line.append(getGlobalFieldValue(rgm, field));
 			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
@@ -272,43 +273,14 @@ public class CashCardBalance extends PdfReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.BALANCE)) {
-				if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
-
-			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					line.append(
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.FROM_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					line.append(
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0'));
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			default:
-				if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-					line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true))));
-				} else if (getFieldValue(field, fieldsMap, true) == null) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(field, fieldsMap, true));
-				}
-				line.append(field.getDelimiter());
-				break;
-			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
+			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -321,55 +293,31 @@ public class CashCardBalance extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.ATM_CARD_NUMBER:
-				if (getFieldValue(field, fieldsMap, true).length() <= 19) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							String.format("%1$" + 19 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
-				break;
-			case ReportConstants.FROM_ACCOUNT_NO:
-				if (getFieldValue(field, fieldsMap, true).length() <= 16) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							String.format("%1$" + 16 + "s", getFieldValue(field, fieldsMap, true)).replace(' ', '0')));
-				} else {
-					contentStream.showText(
-							String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap, true)));
-				}
-				break;
 			case ReportConstants.CARD_PRODUCT:
-				contentStream.showText(String.format(String.format("%1$4s", "") + "%1$" + field.getPdfLength() + "s",
-						getFieldValue(field, fieldsMap, true)));
+				contentStream
+						.showText(String.format(String.format("%1$4s", "") + getFieldValue(rgm, field, fieldsMap)));
+				break;
+			case ReportConstants.CUSTOMER_ID:
+			case ReportConstants.CUSTOMER_NAME:
+				setFieldFormatException(true);
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				setFieldFormatException(false);
 				break;
 			default:
 				if (field.isEol()) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BALANCE)) {
-						if (getFieldValue(field, fieldsMap, true).indexOf(",") != -1) {
-							balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true).replace(",", ""));
+						if (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1) {
+							balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).trim().replace(",", ""));
 						} else {
-							balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap, true));
+							balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).trim());
 						}
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					} else {
-						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
-					if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)) {
-						contentStream.showText(String.format("%" + field.getPdfLength() + "s",
-								String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap, true)))));
-					} else if (getFieldValue(field, fieldsMap, true) == null) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s",
-								getFieldValue(field, fieldsMap, true)));
-					}
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 			}
 		}

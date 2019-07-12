@@ -28,6 +28,11 @@ public class GeneralReportProcess {
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
 	private HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
 	private String eol = System.lineSeparator();
+	private boolean header = false;
+	private boolean bodyHeader = false;
+	private boolean body = false;
+	private boolean trailer = false;
+	private boolean fieldFormatException = false;
 
 	public HashMap<String, ReportGenerationFields> getGlobalFileFieldsMap() {
 		return globalFileFieldsMap;
@@ -45,6 +50,46 @@ public class GeneralReportProcess {
 		this.eol = eol;
 	}
 
+	public boolean isHeader() {
+		return header;
+	}
+
+	public void setHeader(boolean header) {
+		this.header = header;
+	}
+
+	public boolean isBodyHeader() {
+		return bodyHeader;
+	}
+
+	public void setBodyHeader(boolean bodyHeader) {
+		this.bodyHeader = bodyHeader;
+	}
+
+	public boolean isBody() {
+		return body;
+	}
+
+	public void setBody(boolean body) {
+		this.body = body;
+	}
+
+	public boolean isTrailer() {
+		return trailer;
+	}
+
+	public void setTrailer(boolean trailer) {
+		this.trailer = trailer;
+	}
+
+	public boolean isFieldFormatException() {
+		return fieldFormatException;
+	}
+
+	public void setFieldFormatException(boolean fieldFormatException) {
+		this.fieldFormatException = fieldFormatException;
+	}
+
 	public String getBodyQuery(ReportGenerationMgr rgm) {
 		String query = rgm.getBodyQuery();
 		StringBuffer sb = new StringBuffer();
@@ -54,7 +99,7 @@ public class GeneralReportProcess {
 			while (m.find()) {
 				String paramName = m.group().substring(1, m.group().length() - 1);
 				if (globalFileFieldsMap.containsKey(paramName)) {
-					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
+					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(null));
 				} else {
 					rgm.errors++;
 					logger.error("No field defined for parameter ", paramName);
@@ -77,7 +122,7 @@ public class GeneralReportProcess {
 			while (m.find()) {
 				String paramName = m.group().substring(1, m.group().length() - 1);
 				if (globalFileFieldsMap.containsKey(paramName)) {
-					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(eol, false, null));
+					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format(null));
 				} else {
 					rgm.errors++;
 					logger.error("No field defined for parameter ", paramName);
@@ -93,6 +138,10 @@ public class GeneralReportProcess {
 
 	protected List<ReportGenerationFields> extractHeaderFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		header = true;
+		bodyHeader = false;
+		body = false;
+		trailer = false;
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<ReportGenerationFields> headerFields = null;
 		if (rgm.getHeaderFields() != null) {
@@ -108,6 +157,10 @@ public class GeneralReportProcess {
 
 	protected List<ReportGenerationFields> extractBodyHeaderFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		header = false;
+		bodyHeader = true;
+		body = false;
+		trailer = false;
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<ReportGenerationFields> bodyHeaderFields = null;
 		if (rgm.getBodyFields() != null) {
@@ -126,6 +179,10 @@ public class GeneralReportProcess {
 
 	protected List<ReportGenerationFields> extractBodyFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		header = false;
+		bodyHeader = false;
+		body = true;
+		trailer = false;
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<ReportGenerationFields> bodyFields = null;
 		if (rgm.getBodyFields() != null) {
@@ -144,6 +201,10 @@ public class GeneralReportProcess {
 
 	protected List<ReportGenerationFields> extractTrailerFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		header = false;
+		bodyHeader = false;
+		body = false;
+		trailer = true;
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<ReportGenerationFields> trailerFields = null;
 		if (rgm.getTrailerFields() != null) {
@@ -157,45 +218,85 @@ public class GeneralReportProcess {
 		return trailerFields;
 	}
 
-	protected String getGlobalFieldValue(ReportGenerationFields fieldConfig, boolean fixedLength) {
+	protected String getGlobalFieldValue(ReportGenerationFields field) {
 		String fieldValue = "";
-		if (fieldConfig.getDefaultValue() != null && !fieldConfig.getDefaultValue().equalsIgnoreCase("")) {
-			fieldValue = fieldConfig.getDefaultValue();
-		} else if (globalFileFieldsMap.containsKey(fieldConfig.getFieldName())) {
-			fieldValue = globalFileFieldsMap.get(fieldConfig.getFieldName()).getValue();
+		if (field.getDefaultValue() != null && field.getDefaultValue().trim().length() != 0) {
+			fieldValue = field.getDefaultValue();
+		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = globalFileFieldsMap.get(field.getFieldName()).getValue();
 		} else {
 			return "";
 		}
-		fieldConfig.setValue(fieldValue);
+		field.setValue(fieldValue);
 
 		Integer eky_id = null;
 		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
 		// {
 		// eky_id = SecurityManager.getCurrentKeyIndex();
 		// }
-		return fieldConfig.format(eol, fixedLength, eky_id);
+		return field.format(eky_id);
 	}
 
-	protected String getFieldValue(ReportGenerationFields fieldConfig,
-			HashMap<String, ReportGenerationFields> fieldsMap, boolean fixedLength) {
+	protected String getFieldValue(ReportGenerationFields field, HashMap<String, ReportGenerationFields> fieldsMap) {
 		String fieldValue = "";
-		if (fieldConfig.getDefaultValue() != null && !fieldConfig.getDefaultValue().equalsIgnoreCase("")) {
-			fieldValue = fieldConfig.getDefaultValue();
-		} else if (fieldsMap.containsKey(fieldConfig.getFieldName())) {
-			fieldValue = fieldsMap.get(fieldConfig.getFieldName()).getValue();
-		} else if (globalFileFieldsMap.containsKey(fieldConfig.getFieldName())) {
-			fieldValue = globalFileFieldsMap.get(fieldConfig.getFieldName()).getValue();
+		if (field.getDefaultValue() != null && field.getDefaultValue().trim().length() != 0) {
+			fieldValue = field.getDefaultValue();
+		} else if (fieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = fieldsMap.get(field.getFieldName()).getValue();
+		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = globalFileFieldsMap.get(field.getFieldName()).getValue();
 		} else {
 			return "";
 		}
-		fieldConfig.setValue(fieldValue);
+		field.setValue(fieldValue);
 
 		Integer eky_id = null;
 		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
 		// {
 		// eky_id = SecurityManager.getCurrentKeyIndex();
 		// }
-		return fieldConfig.format(eol, fixedLength, eky_id);
+		return field.format(eky_id);
+	}
+
+	protected String getGlobalFieldValue(ReportGenerationMgr rgm, ReportGenerationFields field) {
+		String fieldValue = "";
+		if (field.getDefaultValue() != null && field.getDefaultValue().trim().length() != 0) {
+			fieldValue = field.getDefaultValue();
+		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = globalFileFieldsMap.get(field.getFieldName()).getValue();
+		} else {
+			fieldValue = "";
+		}
+		field.setValue(fieldValue);
+
+		Integer eky_id = null;
+		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
+		// {
+		// eky_id = SecurityManager.getCurrentKeyIndex();
+		// }
+		return field.format(rgm, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
+	}
+
+	protected String getFieldValue(ReportGenerationMgr rgm, ReportGenerationFields field,
+			HashMap<String, ReportGenerationFields> fieldsMap) {
+		String fieldValue = "";
+		if (field.getDefaultValue() != null && field.getDefaultValue().trim().length() != 0) {
+			fieldValue = field.getDefaultValue();
+		} else if (fieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = fieldsMap.get(field.getFieldName()).getValue();
+		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {
+			fieldValue = globalFileFieldsMap.get(field.getFieldName()).getValue();
+		} else {
+			fieldValue = "";
+		}
+		field.setValue(fieldValue);
+
+		Integer eky_id = null;
+		// if (fieldConfig.getFieldType().equalsIgnoreCase(Field.TYPE_ENCRYPTED_STRING))
+		// {
+		// eky_id = SecurityManager.getCurrentKeyIndex();
+		// }
+		return field.format(rgm, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
 	}
 
 	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
