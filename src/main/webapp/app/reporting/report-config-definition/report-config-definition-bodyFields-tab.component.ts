@@ -140,7 +140,6 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
         } else if (field == 'type') {
             section.padFieldType = event.target.value;
         }
-        section.fieldPadding = section.padFieldLength + ',' + section.padFieldType + ',' + section.padFieldString;
         this.valueChange();
     }
 

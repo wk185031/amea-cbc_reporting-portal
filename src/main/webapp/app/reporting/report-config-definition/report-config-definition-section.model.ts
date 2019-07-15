@@ -18,7 +18,6 @@ export class ReportDefinitionSection implements BaseEntity {
         public justifyLeft?: boolean,
         public decrypt?: boolean,
         public decryptionKey?: string,
-        public fieldPadding?: string,
         public reportDefinition?: BaseEntity,
 
         public enablePadFieldLength?: boolean,
