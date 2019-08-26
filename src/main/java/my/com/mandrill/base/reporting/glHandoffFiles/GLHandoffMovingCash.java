@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,7 +65,7 @@ public class GLHandoffMovingCash extends BatchProcessor {
 					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
 				}
 			}
-			postProcessing(rgm);
+			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -96,13 +96,9 @@ public class GLHandoffMovingCash extends BatchProcessor {
 		}
 
 		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -114,7 +110,8 @@ public class GLHandoffMovingCash extends BatchProcessor {
 				&& (filterByGlDescription.equalsIgnoreCase(ReportConstants.ATM_PAY_TO_MOBILE_WITHDRAWAL)
 						|| filterByGlDescription.equalsIgnoreCase(ReportConstants.ATM_EMERGENCY_CASH_WITHDRAWAL))) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING,
+					"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
@@ -134,13 +131,8 @@ public class GLHandoffMovingCash extends BatchProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.ATM_PAY_TO_MOBILE_WITHDRAWAL:
-			ReportGenerationFields channelPTM = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
-			getGlobalFileFieldsMap().put(channelPTM.getFieldName(), channelPTM);
-			break;
 		case ReportConstants.ATM_EMERGENCY_CASH_WITHDRAWAL:
 			ReportGenerationFields channelEC = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
@@ -148,13 +140,13 @@ public class GLHandoffMovingCash extends BatchProcessor {
 			break;
 		case ReportConstants.MBK_PAY_TO_MOBILE_OB_DEPOSIT:
 			ReportGenerationFields channelMBK = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'Authentic_Service'");
+					ReportGenerationFields.TYPE_STRING,
+					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('0000000010', '0000000112')");
 			getGlobalFileFieldsMap().put(channelMBK.getFieldName(), channelMBK);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME = 'CBS_Bridge'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -175,28 +167,18 @@ public class GLHandoffMovingCash extends BatchProcessor {
 			setDebitBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
-					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
-					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
+					.replace("\"BRANCH CODE\" ASC,", "").replace("\"BRANCH CODE\",", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
-					.replace("ABR.ABR_CODE", "")
-					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
-					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					.replace(ReportConstants.SUBSTRING_START, "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
+					.replace("\"BRANCH CODE\" ASC,", "").replace("\"BRANCH CODE\",", ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
-	}
-
-	private void postProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffMovingCash.postProcessing()");
-		addPostProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -257,9 +239,7 @@ public class GLHandoffMovingCash extends BatchProcessor {
 								.replace(' ', '0'));
 					}
 				} else {
-					setFieldFormatException(true);
 					line.append(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -275,7 +255,6 @@ public class GLHandoffMovingCash extends BatchProcessor {
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_NUMBER)
 					|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
-				setFieldFormatException(false);
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.FILE_HASH)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					line.append(String.format("%" + field.getCsvTxtLength() + "s", formatter.format(fileHash))
@@ -285,7 +264,6 @@ public class GLHandoffMovingCash extends BatchProcessor {
 							.replace(' ', '0'));
 				}
 			} else {
-				setFieldFormatException(true);
 				line.append(getGlobalFieldValue(rgm, field));
 			}
 		}

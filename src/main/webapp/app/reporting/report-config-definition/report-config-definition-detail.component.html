@@ -72,6 +72,11 @@
                             </div>
                             <div class="col-6">
                                 <dl class="row-md jh-entity-details">
+                                    <dt><span jhiTranslate="baseApp.reportDefinition.frequencyLabel">Frequency</span>
+                                    </dt>
+                                    <dd>
+                                        <span>{{reportDefinition.frequency}}</span>
+                                    </dd>
                                     <dt><span jhiTranslate="baseApp.reportDefinition.processingClassLabel">Processing
                                             Class</span></dt>
                                     <dd>
@@ -87,7 +92,8 @@
                             </div>
                         </div>
                     </section>
-                    <section id="content2" class="tab-content section_dash" style="overflow: auto;" *ngIf="tabValue === 'content2'">
+                    <section id="content2" class="tab-content section_dash" style="overflow: auto;"
+                        *ngIf="tabValue === 'content2'">
                         <div *ngIf="reportDefinition.headerFields">
                             <div class="col-8">
                                 <report-config-definition-headerFields-tab [reportDefinition]="reportDefinition"
@@ -96,7 +102,8 @@
                             </div>
                         </div>
                     </section>
-                    <section id="content3" class="tab-content section_dash" style="overflow: auto;" *ngIf="tabValue === 'content3'">
+                    <section id="content3" class="tab-content section_dash" style="overflow: auto;"
+                        *ngIf="tabValue === 'content3'">
                         <div *ngIf="reportDefinition.bodyFields">
                             <div class="col-8">
                                 <report-config-definition-bodyFields-tab [reportDefinition]="reportDefinition"
@@ -105,7 +112,8 @@
                             </div>
                         </div>
                     </section>
-                    <section id="content4" class="tab-content section_dash" style="overflow: auto;" *ngIf="tabValue === 'content4'">
+                    <section id="content4" class="tab-content section_dash" style="overflow: auto;"
+                        *ngIf="tabValue === 'content4'">
                         <div *ngIf="reportDefinition.trailerFields">
                             <div class="col-8">
                                 <report-config-definition-trailerFields-tab [reportDefinition]="reportDefinition"
@@ -114,7 +122,8 @@
                             </div>
                         </div>
                     </section>
-                    <section id="content5" class="tab-content section_dash" style="overflow: auto;" *ngIf="tabValue === 'content5'">
+                    <section id="content5" class="tab-content section_dash" style="overflow: auto;"
+                        *ngIf="tabValue === 'content5'">
                         <div *ngIf="reportDefinition.bodyQuery">
                             <div class="col-8">
                                 <report-config-definition-bodyQuery-tab [reportDefinition]="reportDefinition"
@@ -123,7 +132,8 @@
                             </div>
                         </div>
                     </section>
-                    <section id="content6" class="tab-content section_dash" style="overflow: auto;" *ngIf="tabValue === 'content6'">
+                    <section id="content6" class="tab-content section_dash" style="overflow: auto;"
+                        *ngIf="tabValue === 'content6'">
                         <div *ngIf="reportDefinition.trailerQuery">
                             <div class="col-8">
                                 <report-config-definition-trailerQuery-tab [reportDefinition]="reportDefinition"

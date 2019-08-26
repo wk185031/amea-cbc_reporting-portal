@@ -3,7 +3,7 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -15,6 +15,7 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
 public class AtmCashLevel extends CsvReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(AtmCashLevel.class);
 
 	@Override
@@ -46,10 +47,10 @@ public class AtmCashLevel extends CsvReportProcessor {
 	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In AtmCashLevel.addPreProcessingFieldsToGlobalMap()");
 		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
+			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
 					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
+			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+					.concat(" ").concat(ReportConstants.END_TIME);
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
 					"ATO.ATO_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
@@ -57,9 +58,9 @@ public class AtmCashLevel extends CsvReportProcessor {
 							+ "')");
 			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
+			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
 					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
+			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
 					.concat(ReportConstants.END_TIME);
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,

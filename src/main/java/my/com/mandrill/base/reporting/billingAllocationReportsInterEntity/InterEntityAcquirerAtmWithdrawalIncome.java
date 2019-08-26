@@ -3,15 +3,8 @@ package my.com.mandrill.base.reporting.billingAllocationReportsInterEntity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -23,27 +16,43 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
 public class InterEntityAcquirerAtmWithdrawalIncome extends CsvReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(InterEntityAcquirerAtmWithdrawalIncome.class);
-	private int pagination = 0;
+	private int branchCodeCount = 0;
+	private int branchNameCount = 0;
+	private String branchCode = null;
+	private String branchName = null;
+
+	public String getBranchCode() {
+		return branchCode;
+	}
+
+	public void setBranchCode(String branchCode) {
+		this.branchCode = branchCode;
+	}
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public void setBranchName(String branchName) {
+		this.branchName = branchName;
+	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
+		StringBuilder line = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			pagination = 1;
-			
-			rgm.setBodyQuery(rgm.getFixBodyQuery());
-			preProcessing(rgm);
-			
-			writeHeader(rgm, pagination);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			executeTrailerQuery(rgm);
-			
+			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -58,116 +67,41 @@ public class InterEntityAcquirerAtmWithdrawalIncome extends CsvReportProcessor {
 			}
 		}
 	}
-	
+
 	@Override
-	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In InterEntityAcquirerAtmWithdrawalIncome.writeBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				line.append(getGlobalFieldValue(rgm, field));
-				line.append(field.getDelimiter());
-				line.append(getEol());
-			} else {
-				line.append(getGlobalFieldValue(rgm, field));
-				line.append(field.getDelimiter());
+			switch (field.getFieldName()) {
+			case ReportConstants.BRANCH_CODE:
+				if (branchCodeCount > 0 && getBranchCode().equals(getFieldValue(rgm, field, fieldsMap))) {
+					fieldsMap.get(field.getFieldName()).setValue("");
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				} else {
+					setBranchCode(getFieldValue(rgm, field, fieldsMap));
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				}
+				branchCodeCount++;
+				break;
+			case ReportConstants.BRANCH_NAME:
+				if (branchNameCount > 0 && getBranchName().equals(getFieldValue(rgm, field, fieldsMap))) {
+					fieldsMap.get(field.getFieldName()).setValue("");
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				} else {
+					setBranchName(getFieldValue(rgm, field, fieldsMap));
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				}
+				branchNameCount++;
+				break;
+			default:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				break;
 			}
+			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterEntityAcquirerAtmWithdrawalIncome.preProcessing()");
-		if (rgm.getBodyQuery() != null) {
-			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
-		}
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
-	
-	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalAcquirerBank.executeBodyQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		String tmpBranchCode = null;
-		String tmpBranchName = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getBodyQuery(rgm);
-		logger.info("Query for body line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-							if (field.getSource().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								if (tmpBranchCode != null) {
-									if (result.toString().equalsIgnoreCase(tmpBranchCode)) {
-										result = null;
-									} else {
-										tmpBranchCode = result.toString();
-									}
-								} else {
-									tmpBranchCode = result.toString();
-								}
-							} else if (field.getSource().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-								if (tmpBranchName != null) {
-									if (result.toString().equalsIgnoreCase(tmpBranchName)) {
-										result = null;
-									} else {
-										tmpBranchName = result.toString();
-									}
-								} else {
-									tmpBranchName = result.toString();
-								}
-							}
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-					writeBody(rgm, lineFieldsMap);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
 	}
 }

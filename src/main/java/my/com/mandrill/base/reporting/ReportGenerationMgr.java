@@ -48,22 +48,24 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public void run(String url, String username, String password) {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;
-		initialiseDBConnection(url, username, password);
 		this.setFileFormatTmp(this.getFileFormat());
 		setFixBodyQuery(getBodyQuery());
 		setFixTrailerQuery(getTrailerQuery());
 
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_PDF)) {
+			initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_PDF);
 			createPdfReportInstance(this);
 			pdfReportProcessor.processPdfRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_CSV)) {
+			initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_CSV);
 			createCsvReportInstance(this);
 			csvReportProcessor.processCsvRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_TXT)) {
+			initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_TXT);
 			createTxtReportInstance(this);
 			txtReportProcessor.processTxtRecord(this);
@@ -77,7 +79,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			connection.setAutoCommit(false);
 		} catch (Exception e) {
 			errors++;
-			logger.error("Error establishing database connection for reporting - Error: ", e);
+			logger.error("Error in establishing database connection: ", e);
 		}
 	}
 
@@ -85,9 +87,13 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		logger.debug("In ReportGenerationMgr.exit()");
 		try {
 			connection.setAutoCommit(true);
+			if (connection != null) {
+				logger.debug("Close db connection...");
+				connection.close();
+			}
 		} catch (Exception e) {
 			errors++;
-			logger.error("Error closing connection: ", e);
+			logger.error("Error in closing connection: ", e);
 		}
 	}
 
@@ -132,7 +138,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			throws JSONException {
 		HashMap<String, ReportGenerationFields> lineFieldsMap = new HashMap<String, ReportGenerationFields>();
 		for (ReportGenerationFields field : fieldsMap.values()) {
-			lineFieldsMap.put(field.getFieldName(), field.clone(this));
+			lineFieldsMap.put(field.getFieldName(), field.clone());
 		}
 		return lineFieldsMap;
 	}
@@ -150,7 +156,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 					.substring(metaData.getColumnClassName(i).lastIndexOf('.') + 1);
 			tempColumn.setType(className);
 			dynamicColumns.put(tempColumn.getColumnName(), tempColumn);
-			tempField = this.clone(this);
+			tempField = this.clone();
 			String name = metaData.getColumnLabel(i);
 			tempField.setFieldName(name);
 			tempField.setFieldType(className);

@@ -6,12 +6,11 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -32,37 +31,35 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 		String branchName = null;
 		String terminal = null;
 		String location = null;
-		StringBuilder breakLine = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal);
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationList : terminalMap.getValue()) {
-							StringBuilder line = new StringBuilder();
-							location = locationList;
-							line.append(branchName).append(";");
-							line.append(getEol());
-							line.append(ReportConstants.TERMINAL + " " + terminal).append(";").append(" AT " + location)
-									.append(";");
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
-							writeBodyHeader(rgm);
-							preProcessing(rgm, branchCode, terminal);
-							executeBodyQuery(rgm);
-						}
+						location = terminalMap.getValue();
+						StringBuilder line = new StringBuilder();
+						line.append(branchName).append(";");
+						line.append(getEol());
+						line.append(ReportConstants.TERMINAL + " " + terminal).append(";").append(" AT " + location)
+								.append(";");
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
+						writeBodyHeader(rgm);
+						preProcessing(rgm, branchCode, terminal);
+						executeBodyQuery(rgm);
+						line = new StringBuilder();
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
 					}
 				}
-				breakLine.append(getEol());
-				rgm.writeLine(breakLine.toString().getBytes());
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -97,64 +94,15 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListOnUsAcquirer.preProcessing()");
-		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		}
-
-		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
+		if (rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
-		}
-	}
-
-	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListOnUsAcquirer.addPreProcessingFieldsToGlobalMap()");
-		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-
-		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-
-		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}
 

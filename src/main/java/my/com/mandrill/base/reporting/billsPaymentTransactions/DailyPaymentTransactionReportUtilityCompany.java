@@ -10,13 +10,8 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -36,14 +31,10 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(DailyPaymentTransactionReportUtilityCompany.class);
-	public static final String ATM = "ATM";
-	public static final String CDM = "CDM";
-	public static final String OB = "OB";
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 	private double subTotal = 0.00;
-	private boolean bancnetIndicator = false;
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
@@ -65,7 +56,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			float startY = pageSize.getUpperRightY() - margin;
 			String billerCode = null;
 			String billerMnem = null;
-			String channel = null;
+			DecimalFormat formatter = new DecimalFormat("#,##0.00");
 
 			preProcessing(rgm);
 
@@ -77,31 +68,24 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 
-			for (SortedMap.Entry<String, Map<String, TreeSet<String>>> billerCodeMap : filterByCriteriaByBiller(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, String> billerCodeMap : filterByCriteriaByBiller(rgm).entrySet()) {
 				billerCode = billerCodeMap.getKey();
-				for (SortedMap.Entry<String, TreeSet<String>> billerMnemMap : billerCodeMap.getValue().entrySet()) {
-					subTotal = 0.00;
-					billerMnem = billerMnemMap.getKey();
-					contentStream.showText("UTILITY COMPANY : " + billerCode + " " + billerMnem);
-					pageHeight += 1;
-					contentStream.newLineAtOffset(0, -leading);
-					contentStream.newLineAtOffset(0, -leading);
-					pageHeight += 1;
-					writePdfBodyHeader(rgm, contentStream, leading);
-					pageHeight += 2;
-					contentStream.newLineAtOffset(0, -leading);
-					pageHeight += 1;
-					for (String channelMap : billerMnemMap.getValue()) {
-						channel = channelMap;
-						preProcessing(rgm, channel, billerCode);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, bancnetIndicator);
-					}
-				}
+				billerMnem = billerCodeMap.getValue();
+				subTotal = 0.00;
+				contentStream.showText("UTILITY COMPANY : " + billerCode + " " + billerMnem);
+				pageHeight += 1;
+				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 1;
-				DecimalFormat formatter = new DecimalFormat("#,##0.00");
+				writePdfBodyHeader(rgm, contentStream, leading);
+				pageHeight += 2;
+				contentStream.newLineAtOffset(0, -leading);
+				pageHeight += 1;
+				preProcessing(rgm, billerCode);
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize);
+				contentStream.newLineAtOffset(0, -leading);
+				pageHeight += 1;
 				contentStream.showText(String.format("%1$82s", "SUBTOTAL : ") + String.format("%1$13s", "")
 						+ String.format("%1$33s", formatter.format(subTotal)));
 				pageHeight += 1;
@@ -134,36 +118,29 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String billerCode = null;
 		String billerMnem = null;
-		String channel = null;
+		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
 			preProcessing(rgm);
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, Map<String, TreeSet<String>>> billerCodeMap : filterByCriteriaByBiller(rgm)
-					.entrySet()) {
-				StringBuilder subTotalLine = new StringBuilder();
+			for (SortedMap.Entry<String, String> billerCodeMap : filterByCriteriaByBiller(rgm).entrySet()) {
 				billerCode = billerCodeMap.getKey();
-				for (SortedMap.Entry<String, TreeSet<String>> billerMnemMap : billerCodeMap.getValue().entrySet()) {
-					StringBuilder billerLine = new StringBuilder();
-					subTotal = 0.00;
-					billerMnem = billerMnemMap.getKey();
-					billerLine.append("UTILITY COMPANY : " + billerCode + " " + billerMnem);
-					billerLine.append(getEol());
-					rgm.writeLine(billerLine.toString().getBytes());
-					writeBodyHeader(rgm);
-					for (String channelMap : billerMnemMap.getValue()) {
-						channel = channelMap;
-						preProcessing(rgm, channel, billerCode);
-						executeBodyQuery(rgm, bancnetIndicator);
-					}
-				}
-				DecimalFormat formatter = new DecimalFormat("#,##0.00");
-				subTotalLine.append(";").append(";").append(";").append(";").append(";").append("SUBTOTAL : ")
-						.append(";").append(";").append(formatter.format(subTotal)).append(";");
-				subTotalLine.append(getEol());
-				subTotalLine.append(getEol());
-				rgm.writeLine(subTotalLine.toString().getBytes());
+				billerMnem = billerCodeMap.getValue();
+				StringBuilder billerLine = new StringBuilder();
+				subTotal = 0.00;
+				billerLine.append("UTILITY COMPANY : " + billerCode + " " + billerMnem);
+				billerLine.append(getEol());
+				rgm.writeLine(billerLine.toString().getBytes());
+				writeBodyHeader(rgm);
+				preProcessing(rgm, billerCode);
+				executeBodyQuery(rgm);
+				billerLine = new StringBuilder();
+				billerLine.append(";").append(";").append(";").append(";").append(";").append("SUBTOTAL : ").append(";")
+						.append(";").append(formatter.format(subTotal)).append(";");
+				billerLine.append(getEol());
+				billerLine.append(getEol());
+				rgm.writeLine(billerLine.toString().getBytes());
 			}
 			executeTrailerQuery(rgm);
 
@@ -186,16 +163,15 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		}
 	}
 
-	private SortedMap<String, Map<String, TreeSet<String>>> filterByCriteriaByBiller(ReportGenerationMgr rgm) {
+	private SortedMap<String, String> filterByCriteriaByBiller(ReportGenerationMgr rgm) {
 		logger.debug("In DailyPaymentTransactionReportUtilityCompany.filterByCriteriaByBiller()");
 		String billerCode = null;
 		String billerMnem = null;
-		String channel = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, TreeSet<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, String> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -224,28 +200,9 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 							if (key.equalsIgnoreCase(ReportConstants.BP_BILLER_MNEM)) {
 								billerMnem = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
-								channel = result.toString();
-							}
 						}
 					}
-					if (criteriaMap.get(billerCode) == null) {
-						Map<String, TreeSet<String>> tmpCriteriaMap = new HashMap<>();
-						TreeSet<String> channelList = new TreeSet<>();
-						channelList.add(channel);
-						tmpCriteriaMap.put(billerMnem, channelList);
-						criteriaMap.put(billerCode, tmpCriteriaMap);
-					} else {
-						Map<String, TreeSet<String>> tmpCriteriaMap = criteriaMap.get(billerCode);
-						if (tmpCriteriaMap.get(billerMnem) == null) {
-							TreeSet<String> terminalList = new TreeSet<>();
-							terminalList.add(channel);
-							tmpCriteriaMap.put(billerMnem, terminalList);
-						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(billerMnem);
-							terminalList.add(channel);
-						}
-					}
+					criteriaMap.put(billerCode, billerMnem);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -268,49 +225,20 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		logger.debug("In DailyPaymentTransactionReportUtilityCompany.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BILLER_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BILLER_CODE + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByChannel, String filterByBillerCode)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBillerCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ListOfATMWithdrawalsReport.preProcessing()");
-		if (filterByBillerCode != null && filterByChannel != null && rgm.getTmpBodyQuery() != null) {
+		logger.debug("In DailyPaymentTransactionReportUtilityCompany.preProcessing()");
+		if (filterByBillerCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields billerCode = new ReportGenerationFields(ReportConstants.PARAM_BILLER_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"NVL(TXN.TRL_BILLER_CODE, '000') = '" + filterByBillerCode + "'");
+					"LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '" + filterByBillerCode + "'");
 			getGlobalFileFieldsMap().put(billerCode.getFieldName(), billerCode);
-
-			// TBD
-			switch (filterByChannel) {
-			case ATM:
-				ReportGenerationFields atm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-						ReportGenerationFields.TYPE_STRING,
-						"CTR.CTR_CHANNEL = '" + filterByChannel + "' AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
-				getGlobalFileFieldsMap().put(atm.getFieldName(), atm);
-				bancnetIndicator = false;
-				break;
-			case CDM:
-				ReportGenerationFields cdm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-						ReportGenerationFields.TYPE_STRING,
-						"CTR.CTR_CHANNEL = '" + filterByChannel + "' AND TXN.TRL_ORIGIN_ICH_NAME = 'CDM'");
-				getGlobalFileFieldsMap().put(cdm.getFieldName(), cdm);
-				bancnetIndicator = false;
-				break;
-			case OB:
-				ReportGenerationFields ob = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-						ReportGenerationFields.TYPE_STRING, "CTR.CTR_CHANNEL = '" + filterByChannel
-								+ "' AND TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
-				getGlobalFileFieldsMap().put(ob.getFieldName(), ob);
-				bancnetIndicator = true;
-				break;
-			default:
-				bancnetIndicator = false;
-				break;
-			}
 		}
 	}
 
@@ -360,36 +288,29 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, String customData, boolean bancnetIndicator)
+			PDPageContentStream contentStream, float leading, String channel)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1) {
-					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap).trim().replace(",", ""));
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap).trim());
+					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
 			if (field.isEol()) {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.SUBSCRIBER_ACCT_NUMBER)) {
-					if (extractBillerSubn(customData).length() <= 16) {
-						String formatAccNo = String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ',
-								'0');
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatAccNo));
-					} else {
-						contentStream.showText(
-								String.format("%1$" + field.getPdfLength() + "s", extractBillerSubn(customData)));
-					}
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.TERMINAL:
-					if (bancnetIndicator && getFieldValue(field, fieldsMap).trim().length() == 8) {
+					if (channel.equals(ReportConstants.OB) && getFieldValue(field, fieldsMap).trim().length() == 8) {
 						String terminalId = getFieldValue(field, fieldsMap).trim();
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
 								terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4)));
@@ -405,12 +326,16 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		}
 	}
 
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String customData, boolean bancnetIndicator)
+	@Override
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, String channel)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					subTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
@@ -420,16 +345,8 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			}
 
 			switch (field.getFieldName()) {
-			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
-				if (extractBillerSubn(customData).length() <= 16) {
-					line.append(String.format("%1$" + 16 + "s", extractBillerSubn(customData)).replace(' ', '0'));
-				} else {
-					line.append(extractBillerSubn(customData));
-				}
-				line.append(field.getDelimiter());
-				break;
 			case ReportConstants.TERMINAL:
-				if (bancnetIndicator && getFieldValue(field, fieldsMap).length() == 8) {
+				if (channel.equals(ReportConstants.OB) && getFieldValue(field, fieldsMap).length() == 8) {
 					String terminalId = getFieldValue(field, fieldsMap);
 					line.append(terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4));
 				} else {
@@ -449,14 +366,14 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize, boolean bancnetIncomingIndicator) {
+			PDFont pdfFont, float fontSize) {
 		logger.debug("In DailyPaymentTransactionReportUtilityCompany.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
-		String customData = null;
+		String channel = null;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -498,8 +415,8 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else if (key.equalsIgnoreCase(ReportConstants.CUSTOM_DATA)) {
-								customData = result.toString();
+							} else if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
 								field.setValue(result.toString());
 							} else {
 								field.setValue(result.toString());
@@ -508,7 +425,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading, customData, bancnetIncomingIndicator);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, channel);
 					pageHeight++;
 				}
 			} catch (Exception e) {
@@ -527,14 +444,15 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		return contentStream;
 	}
 
-	private void executeBodyQuery(ReportGenerationMgr rgm, boolean bancnetIndicator) {
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm) {
 		logger.debug("In DailyPaymentTransactionReportUtilityCompany.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
-		String customData = null;
+		String channel = null;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -564,8 +482,8 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 							} else if (result instanceof oracle.sql.DATE) {
 								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else if (key.equalsIgnoreCase(ReportConstants.CUSTOM_DATA)) {
-								customData = result.toString();
+							} else if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
 								field.setValue(result.toString());
 							} else {
 								field.setValue(result.toString());
@@ -574,7 +492,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap, customData, bancnetIndicator);
+					writeBody(rgm, lineFieldsMap, channel);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -603,22 +521,5 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private String extractBillerSubn(String customData) {
-		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-		Matcher matcher = pattern.matcher(customData);
-		Map<String, String> map = new HashMap<>();
-
-		while (matcher.find()) {
-			String xmlElem = matcher.group();
-			String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-			String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-			map.put(key, value);
-			if (map.get(ReportConstants.BILLER_SUBN) != null) {
-				return map.get(ReportConstants.BILLER_SUBN);
-			}
-		}
-		return "";
 	}
 }

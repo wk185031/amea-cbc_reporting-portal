@@ -28,9 +28,9 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 
-public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
+public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetMiniStatement.class);
+	private final Logger logger = LoggerFactory.getLogger(GLHandoffFinalProofSheetCashCard.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -38,7 +38,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.processPdfRecord()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -183,7 +183,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	@Override
 	protected List<String> filterByGlDescription(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.filterByGlDescription()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.filterByGlDescription()");
 		String glDescription = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -238,7 +238,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.preProcessing()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.preProcessing()");
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
@@ -248,7 +248,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
 			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.preProcessing()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.preProcessing()");
 		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
@@ -261,7 +261,8 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 				&& indicator.equals(ReportConstants.CREDIT_IND)) {
 			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+						ReportGenerationFields.TYPE_STRING,
+						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
@@ -270,54 +271,47 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL:
 			ReportGenerationFields channelOnUs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND CPD.CPD_NAME IN ('CASH CARD', 'EMV CASH CARD')");
+					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
 			getGlobalFileFieldsMap().put(channelOnUs.getFieldName(), channelOnUs);
+			break;
+		case ReportConstants.CASH_CARD_BANCNET_INQUIRY_CHARGE:
+			ReportGenerationFields bancnetInquiry = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_TSC_CODE = 31 AND TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
+			getGlobalFileFieldsMap().put(bancnetInquiry.getFieldName(), bancnetInquiry);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
 	}
 
 	private void separateQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.separateDebitCreditquery()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setAcquirerDebitBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
-					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
-					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", ""));
+			setAcquirerDebitBodyQuery(
+					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setDebitBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("\"BRANCH CODE\",", "").replace("ABR.ABR_CODE", "")
-					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
-					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", "").replace("LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN", "")
-					.replace("LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID", ""));
+			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, "").replace("\"BRANCH CODE\",", "")
-					.replace("ABR.ABR_CODE", "")
-					.replace("LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID", "")
-					.replace("LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID", "")
-					.replace("\"BRANCH CODE\" ASC,", "").replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN", "")
-					.replace("LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID", ""));
+					.replace(ReportConstants.SUBSTRING_START, "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
+					.replace("\"BRANCH CODE\",", ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
@@ -371,7 +365,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	private void writeTrailer(ReportGenerationMgr rgm)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.writeTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
@@ -442,7 +436,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 
 	private void writePdfTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.writePdfTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
@@ -467,7 +461,7 @@ public class GLHandoffFinalProofSheetMiniStatement extends TxtReportProcessor {
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize, String glDescription, String branchCode, String indicator) {
-		logger.debug("In GLHandoffFinalProofSheetMiniStatement.executePdfBodyQuery()");
+		logger.debug("In GLHandoffFinalProofSheetCashCard.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

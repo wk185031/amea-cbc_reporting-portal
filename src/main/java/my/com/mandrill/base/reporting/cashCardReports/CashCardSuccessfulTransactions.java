@@ -30,18 +30,17 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
 public class CashCardSuccessfulTransactions extends PdfReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(CashCardSuccessfulTransactions.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
-	public static final String CHINABANK_ATM = "ChinaBank ATM";
-	public static final String OTHER_BANK_ATM = "Other Bank ATM";
 	private int pagination = 0;
+	private int channelCount = 0;
 
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardSuccessfulTransactions.processPdfRecord()");
 		PDDocument doc = null;
-		String channel = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -60,20 +59,17 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writePdfHeader(rgm, contentStream, leading, pagination);
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			for (SortedMap.Entry<String, Set<String>> channelMap : filterByChannel(rgm).entrySet()) {
-				channel = channelMap.getKey();
-				for (String txnType : channelMap.getValue()) {
-					preProcessing(rgm, channel, txnType);
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize);
-					pageHeight += 1;
-				}
+			for (int i = 0; i < 6; i++) {
+				preProcessing(rgm, i);
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize);
+				pageHeight += 1;
 			}
 			contentStream.endText();
 			contentStream.close();
@@ -97,20 +93,16 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		String channel = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			for (SortedMap.Entry<String, Set<String>> channelMap : filterByChannel(rgm).entrySet()) {
-				channel = channelMap.getKey();
-				for (String txnType : channelMap.getValue()) {
-					preProcessing(rgm, channel, txnType);
-					executeBodyQuery(rgm);
-				}
+			for (int i = 0; i < 6; i++) {
+				preProcessing(rgm, i);
+				executeBodyQuery(rgm);
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -131,32 +123,101 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 		}
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm)
+	private void preProcessing(ReportGenerationMgr rgm, int i)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In CashCardSuccessfulTransactions.preProcessing()");
-		if (rgm.getBodyQuery() != null) {
-			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
+		ReportGenerationFields txnCriteria = null;
+		ReportGenerationFields channel = null;
+		ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_TYPE,
+				ReportGenerationFields.TYPE_STRING, "TSC.TSC_DESCRIPTION");
+		getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
+
+		switch (i) {
+		case 0:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.CHINABANK_ATM + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		case 1:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.BANCNET_ATM + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID NOT IN ('9990', '0000009990')");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		case 2:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.CHINABANK_EBK + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'EBK'");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		case 3:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.BANCNET_EBK + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID IN ('9990', '0000009990')");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		case 4:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.CHINABANK_MBK + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'MBK'");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		case 5:
+			channelCount = 0;
+			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+					"'" + ReportConstants.CHINABANK_IVR + "'");
+			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'IVR'");
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+			break;
+		default:
+			break;
 		}
-		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByChannel, String filterByTxnType)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardSuccessfulTransactions.preProcessing()");
-		rgm.setBodyQuery(rgm.getTmpBodyQuery());
-		if (filterByChannel.equalsIgnoreCase(CHINABANK_ATM) && filterByTxnType != null) {
-			ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TSC.TSC_DESCRIPTION = '" + filterByTxnType + "'");
-			getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
-		} else {
-			ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TSC.TSC_DESCRIPTION = '" + filterByTxnType
-							+ "'");
-			getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
+	@Override
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getFieldName()) {
+			case ReportConstants.CHANNEL:
+				if (channelCount > 0) {
+					fieldsMap.get(field.getFieldName()).setValue("");
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				} else {
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				}
+				channelCount++;
+				break;
+			default:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				break;
+			}
+			line.append(field.getDelimiter());
 		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
 	}
 
 	@Override
@@ -171,10 +232,13 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.CHANNEL:
-				case ReportConstants.TRANSACTION_TYPE:
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
+					if (channelCount > 0) {
+						fieldsMap.get(field.getFieldName()).setValue("");
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					} else {
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					}
+					channelCount++;
 					break;
 				default:
 					contentStream.showText(getFieldValue(rgm, field, fieldsMap));

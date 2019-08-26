@@ -52,7 +52,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
 
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
@@ -97,8 +97,8 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
-			preProcessing(rgm);
-			writeHeader(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			executeTrailerQuery(rgm);
@@ -108,8 +108,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -123,12 +122,6 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In DailyPaymentTransactionReportTellerCardSummaryUtilityCompany.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	@Override
@@ -150,27 +143,6 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BP_BILLER_NAME)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
-			}
-		}
 	}
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
@@ -276,27 +248,5 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In DailyPaymentTransactionReportTellerCardSummaryUtilityCompany.writePdfTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
-			}
-		}
 	}
 }

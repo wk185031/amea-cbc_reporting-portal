@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				StringBuilder line = new StringBuilder();
@@ -67,63 +66,6 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 		}
 	}
 
-	private SortedMap<String, String> filterByCriteriaByBank(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListIssuer.filterByCriteriaByBank()");
-		String bankCode = null;
-		String bankName = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, String> criteriaMap = new TreeMap<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter bank code: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
-								bankCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-								bankName = result.toString();
-							}
-						}
-					}
-					criteriaMap.put(bankCode, bankName);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return criteriaMap;
-	}
-
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmWithdrawalIssuerBank.preProcessing()");
@@ -141,7 +83,7 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_ACQR_INST_ID, 4, '0') = '" + filterByBankCode + "'");
+					"LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
@@ -153,6 +95,10 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getFieldName()) {
 			case ReportConstants.DR_AMOUNT:
 			case ReportConstants.CR_AMOUNT:

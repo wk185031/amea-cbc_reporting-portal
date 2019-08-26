@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -24,34 +24,46 @@ import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(InterEntityAtmWithdrawalIssuerBank.class);
+	private int pagination = 0;
+	private int totalTran = 0;
+	private double netSettlement = 0.00;
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String bankCode = null;
 		String bankName = null;
+		DecimalFormat formatter = new DecimalFormat("#,##0.00");
+		pagination = 1;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			preProcessing(rgm);
-			writeHeader(rgm);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm, pagination);
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
+				netSettlement = 0.00;
 				StringBuilder line = new StringBuilder();
 				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankCode + " ").append(";")
 						.append(bankName).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
-				preProcessing(rgm, bankCode);
 				writeBodyHeader(rgm);
 				executeBodyQuery(rgm);
 				line = new StringBuilder();
+				line.append(getEol());
+				line.append("SUBTOTAL FOR ACQUIRER BANK - ").append(";").append(bankName).append(";");
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+				executeTrailerQuery(rgm);
+				line = new StringBuilder();
+				line.append("SUBTOTAL").append(";").append(String.valueOf(totalTran)).append(";")
+						.append(formatter.format(netSettlement)).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -67,85 +79,6 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 		}
 	}
 
-	private SortedMap<String, String> filterByCriteriaByBank(ReportGenerationMgr rgm) {
-		logger.debug("In InterEntityAtmWithdrawalIssuerBank.filterByCriteriaByBank()");
-		String bankCode = null;
-		String bankName = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, String> criteriaMap = new TreeMap<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter bank code: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
-								bankCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-								bankName = result.toString();
-							}
-						}
-					}
-					criteriaMap.put(bankCode, bankName);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return criteriaMap;
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterEntityAtmWithdrawalIssuerBank.preProcessing()");
-		if (rgm.getBodyQuery() != null) {
-			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
-		}
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterEntityAtmWithdrawalIssuerBank.preProcessing()");
-		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery());
-			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
-					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_ACQR_INST_ID, 4, '0') = '" + filterByBankCode + "'");
-			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
-		}
-	}
-
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			String txnQualifier, String voidCode)
@@ -153,6 +86,10 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getFieldName()) {
 			case ReportConstants.DR_AMOUNT:
 			case ReportConstants.CR_AMOUNT:
@@ -178,6 +115,38 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	@Override
+	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In InterEntityAtmWithdrawalIssuerBank.writeTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_TRAN)) {
+				totalTran += Integer.parseInt(getFieldValue(field, fieldsMap));
+			}
+
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
+				if (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1) {
+					netSettlement += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					netSettlement += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+
+			if (field.isEol()) {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+			} else {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 			}
 		}
 		line.append(getEol());

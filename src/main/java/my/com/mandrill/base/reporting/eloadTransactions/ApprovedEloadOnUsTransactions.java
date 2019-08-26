@@ -7,8 +7,8 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -68,31 +68,29 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 		String location = null;
 		try {
 			rgm.setBodyQuery(getCriteriaQuery());
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationMap : terminalMap.getValue()) {
-							location = locationMap;
-							StringBuilder line = new StringBuilder();
-							line.append("BRANCH: ").append(";").append(branchCode + " ").append(";")
-									.append(branchName + " ").append(";");
-							line.append(getEol());
-							line.append("TERM: ").append(";").append(terminal + " ").append(";").append(location + " ")
-									.append(";");
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
-							writeBodyHeader(rgm);
-							rgm.setBodyQuery(getIbftBodyQuery());
-							rgm.setTrailerQuery(getIbftTrailerQuery());
-							preProcessing(rgm, branchCode, terminal);
-							executeBodyQuery(rgm, false, location);
-							executeTrailerQuery(rgm, false);
-						}
+						location = terminalMap.getValue();
+						StringBuilder line = new StringBuilder();
+						line.append("BRANCH: ").append(";").append(branchCode + " ").append(";")
+								.append(branchName + " ").append(";");
+						line.append(getEol());
+						line.append("TERM: ").append(";").append(terminal + " ").append(";").append(location + " ")
+								.append(";");
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
+						writeBodyHeader(rgm);
+						rgm.setBodyQuery(getTxnBodyQuery());
+						rgm.setTrailerQuery(getTxnTrailerQuery());
+						preProcessing(rgm, branchCode, terminal);
+						executeBodyQuery(rgm, false, location);
+						executeTrailerQuery(rgm, false);
 					}
 				}
 			}
@@ -121,24 +119,22 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 			writeSummaryBodyHeader(rgm);
 
 			rgm.setBodyQuery(getCriteriaQuery());
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					StringBuilder line = new StringBuilder();
 					line.append(branchCode).append(";").append(";").append(branchName).append(";");
 					line.append(getEol());
 					rgm.writeLine(line.toString().getBytes());
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationMap : terminalMap.getValue()) {
-							location = locationMap;
-							rgm.setBodyQuery(getSummaryBodyQuery());
-							preProcessing(rgm, branchCode, terminal);
-							executeBodyQuery(rgm, true, location);
-						}
+						location = terminalMap.getValue();
+						rgm.setBodyQuery(getSummaryBodyQuery());
+						preProcessing(rgm, branchCode, terminal);
+						executeBodyQuery(rgm, true, location);
 					}
 				}
 			}
@@ -158,18 +154,18 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In ApprovedEloadOnUsTransactions.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getIbftBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+			setCriteriaQuery(getTxnBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
-			setIbftTrailerQuery(
+			setTxnTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryTrailerQuery(rgm.getTrailerQuery()
@@ -184,13 +180,13 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 		logger.debug("In ApprovedEloadOnUsTransactions.preProcessing()");
 		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null) {
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}
@@ -272,6 +268,10 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getSequence()) {
 			case 19:
 			case 20:
@@ -362,6 +362,7 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
+				break;
 			}
 		}
 		line.append(getEol());
@@ -389,6 +390,7 @@ public class ApprovedEloadOnUsTransactions extends IbftReportProcessor {
 					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 				}
+				break;
 			default:
 				break;
 			}

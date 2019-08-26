@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,10 +29,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String acquiringBodyQuery = null;
 	private String issuingBodyQuery = null;
 	private String receivingBodyQuery = null;
-	private String ibftBodyQuery = null;
+	private String txnBodyQuery = null;
 	private String summaryBodyQuery = null;
 	private String summaryDetailBodyQuery = null;
-	private String ibftTrailerQuery = null;
+	private String txnTrailerQuery = null;
 	private String summaryTrailerQuery = null;
 	private String criteriaQuery = null;
 
@@ -60,12 +60,12 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		this.receivingBodyQuery = receivingBodyQuery;
 	}
 
-	public String getIbftBodyQuery() {
-		return ibftBodyQuery;
+	public String getTxnBodyQuery() {
+		return txnBodyQuery;
 	}
 
-	public void setIbftBodyQuery(String ibftBodyQuery) {
-		this.ibftBodyQuery = ibftBodyQuery;
+	public void setTxnBodyQuery(String txnBodyQuery) {
+		this.txnBodyQuery = txnBodyQuery;
 	}
 
 	public String getSummaryBodyQuery() {
@@ -84,12 +84,12 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		this.summaryDetailBodyQuery = summaryDetailBodyQuery;
 	}
 
-	public String getIbftTrailerQuery() {
-		return ibftTrailerQuery;
+	public String getTxnTrailerQuery() {
+		return txnTrailerQuery;
 	}
 
-	public void setIbftTrailerQuery(String ibftTrailerQuery) {
-		this.ibftTrailerQuery = ibftTrailerQuery;
+	public void setTxnTrailerQuery(String txnTrailerQuery) {
+		this.txnTrailerQuery = txnTrailerQuery;
 	}
 
 	public String getSummaryTrailerQuery() {
@@ -114,13 +114,12 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			}
 
 			if (rgm.errors == 0) {
@@ -136,7 +135,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
 						+ ReportConstants.CSV_FORMAT);
 			}
 		} catch (Exception e) {
@@ -149,18 +148,17 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		// To be overriden
 	}
 
-	protected SortedMap<String, Map<String, Set<String>>> filterByCriteriaTxn(ReportGenerationMgr rgm) {
-		logger.debug("In CsvReportProcessor.filterByCriteriaTxn()");
+	protected SortedMap<String, String> filterByBranch(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterByBranch()");
 		String branchCode = null;
 		String branchName = null;
-		String terminal = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Set<String>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, String> branchMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
+		logger.info("Query for filter branch: {}", query);
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -187,27 +185,72 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 								branchName = result.toString();
 							}
+						}
+					}
+					branchMap.put(branchCode, branchName);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the branch", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return branchMap;
+	}
+
+	protected SortedMap<String, Set<String>> filterCriteriaByBranchTerminal(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByBranchTerminal()");
+		String branchCode = null;
+		String terminal = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, Set<String>> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter criteria: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
+							}
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Set<String>> tmpCriteriaMap = new HashMap<>();
 						Set<String> terminalList = new HashSet<>();
 						terminalList.add(terminal);
-						tmpCriteriaMap.put(branchName, terminalList);
-						criteriaMap.put(branchCode, tmpCriteriaMap);
+						criteriaMap.put(branchCode, terminalList);
 					} else {
-						Map<String, Set<String>> tmpCriteriaMap = criteriaMap.get(branchCode);
-						if (tmpCriteriaMap.get(branchName) == null) {
-							Set<String> terminalList = new HashSet<>();
-							terminalList.add(terminal);
-							tmpCriteriaMap.put(branchName, terminalList);
-						} else {
-							Set<String> terminalList = tmpCriteriaMap.get(branchName);
-							terminalList.add(terminal);
-						}
+						Set<String> terminalList = criteriaMap.get(branchCode);
+						terminalList.add(terminal);
 					}
 				}
 			} catch (Exception e) {
@@ -226,8 +269,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		return criteriaMap;
 	}
 
-	protected SortedMap<String, Map<String, Map<String, Set<String>>>> filterByCriteria(ReportGenerationMgr rgm) {
-		logger.debug("In CsvReportProcessor.filterByCriteria()");
+	protected SortedMap<String, Map<String, TreeMap<String, String>>> filterCriteriaByBranch(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByBranch()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
@@ -236,7 +279,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, Set<String>>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, TreeMap<String, String>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -274,31 +317,20 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Set<String>>> branchNameMap = new HashMap<>();
-						Map<String, Set<String>> terminalMap = new HashMap<>();
-						Set<String> locationList = new HashSet<>();
-						locationList.add(location);
-						terminalMap.put(terminal, locationList);
+						Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
+						TreeMap<String, String> terminalMap = new TreeMap<>();
+						terminalMap.put(terminal, location);
 						branchNameMap.put(branchName, terminalMap);
 						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Map<String, Set<String>>> branchNameMap = criteriaMap.get(branchCode);
+						Map<String, TreeMap<String, String>> branchNameMap = criteriaMap.get(branchCode);
 						if (branchNameMap.get(branchName) == null) {
-							Map<String, Set<String>> terminalMap = new HashMap<>();
-							Set<String> locationList = new HashSet<>();
-							locationList.add(location);
-							terminalMap.put(terminal, locationList);
+							TreeMap<String, String> terminalMap = new TreeMap<>();
+							terminalMap.put(terminal, location);
 							branchNameMap.put(branchName, terminalMap);
 						} else {
-							Map<String, Set<String>> terminalMap = branchNameMap.get(branchName);
-							if (terminalMap.get(terminal) == null) {
-								Set<String> locationList = new HashSet<>();
-								locationList.add(location);
-								terminalMap.put(terminal, locationList);
-							} else {
-								Set<String> locationList = terminalMap.get(terminal);
-								locationList.add(location);
-							}
+							TreeMap<String, String> terminalMap = branchNameMap.get(branchName);
+							terminalMap.put(terminal, location);
 						}
 					}
 				}
@@ -318,9 +350,9 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		return criteriaMap;
 	}
 
-	protected SortedMap<String, Map<String, Map<String, Map<String, String>>>> filterByCriteriaCashCard(
+	protected SortedMap<String, Map<String, TreeMap<String, Map<String, String>>>> filterCriteriaForCashCard(
 			ReportGenerationMgr rgm) {
-		logger.debug("In CsvReportProcessor.filterByCriteriaCashCard()");
+		logger.debug("In CsvReportProcessor.filterCriteriaForCashCard()");
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
@@ -330,7 +362,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, Map<String, String>>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, TreeMap<String, Map<String, String>>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria for cash card: {}", query);
 
@@ -371,30 +403,184 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Map<String, String>>> branchNameMap = new HashMap<>();
-						Map<String, Map<String, String>> terminalMap = new HashMap<>();
-						Map<String, String> locationMap = new HashMap<>();
+						Map<String, TreeMap<String, Map<String, String>>> branchNameMap = new TreeMap<>();
+						TreeMap<String, Map<String, String>> terminalMap = new TreeMap<>();
+						Map<String, String> locationMap = new TreeMap<>();
 						locationMap.put(location, cardProduct);
 						terminalMap.put(terminal, locationMap);
 						branchNameMap.put(branchName, terminalMap);
 						criteriaMap.put(branchCode, branchNameMap);
 					} else {
-						Map<String, Map<String, Map<String, String>>> branchNameMap = criteriaMap.get(branchCode);
+						Map<String, TreeMap<String, Map<String, String>>> branchNameMap = criteriaMap.get(branchCode);
 						if (branchNameMap.get(branchName) == null) {
-							Map<String, Map<String, String>> terminalMap = new HashMap<>();
-							Map<String, String> locationMap = new HashMap<>();
+							TreeMap<String, Map<String, String>> terminalMap = new TreeMap<>();
+							Map<String, String> locationMap = new TreeMap<>();
 							locationMap.put(location, cardProduct);
 							terminalMap.put(terminal, locationMap);
 							branchNameMap.put(branchName, terminalMap);
 						} else {
 							Map<String, Map<String, String>> terminalMap = branchNameMap.get(branchName);
 							if (terminalMap.get(terminal) == null) {
-								Map<String, String> locationMap = new HashMap<>();
+								Map<String, String> locationMap = new TreeMap<>();
 								locationMap.put(location, cardProduct);
 								terminalMap.put(terminal, locationMap);
 							} else {
-								Map<String, String> locationList = terminalMap.get(terminal);
-								locationList.put(location, cardProduct);
+								Map<String, String> locationMap = terminalMap.get(terminal);
+								locationMap.put(location, cardProduct);
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return criteriaMap;
+	}
+
+	protected SortedMap<String, String> filterCriteriaByBank(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByBank()");
+		String bankCode = null;
+		String bankName = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, String> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter bank code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+								bankCode = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
+							}
+						}
+					}
+					criteriaMap.put(bankCode, bankName);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return criteriaMap;
+	}
+
+	protected SortedMap<String, TreeMap<String, Map<String, TreeMap<String, String>>>> filterByChannelBranch(
+			ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterByChannelBranch()");
+		String channel = null;
+		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, TreeMap<String, Map<String, TreeMap<String, String>>>> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter criteria: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
+								branchName = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
+								terminal = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.LOCATION)) {
+								location = result.toString();
+							}
+						}
+					}
+					if (criteriaMap.get(channel) == null) {
+						TreeMap<String, Map<String, TreeMap<String, String>>> branchCodeMap = new TreeMap<>();
+						Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
+						TreeMap<String, String> terminalMap = new TreeMap<>();
+						terminalMap.put(terminal, location);
+						branchNameMap.put(branchName, terminalMap);
+						branchCodeMap.put(branchCode, branchNameMap);
+						criteriaMap.put(channel, branchCodeMap);
+					} else {
+						TreeMap<String, Map<String, TreeMap<String, String>>> branchCodeMap = criteriaMap.get(channel);
+						if (branchCodeMap.get(branchCode) == null) {
+							Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
+							TreeMap<String, String> terminalMap = new TreeMap<>();
+							terminalMap.put(terminal, location);
+							branchNameMap.put(branchName, terminalMap);
+							branchCodeMap.put(branchCode, branchNameMap);
+						} else {
+							Map<String, TreeMap<String, String>> branchNameMap = branchCodeMap.get(branchCode);
+							if (branchNameMap.get(branchName) == null) {
+								TreeMap<String, String> terminalMap = new TreeMap<>();
+								terminalMap.put(terminal, location);
+								branchNameMap.put(branchName, terminalMap);
+							} else {
+								TreeMap<String, String> terminalMap = branchNameMap.get(branchName);
+								terminalMap.put(terminal, location);
 							}
 						}
 					}
@@ -501,6 +687,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
@@ -520,6 +710,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getFieldName()) {
 			case ReportConstants.AMOUNT:
 				if (!voidCode.equals("0")) {

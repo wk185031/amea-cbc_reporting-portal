@@ -112,27 +112,6 @@ public class CashCardPosPurchaseTransactions extends PdfReportProcessor {
 		}
 	}
 
-	@Override
-	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.MERCHANT_NAME)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
-			}
-		}
-	}
-
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {

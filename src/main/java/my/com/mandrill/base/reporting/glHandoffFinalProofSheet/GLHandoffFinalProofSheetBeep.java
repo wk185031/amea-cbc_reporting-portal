@@ -233,24 +233,16 @@ public class GLHandoffFinalProofSheetBeep extends TxtReportProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.IE_BEEP_LOADING:
-			ReportGenerationFields channelIE = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME = 'CBS_Bridge'");
-			getGlobalFileFieldsMap().put(channelIE.getFieldName(), channelIE);
-			break;
 		case ReportConstants.IE_BEEP_SERVICE_CHARGE:
-			ReportGenerationFields channelIECharge = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME = 'CBS_Bridge'");
-			getGlobalFileFieldsMap().put(channelIECharge.getFieldName(), channelIECharge);
+			ReportGenerationFields channelIE = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'CBS_Bridge'");
+			getGlobalFileFieldsMap().put(channelIE.getFieldName(), channelIE);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME != 'CBS_Bridge'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}

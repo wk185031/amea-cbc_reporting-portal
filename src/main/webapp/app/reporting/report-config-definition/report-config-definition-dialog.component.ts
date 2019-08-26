@@ -9,7 +9,7 @@ import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
 import { ReportConfigDefinitionPopupService } from './report-config-definition-popup.service';
-import { isNullOrUndefined, isUndefined } from 'util';
+import { isUndefined } from 'util';
 
 @Component({
     selector: 'report-config-definition-dialog',
@@ -37,33 +37,56 @@ export class ReportConfigDefinitionDialogComponent implements OnInit {
             this.reportDefinition.trailerSection = [];
         } else {
             this.reportDefinition.headerSection = JSON.parse(this.reportDefinition.headerFields);
+            this.reportDefinition.headerSection.forEach(section => {
+                if (section.leftJustified === false) {
+                    section.leftJustified = false;
+                } else {
+                    section.leftJustified = true;
+                }
+                if (isUndefined(section.padFieldLength)) {
+                    section.padFieldLength = 0;
+                }
+            });
             this.reportDefinition.bodySection = JSON.parse(this.reportDefinition.bodyFields);
             this.reportDefinition.bodySection.forEach(section => {
-               if (section.bodyHeader == true) {
-                   section.justifyLeft = true;
-               } else {
-                   section.justifyLeft = false;
-               }
-               if (isUndefined(section.decrypt)) {
-                   section.decrypt = false;
-                   section.decryptionKey = null
-               } else {
-                   if (section.decrypt == true) {
-                       section.enableDecryption = true;
-                   }
-               }
-               if(isUndefined(section.fieldPadding)) {
-                   section.fieldPadding = null;
-                   section.padFieldLength = null;
-                   section.padFieldType = null;
-                   section.padFieldString = null;
-               } else {
-                   if (section.fieldPadding) {
-                       section.enablePadFieldLength = true;
-                   }
-               }
+                if (section.bodyHeader === true) {
+                    if (section.leftJustified === false) {
+                        section.leftJustified = false;
+                    } else {
+                        section.leftJustified = true;
+                    }
+                } else {
+                    if (section.leftJustified === true) {
+                        section.leftJustified = true;
+                    } else {
+                        section.leftJustified = false;
+                    }
+                }
+                if (isUndefined(section.padFieldLength)) {
+                    section.padFieldLength = 0;
+                }
+                if (isUndefined(section.decrypt)) {
+                    section.decrypt = false;
+                    section.decryptionKey = null;
+                    section.tagValue = null;
+                }
             });
             this.reportDefinition.trailerSection = JSON.parse(this.reportDefinition.trailerFields);
+            this.reportDefinition.trailerSection.forEach(section => {
+                if (section.leftJustified === true) {
+                    section.leftJustified = true;
+                } else {
+                    section.leftJustified = false;
+                }
+                if (isUndefined(section.padFieldLength)) {
+                    section.padFieldLength = 0;
+                }
+                if (isUndefined(section.decrypt)) {
+                    section.decrypt = false;
+                    section.decryptionKey = null;
+                    section.tagValue = null;
+                }
+            });
         }
         this.canSave = this.checking();
     }

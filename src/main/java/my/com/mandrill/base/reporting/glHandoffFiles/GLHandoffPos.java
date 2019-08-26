@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +47,7 @@ public class GLHandoffPos extends BatchProcessor {
 				rgm.setBodyQuery(getCreditBodyQuery());
 				executeBodyQuery(rgm);
 			}
-			postProcessing(rgm);
+			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -76,13 +76,9 @@ public class GLHandoffPos extends BatchProcessor {
 		}
 
 		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -118,12 +114,6 @@ public class GLHandoffPos extends BatchProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
-	}
-
-	private void postProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffPos.postProcessing()");
-		addPostProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -164,9 +154,7 @@ public class GLHandoffPos extends BatchProcessor {
 								.replace(' ', '0'));
 					}
 				} else {
-					setFieldFormatException(true);
 					line.append(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -191,9 +179,7 @@ public class GLHandoffPos extends BatchProcessor {
 							.replace(' ', '0'));
 				}
 			} else {
-				setFieldFormatException(true);
 				line.append(getGlobalFieldValue(rgm, field));
-				setFieldFormatException(false);
 			}
 		}
 		line.append(getEol());

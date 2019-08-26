@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.SortedMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -27,15 +25,20 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
+		String bankCode = null;
+		String bankName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (String bankName : filterByCriteriaIssuer(rgm)) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+				bankCode = bankCodeMap.getKey();
+				bankName = bankCodeMap.getValue();
 				StringBuilder line = new StringBuilder();
 				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankName).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
+				preProcessing(rgm, bankCode);
 				writeBodyHeader(rgm);
 				executeBodyQuery(rgm);
 				line = new StringBuilder();
@@ -61,109 +64,25 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		}
 	}
 
-	private SortedSet<String> filterByCriteriaIssuer(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListIssuer.filterByCriteria()");
-		String bankName = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedSet<String> criteriaMap = new TreeSet<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-								bankName = result.toString();
-							}
-						}
-					}
-					criteriaMap.add(bankName);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return criteriaMap;
-	}
-
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListIssuer.preProcessing()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setTmpBodyQuery(rgm.getBodyQuery());
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In ATMTransactionListIssuer.addPreProcessingFieldsToGlobalMap()");
-		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-
-		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
-		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
-
-		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In ATMTransactionListIssuer.preProcessing()");
+		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+					"LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
 

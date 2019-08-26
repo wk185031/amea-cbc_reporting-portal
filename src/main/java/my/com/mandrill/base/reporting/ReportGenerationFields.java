@@ -1,17 +1,25 @@
 package my.com.mandrill.base.reporting;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ReportGenerationFields {
 
 	public static final String TYPE_NUMBER = "Number";
 	public static final String TYPE_DECIMAL = "Decimal";
 	public static final String TYPE_DATE = "Date";
+	public static final String TYPE_DATE_TIME = "Date Time";
 	public static final String TYPE_STRING = "String";
-	public static final String TYPE_ENCRYPTED_STRING = "Encrypted";
 	public static final String DEFAULT_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
+	public static final String DEFAULT_DECIMAL_FORMAT = "#,##0.00";
+	public static final String PAD_TYPE_LEADING = "Leading";
+	public static final String PAD_TYPE_TRAILING = "Trailing";
+	public static final String PAD_VALUE_ZEROS = "Zeros";
+	public static final String PAD_VALUE_SPACES = "Spaces";
 
 	// Report Definition
 	private String reportCategory;
@@ -21,6 +29,7 @@ public class ReportGenerationFields {
 	private String fileFormatTmp;
 	private String fileLocation;
 	private String processingClass;
+	private String frequency;
 	private String headerFields;
 	private String bodyFields;
 	private String trailerFields;
@@ -42,13 +51,20 @@ public class ReportGenerationFields {
 	private boolean bodyHeader;
 	private boolean eol;
 	private boolean endOfSection;
+	private boolean leftJustified;
+	private int padFieldLength;
+	private String padFieldType;
+	private String padFieldValue;
+	private boolean decrypt;
+	private String decryptionKey;
+	private String tagValue;
 	private String source;
 	// Report Generation
-	private Date fileDate;
-	private Date txnStartDate;
-	private Date txnEndDate;
-	private Date todayDate;
-	private Date yesterdayDate;
+	private LocalDate fileDate;
+	private LocalDate txnStartDate;
+	private LocalDate txnEndDate;
+	private LocalDate todayDate;
+	private LocalDate yesterdayDate;
 	private boolean generate;
 
 	public ReportGenerationFields() {
@@ -115,6 +131,14 @@ public class ReportGenerationFields {
 
 	public void setProcessingClass(String processingClass) {
 		this.processingClass = processingClass;
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
 	}
 
 	public String getHeaderFields() {
@@ -277,43 +301,107 @@ public class ReportGenerationFields {
 		this.endOfSection = endOfSection;
 	}
 
-	public Date getFileDate() {
+	public boolean isLeftJustified() {
+		return leftJustified;
+	}
+
+	public void setLeftJustified(boolean leftJustified) {
+		this.leftJustified = leftJustified;
+	}
+
+	public int getPadFieldLength() {
+		return padFieldLength;
+	}
+
+	public void setPadFieldLength(int padFieldLength) {
+		this.padFieldLength = padFieldLength;
+	}
+
+	public String getPadFieldType() {
+		return padFieldType;
+	}
+
+	public void setPadFieldType(String padFieldType) {
+		this.padFieldType = padFieldType;
+	}
+
+	public String getPadFieldValue() {
+		return padFieldValue;
+	}
+
+	public void setPadFieldValue(String padFieldValue) {
+		this.padFieldValue = padFieldValue;
+	}
+
+	public boolean isDecrypt() {
+		return decrypt;
+	}
+
+	public void setDecrypt(boolean decrypt) {
+		this.decrypt = decrypt;
+	}
+
+	public String getDecryptionKey() {
+		return decryptionKey;
+	}
+
+	public void setDecryptionKey(String decryptionKey) {
+		this.decryptionKey = decryptionKey;
+	}
+
+	public String getTagValue() {
+		return tagValue;
+	}
+
+	public void setTagValue(String tagValue) {
+		this.tagValue = tagValue;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public LocalDate getFileDate() {
 		return fileDate;
 	}
 
-	public void setFileDate(Date fileDate) {
+	public void setFileDate(LocalDate fileDate) {
 		this.fileDate = fileDate;
 	}
 
-	public Date getTxnStartDate() {
+	public LocalDate getTxnStartDate() {
 		return txnStartDate;
 	}
 
-	public void setTxnStartDate(Date txnStartDate) {
+	public void setTxnStartDate(LocalDate txnStartDate) {
 		this.txnStartDate = txnStartDate;
 	}
 
-	public Date getTxnEndDate() {
+	public LocalDate getTxnEndDate() {
 		return txnEndDate;
 	}
 
-	public void setTxnEndDate(Date txnEndDate) {
+	public void setTxnEndDate(LocalDate txnEndDate) {
 		this.txnEndDate = txnEndDate;
 	}
 
-	public Date getTodayDate() {
+	public LocalDate getTodayDate() {
 		return todayDate;
 	}
 
-	public void setTodayDate(Date todayDate) {
+	public void setTodayDate(LocalDate todayDate) {
 		this.todayDate = todayDate;
 	}
 
-	public Date getYesterdayDate() {
+	public LocalDate getYesterdayDate() {
 		return yesterdayDate;
 	}
 
-	public void setYesterdayDate(Date yesterdayDate) {
+	public void setYesterdayDate(LocalDate yesterdayDate) {
 		this.yesterdayDate = yesterdayDate;
 	}
 
@@ -325,34 +413,56 @@ public class ReportGenerationFields {
 		this.generate = generate;
 	}
 
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	public String format(Integer eky_id) {
+	public String format() {
 		String tempValue = null;
 		switch (fieldType) {
 		case ReportGenerationFields.TYPE_DATE:
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				fieldFormat = ReportConstants.DATE_FORMAT_02;
+			}
+
+			if (value == null || value.isEmpty()) {
+				tempValue = "";
+			} else {
+				if (!value.contains("-")) {
+					ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
+							ZoneId.systemDefault());
+					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
+				} else {
+					DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
+					LocalDate localDate = LocalDate.parse(value, localDateFormatter);
+					tempValue = localDate.format(DateTimeFormatter.ofPattern(fieldFormat));
+				}
+			}
+			break;
+		case ReportGenerationFields.TYPE_DATE_TIME:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
 				fieldFormat = DEFAULT_DATE_FORMAT;
 			}
-			SimpleDateFormat df = new SimpleDateFormat(fieldFormat);
-			Date date = new Date(Long.parseLong(value));
-			tempValue = df.format(date);
+
+			if (value == null || value.isEmpty()) {
+				tempValue = "";
+			} else {
+				ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
+						ZoneId.systemDefault());
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
+			}
 			break;
 		case ReportGenerationFields.TYPE_DECIMAL:
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
-				fieldFormat = "#,##0.00";
+				fieldFormat = DEFAULT_DECIMAL_FORMAT;
+			}
+			if (value == null || value.isEmpty()) {
+				value = "0";
 			}
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue);
 			break;
 		case ReportGenerationFields.TYPE_NUMBER:
+			if (value == null || value.isEmpty()) {
+				value = "0";
+			}
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
 				tempValue = value;
 			} else {
@@ -361,11 +471,6 @@ public class ReportGenerationFields {
 			break;
 		case ReportGenerationFields.TYPE_STRING:
 			tempValue = value;
-			break;
-		case ReportGenerationFields.TYPE_ENCRYPTED_STRING:
-			if (value != null && !value.isEmpty()) {
-				// tempValue = (SecureField.fromDatabase(value, eky_id)).getClear();
-			}
 			break;
 		default:
 			tempValue = "";
@@ -374,27 +479,56 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String format(ReportGenerationMgr rgm, boolean header, boolean bodyHeader, boolean body, boolean trailer,
-			boolean fieldFormatException, Integer eky_id) {
+	public String format(ReportGenerationMgr rgm, boolean header, boolean bodyHeader, boolean body, boolean trailer) {
 		String tempValue = null;
 		switch (fieldType) {
 		case ReportGenerationFields.TYPE_DATE:
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
+				fieldFormat = ReportConstants.DATE_FORMAT_02;
+			}
+
+			if (value == null || value.isEmpty()) {
+				tempValue = "";
+			} else {
+				if (!value.contains("-")) {
+					ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
+							ZoneId.systemDefault());
+					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
+				} else {
+					DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
+					LocalDate localDate = LocalDate.parse(value, localDateFormatter);
+					tempValue = localDate.format(DateTimeFormatter.ofPattern(fieldFormat));
+				}
+			}
+			break;
+		case ReportGenerationFields.TYPE_DATE_TIME:
+			if (fieldFormat == null || fieldFormat.isEmpty()) {
 				fieldFormat = DEFAULT_DATE_FORMAT;
 			}
-			SimpleDateFormat df = new SimpleDateFormat(fieldFormat);
-			Date date = new Date(Long.parseLong(value));
-			tempValue = df.format(date);
+
+			if (value == null || value.isEmpty()) {
+				tempValue = "";
+			} else {
+				ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
+						ZoneId.systemDefault());
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
+			}
 			break;
 		case ReportGenerationFields.TYPE_DECIMAL:
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
-				fieldFormat = "#,##0.00";
+				fieldFormat = DEFAULT_DECIMAL_FORMAT;
+			}
+			if (value == null || value.isEmpty()) {
+				value = "0";
 			}
 			double doubleValue = Double.parseDouble(value);
 			DecimalFormat formatter = new DecimalFormat(fieldFormat);
 			tempValue = formatter.format(doubleValue);
 			break;
 		case ReportGenerationFields.TYPE_NUMBER:
+			if (value == null || value.isEmpty()) {
+				value = "0";
+			}
 			if (fieldFormat == null || fieldFormat.isEmpty()) {
 				tempValue = value;
 			} else {
@@ -404,22 +538,22 @@ public class ReportGenerationFields {
 		case ReportGenerationFields.TYPE_STRING:
 			tempValue = value;
 			break;
-		case ReportGenerationFields.TYPE_ENCRYPTED_STRING:
-			if (value != null && !value.isEmpty()) {
-				// tempValue = (SecureField.fromDatabase(value, eky_id)).getClear();
-			}
-			break;
 		default:
 			tempValue = "";
 			break;
 		}
 
+		return formatValue(rgm, header, bodyHeader, body, trailer, tempValue);
+	}
+
+	public String formatValue(ReportGenerationMgr rgm, boolean header, boolean bodyHeader, boolean body,
+			boolean trailer, String tempValue) {
 		if (rgm.getFileFormat().equals(ReportConstants.FILE_PDF)) {
-			return formatPdfValue(rgm, tempValue, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
+			return formatPdfValue(tempValue, header, bodyHeader, body, trailer);
 		}
 
 		if (rgm.getFileFormat().equals(ReportConstants.FILE_TXT)) {
-			return formatTxtValue(rgm, tempValue, header, bodyHeader, body, trailer, fieldFormatException, eky_id);
+			return formatTxtValue(tempValue, header, bodyHeader, body, trailer);
 		}
 
 		if (rgm.getFileFormat().equals(ReportConstants.FILE_CSV)) {
@@ -428,41 +562,40 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatPdfValue(ReportGenerationMgr rgm, String tempValue, boolean header, boolean bodyHeader,
-			boolean body, boolean trailer, boolean fieldFormatException, Integer eky_id) {
+	public String formatPdfValue(String tempValue, boolean header, boolean bodyHeader, boolean body, boolean trailer) {
 		if (header) {
-			return formatPdfHeaderValue(tempValue, fieldFormatException);
+			return formatPdfHeaderValue(tempValue);
 		} else if (bodyHeader) {
-			return formatPdfBodyHeaderValue(tempValue, fieldFormatException);
+			return formatPdfBodyHeaderValue(tempValue);
 		} else if (body) {
-			return formatPdfBodyValue(tempValue, fieldFormatException);
+			return formatPdfBodyValue(tempValue);
 		} else {
-			return formatPdfTrailerValue(tempValue, fieldFormatException);
+			return formatPdfTrailerValue(tempValue);
 		}
 	}
 
-	public String formatPdfHeaderValue(String tempValue, boolean fieldFormatException) {
+	public String formatPdfHeaderValue(String tempValue) {
 		if (tempValue.trim().length() == 0) {
 			tempValue = String.format("%1$" + pdfLength + "s", "");
 		} else {
-			if (fieldFormatException) {
-				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			} else {
+			if (leftJustified) {
 				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
 			}
 		}
 		return tempValue;
 	}
 
-	public String formatPdfBodyHeaderValue(String tempValue, boolean fieldFormatException) {
+	public String formatPdfBodyHeaderValue(String tempValue) {
 		if (fieldName != null) {
-			if (fieldFormatException) {
-				tempValue = String.format("%1$" + pdfLength + "s", fieldName);
+			if (fieldName.contains(ReportConstants.LINE)) {
+				tempValue = String.format("%" + pdfLength + "s", " ").replace(' ', tempValue.charAt(0));
 			} else {
-				if (fieldName.contains(ReportConstants.LINE)) {
-					tempValue = String.format("%" + pdfLength + "s", " ").replace(' ', tempValue.charAt(0));
-				} else {
+				if (leftJustified) {
 					tempValue = String.format("%1$-" + pdfLength + "s", fieldName);
+				} else {
+					tempValue = String.format("%1$" + pdfLength + "s", fieldName);
 				}
 			}
 		} else {
@@ -471,19 +604,19 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatPdfBodyValue(String tempValue, boolean fieldFormatException) {
-		if (fieldFormatException) {
-			return formatFixLeftJustifiedPdfValue(tempValue);
+	public String formatPdfBodyValue(String tempValue) {
+		if (leftJustified) {
+			return formatLeftJustifiedPdfValue(tempValue);
 		} else {
-			return formatFixPdfValue(tempValue);
+			return formatRightJustifiedPdfValue(tempValue);
 		}
 	}
 
-	public String formatPdfTrailerValue(String tempValue, boolean fieldFormatException) {
+	public String formatPdfTrailerValue(String tempValue) {
 		if (tempValue.trim().length() == 0) {
 			tempValue = String.format("%1$" + pdfLength + "s", "");
 		} else {
-			if (fieldFormatException) {
+			if (leftJustified) {
 				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
 			} else {
 				if (fieldName.contains(ReportConstants.LINE)) {
@@ -496,153 +629,110 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatFixPdfValue(String tempValue) {
-		switch (fieldName) {
-		case ReportConstants.ATM_CARD_NUMBER:
+	public String formatRightJustifiedPdfValue(String tempValue) {
+		if (padFieldLength > 0) {
 			if (tempValue.trim().length() == 0) {
 				tempValue = " ";
 			}
-			if (tempValue.length() <= 19) {
-				tempValue = String.format("%1$" + pdfLength + "s",
-						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.CODE:
-		case ReportConstants.SEQ_NUMBER:
-		case ReportConstants.TRACE_NUMBER:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 6) {
-				tempValue = String.format("%1$" + pdfLength + "s",
-						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.FROM_ACCOUNT_NO:
-		case ReportConstants.TO_ACCOUNT_NO:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 16) {
-				tempValue = String.format("%1$" + pdfLength + "s",
-						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.VOID_CODE:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 3) {
-				tempValue = String.format("%1$" + pdfLength + "s",
-						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			}
-			break;
-		default:
-			tempValue = String.format("%1$" + pdfLength + "s", tempValue);
-			break;
-		}
-		return tempValue;
-	}
 
-	public String formatFixLeftJustifiedPdfValue(String tempValue) {
-		switch (fieldName) {
-		case ReportConstants.ATM_CARD_NUMBER:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 19) {
-				tempValue = String.format("%1$-" + pdfLength + "s",
-						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.CODE:
-		case ReportConstants.SEQ_NUMBER:
-		case ReportConstants.TRACE_NUMBER:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 6) {
-				tempValue = String.format("%1$-" + pdfLength + "s",
-						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.FROM_ACCOUNT_NO:
-		case ReportConstants.TO_ACCOUNT_NO:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 16) {
-				tempValue = String.format("%1$-" + pdfLength + "s",
-						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.VOID_CODE:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 3) {
-				tempValue = String.format("%1$-" + pdfLength + "s",
-						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
-			}
-			break;
-		default:
-			tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
-			break;
-		}
-		return tempValue;
-	}
+			if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue).replace(' ', '0'));
 
-	public String formatTxtValue(ReportGenerationMgr rgm, String tempValue, boolean header, boolean bodyHeader,
-			boolean body, boolean trailer, boolean fieldFormatException, Integer eky_id) {
-		if (header) {
-			return formatTxtHeaderValue(tempValue, fieldFormatException);
-		} else if (bodyHeader) {
-			return formatTxtBodyHeaderValue(tempValue, fieldFormatException);
-		} else if (body) {
-			return formatTxtBodyValue(tempValue, fieldFormatException);
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$" + pdfLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue));
+
+			} else {
+				tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+			}
 		} else {
-			return formatTxtTrailerValue(tempValue, fieldFormatException);
+			tempValue = String.format("%1$" + pdfLength + "s", tempValue);
+		}
+		return tempValue;
+	}
+
+	public String formatLeftJustifiedPdfValue(String tempValue) {
+		if (padFieldLength > 0) {
+			if (tempValue.trim().length() == 0) {
+				tempValue = " ";
+			}
+
+			if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$-" + pdfLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue));
+
+			} else {
+				tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+			}
+		} else {
+			tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
+		}
+		return tempValue;
+	}
+
+	public String formatTxtValue(String tempValue, boolean header, boolean bodyHeader, boolean body, boolean trailer) {
+		if (header) {
+			return formatTxtHeaderValue(tempValue);
+		} else if (bodyHeader) {
+			return formatTxtBodyHeaderValue(tempValue);
+		} else if (body) {
+			return formatTxtBodyValue(tempValue);
+		} else {
+			return formatTxtTrailerValue(tempValue);
 		}
 	}
 
-	public String formatTxtHeaderValue(String tempValue, boolean fieldFormatException) {
+	public String formatTxtHeaderValue(String tempValue) {
 		if (tempValue.trim().length() == 0) {
 			tempValue = String.format("%1$" + csvTxtLength + "s", "");
 		} else {
-			if (fieldFormatException) {
-				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-			} else {
+			if (leftJustified) {
 				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			} else {
+				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
 			}
 		}
 		return tempValue;
 	}
 
-	public String formatTxtBodyHeaderValue(String tempValue, boolean fieldFormatException) {
+	public String formatTxtBodyHeaderValue(String tempValue) {
 		if (fieldName != null) {
-			if (fieldFormatException) {
-				tempValue = String.format("%1$" + csvTxtLength + "s", fieldName);
+			if (fieldName.contains(ReportConstants.LINE)) {
+				tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
 			} else {
-				if (fieldName.contains(ReportConstants.LINE)) {
-					tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
-				} else {
+				if (leftJustified) {
 					tempValue = String.format("%1$-" + csvTxtLength + "s", fieldName);
+				} else {
+					tempValue = String.format("%1$" + csvTxtLength + "s", fieldName);
 				}
 			}
 		} else {
@@ -651,19 +741,19 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatTxtBodyValue(String tempValue, boolean fieldFormatException) {
-		if (fieldFormatException) {
-			return formatFixLeftJustifiedTxtValue(tempValue);
+	public String formatTxtBodyValue(String tempValue) {
+		if (leftJustified) {
+			return formatLeftJustifiedTxtValue(tempValue);
 		} else {
-			return formatFixTxtValue(tempValue);
+			return formatRightJustifiedTxtValue(tempValue);
 		}
 	}
 
-	public String formatTxtTrailerValue(String tempValue, boolean fieldFormatException) {
+	public String formatTxtTrailerValue(String tempValue) {
 		if (tempValue.trim().length() == 0) {
 			tempValue = String.format("%1$" + csvTxtLength + "s", "");
 		} else {
-			if (fieldFormatException) {
+			if (leftJustified) {
 				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
 			} else {
 				if (fieldName.contains(ReportConstants.LINE)) {
@@ -676,114 +766,72 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatFixTxtValue(String tempValue) {
-		switch (fieldName) {
-		case ReportConstants.ATM_CARD_NUMBER:
+	public String formatRightJustifiedTxtValue(String tempValue) {
+		if (padFieldLength > 0) {
 			if (tempValue.trim().length() == 0) {
 				tempValue = " ";
 			}
-			if (tempValue.length() <= 19) {
+
+			if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
 				tempValue = String.format("%1$" + csvTxtLength + "s",
-						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+						String.format("%1$" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$" + csvTxtLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue));
+
 			} else {
 				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
 			}
-			break;
-		case ReportConstants.CODE:
-		case ReportConstants.SEQ_NUMBER:
-		case ReportConstants.TRACE_NUMBER:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 6) {
-				tempValue = String.format("%1$" + csvTxtLength + "s",
-						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.FROM_ACCOUNT_NO:
-		case ReportConstants.TO_ACCOUNT_NO:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 16) {
-				tempValue = String.format("%1$" + csvTxtLength + "s",
-						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.VOID_CODE:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 3) {
-				tempValue = String.format("%1$" + csvTxtLength + "s",
-						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		default:
+		} else {
 			tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-			break;
 		}
 		return tempValue;
 	}
 
-	public String formatFixLeftJustifiedTxtValue(String tempValue) {
-		switch (fieldName) {
-		case ReportConstants.ATM_CARD_NUMBER:
+	public String formatLeftJustifiedTxtValue(String tempValue) {
+		if (padFieldLength > 0) {
 			if (tempValue.trim().length() == 0) {
 				tempValue = " ";
 			}
-			if (tempValue.length() <= 19) {
+
+			if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
 				tempValue = String.format("%1$-" + csvTxtLength + "s",
-						String.format("%1$" + 19 + "s", tempValue).replace(' ', '0'));
+						String.format("%1$" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$" + padFieldLength + "s", tempValue));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue).replace(' ', '0'));
+
+			} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+					&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+				tempValue = String.format("%1$-" + csvTxtLength + "s",
+						String.format("%1$-" + padFieldLength + "s", tempValue));
+
 			} else {
 				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
 			}
-			break;
-		case ReportConstants.CODE:
-		case ReportConstants.SEQ_NUMBER:
-		case ReportConstants.TRACE_NUMBER:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 6) {
-				tempValue = String.format("%1$-" + csvTxtLength + "s",
-						String.format("%1$" + 6 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.FROM_ACCOUNT_NO:
-		case ReportConstants.TO_ACCOUNT_NO:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 16) {
-				tempValue = String.format("%1$-" + csvTxtLength + "s",
-						String.format("%1$" + 16 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		case ReportConstants.VOID_CODE:
-			if (tempValue.trim().length() == 0) {
-				tempValue = " ";
-			}
-			if (tempValue.length() <= 3) {
-				tempValue = String.format("%1$-" + csvTxtLength + "s",
-						String.format("%1$" + 3 + "s", tempValue).replace(' ', '0'));
-			} else {
-				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
-			}
-			break;
-		default:
+		} else {
 			tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
-			break;
 		}
 		return tempValue;
 	}
@@ -791,51 +839,31 @@ public class ReportGenerationFields {
 	public String formatFixCsvValue(String tempValue, boolean body) {
 		if (fieldName != null) {
 			if (body) {
-				switch (fieldName) {
-				case ReportConstants.ATM_CARD_NUMBER:
+				if (padFieldLength > 0) {
 					if (tempValue.trim().length() == 0) {
 						tempValue = " ";
 					}
-					if (tempValue.length() <= 19) {
-						tempValue = String.format("%1$" + 19 + "s", tempValue).replace(' ', '0');
+
+					if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+							&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+						tempValue = String.format("%1$" + padFieldLength + "s", tempValue).replace(' ', '0');
+
+					} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_LEADING)
+							&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+						tempValue = String.format("%1$" + padFieldLength + "s", tempValue);
+
+					} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+							&& padFieldValue.equals(PAD_VALUE_ZEROS)) {
+						tempValue = String.format("%1$-" + padFieldLength + "s", tempValue).replace(' ', '0');
+
+					} else if (tempValue.trim().length() <= padFieldLength && padFieldType.equals(PAD_TYPE_TRAILING)
+							&& padFieldValue.equals(PAD_VALUE_SPACES)) {
+						tempValue = String.format("%1$-" + padFieldLength + "s", tempValue);
+
 					} else {
 						return tempValue;
 					}
-					break;
-				case ReportConstants.CODE:
-				case ReportConstants.SEQ_NUMBER:
-				case ReportConstants.TRACE_NUMBER:
-					if (tempValue.trim().length() == 0) {
-						tempValue = " ";
-					}
-					if (tempValue.length() <= 6) {
-						tempValue = String.format("%1$" + 6 + "s", tempValue).replace(' ', '0');
-					} else {
-						return tempValue;
-					}
-					break;
-				case ReportConstants.FROM_ACCOUNT_NO:
-				case ReportConstants.TO_ACCOUNT_NO:
-					if (tempValue.trim().length() == 0) {
-						tempValue = " ";
-					}
-					if (tempValue.length() <= 16) {
-						tempValue = String.format("%1$" + 16 + "s", tempValue).replace(' ', '0');
-					} else {
-						return tempValue;
-					}
-					break;
-				case ReportConstants.VOID_CODE:
-					if (tempValue.trim().length() == 0) {
-						tempValue = " ";
-					}
-					if (tempValue.length() <= 3) {
-						tempValue = String.format("%1$" + 3 + "s", tempValue).replace(' ', '0');
-					} else {
-						return tempValue;
-					}
-					break;
-				default:
+				} else {
 					return tempValue;
 				}
 			} else {
@@ -847,20 +875,24 @@ public class ReportGenerationFields {
 
 	@Override
 	public String toString() {
-		return "ReportGenerationFields [" + "reportCategory=" + reportCategory + ", fileName=" + fileName
+		return "ReportGenerationFields [reportCategory=" + reportCategory + ", fileName=" + fileName
 				+ ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
 				+ fileFormatTmp + ", fileLocation=" + fileLocation + ", processingClass=" + processingClass
-				+ ", headerFields=" + headerFields + ", bodyFields=" + bodyFields + ", trailerFields=" + trailerFields
-				+ ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery + ", tmpBodyQuery=" + tmpBodyQuery
-				+ ", sequence=" + sequence + ", sectionName=" + sectionName + ", fieldName=" + fieldName
-				+ ", csvTxtLength=" + csvTxtLength + ", pdfLength=" + pdfLength + ", fieldType=" + fieldType
-				+ ", value=" + value + ", delimiter=" + delimiter + ", fieldFormat=" + fieldFormat + ", defaultValue="
-				+ defaultValue + ", firstField=" + firstField + ", bodyHeader=" + bodyHeader + ", eol=" + eol
-				+ ", endOfSection=" + endOfSection + ", source=" + source + ", fileDate=" + fileDate + ", txnStartDate="
-				+ txnStartDate + ", txnEndDate=" + txnEndDate + ", generate=" + generate + "]";
+				+ ", frequency=" + frequency + ", headerFields=" + headerFields + ", bodyFields=" + bodyFields
+				+ ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery
+				+ ", tmpBodyQuery=" + tmpBodyQuery + ", sequence=" + sequence + ", sectionName=" + sectionName
+				+ ", fieldName=" + fieldName + ", csvTxtLength=" + csvTxtLength + ", pdfLength=" + pdfLength
+				+ ", fieldType=" + fieldType + ", value=" + value + ", delimiter=" + delimiter + ", fieldFormat="
+				+ fieldFormat + ", defaultValue=" + defaultValue + ", firstField=" + firstField + ", bodyHeader="
+				+ bodyHeader + ", eol=" + eol + ", endOfSection=" + endOfSection + ", leftJustified=" + leftJustified
+				+ ", padFieldLength=" + padFieldLength + ", padFieldType=" + padFieldType + ", padFieldValue="
+				+ padFieldValue + ", decrypt=" + decrypt + ", decryptionKey=" + decryptionKey + ", tagValue=" + tagValue
+				+ ", source=" + source + ", fileDate=" + fileDate + ", txnStartDate=" + txnStartDate + ", txnEndDate="
+				+ txnEndDate + ", todayDate=" + todayDate + ", yesterdayDate=" + yesterdayDate + ", generate="
+				+ generate + "]";
 	}
 
-	public ReportGenerationFields clone(ReportGenerationMgr rgm) {
+	public ReportGenerationFields clone() {
 		ReportGenerationFields field = new ReportGenerationFields();
 		field.setSectionName(sectionName);
 		field.setFieldName(fieldName);
@@ -875,6 +907,13 @@ public class ReportGenerationFields {
 		field.setBodyHeader(bodyHeader);
 		field.setEol(eol);
 		field.setEndOfSection(endOfSection);
+		field.setLeftJustified(leftJustified);
+		field.setPadFieldLength(padFieldLength);
+		field.setPadFieldType(padFieldType);
+		field.setPadFieldValue(padFieldValue);
+		field.setDecrypt(decrypt);
+		field.setDecryptionKey(decryptionKey);
+		field.setTagValue(tagValue);
 		field.setSource(source);
 		return field;
 	}

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +28,12 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			}
 
 			if (rgm.errors == 0) {
@@ -50,7 +49,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
 						+ ReportConstants.TXT_FORMAT);
 			}
 		} catch (Exception e) {
@@ -108,12 +107,15 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 	}
 
 	@Override
-	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In TxtReportProcessor.writeTrailer()");
-		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.isEol()) {
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(getEol());
@@ -126,9 +128,10 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In TxtReportProcessor.writeTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {

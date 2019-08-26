@@ -3,16 +3,13 @@ package my.com.mandrill.base.reporting.billsPaymentExtractFiles;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.reporting.ReportConstants;
-import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 
@@ -27,13 +24,12 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
 			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
 			}
 
 			if (rgm.errors == 0) {
@@ -63,7 +59,7 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
@@ -73,8 +69,7 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating TXT file", e);
 		} finally {
@@ -88,29 +83,5 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In BillsPaymentExtractFilesSummary.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
-
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().contains(ReportConstants.BP_BILLER_NAME)) {
-				setFieldFormatException(true);
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				setFieldFormatException(false);
-			} else {
-				line.append(getFieldValue(rgm, field, fieldsMap));
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
 	}
 }

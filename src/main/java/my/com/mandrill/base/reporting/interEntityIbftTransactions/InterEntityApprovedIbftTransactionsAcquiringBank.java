@@ -3,12 +3,16 @@ package my.com.mandrill.base.reporting.interEntityIbftTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -25,9 +29,9 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 	public static final String RETAIL = "RETAIL";
 	public static final String CORPORATE = "CORPORATE";
 	public static final String IVRS = "IVRS";
-	public static final String CBC_AT_CBC_TO_CBS = "CBC AT CBC TO CBS";
-	public static final String CBS_AT_CBC_TO_CBC = "CBS AT CBC TO CBC";
-	public static final String CBS_AT_CBC_TO_OTHER_BANK = "CBS AT CBC TO OTHER BANK";
+	public static final String CBC_AT_CBC_TO_CBS = "CBC at CBC to CBS";
+	public static final String CBS_AT_CBC_TO_CBC = "CBS at CBC to CBC";
+	public static final String CBS_AT_CBC_TO_OTHER_BANK = "CBS at CBC to OTHER BANK";
 	private int pagination = 0;
 	private double overallSectionTotal = 0.00;
 
@@ -40,9 +44,9 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			summary = false;
 			pagination = 1;
 			separateQuery(rgm);
-			preProcessing(rgm, null, null);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
-			rgm.setBodyQuery(getIbftBodyQuery());
+			rgm.setBodyQuery(getTxnBodyQuery());
 
 			StringBuilder line = new StringBuilder();
 			line.append("I. ").append(";").append("ONLINE").append(";");
@@ -69,7 +73,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			rgm.writeLine(line.toString().getBytes());
 			overallSectionTotal = 0.00;
 			preProcessing(rgm, CBC_AT_CBC_TO_CBS);
-			cbcAtCbcTocBSDetails(rgm, formatter);
+			cbcAtCbcToCbsDetails(rgm, formatter);
 			overallSectionTotal = 0.00;
 			preProcessing(rgm, CBS_AT_CBC_TO_CBC);
 			cbsAtCbcToCbcDetails(rgm, formatter);
@@ -85,8 +89,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -111,7 +114,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, false);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION A OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -133,7 +136,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, false);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION B OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -155,7 +158,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, false);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION A OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -168,15 +171,15 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		}
 	}
 
-	private void cbcAtCbcTocBSDetails(ReportGenerationMgr rgm, DecimalFormat formatter) {
-		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.cbcAtCbcTocBSDetails()");
+	private void cbcAtCbcToCbsDetails(ReportGenerationMgr rgm, DecimalFormat formatter) {
+		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.cbcAtCbcToCbsDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-			line.append("A.").append("CBC at CBC to CBS").append(";");
+			line.append("A.").append(CBC_AT_CBC_TO_CBS).append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, false);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION A OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -185,7 +188,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			rgm.writeLine(line.toString().getBytes());
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
-			logger.error("Error in cbcAtCbcTocBSDetails", e);
+			logger.error("Error in cbcAtCbcToCbsDetails", e);
 		}
 	}
 
@@ -193,11 +196,11 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.cbsAtCbcToCbcDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-			line.append("B.").append("CBS at CBC to CBC").append(";");
+			line.append("B.").append(CBS_AT_CBC_TO_CBC).append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, true);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION B OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -214,11 +217,11 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.cbsAtCbcToOtherBankDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-			line.append("C.").append("CBS at CBC to OTHER BANK").append(";");
+			line.append("C.").append(CBS_AT_CBC_TO_OTHER_BANK).append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, false);
 			line = new StringBuilder();
 			line.append(";").append(";").append(";").append(";").append(";").append("SECTION C OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
@@ -241,23 +244,21 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			writeSummaryHeader(rgm, pagination);
 			writeSummaryBodyHeader(rgm);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					StringBuilder line = new StringBuilder();
 					line.append(branchCode).append(";").append(";").append(branchName).append(";");
 					line.append(getEol());
 					rgm.writeLine(line.toString().getBytes());
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationMap : terminalMap.getValue()) {
-							location = locationMap;
-							preProcessing(rgm, branchCode, terminal);
-							executeBodyQuery(rgm, summary, location);
-						}
+						location = terminalMap.getValue();
+						preProcessing(rgm, branchCode, terminal);
+						executeBodyQuery(rgm, summary, location);
 					}
 				}
 			}
@@ -279,14 +280,14 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		if (filterByBranchCode != null) {
 			rgm.setBodyQuery(getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null) {
 			rgm.setBodyQuery(getSummaryBodyQuery());
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -294,14 +295,14 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 
 	private void preProcessing(ReportGenerationMgr rgm, String indicator) {
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.preProcessing()");
-		// TBD - get encrypted PAN with this PAN value
+		// Corporate hardcoded PAN '100200003990000021'
 		if (indicator.equals(RETAIL)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND TXN.TRL_PAN != '100200003990000021'");
+					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112' AND TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA.CBA_MNEM FROM CBC_BANK CBA WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = CBA.CBA_CODE) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING, "");
 
@@ -311,10 +312,10 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CORPORATE)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND TXN.TRL_PAN = '100200003990000021'");
+					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112' AND TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA.CBA_MNEM FROM CBC_BANK CBA WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = CBA.CBA_CODE) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING, "");
 
@@ -324,10 +325,10 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(IVRS)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND TXN.TRL_PAN != '100200003990000021'");
+					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA.CBA_MNEM FROM CBC_BANK CBA WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = CBA.CBA_CODE) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING, "");
 
@@ -337,13 +338,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CBC_AT_CBC_TO_CBS)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_DEST_ICH_NAME != 'Bancnet_Interchange'");
+					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"'CBC' AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA.CBA_MNEM FROM CBC_BANK CBA WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = CBA.CBA_CODE) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					"'CBC' AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN LEFT JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE");
+					"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);
@@ -351,13 +352,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CBS_AT_CBC_TO_CBC)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = '0010' AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_ISS_NAME = 'CBS'");
+					"TXN.TRL_ISS_NAME = 'CBS' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000010'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", 'CBC' AS \"RECEIVING BANK MNEM\", BRC.BRC_NAME AS \"RECEIVING BRANCH NAME\",");
+					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", 'CBC' AS \"RECEIVING BANK MNEM\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LEFT JOIN CBC_BIN CBI ON SUBSTR(TXN.TRL_PAN, 0, 6) = CBI.CBI_BIN LEFT JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID LEFT JOIN ACCOUNT ACN ON TXN.TRL_ACCOUNT_2_ACN_ID = ACN.ACN_ACCOUNT_NUMBER LEFT JOIN BRANCH BRC ON ACN.ACN_CUSTOM_DATA = BRC.BRC_CODE");
+					"JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);
@@ -365,13 +366,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CBS_AT_CBC_TO_OTHER_BANK)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') != '0010' AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND TXN.TRL_ISS_NAME = 'CBS'");
+					"TXN.TRL_ISS_NAME = 'CBS' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('0000000010', '0000000112')");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA.CBA_MNEM FROM CBC_BANK CBA WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = CBA.CBA_CODE) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LEFT JOIN CBC_BIN CBI ON SUBSTR(TXN.TRL_PAN, 0, 6) = CBI.CBI_BIN LEFT JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
+					"JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);
@@ -382,7 +383,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
@@ -489,12 +490,16 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			boolean indicator, String toAccountNo, String toAccountNoEkyId)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getSequence()) {
 			case 25:
 			case 26:
@@ -502,20 +507,35 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			case 28:
 			case 29:
 			case 30:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				break;
 			case 31:
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					overallSectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					overallSectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				break;
 			case 32:
 			case 33:
 			case 34:
 			case 35:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				break;
 			case 36:
-			case 37:
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-						overallSectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					} else {
-						overallSectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
-					}
+				if (indicator) {
+					line.append(retrieveReceivingBranchName(rgm, toAccountNo, toAccountNoEkyId));
+					line.append(field.getDelimiter());
+				} else {
+					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append(field.getDelimiter());
 				}
+				break;
+			case 37:
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				line.append(field.getDelimiter());
 				break;
@@ -525,5 +545,74 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm, boolean indicator) {
+		logger.debug("In ApprovedIbftTransactionsAcquiringBank.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		String toAccountNo = null;
+		String toAccountNoEkyId = null;
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
+								toAccountNo = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO_EKY_ID)) {
+								toAccountNoEkyId = result.toString();
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeBody(rgm, lineFieldsMap, indicator, toAccountNo, toAccountNoEkyId);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 }

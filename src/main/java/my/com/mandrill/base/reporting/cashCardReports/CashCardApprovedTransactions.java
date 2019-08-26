@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -28,6 +29,7 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
 public class CashCardApprovedTransactions extends PdfReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(CashCardApprovedTransactions.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
@@ -48,23 +50,18 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		float startX = 0.0f;
 		float startY = 0.0f;
 		pagination = 0;
+		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
+		String cardProduct = null;
 		try {
 			doc = new PDDocument();
-			String branchCode = null;
-			String branchName = null;
-			String terminal = null;
-			String location = null;
-			String cardProduct = null;
-
 			preProcessing(rgm);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> branchCodeMap : filterByCriteriaCashCard(
-					rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+			if (!executeQuery(rgm)) {
 				page = new PDPage();
 				doc.addPage(page);
-				pagination++;
 				contentStream = new PDPageContentStream(doc, page);
 				pageSize = page.getMediaBox();
 				width = pageSize.getWidth() - 2 * margin;
@@ -73,39 +70,58 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
-				for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
-					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, terminal, cardProduct);
-					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
-					contentStream.newLineAtOffset(0, -leading);
-					pageHeight += 4;
-					for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
-							.entrySet()) {
-						terminal = terminalMap.getKey();
-						for (SortedMap.Entry<String, String> locationMap : terminalMap.getValue().entrySet()) {
-							location = locationMap.getKey();
-							cardProduct = locationMap.getValue();
-							contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " AT " + location);
-							pageHeight += 1;
-							contentStream.newLineAtOffset(0, -leading);
-							contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
-							pageHeight += 1;
-							contentStream.newLineAtOffset(0, -leading);
-							writePdfBodyHeader(rgm, contentStream, leading);
-							pageHeight += 2;
-							preProcessing(rgm, branchCode, terminal, cardProduct);
-							contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
-							pageHeight += 1;
-						}
-					}
-				}
 				contentStream.endText();
 				contentStream.close();
+				saveFile(rgm, doc);
+			} else {
+				for (SortedMap.Entry<String, Map<String, TreeMap<String, Map<String, String>>>> branchCodeMap : filterCriteriaForCashCard(
+						rgm).entrySet()) {
+					branchCode = branchCodeMap.getKey();
+					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+					page = new PDPage();
+					doc.addPage(page);
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					pageSize = page.getMediaBox();
+					width = pageSize.getWidth() - 2 * margin;
+					startX = pageSize.getLowerLeftX() + margin;
+					startY = pageSize.getUpperRightY() - margin;
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+					for (SortedMap.Entry<String, TreeMap<String, Map<String, String>>> branchNameMap : branchCodeMap
+							.getValue().entrySet()) {
+						branchName = branchNameMap.getKey();
+						preProcessing(rgm, branchCode, terminal, cardProduct);
+						writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+						contentStream.newLineAtOffset(0, -leading);
+						pageHeight += 4;
+						for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
+								.entrySet()) {
+							terminal = terminalMap.getKey();
+							for (SortedMap.Entry<String, String> locationMap : terminalMap.getValue().entrySet()) {
+								location = locationMap.getKey();
+								cardProduct = locationMap.getValue();
+								contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " AT " + location);
+								pageHeight += 1;
+								contentStream.newLineAtOffset(0, -leading);
+								contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
+								pageHeight += 1;
+								contentStream.newLineAtOffset(0, -leading);
+								writePdfBodyHeader(rgm, contentStream, leading);
+								pageHeight += 2;
+								preProcessing(rgm, branchCode, terminal, cardProduct);
+								contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+										startX, startY, pdfFont, fontSize);
+								pageHeight += 1;
+							}
+						}
+					}
+					contentStream.endText();
+					contentStream.close();
+				}
+				saveFile(rgm, doc);
 			}
-
-			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -135,16 +151,15 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			preProcessing(rgm);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> branchCodeMap : filterByCriteriaCashCard(
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, Map<String, String>>>> branchCodeMap : filterCriteriaForCashCard(
 					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
+				for (SortedMap.Entry<String, TreeMap<String, Map<String, String>>> branchNameMap : branchCodeMap
+						.getValue().entrySet()) {
 					branchName = branchNameMap.getKey();
 					pagination++;
 					preProcessing(rgm, branchCode, terminal, cardProduct);
 					writeHeader(rgm, pagination, branchCode, branchName);
-					pageHeight += 4;
 					for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
 							.entrySet()) {
 						terminal = terminalMap.getKey();
@@ -188,7 +203,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		}
 	}
 
-	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
 		logger.debug("In CashCardApprovedTransactions.execute()");
@@ -283,21 +298,21 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 
 		if (filterByCardProduct != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields cardProduct = new ReportGenerationFields(ReportConstants.PARAM_CARD_PRODUCT,
-					ReportGenerationFields.TYPE_STRING, "TRIM(CPD.CPD_NAME) = '" + filterByCardProduct + "'");
+					ReportGenerationFields.TYPE_STRING, "CPD.CPD_NAME = '" + filterByCardProduct + "'");
 			getGlobalFileFieldsMap().put(cardProduct.getFieldName(), cardProduct);
 		}
 	}
@@ -338,5 +353,36 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				}
 			}
 		}
+	}
+
+	private boolean executeQuery(ReportGenerationMgr rgm) {
+		logger.debug("In CashCardApprovedTransactions.executeQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Execute query: {}", query);
+
+		try {
+			ps = rgm.connection.prepareStatement(query);
+			rs = ps.executeQuery();
+
+			if (!rs.isBeforeFirst()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the body query", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return false;
 	}
 }

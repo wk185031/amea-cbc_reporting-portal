@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +47,7 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 				rgm.setBodyQuery(getCreditBodyQuery());
 				executeBodyQuery(rgm);
 			}
-			postProcessing(rgm);
+			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -77,13 +77,9 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 		}
 
 		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -107,41 +103,33 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.ATM_BILLS_PAYMENT:
 			ReportGenerationFields channelAtm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+')");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'ATM'");
 			getGlobalFileFieldsMap().put(channelAtm.getFieldName(), channelAtm);
 			break;
 		case ReportConstants.BIR_REMITTANCE:
 			ReportGenerationFields channelBir = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '019'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '019'");
 			getGlobalFileFieldsMap().put(channelBir.getFieldName(), channelBir);
 			break;
 		case ReportConstants.BANCNET_EGOV_PHILHEALTH:
 			ReportGenerationFields channelPh = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '063'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '063'");
 			getGlobalFileFieldsMap().put(channelPh.getFieldName(), channelPh);
 			break;
 		case ReportConstants.BANCNET_EGOV_PAG_IBIG:
 			ReportGenerationFields channelIbig = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '067'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '067'");
 			getGlobalFileFieldsMap().put(channelIbig.getFieldName(), channelIbig);
 			break;
 		case ReportConstants.BANCNET_EGOV_SSS:
 			ReportGenerationFields channelSss = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '065'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '065'");
 			getGlobalFileFieldsMap().put(channelSss.getFieldName(), channelSss);
 			break;
 		default:
-			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+')");
-			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
 	}
@@ -159,14 +147,9 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 		}
 	}
 
-	private void postProcessing(ReportGenerationMgr rgm)
+	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffBillsPayment.postProcessing()");
-		addPostProcessingFieldsToGlobalMap(rgm);
-	}
-
-	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffBillsPayment.addPostProcessingFieldsToGlobalMap()");
 		ReportGenerationFields noOfRecords = new ReportGenerationFields(ReportConstants.NO_OF_DATA_RECORDS,
 				ReportGenerationFields.TYPE_NUMBER, Integer.toString(success));
 		getGlobalFileFieldsMap().put(noOfRecords.getFieldName(), noOfRecords);
@@ -203,9 +186,7 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 								.replace(' ', '0'));
 					}
 				} else {
-					setFieldFormatException(true);
 					line.append(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -230,9 +211,7 @@ public class GLHandoffBillsPayment extends BatchProcessor {
 							.replace(' ', '0'));
 				}
 			} else {
-				setFieldFormatException(true);
 				line.append(getGlobalFieldValue(rgm, field));
-				setFieldFormatException(false);
 			}
 		}
 		line.append(getEol());

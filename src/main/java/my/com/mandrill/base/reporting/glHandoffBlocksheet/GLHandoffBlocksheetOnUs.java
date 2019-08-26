@@ -52,73 +52,96 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 		float width = 0.0f;
 		float startX = 0.0f;
 		float startY = 0.0f;
+		String branchCode = null;
 		pagination = 0;
 		try {
 			doc = new PDDocument();
-			String branchCode = null;
-
 			separateQuery(rgm);
 			preProcessing(rgm);
 
-			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-
-			while (branchCodeItr.hasNext()) {
-				branchCode = branchCodeItr.next();
-				if (!endBranch && !newBranch) {
-					page = new PDPage();
-					doc.addPage(page);
-					firstRecord = true;
-					newBranch = true;
-					pagination++;
-					contentStream = new PDPageContentStream(doc, page);
-					pageSize = page.getMediaBox();
-					width = pageSize.getWidth() - 2 * margin;
-					startX = pageSize.getLowerLeftX() + margin;
-					startY = pageSize.getUpperRightY() - margin;
-					contentStream.setFont(pdfFont, fontSize);
-					contentStream.beginText();
-					contentStream.newLineAtOffset(startX, startY);
-				}
-
-				if (endBranch && newBranch) {
-					endBranch = false;
-					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-					page = new PDPage();
-					doc.addPage(page);
-					firstRecord = true;
-					pagination++;
-					contentStream = new PDPageContentStream(doc, page);
-					contentStream.setFont(pdfFont, fontSize);
-					contentStream.beginText();
-					contentStream.newLineAtOffset(startX, startY);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					rgm.setTrailerQuery(getDebitTrailerQuery());
-					pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX, startY,
-							pdfFont, fontSize);
-				} else {
-					rgm.setBodyQuery(getDebitBodyQuery());
-					rgm.setTrailerQuery(getDebitTrailerQuery());
-					pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX, startY,
-							pdfFont, fontSize);
-				}
-
-				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+			rgm.setBodyQuery(getCriteriaQuery());
+			if (!executeQuery(rgm)) {
 				page = new PDPage();
 				doc.addPage(page);
-				firstRecord = true;
-				pagination++;
 				contentStream = new PDPageContentStream(doc, page);
+				pageSize = page.getMediaBox();
+				width = pageSize.getWidth() - 2 * margin;
+				startX = pageSize.getLowerLeftX() + margin;
+				startY = pageSize.getUpperRightY() - margin;
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				rgm.setTrailerQuery(getCreditTrailerQuery());
-				pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX, startY,
-						pdfFont, fontSize);
-				endBranch = true;
-			}
+				contentStream.endText();
+				contentStream.close();
+				saveFile(rgm, doc);
+			} else {
+				Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+				while (branchCodeItr.hasNext()) {
+					branchCode = branchCodeItr.next();
+					if (!endBranch && !newBranch) {
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						newBranch = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						pageSize = page.getMediaBox();
+						width = pageSize.getWidth() - 2 * margin;
+						startX = pageSize.getLowerLeftX() + margin;
+						startY = pageSize.getUpperRightY() - margin;
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+					}
 
-			saveFile(rgm, doc);
+					if (endBranch && newBranch) {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, branchCode);
+						if (executeQuery(rgm)) {
+							endBranch = false;
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							firstRecord = true;
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+							pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX,
+									startY, pdfFont, fontSize);
+						}
+					} else {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, branchCode);
+						if (executeQuery(rgm)) {
+							pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX,
+									startY, pdfFont, fontSize);
+						}
+					}
+
+					rgm.setBodyQuery(getCreditBodyQuery());
+					rgm.setTrailerQuery(getCreditTrailerQuery());
+					preProcessing(rgm, branchCode);
+					if (executeQuery(rgm)) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+						pdfProcessingDetail(rgm, branchCode, contentStream, doc, page, pageSize, leading, startX,
+								startY, pdfFont, fontSize);
+					}
+					endBranch = true;
+				}
+				saveFile(rgm, doc);
+			}
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -173,13 +196,19 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 				pagination++;
 				rgm.setBodyQuery(getDebitBodyQuery());
 				rgm.setTrailerQuery(getDebitTrailerQuery());
-				processingDetail(rgm, branchCode);
+				preProcessing(rgm, branchCode);
+				if (executeQuery(rgm)) {
+					processingDetail(rgm, branchCode);
+				}
 
 				firstRecord = true;
 				pagination++;
 				rgm.setBodyQuery(getCreditBodyQuery());
 				rgm.setTrailerQuery(getCreditTrailerQuery());
-				processingDetail(rgm, branchCode);
+				preProcessing(rgm, branchCode);
+				if (executeQuery(rgm)) {
+					processingDetail(rgm, branchCode);
+				}
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -283,7 +312,7 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 		logger.debug("In GLHandoffBlocksheetOnUs.preProcessing()");
 		if (filterByBranchCode != null && rgm.getBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
@@ -318,6 +347,10 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (!firstRecord) {
 				switch (field.getFieldName()) {
 				case ReportConstants.BRANCH_CODE:
@@ -356,6 +389,10 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (!firstRecord) {
 				switch (field.getFieldName()) {
 				case ReportConstants.BRANCH_CODE:
@@ -479,5 +516,36 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 			}
 		}
 		return contentStream;
+	}
+
+	private boolean executeQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetOnUs.executeQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Execute query: {}", query);
+
+		try {
+			ps = rgm.connection.prepareStatement(query);
+			rs = ps.executeQuery();
+
+			if (!rs.isBeforeFirst()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the body query", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return false;
 	}
 }

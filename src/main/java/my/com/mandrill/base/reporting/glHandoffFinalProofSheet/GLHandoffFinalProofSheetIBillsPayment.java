@@ -233,41 +233,33 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.ATM_BILLS_PAYMENT:
 			ReportGenerationFields channelAtm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+')");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'ATM'");
 			getGlobalFileFieldsMap().put(channelAtm.getFieldName(), channelAtm);
 			break;
 		case ReportConstants.BIR_REMITTANCE:
 			ReportGenerationFields channelBir = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '019'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '019'");
 			getGlobalFileFieldsMap().put(channelBir.getFieldName(), channelBir);
 			break;
 		case ReportConstants.BANCNET_EGOV_PHILHEALTH:
 			ReportGenerationFields channelPh = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '063'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '063'");
 			getGlobalFileFieldsMap().put(channelPh.getFieldName(), channelPh);
 			break;
 		case ReportConstants.BANCNET_EGOV_PAG_IBIG:
 			ReportGenerationFields channelIbig = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '067'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '067'");
 			getGlobalFileFieldsMap().put(channelIbig.getFieldName(), channelIbig);
 			break;
 		case ReportConstants.BANCNET_EGOV_SSS:
 			ReportGenerationFields channelSss = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+') AND TXN.TRL_BILLER_CODE = '065'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '065'");
 			getGlobalFileFieldsMap().put(channelSss.getFieldName(), channelSss);
 			break;
 		default:
-			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME IN ('Bancnet_Interchange', 'NDC+')");
-			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
 	}
@@ -317,7 +309,7 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
 				} else {
@@ -325,7 +317,7 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 				}
 				line.append(getEol());
 			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
 				} else {
@@ -367,7 +359,7 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
 				} else {
@@ -375,7 +367,7 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
 				} else {

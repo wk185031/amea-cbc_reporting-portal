@@ -82,6 +82,21 @@
             </div>
         </div>
         <div class="col-6">
+            <div class="form-group form-check custom-checkbox-inline">
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.frequencyLabel"
+                    for="field_frequency" required>Frequency</label>
+                <br />
+                <input type="checkbox" name="daily" id="field_daily" [(ngModel)]="daily" (click)="valueChange()" />
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.dailyLabel"
+                    for="field_pdf">Daily</label>
+                <input type="checkbox" name="weekly" id="field_weekly" [(ngModel)]="weekly" (click)="valueChange()" />
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.weeklyLabel"
+                    for="field_csv">Weekly</label>
+                <input type="checkbox" name="monthly" id="field_monthly" [(ngModel)]="monthly"
+                    (click)="valueChange()" />
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.monthlyLabel"
+                    for="field_txt">Monthly</label>
+            </div>
             <div class="form-group">
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.processingClassLabel"
                     for="field_processingClass">Processing Class</label>

@@ -27,13 +27,12 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		String bankName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			pagination = 0;
 			separateQuery(rgm);
 
 			pagination++;
 			preProcessing(rgm, "retail", null);
 			writeRetailHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				retailDetails(rgm, bankCode, bankName);
@@ -42,7 +41,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			pagination++;
 			preProcessing(rgm, "corporate", null);
 			writeCorporateHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				corporateDetails(rgm, bankCode, bankName);
@@ -76,16 +75,16 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 	private void retailDetails(ReportGenerationMgr rgm, String bankCode, String bankName) {
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.retailDetails()");
 		try {
-			StringBuilder line = new StringBuilder();
 			preProcessingFilter(rgm, bankCode);
-			line = new StringBuilder();
-			line.append("RECEIVING BANK : ").append(bankCode + "  ").append(bankName).append(";");
+			StringBuilder line = new StringBuilder();
+			line.append("RECEIVING BANK : ").append(";").append(bankCode + "  ").append(";").append(bankName)
+					.append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			rgm.setBodyQuery(getIbftBodyQuery());
+			rgm.setBodyQuery(getTxnBodyQuery());
 			executeBodyQuery(rgm, false, "retail");
-			rgm.setTrailerQuery(getIbftTrailerQuery());
+			rgm.setTrailerQuery(getTxnTrailerQuery());
 			executeTrailerQuery(rgm, false, "retail");
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -97,16 +96,16 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 	private void corporateDetails(ReportGenerationMgr rgm, String bankCode, String bankName) {
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.corporateDetails()");
 		try {
-			StringBuilder line = new StringBuilder();
 			preProcessingFilter(rgm, bankCode);
-			line = new StringBuilder();
-			line.append("RECEIVING BANK : ").append(bankCode + "  ").append(bankName).append(";");
+			StringBuilder line = new StringBuilder();
+			line.append("RECEIVING BANK : ").append(";").append(bankCode + "  ").append(";").append(bankName)
+					.append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			rgm.setBodyQuery(getIbftBodyQuery());
+			rgm.setBodyQuery(getTxnBodyQuery());
 			executeBodyQuery(rgm, false, "corporate");
-			rgm.setTrailerQuery(getIbftTrailerQuery());
+			rgm.setTrailerQuery(getTxnTrailerQuery());
 			executeTrailerQuery(rgm, false, "corporate");
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -119,10 +118,10 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.retailDetails()");
 		try {
 			preProcessing(rgm, "retail", null);
-			StringBuilder retailLine = new StringBuilder();
-			retailLine.append("FOR RETAIL TRANSACTIONS");
-			retailLine.append(getEol());
-			rgm.writeLine(retailLine.toString().getBytes());
+			StringBuilder line = new StringBuilder();
+			line.append("FOR RETAIL TRANSACTIONS");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 			writeSummaryBodyHeader(rgm, "retail");
 			rgm.setBodyQuery(getSummaryBodyQuery().replace("{" + ReportConstants.PARAM_CORPORATE_COUNT + "},", "")
 					.replace("{" + ReportConstants.PARAM_CORPORATE_INCOME + "},", ""));
@@ -141,10 +140,10 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.corporateDetails()");
 		try {
 			preProcessing(rgm, "corporate", null);
-			StringBuilder corporateLine = new StringBuilder();
-			corporateLine.append("FOR CORPORATE TRANSACTIONS");
-			corporateLine.append(getEol());
-			rgm.writeLine(corporateLine.toString().getBytes());
+			StringBuilder line = new StringBuilder();
+			line.append("FOR CORPORATE TRANSACTIONS");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 			writeSummaryBodyHeader(rgm, "corporate");
 			rgm.setBodyQuery(getSummaryBodyQuery().replace("{" + ReportConstants.PARAM_CORPORATE_COUNT + "},", "")
 					.replace("{" + ReportConstants.PARAM_CORPORATE_INCOME + "},", ""));
@@ -162,10 +161,10 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 	private void consolidatedSummaryDetails(ReportGenerationMgr rgm) {
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.consolidatedDetails()");
 		try {
-			StringBuilder consolidatedLine = new StringBuilder();
-			consolidatedLine.append("CONSOLIDATED TRANSACTIONS");
-			consolidatedLine.append(getEol());
-			rgm.writeLine(consolidatedLine.toString().getBytes());
+			StringBuilder line = new StringBuilder();
+			line.append("CONSOLIDATED TRANSACTIONS");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 			writeSummaryBodyHeader(rgm, "corporate");
 			preProcessing(rgm, "consolidated", "body");
 			rgm.setBodyQuery(getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_IBFT_CRITERIA + "}", "")
@@ -186,17 +185,17 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getIbftBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+			setCriteriaQuery(getTxnBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
-			setIbftTrailerQuery(
+			setTxnTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryTrailerQuery(rgm.getTrailerQuery()
@@ -209,16 +208,18 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 	private void preProcessing(ReportGenerationMgr rgm, String filterType, String queryType)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.preProcessing()");
-		// TBD - retrieve clear PAN from decryption
+		// Corporate hardcoded PAN '100200003990000021'
 		if (filterType.equalsIgnoreCase("retail")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_PAN != '100200003990000021'");
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
 		if (filterType.equalsIgnoreCase("corporate")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_PAN = '100200003990000021'");
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
@@ -226,7 +227,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			if (queryType.equalsIgnoreCase("body")) {
 				ReportGenerationFields corporateCount = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_COUNT, ReportGenerationFields.TYPE_STRING,
-						"CASE WHEN TXN.TRL_PAN = '100200003990000021' THEN TXN.TRL_ID END AS \"CORPORATE COUNT\"");
+						"CASE WHEN TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TXN.TRL_ID END AS \"CORPORATE COUNT\"");
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
 						"135.00 * COUNT(\"CORPORATE COUNT\") AS \"CORP. INCOME\"");
@@ -236,7 +237,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			} else {
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
-						"SUM(135.00 * COUNT(CASE WHEN TXN.TRL_PAN = '100200003990000021' THEN TXN.TRL_ID END)) AS \"CORP. INCOME\"");
+						"SUM(135.00 * COUNT(CASE WHEN TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TXN.TRL_ID END)) AS \"CORP. INCOME\"");
 				getGlobalFileFieldsMap().put(corporateIncome.getFieldName(), corporateIncome);
 			}
 		}
@@ -245,11 +246,11 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 
 	private void preProcessingFilter(ReportGenerationMgr rgm, String filterByBankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.preProcessing()");
+		logger.debug("In InterEntityApprovedIbftTransactionsTransmittingBank.preProcessingFilter()");
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_FRD_REV_INST_ID, 4, '0') = '" + filterByBankCode + "'");
+					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
@@ -460,6 +461,10 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getSequence()) {
 			case 25:
 			case 26:

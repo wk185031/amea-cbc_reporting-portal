@@ -8,8 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -36,7 +36,103 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In ATMWithdrawalsSummaryReport.processPdfRecord()");
+		if (rgm.getTrailerQuery() != null) {
+			setTmpTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+		}
+		generateBranchReport(rgm);
+		generateMasterListReport(rgm);
+	}
+
+	private void generateBranchReport(ReportGenerationMgr rgm) {
+		logger.debug("In ATMWithdrawalsSummaryReport.generateBranchReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
+		try {
+			preProcessing(rgm);
+
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
+				pagination = 1;
+				doc = new PDDocument();
+				PDPage page = new PDPage();
+				doc.addPage(page);
+				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+				PDFont pdfFont = PDType1Font.COURIER;
+				float fontSize = 6;
+				float leading = 1.5f * fontSize;
+				PDRectangle pageSize = page.getMediaBox();
+				float margin = 30;
+				float width = pageSize.getWidth() - 2 * margin;
+				float startX = pageSize.getLowerLeftX() + margin;
+				float startY = pageSize.getUpperRightY() - margin;
+
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
+
+				writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+				contentStream.newLineAtOffset(0, -leading);
+				pageHeight += 4;
+				writePdfBodyHeader(rgm, contentStream, leading);
+				pageHeight += 2;
+
+				branchCode = branchCodeMap.getKey();
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
+					branchName = branchNameMap.getKey();
+					contentStream.showText(branchCode + "           " + branchName);
+					pageHeight += 1;
+					contentStream.newLineAtOffset(0, -leading);
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						location = terminalMap.getValue();
+						preProcessing(rgm, branchCode, terminal);
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, location);
+						pageHeight += 1;
+					}
+					executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
+							fontSize, false);
+					pageHeight += 1;
+					contentStream.newLineAtOffset(0, -leading);
+					pageHeight += 1;
+				}
+				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
+						true);
+				contentStream.endText();
+				contentStream.close();
+
+				saveFile(rgm, doc, branchCode);
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+		} finally {
+			if (doc != null) {
+				try {
+					doc.close();
+				} catch (IOException e) {
+					rgm.errors++;
+					logger.error("Error in closing PDF file", e);
+				}
+			}
+		}
+	}
+
+	private void generateMasterListReport(ReportGenerationMgr rgm) {
+		logger.debug("In ATMWithdrawalsSummaryReport.generateMasterListReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
+		PDDocument doc = null;
+		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -51,11 +147,9 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 			float width = pageSize.getWidth() - 2 * margin;
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
-			String branchCode = null;
-			String branchName = null;
-			String terminal = null;
-			String location = null;
 
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
+			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			preProcessing(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
@@ -68,24 +162,22 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					contentStream.showText(branchCode + "           " + branchName);
 					pageHeight += 1;
 					contentStream.newLineAtOffset(0, -leading);
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationMap : terminalMap.getValue()) {
-							location = locationMap;
-							preProcessing(rgm, branchCode, terminal);
-							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
-									startX, startY, pdfFont, fontSize, location);
-							pageHeight += 1;
-						}
+						location = terminalMap.getValue();
+						preProcessing(rgm, branchCode, terminal);
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, location);
+						pageHeight += 1;
 					}
 					executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
 							fontSize, false);
@@ -94,7 +186,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					pageHeight += 1;
 				}
 			}
-			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			rgm.setTrailerQuery(getTmpTrailerQuery());
 			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize, true);
 			contentStream.endText();
 			contentStream.close();
@@ -130,17 +222,14 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMWithdrawalsSummaryReport.preProcessing()");
-		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		}
-
-		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
+		if (rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}
@@ -190,7 +279,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize, String location) {
-		logger.debug("In ATMWithdrawalsSummaryReport.execute()");
+		logger.debug("In ATMWithdrawalsSummaryReport.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

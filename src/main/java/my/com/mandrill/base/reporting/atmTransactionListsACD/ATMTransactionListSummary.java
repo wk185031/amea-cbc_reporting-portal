@@ -52,7 +52,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			float startY = pageSize.getUpperRightY() - margin;
 
 			separateQuery(rgm);
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
@@ -126,7 +126,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			separateQuery(rgm);
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 
 			rgm.setBodyQuery(getOnUsBodyQuery());
@@ -145,8 +145,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -193,12 +192,6 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
 		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In ATMTransactionListSummary.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	@Override

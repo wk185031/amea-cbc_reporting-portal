@@ -8,8 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -37,121 +40,128 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		String branchCode = null;
-		String branchName = null;
-		String bankCode = null;
-		String bankName = null;
-		String bankMnem = null;
+		boolean acquiring = false;
 		boolean issuing = false;
 		boolean receiving = false;
 		double overallSectionTotal = 0.00;
+		TreeSet<String> branchCodesList = new TreeSet<>();
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 0;
 			separateQuery(rgm);
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 
-			overallSectionTotal = 0.00;
 			preProcessing(rgm, "acquiring");
 			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-				acquiringDetails(rgm, branchCode, branchName, overallSectionTotal, branchCodeMap, bankCode, formatter);
+				branchCodesList.add(branchCodeMap.getKey());
 			}
 
-			TreeSet<String> branchCodesList = new TreeSet<>();
-
 			preProcessing(rgm, "issuing");
-			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuingReceiving(
+			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuing(
 					rgm).entrySet()) {
 				branchCodesList.add(issuingBranchCodeMap.getKey());
 			}
 
-			preProcessing(rgm, "receiving");
-			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> receivingBranchCodeMap : filterByIssuingReceiving(
-					rgm).entrySet()) {
+			for (SortedMap.Entry<String, Set<String>> receivingBranchCodeMap : filterForReceivingBranchCode(rgm)
+					.entrySet()) {
 				branchCodesList.add(receivingBranchCodeMap.getKey());
 			}
 
 			for (String branchCodes : branchCodesList) {
+				preProcessing(rgm, "acquiring");
+				for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
+					if (branchCodeMap.getKey().equals(branchCodes)) {
+						acquiring = true;
+					}
+				}
+
 				preProcessing(rgm, "issuing");
-				for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuingReceiving(
+				for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuing(
 						rgm).entrySet()) {
 					if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
 						issuing = true;
 					}
 				}
 
+				addReceivingBranchCode(branchCodes);
 				preProcessing(rgm, "receiving");
-				for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> receivingBranchCodeMap : filterByIssuingReceiving(
-						rgm).entrySet()) {
+				for (SortedMap.Entry<String, Set<String>> receivingBranchCodeMap : filterForReceivingBranchCode(rgm)
+						.entrySet()) {
 					if (receivingBranchCodeMap.getKey().equals(branchCodes)) {
 						receiving = true;
 					}
 				}
 
-				if (issuing && receiving) {
+				if (acquiring && issuing && receiving) {
+					preProcessing(rgm, "acquiring");
+					for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
+						if (branchCodeMap.getKey().equals(branchCodes)) {
+							acquiringDetails(rgm, branchCodeMap.getKey(), branchCodeMap.getValue(), overallSectionTotal,
+									branchCodeMap, formatter);
+						}
+					}
 					preProcessing(rgm, "issuing");
-					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuingReceiving(
+					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuing(
 							rgm).entrySet()) {
 						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
 							for (SortedMap.Entry<String, Map<String, Map<String, String>>> issuingBranchNameMap : issuingBranchCodeMap
 									.getValue().entrySet()) {
-								issuingDetails(rgm, issuingBranchCodeMap.getKey(), issuingBranchNameMap.getKey(),
-										overallSectionTotal, issuingBranchNameMap, bankCode, bankName, bankMnem,
-										formatter);
+								issuingDetails(rgm, issuingBranchCodeMap.getKey(), overallSectionTotal,
+										issuingBranchNameMap, formatter);
 
 							}
 						}
 					}
 					preProcessing(rgm, "receiving");
-					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> receivingBranchCodeMap : filterByIssuingReceiving(
-							rgm).entrySet()) {
+					for (SortedMap.Entry<String, Set<String>> receivingBranchCodeMap : filterForReceivingBranchCode(rgm)
+							.entrySet()) {
 						if (receivingBranchCodeMap.getKey().equals(branchCodes)) {
-							for (SortedMap.Entry<String, Map<String, Map<String, String>>> receivingBranchNameMap : receivingBranchCodeMap
-									.getValue().entrySet()) {
-								receivingDetails(rgm, receivingBranchCodeMap.getKey(), receivingBranchNameMap.getKey(),
-										overallSectionTotal, receivingBranchNameMap, bankCode, bankName, bankMnem,
-										formatter);
-							}
+							receivingDetails(rgm, receivingBranchCodeMap.getKey(), overallSectionTotal,
+									receivingBranchCodeMap, formatter);
+						}
+					}
+				} else if (acquiring) {
+					preProcessing(rgm, "acquiring");
+					for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
+						if (branchCodeMap.getKey().equals(branchCodes)) {
+							acquiringDetails(rgm, branchCodeMap.getKey(), branchCodeMap.getValue(), overallSectionTotal,
+									branchCodeMap, formatter);
 						}
 					}
 				} else if (issuing) {
 					preProcessing(rgm, "issuing");
-					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuingReceiving(
+					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> issuingBranchCodeMap : filterByIssuing(
 							rgm).entrySet()) {
 						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
 							for (SortedMap.Entry<String, Map<String, Map<String, String>>> issuingBranchNameMap : issuingBranchCodeMap
 									.getValue().entrySet()) {
-								issuingDetails(rgm, issuingBranchCodeMap.getKey(), issuingBranchNameMap.getKey(),
-										overallSectionTotal, issuingBranchNameMap, bankCode, bankName, bankMnem,
-										formatter);
+								pagination++;
+								writeHeader(rgm, pagination, issuingBranchCodeMap.getKey(),
+										issuingBranchNameMap.getKey());
+								issuingDetails(rgm, issuingBranchCodeMap.getKey(), overallSectionTotal,
+										issuingBranchNameMap, formatter);
 
 							}
 						}
 					}
 				} else if (receiving) {
 					preProcessing(rgm, "receiving");
-					for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> receivingBranchCodeMap : filterByIssuingReceiving(
-							rgm).entrySet()) {
+					for (SortedMap.Entry<String, Set<String>> receivingBranchCodeMap : filterForReceivingBranchCode(rgm)
+							.entrySet()) {
 						if (receivingBranchCodeMap.getKey().equals(branchCodes)) {
-							for (SortedMap.Entry<String, Map<String, Map<String, String>>> receivingBranchNameMap : receivingBranchCodeMap
-									.getValue().entrySet()) {
-								pagination++;
-								writeHeader(rgm, pagination, receivingBranchCodeMap.getKey(),
-										receivingBranchNameMap.getKey());
-								receivingDetails(rgm, receivingBranchCodeMap.getKey(), receivingBranchNameMap.getKey(),
-										overallSectionTotal, receivingBranchNameMap, bankCode, bankName, bankMnem,
-										formatter);
-							}
+							pagination++;
+							writeHeader(rgm, pagination, receivingBranchCodeMap.getKey(),
+									receivingBranchCodeMap.getKey());
+							receivingDetails(rgm, receivingBranchCodeMap.getKey(), overallSectionTotal,
+									receivingBranchCodeMap, formatter);
 						}
 					}
 				}
 			}
-
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -168,33 +178,32 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 	}
 
 	private void acquiringDetails(ReportGenerationMgr rgm, String branchCode, String branchName,
-			double overallSectionTotal, SortedMap.Entry<String, String> branchCodeMap, String bankCode,
-			DecimalFormat formatter) {
+			double overallSectionTotal, SortedMap.Entry<String, String> branchCodeMap, DecimalFormat formatter) {
 		logger.debug("In InterBankFundTransferReportAtm.acquiringDetails()");
 		try {
-			StringBuilder acquiringLine = new StringBuilder();
 			pagination++;
 			branchCode = branchCodeMap.getKey();
 			branchName = branchCodeMap.getValue();
 			writeHeader(rgm, pagination, branchCode, branchName);
 			sectionTotal = 0.00;
-			preProcessing(rgm, branchCode, bankCode, "acquiring");
-			acquiringLine.append("A.").append("THIS BRANCH AS ACQUIRER/ORIGINATING BRANCH").append(";");
-			acquiringLine.append(getEol());
-			rgm.writeLine(acquiringLine.toString().getBytes());
+			preProcessing(rgm, branchCode, null, null, "acquiring");
+			StringBuilder line = new StringBuilder();
+			line.append("A.").append("THIS BRANCH AS ACQUIRER/ORIGINATING BRANCH").append(";");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
 			rgm.setBodyQuery(getAcquiringBodyQuery());
 			executeBodyQuery(rgm);
-			acquiringLine = new StringBuilder();
-			acquiringLine.append(";").append(";").append(";").append(";").append(";").append(";")
+			line = new StringBuilder();
+			line.append(";").append(";").append(";").append(";").append(";").append(";")
 					.append(formatter.format(sectionTotal)).append(";");
-			acquiringLine.append(getEol());
+			line.append(getEol());
 			overallSectionTotal = sectionTotal;
-			acquiringLine.append(";").append(";").append(";").append(";").append(";").append("SECTION A OVERALL TOTAL")
+			line.append(";").append(";").append(";").append(";").append(";").append("SECTION A OVERALL TOTAL")
 					.append(";").append(formatter.format(overallSectionTotal)).append(";");
-			acquiringLine.append(getEol());
-			acquiringLine.append(getEol());
-			rgm.writeLine(acquiringLine.toString().getBytes());
+			line.append(getEol());
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
@@ -202,13 +211,13 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 		}
 	}
 
-	private void issuingDetails(ReportGenerationMgr rgm, String issuerBranchCode, String issuerBranchName,
-			double overallSectionTotal, SortedMap.Entry<String, Map<String, Map<String, String>>> issuingBranchNameMap,
-			String bankCode, String bankName, String bankMnem, DecimalFormat formatter) {
+	private void issuingDetails(ReportGenerationMgr rgm, String issuerBranchCode, double overallSectionTotal,
+			SortedMap.Entry<String, Map<String, Map<String, String>>> issuingBranchNameMap, DecimalFormat formatter) {
 		logger.debug("In InterBankFundTransferReportAtm.issuingDetails()");
+		String bankCode = null;
+		String bankName = null;
+		String bankMnem = null;
 		try {
-			pagination++;
-			writeHeader(rgm, pagination, issuerBranchCode, issuerBranchName);
 			StringBuilder line = new StringBuilder();
 			line.append("B.").append("THIS BRANCH AS ISSUER/TRANSMITTING BRANCH").append(";");
 			line.append(getEol());
@@ -217,16 +226,17 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 			rgm.writeLine(line.toString().getBytes());
 			overallSectionTotal = 0.00;
 
-			for (SortedMap.Entry<String, Map<String, String>> bankCodeMap : issuingBranchNameMap.getValue()
+			for (SortedMap.Entry<String, Map<String, String>> acqBankMnemMap : issuingBranchNameMap.getValue()
 					.entrySet()) {
-				bankCode = bankCodeMap.getKey();
-				for (SortedMap.Entry<String, String> bankMnemMap : bankCodeMap.getValue().entrySet()) {
-					bankName = bankMnemMap.getKey();
-					bankMnem = bankMnemMap.getValue();
+				bankMnem = acqBankMnemMap.getKey();
+				for (SortedMap.Entry<String, String> bankNameMap : acqBankMnemMap.getValue().entrySet()) {
+					bankName = bankNameMap.getKey();
+					bankCode = bankNameMap.getValue();
 					sectionTotal = 0.00;
-					preProcessing(rgm, issuerBranchCode, bankCode, "issuing");
+					preProcessing(rgm, issuerBranchCode, bankCode, null, "issuing");
 					line = new StringBuilder();
-					line.append("ACQUIRER BANK - ").append(bankMnem + "  ").append(bankName).append(";");
+					line.append("ACQUIRER BANK - ").append(";").append(bankMnem + "  ").append(";").append(bankName)
+							.append(";");
 					line.append(getEol());
 					rgm.writeLine(line.toString().getBytes());
 					writeBodyHeader(rgm);
@@ -253,11 +263,12 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 		}
 	}
 
-	private void receivingDetails(ReportGenerationMgr rgm, String receivingBranchCode, String receivingBranchName,
-			double overallSectionTotal,
-			SortedMap.Entry<String, Map<String, Map<String, String>>> receivingBranchNameMap, String bankCode,
-			String bankName, String bankMnem, DecimalFormat formatter) {
+	private void receivingDetails(ReportGenerationMgr rgm, String receivingBranchCode, double overallSectionTotal,
+			SortedMap.Entry<String, Set<String>> receivingBranchCodeMap, DecimalFormat formatter) {
 		logger.debug("In InterBankFundTransferReportAtm.receivingDetails()");
+		String bankCode = null;
+		String bankName = null;
+		String bankMnem = null;
 		try {
 			StringBuilder line = new StringBuilder();
 			line.append("C.").append("THIS BRANCH AS RECEIVING BRANCH").append(";");
@@ -266,19 +277,20 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			overallSectionTotal = 0.00;
-
-			for (SortedMap.Entry<String, Map<String, String>> bankCodeMap : receivingBranchNameMap.getValue()
-					.entrySet()) {
-				bankCode = bankCodeMap.getKey();
-				for (SortedMap.Entry<String, String> bankMnemMap : bankCodeMap.getValue().entrySet()) {
-					bankName = bankMnemMap.getKey();
-					bankMnem = bankMnemMap.getValue();
+			preProcessing(rgm, receivingBranchCode, bankCode, receivingBranchCodeMap.getValue(), "receiving");
+			rgm.setBodyQuery(getReceivingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+			for (SortedMap.Entry<String, Map<String, String>> acqBankMnemMap : filterByReceiving(rgm).entrySet()) {
+				bankMnem = acqBankMnemMap.getKey();
+				for (SortedMap.Entry<String, String> bankNameMap : acqBankMnemMap.getValue().entrySet()) {
 					sectionTotal = 0.00;
-					preProcessing(rgm, receivingBranchCode, bankCode, "receiving");
+					bankName = bankNameMap.getKey();
+					bankCode = bankNameMap.getValue();
 					line = new StringBuilder();
-					line.append("ACQUIRER BANK - ").append(bankMnem + "  ").append(bankName).append(";");
+					line.append("ACQUIRER BANK - ").append(";").append(bankMnem + "  ").append(";").append(bankName)
+							.append(";");
 					line.append(getEol());
 					rgm.writeLine(line.toString().getBytes());
+					preProcessing(rgm, receivingBranchCode, bankCode, receivingBranchCodeMap.getValue(), "receiving");
 					writeBodyHeader(rgm);
 					rgm.setBodyQuery(getReceivingBodyQuery());
 					executeBodyQuery(rgm);
@@ -303,66 +315,132 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 		}
 	}
 
-	private SortedMap<String, String> filterByBranch(ReportGenerationMgr rgm) {
-		logger.debug("In InterBankFundTransferReportAtm.filterByBranch()");
-		String branchCode = null;
-		String branchName = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, String> criteriaMap = new TreeMap<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter criteria: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-								branchCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-								branchName = result.toString();
-							}
-						}
-					}
-					criteriaMap.put(branchCode, branchName);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In InterBankFundTransferReportAtm.separateQuery()");
+		if (rgm.getBodyQuery() != null) {
+			setAcquiringBodyQuery(
+					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_ACQUIRING) + 15,
+							rgm.getBodyQuery().indexOf(SUBSTRING_END_ACQUIRING)));
+			setIssuingBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_ISSUING) + 13,
+					rgm.getBodyQuery().indexOf(SUBSTRING_END_ISSUING)));
+			setReceivingBodyQuery(
+					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_RECEIVING) + 15,
+							rgm.getBodyQuery().indexOf(SUBSTRING_END_RECEIVING)));
 		}
-		return criteriaMap;
 	}
 
-	private SortedMap<String, Map<String, Map<String, Map<String, String>>>> filterByIssuingReceiving(
-			ReportGenerationMgr rgm) {
-		logger.debug("In InterBankFundTransferReportAtm.filterByIssuingReceiving()");
+	private void preProcessing(ReportGenerationMgr rgm, String indicator) {
+		logger.debug("In InterBankFundTransferReportAtm.preProcessing()");
+		if (indicator.equalsIgnoreCase("acquiring")) {
+			rgm.setBodyQuery(getAcquiringBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+		} else if (indicator.equalsIgnoreCase("issuing")) {
+			rgm.setBodyQuery(getIssuingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+		} else {
+			rgm.setBodyQuery(getReceivingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_TO_ACCOUNT + "}", ""));
+		}
+	}
+
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBankCode,
+			Set<String> filterByToAccountNo, String filterType)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In InterBankFundTransferReportAtm.preProcessing()");
+		String toAccountNumber = "";
+		if (filterByBankCode != null) {
+			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
+					ReportGenerationFields.TYPE_STRING,
+					"LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
+		}
+
+		if (filterByToAccountNo != null) {
+			for (Iterator<String> it = filterByToAccountNo.iterator(); it.hasNext();) {
+				String toAccountNo = it.next();
+				if (it.hasNext()) {
+					toAccountNumber += "'" + toAccountNo + "',";
+				} else {
+					toAccountNumber += "'" + toAccountNo + "'";
+				}
+			}
+			ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
+			getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
+		}
+
+		if (filterByBranchCode != null) {
+			if (filterType.equalsIgnoreCase("acquiring")) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			} else if (filterType.equalsIgnoreCase("issuing")) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			} else {
+				ReportGenerationFields branchCode = new ReportGenerationFields(
+						ReportConstants.PARAM_RECEIVING_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
+						"'" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			}
+		}
+	}
+
+	private void addReceivingBranchCode(String filterByBranchCode) {
+		logger.debug("In InterBankFundTransferReportAtm.addReceivingBranchCode()");
+		ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_RECEIVING_BRANCH_CODE,
+				ReportGenerationFields.TYPE_STRING, "'" + filterByBranchCode + "'");
+		ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
+				ReportGenerationFields.TYPE_STRING,
+				"(SELECT BRC_NAME FROM BRANCH WHERE BRC_CODE = '" + filterByBranchCode + "')");
+		getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+		getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
+	}
+
+	@Override
+	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In InterBankFundTransferReportAtm.writeBodyHeader()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				line.append(field.getFieldName());
+				line.append(field.getDelimiter());
+				line.append(getEol());
+			} else {
+				line.append(field.getFieldName());
+				line.append(field.getDelimiter());
+			}
+		}
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	@Override
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
+			line.append(field.getDelimiter());
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	private SortedMap<String, Map<String, Map<String, Map<String, String>>>> filterByIssuing(ReportGenerationMgr rgm) {
+		logger.debug("In InterBankFundTransferReportAtm.filterByIssuing()");
 		String branchCode = null;
 		String branchName = null;
 		String bankCode = null;
@@ -395,12 +473,10 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 							continue;
 						}
 						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.ISSUER_BRANCH_CODE)
-									|| key.equalsIgnoreCase(ReportConstants.RECEIVING_BRANCH_CODE)) {
+							if (key.equalsIgnoreCase(ReportConstants.ISSUER_BRANCH_CODE)) {
 								branchCode = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.ISSUER_BRANCH_NAME)
-									|| key.equalsIgnoreCase(ReportConstants.RECEIVING_BRANCH_NAME)) {
+							if (key.equalsIgnoreCase(ReportConstants.ISSUER_BRANCH_NAME)) {
 								branchName = result.toString();
 							}
 							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
@@ -415,30 +491,30 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, Map<String, String>>> branchNameMap = new HashMap<>();
-						Map<String, Map<String, String>> bankCodeMap = new HashMap<>();
-						Map<String, String> locationMap = new HashMap<>();
-						locationMap.put(bankName, acqBankMnem);
-						bankCodeMap.put(bankCode, locationMap);
-						branchNameMap.put(branchName, bankCodeMap);
+						Map<String, Map<String, Map<String, String>>> branchNameMap = new TreeMap<>();
+						Map<String, Map<String, String>> acqBankMnemMap = new TreeMap<>();
+						Map<String, String> bankNameMap = new TreeMap<>();
+						bankNameMap.put(bankName, bankCode);
+						acqBankMnemMap.put(acqBankMnem, bankNameMap);
+						branchNameMap.put(branchName, acqBankMnemMap);
 						criteriaMap.put(branchCode, branchNameMap);
 					} else {
 						Map<String, Map<String, Map<String, String>>> branchNameMap = criteriaMap.get(branchCode);
 						if (branchNameMap.get(branchName) == null) {
-							Map<String, Map<String, String>> terminalMap = new HashMap<>();
-							Map<String, String> locationMap = new HashMap<>();
-							locationMap.put(bankName, acqBankMnem);
-							terminalMap.put(bankCode, locationMap);
-							branchNameMap.put(branchName, terminalMap);
+							Map<String, Map<String, String>> acqBankMnemMap = new TreeMap<>();
+							Map<String, String> bankNameMap = new TreeMap<>();
+							bankNameMap.put(bankName, bankCode);
+							acqBankMnemMap.put(acqBankMnem, bankNameMap);
+							branchNameMap.put(branchName, acqBankMnemMap);
 						} else {
-							Map<String, Map<String, String>> bankCodeMap = branchNameMap.get(branchName);
-							if (bankCodeMap.get(bankCode) == null) {
-								Map<String, String> bankNameMap = new HashMap<>();
-								bankNameMap.put(bankName, acqBankMnem);
-								bankCodeMap.put(bankCode, bankNameMap);
+							Map<String, Map<String, String>> acqBankMnemMap = branchNameMap.get(branchName);
+							if (acqBankMnemMap.get(bankCode) == null) {
+								Map<String, String> bankNameMap = new TreeMap<>();
+								bankNameMap.put(bankName, bankCode);
+								acqBankMnemMap.put(acqBankMnem, bankNameMap);
 							} else {
-								Map<String, String> bankNameMap = bankCodeMap.get(bankCode);
-								bankNameMap.put(bankName, acqBankMnem);
+								Map<String, String> bankNameMap = acqBankMnemMap.get(bankCode);
+								bankNameMap.put(bankName, bankCode);
 							}
 						}
 					}
@@ -459,98 +535,148 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 		return criteriaMap;
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterBankFundTransferReportAtm.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
+	private SortedMap<String, Map<String, String>> filterByReceiving(ReportGenerationMgr rgm) {
+		logger.debug("In InterBankFundTransferReportAtm.filterByReceiving()");
+		String bankCode = null;
+		String bankName = null;
+		String acqBankMnem = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, Map<String, String>> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter criteria: {}", query);
 
-	private void preProcessing(ReportGenerationMgr rgm, String indicator) {
-		logger.debug("In InterBankFundTransferReportAtm.preProcessing()");
-		if (indicator.equalsIgnoreCase("acquiring")) {
-			rgm.setBodyQuery(getAcquiringBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
-		} else if (indicator.equalsIgnoreCase("issuing")) {
-			rgm.setBodyQuery(getIssuingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
-		} else {
-			rgm.setBodyQuery(getReceivingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
-		}
-	}
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBankCode,
-			String filterType) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterBankFundTransferReportAtm.preProcessing()");
-		if (filterByBranchCode != null && filterType.equalsIgnoreCase("acquiring")) {
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		}
-
-		if (filterByBankCode != null) {
-			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
-					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_ACQR_INST_ID, 4, '0') = '" + filterByBankCode + "'");
-			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
-		}
-
-		if (filterByBranchCode != null
-				&& (filterType.equalsIgnoreCase("issuing") || filterType.equalsIgnoreCase("receiving"))) {
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(BRC.BRC_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		}
-	}
-
-	private void separateQuery(ReportGenerationMgr rgm) {
-		logger.debug("In InterBankFundTransferReportAtm.separateQuery()");
-		if (rgm.getBodyQuery() != null) {
-			setAcquiringBodyQuery(
-					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_ACQUIRING) + 15,
-							rgm.getBodyQuery().indexOf(SUBSTRING_END_ACQUIRING)));
-			setIssuingBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_ISSUING) + 13,
-					rgm.getBodyQuery().indexOf(SUBSTRING_END_ISSUING)));
-			setReceivingBodyQuery(
-					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_RECEIVING) + 15,
-							rgm.getBodyQuery().indexOf(SUBSTRING_END_RECEIVING)));
-		}
-	}
-
-	@Override
-	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In InterBankFundTransferReportAtm.writeBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				line.append(field.getFieldName());
-				line.append(field.getDelimiter());
-				line.append(getEol());
-			} else {
-				line.append(field.getFieldName());
-				line.append(field.getDelimiter());
-			}
-		}
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					sectionTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+								bankCode = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.ACQUIRER_BANK_MNEM)) {
+								acqBankMnem = result.toString();
+							}
+						}
+					}
+					if (criteriaMap.get(acqBankMnem) == null) {
+						Map<String, String> bankNameMap = new TreeMap<>();
+						bankNameMap.put(bankName, bankCode);
+						criteriaMap.put(acqBankMnem, bankNameMap);
+					} else {
+						Map<String, String> bankNameMap = criteriaMap.get(acqBankMnem);
+						if (bankNameMap.get(acqBankMnem) == null) {
+							Map<String, String> bankCodeMap = new TreeMap<>();
+							bankCodeMap.put(bankName, bankCode);
+						} else {
+							Map<String, String> bankCodeMap = criteriaMap.get(acqBankMnem);
+							bankCodeMap.put(bankName, bankCode);
+						}
+					}
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
 				}
 			}
-			line.append(getFieldValue(rgm, field, fieldsMap));
-			line.append(field.getDelimiter());
 		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
+		return criteriaMap;
+	}
+
+	private SortedMap<String, Set<String>> filterForReceivingBranchCode(ReportGenerationMgr rgm) {
+		logger.debug("In InterBankFundTransferReportAtm.filterForReceivingBranchCode()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, Set<String>> branchCodeMap = new TreeMap<>();
+		rgm.setBodyQuery(getReceivingBodyQuery()
+				.replace("{" + ReportConstants.PARAM_RECEIVING_BRANCH_CODE + "}" + " \"RECEIVING BRANCH CODE\",", "")
+				.replace("{" + ReportConstants.PARAM_BRANCH_NAME + "}" + " \"RECEIVING BRANCH NAME\",", "")
+				.replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", "")
+				.replace("AND {" + ReportConstants.PARAM_TO_ACCOUNT + "}", ""));
+		String query = getBodyQuery(rgm);
+		String toAccountNo = null;
+		String toAccountNoEkyId = null;
+		String branchCode = null;
+		logger.info("Query for filter for receiving branch code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
+								toAccountNo = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO_EKY_ID)) {
+								toAccountNoEkyId = result.toString();
+							}
+						}
+					}
+					branchCode = getBranchCode(toAccountNo, toAccountNoEkyId);
+					if (branchCodeMap.get(branchCode) == null) {
+						Set<String> toAccountNoList = new HashSet<>();
+						toAccountNoList.add(toAccountNo);
+						branchCodeMap.put(branchCode, toAccountNoList);
+					} else {
+						Set<String> toAccountNoList = branchCodeMap.get(branchCode);
+						toAccountNoList.add(toAccountNo);
+					}
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the receiving branch code", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return branchCodeMap;
 	}
 }

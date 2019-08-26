@@ -50,76 +50,96 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		float width = 0.0f;
 		float startX = 0.0f;
 		float startY = 0.0f;
+		String glDescription = null;
 		pagination = 0;
 		try {
 			doc = new PDDocument();
-			String glDescription = null;
-
 			separateQuery(rgm);
 			preProcessing(rgm);
 
-			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
-
-			while (glDescriptionItr.hasNext()) {
-				glDescription = glDescriptionItr.next();
-				if (!endGroup && !newGroup) {
-					page = new PDPage();
-					doc.addPage(page);
-					firstRecord = true;
-					newGroup = true;
-					pagination++;
-					contentStream = new PDPageContentStream(doc, page);
-					pageSize = page.getMediaBox();
-					width = pageSize.getWidth() - 2 * margin;
-					startX = pageSize.getLowerLeftX() + margin;
-					startY = pageSize.getUpperRightY() - margin;
-					contentStream.setFont(pdfFont, fontSize);
-					contentStream.beginText();
-					contentStream.newLineAtOffset(startX, startY);
-				}
-
-				if (endGroup && newGroup) {
-					endGroup = false;
-					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-					page = new PDPage();
-					doc.addPage(page);
-					firstRecord = true;
-					pagination++;
-					contentStream = new PDPageContentStream(doc, page);
-					contentStream.setFont(pdfFont, fontSize);
-					contentStream.beginText();
-					contentStream.newLineAtOffset(startX, startY);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					rgm.setTrailerQuery(getDebitTrailerQuery());
-					preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-					pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY, pdfFont,
-							fontSize);
-				} else {
-					rgm.setBodyQuery(getDebitBodyQuery());
-					rgm.setTrailerQuery(getDebitTrailerQuery());
-					preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-					pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY, pdfFont,
-							fontSize);
-				}
-
-				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+			rgm.setBodyQuery(getCriteriaQuery());
+			if (!executeQuery(rgm)) {
 				page = new PDPage();
 				doc.addPage(page);
-				firstRecord = true;
-				pagination++;
 				contentStream = new PDPageContentStream(doc, page);
+				pageSize = page.getMediaBox();
+				width = pageSize.getWidth() - 2 * margin;
+				startX = pageSize.getLowerLeftX() + margin;
+				startY = pageSize.getUpperRightY() - margin;
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
-				rgm.setBodyQuery(getCreditBodyQuery());
-				rgm.setTrailerQuery(getCreditTrailerQuery());
-				preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
-				pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY, pdfFont,
-						fontSize);
-				endGroup = true;
-			}
+				contentStream.endText();
+				contentStream.close();
+				saveFile(rgm, doc);
+			} else {
+				Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
+				while (glDescriptionItr.hasNext()) {
+					glDescription = glDescriptionItr.next();
+					if (!endGroup && !newGroup) {
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						newGroup = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						pageSize = page.getMediaBox();
+						width = pageSize.getWidth() - 2 * margin;
+						startX = pageSize.getLowerLeftX() + margin;
+						startY = pageSize.getUpperRightY() - margin;
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+					}
 
-			saveFile(rgm, doc);
+					if (endGroup && newGroup) {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
+						if (executeQuery(rgm)) {
+							endGroup = false;
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							firstRecord = true;
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
+									pdfFont, fontSize);
+						}
+					} else {
+						rgm.setBodyQuery(getDebitBodyQuery());
+						rgm.setTrailerQuery(getDebitTrailerQuery());
+						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
+						if (executeQuery(rgm)) {
+							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
+									pdfFont, fontSize);
+						}
+					}
+
+					rgm.setBodyQuery(getCreditBodyQuery());
+					rgm.setTrailerQuery(getCreditTrailerQuery());
+					preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
+					if (executeQuery(rgm)) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						page = new PDPage();
+						doc.addPage(page);
+						firstRecord = true;
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
+						pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY, pdfFont,
+								fontSize);
+					}
+					endGroup = true;
+				}
+				saveFile(rgm, doc);
+			}
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -173,14 +193,18 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 				rgm.setBodyQuery(getDebitBodyQuery());
 				rgm.setTrailerQuery(getDebitTrailerQuery());
 				preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-				processingDetail(rgm);
+				if (executeQuery(rgm)) {
+					processingDetail(rgm);
+				}
 
 				firstRecord = true;
 				pagination++;
 				rgm.setBodyQuery(getCreditBodyQuery());
 				rgm.setTrailerQuery(getCreditTrailerQuery());
 				preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
-				processingDetail(rgm);
+				if (executeQuery(rgm)) {
+					processingDetail(rgm);
+				}
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -242,24 +266,23 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service') OR TXN.TRL_DEST_ICH_NAME != 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000010'");
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -281,7 +304,8 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 					.replace(
 							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = 'BANCNET SERVICE CHARGE' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
 							"")
-					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "").replace("TXN.TRL_AMT_TXN,", "")
+					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "")
+					.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "").replace("TXN.TRL_AMT_TXN,", "")
 					.replace("TXN.TRL_ISS_CHARGE_AMT,", "").replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));
 			setDebitBodyQuery(getDebitBodyQuery().replace(getDebitBodyQuery()
 					.substring(getDebitBodyQuery().indexOf("GROUP BY"), getDebitBodyQuery().indexOf("ORDER BY")), ""));
@@ -309,6 +333,10 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		String receivableValue = null;
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (!firstRecord && !payable && !receivable) {
 				switch (field.getFieldName()) {
 				case ReportConstants.BRANCH_CODE:
@@ -386,6 +414,10 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		String payableValue = null;
 		String receivableValue = null;
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (!firstRecord && !payable && !receivable) {
 				switch (field.getFieldName()) {
 				case ReportConstants.BRANCH_CODE:
@@ -458,12 +490,14 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			contentStream.showText(String.format("%1$4s", "")
 					+ String.format("%1$" + (fieldLength + payableValue.length()) + "s", payableValue));
 			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
 		}
 		if (receivable) {
 			receivable = false;
 			contentStream.showText(String.format("%1$4s", "")
 					+ String.format("%1$" + (fieldLength + receivableValue.length()) + "s", receivableValue));
 			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
 		}
 		firstRecord = false;
 	}
@@ -550,5 +584,36 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			}
 		}
 		return contentStream;
+	}
+
+	private boolean executeQuery(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffBlocksheetInterbankFundTransfer.executeQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Execute query: {}", query);
+
+		try {
+			ps = rgm.connection.prepareStatement(query);
+			rs = ps.executeQuery();
+
+			if (!rs.isBeforeFirst()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the body query", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return false;
 	}
 }

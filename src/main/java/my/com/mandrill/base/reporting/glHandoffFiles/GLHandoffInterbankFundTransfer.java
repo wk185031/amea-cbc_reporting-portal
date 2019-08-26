@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +47,7 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 				rgm.setBodyQuery(getCreditBodyQuery());
 				executeBodyQuery(rgm);
 			}
-			postProcessing(rgm);
+			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -77,13 +77,9 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 		}
 
 		if (rgm.isGenerate() == true) {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getTxnEndDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat(ReportConstants.DATE_FORMAT_12);
-			Date date = new Date(rgm.getYesterdayDate().getTime());
-			groupIdDate = sdf.format(date);
+			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -107,24 +103,23 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service') OR TXN.TRL_DEST_ICH_NAME != 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000010'");
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -141,12 +136,6 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
-	}
-
-	private void postProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffInterbankFundTransfer.postProcessing()");
-		addPostProcessingFieldsToGlobalMap(rgm);
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -187,9 +176,7 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 								.replace(' ', '0'));
 					}
 				} else {
-					setFieldFormatException(true);
 					line.append(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
 				}
 				break;
 			}
@@ -214,9 +201,7 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 							.replace(' ', '0'));
 				}
 			} else {
-				setFieldFormatException(true);
 				line.append(getGlobalFieldValue(rgm, field));
-				setFieldFormatException(false);
 			}
 		}
 		line.append(getEol());

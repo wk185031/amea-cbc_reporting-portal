@@ -43,8 +43,8 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
-			for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchCodeMap : filterByBranch(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchCodeMap : filterByBranches(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
 				for (SortedMap.Entry<String, Map<String, TreeSet<String>>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
@@ -85,8 +85,8 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		}
 	}
 
-	private SortedMap<String, Map<String, Map<String, TreeSet<String>>>> filterByBranch(ReportGenerationMgr rgm) {
-		logger.debug("In PosTransactionsCardholderBranch.filterByBranch()");
+	private SortedMap<String, Map<String, Map<String, TreeSet<String>>>> filterByBranches(ReportGenerationMgr rgm) {
+		logger.debug("In PosTransactionsCardholderBranch.filterByBranches()");
 		String branchCode = null;
 		String branchName = null;
 		String merchantName = null;
@@ -194,7 +194,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		rgm.setBodyQuery(rgm.getTmpBodyQuery());
 		if (filterByBranchCode != null && filterByMerchantName != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(BRC.BRC_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields merchant = new ReportGenerationFields(ReportConstants.PARAM_MERCHANT,
 					ReportGenerationFields.TYPE_STRING, "TRIM(MER.MER_NAME) = '" + filterByMerchantName + "'");
 
@@ -244,26 +244,29 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		double txnAmt = 0.00;
 		double commission = 0.00;
 		for (ReportGenerationFields field : fields) {
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
 			switch (field.getFieldName()) {
+			case ReportConstants.AMOUNT:
+				DecimalFormat format = new DecimalFormat(field.getFieldFormat());
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					line.append(format.format(txnAmt));
+				} else {
+					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+					line.append(format.format(txnAmt));
+				}
+				line.append(field.getDelimiter());
+				break;
 			case ReportConstants.POS_COMMISSION:
 				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
 				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
 					commission = Double.parseDouble(extractCommission(customData));
 					commission = txnAmt * commission / 100;
-					totalCommission += commission;
 					line.append(formatter.format(commission));
 				} else {
-					totalCommission += commission;
 					line.append(formatter.format(commission));
 				}
 				line.append(field.getDelimiter());

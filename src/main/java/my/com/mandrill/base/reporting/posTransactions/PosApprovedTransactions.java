@@ -206,6 +206,10 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 		double commission = 0.00;
 		double netSettAmt = 0.00;
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));

@@ -3,7 +3,7 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.json.JSONException;
@@ -58,11 +58,11 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 		logger.debug("In AtmDailyTransactionSummary.addPreProcessingFieldsToGlobalMap()");
 		if (rgm.isGenerate() == true) {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
+					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		} else {
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
+					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 		}
 	}
@@ -72,6 +72,7 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 		logger.debug("In AtmDailyTransactionSummary.preProcessing()");
 		String startTime = null;
 		String endTime = null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
 
 		if (hours > 9) {
 			startTime = ReportConstants.START_TIME.replace(ReportConstants.START_TIME,
@@ -85,13 +86,11 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 		}
 
 		if (rgm.isGenerate() == true) {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnStartDate())
-					.concat(" ").concat(startTime);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTxnEndDate()).concat(" ")
-					.concat(endTime);
+			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(startTime);
+			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(endTime);
 
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getTxnEndDate().getTime()));
+					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
@@ -101,13 +100,11 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
 			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		} else {
-			String txnStart = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getYesterdayDate())
-					.concat(" ").concat(startTime);
-			String txnEnd = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01).format(rgm.getTodayDate()).concat(" ")
-					.concat(endTime);
+			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(startTime);
+			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(endTime);
 
 			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, Long.toString(rgm.getYesterdayDate().getTime()));
+					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE

@@ -217,7 +217,7 @@ public class GLHandoffFinalProofSheetOnUs extends TxtReportProcessor {
 		logger.debug("In GLHandoffFinalProofSheetOnUs.preProcessing()");
 		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}

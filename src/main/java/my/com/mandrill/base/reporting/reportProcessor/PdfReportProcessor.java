@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,8 +31,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 	private final Logger logger = LoggerFactory.getLogger(PdfReportProcessor.class);
 	private String tmpTrailerQuery = null;
 	private String onUsBodyQuery = null;
+	private String acqBodyQuery = null;
 	private String issBodyQuery = null;
 	private String onUsTrailerQuery = null;
+	private String acqTrailerQuery = null;
 	private String issTrailerQuery = null;
 	private String branchDetailBodyQuery = null;
 	private String branchBodyQuery = null;
@@ -63,6 +66,14 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		this.onUsBodyQuery = onUsBodyQuery;
 	}
 
+	public String getAcqBodyQuery() {
+		return acqBodyQuery;
+	}
+
+	public void setAcqBodyQuery(String acqBodyQuery) {
+		this.acqBodyQuery = acqBodyQuery;
+	}
+
 	public String getIssBodyQuery() {
 		return issBodyQuery;
 	}
@@ -77,6 +88,14 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	public void setOnUsTrailerQuery(String onUsTrailerQuery) {
 		this.onUsTrailerQuery = onUsTrailerQuery;
+	}
+
+	public String getAcqTrailerQuery() {
+		return acqTrailerQuery;
+	}
+
+	public void setAcqTrailerQuery(String acqTrailerQuery) {
+		this.acqTrailerQuery = acqTrailerQuery;
 	}
 
 	public String getIssTrailerQuery() {
@@ -198,15 +217,14 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void saveFile(ReportGenerationMgr rgm, PDDocument doc) {
 		logger.debug("In PdfReportProcessor.saveFile()");
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 		String fileLocation = rgm.getFileLocation();
 		String txnDate = null;
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			}
 
 			if (rgm.errors == 0) {
@@ -221,12 +239,47 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
+				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
 						+ ReportConstants.PDF_FORMAT);
 			}
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in saving " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT, e);
+		}
+	}
+
+	protected void saveFile(ReportGenerationMgr rgm, PDDocument doc, String branchCode) {
+		logger.debug("In PdfReportProcessor.saveFile()");
+		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
+		String fileLocation = rgm.getFileLocation();
+		String txnDate = null;
+
+		try {
+			if (rgm.isGenerate() == true) {
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+			} else {
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+			}
+
+			if (rgm.errors == 0) {
+				if (fileLocation != null) {
+					File directory = new File(fileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
+					}
+					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate
+							+ ReportConstants.PDF_FORMAT));
+				} else {
+					throw new Exception("Path is not configured.");
+				}
+			} else {
+				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + branchCode + "_"
+						+ txnDate + ReportConstants.PDF_FORMAT);
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error in saving " + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate
+					+ ReportConstants.PDF_FORMAT, e);
 		}
 	}
 
@@ -401,6 +454,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.isEol()) {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
@@ -415,6 +472,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.COMMENT)) {
 					if (!getFieldValue(field, fieldsMap).trim().equalsIgnoreCase(ReportConstants.APPROVED)) {

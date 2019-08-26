@@ -15,11 +15,14 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
 
     sectionCollapsed = [0];
 
-    fieldTypeOptions: string[] = ['String', 'Number', 'Decimal', 'Date'];
-    fieldLengthTypeOptions: string[] = ['Leading', 'Trailing'];
-    padFieldLength: string;
-    fieldLengthType: string;
-    padFieldString: string;
+    fieldTypeOptions: string[] = ['String', 'Number', 'Decimal', 'Date', 'Date Time'];
+    delimiterOptions: string[] = ['', ';'];
+    fieldFormatOptions: string[] = ['', ',', '0.00', '#,##0.00', 'yyMMdd', 'MMddyyyy', 'MM/dd/yyyy', 'MM/dd/yy', 'dd/MM/yyyy', 'ddMMyyyy', 'yyyyMMdd', 'dd/MM/yyyy HH:mm', 'HH:mm', 'HH:mm:ss', 'HH:mm:ss a', 'hhmmss'];
+    padFieldLengthOptions: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+    padFieldTypeOptions: string[] = ['Leading', 'Trailing'];
+    padFieldValueOptions: string[] = ['Zeros', 'Spaces'];
+    decryptionKeyOptions: string[] = ['', 'TRL_PAN_EKY_ID', 'TRL_ACCOUNT_1_ACN_ID_EKY_ID', 'TRL_ACCOUNT_2_ACN_ID_EKY_ID', 'TRL_CUSTOM_DATA_EKY_ID', 'CRD_PAN_EKY_ID', 'ACN_ACCOUNT_NUMBER_EKY_ID'];
+    tagValueOptions: string[] = ['', 'BILLERSUBN'];
 
     ngOnChanges() {
         if (!this.reportDefinition.id) {
@@ -37,21 +40,21 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '1';
             reportDefinitionSections.fieldType = 'String';
-            reportDefinitionSections.padFieldLength = null;
-            reportDefinitionSections.justifyLeft = false;
-            reportDefinitionSections.enablePadFieldLength = false;
+            reportDefinitionSections.delimiter = '';
+            reportDefinitionSections.fieldFormat = '';
+            reportDefinitionSections.padFieldLength = 0;
+            reportDefinitionSections.leftJustified = false;
             reportDefinitionSections.decrypt = false;
-            reportDefinitionSections.enableDecryption = false;
             this.reportDefinition.bodySection.push(reportDefinitionSections);
         } else {
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '' + (this.reportDefinition.bodySection.length + 1);
             reportDefinitionSections.fieldType = 'String';
-            reportDefinitionSections.padFieldLength = null;
-            reportDefinitionSections.justifyLeft = false;
-            reportDefinitionSections.enablePadFieldLength = false;
+            reportDefinitionSections.delimiter = '';
+            reportDefinitionSections.fieldFormat = '';
+            reportDefinitionSections.padFieldLength = 0;
+            reportDefinitionSections.leftJustified = false;
             reportDefinitionSections.decrypt = false;
-            reportDefinitionSections.enableDecryption = false;
             this.reportDefinition.bodySection.push(reportDefinitionSections);
         }
         this.valueChange();
@@ -122,43 +125,44 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
     }
 
     fieldLengthChange(section: ReportDefinitionSection, field: string, event: any) {
-        if (field == 'length') {
-            if (event.target.value == '') {
-                section.enablePadFieldLength = false;
-                section.padFieldLength = null;
+        if (field === 'length') {
+            if (event.target.value === 0) {
+                section.padFieldLength = 0;
                 section.padFieldType = null;
-                section.padFieldString = null;
+                section.padFieldValue = null;
             } else {
-                section.enablePadFieldLength = true;
+                section.padFieldLength = event.target.value;
                 if (!section.padFieldType) {
                     section.padFieldType = 'Leading';
                 }
-                if (!section.padFieldString) {
-                    section.padFieldString = null;
+                if (!section.padFieldValue) {
+                    section.padFieldValue = 'Zeros';
                 }
             }
-        } else if (field == 'type') {
+        } else if (field === 'type') {
             section.padFieldType = event.target.value;
+        } else {
+            section.padFieldValue = event.target.value;
         }
         this.valueChange();
     }
 
     bodyHeaderValueChange(section: ReportDefinitionSection) {
-        if (section.bodyHeader == true) {
-            section.justifyLeft = true;
+        if (section.bodyHeader === true) {
+            section.leftJustified = true;
         } else {
-            section.justifyLeft = false;
+            section.leftJustified = false;
         }
         this.valueChange();
     }
 
     isDecrypt(section: ReportDefinitionSection) {
-        if (section.decrypt == true) {
-            section.enableDecryption = true;
+        if (section.decrypt === true) {
             section.decryptionKey = null;
+            section.tagValue = null;
         } else {
-            section.enableDecryption = false;
             section.decryptionKey = null;
+            section.tagValue = null;
         }
         this.valueChange();
     }

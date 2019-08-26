@@ -233,24 +233,23 @@ public class GLHandoffFinalProofSheetInterbankFundTransfer extends TxtReportProc
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		// TBC
 		switch (filterByGlDescription) {
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service') OR TXN.TRL_DEST_ICH_NAME != 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000010'");
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_ORIGIN_ICH_NAME IN ('NDC+', 'Authentic_Service', 'Bancnet_Interchange') OR TXN.TRL_DEST_ICH_NAME = 'Bancnet_Interchange')");
+					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = 'CBC' OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}

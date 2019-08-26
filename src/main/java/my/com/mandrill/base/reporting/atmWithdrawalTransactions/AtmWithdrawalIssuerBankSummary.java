@@ -51,7 +51,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
 
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
@@ -96,8 +96,8 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
-			preProcessing(rgm);
-			writeHeader(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			executeTrailerQuery(rgm);
@@ -108,8 +108,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -123,12 +122,6 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmWithdrawalIssuerBankSummary.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
 	@Override
@@ -184,14 +177,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_CODE)
-						|| field.getFieldName().equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}
@@ -320,13 +306,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}

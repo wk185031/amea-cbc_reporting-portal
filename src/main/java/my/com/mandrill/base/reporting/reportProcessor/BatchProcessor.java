@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +28,12 @@ public class BatchProcessor extends TxtReportProcessor {
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = df.format(rgm.getFileDate());
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			} else {
-				txnDate = df.format(rgm.getYesterdayDate());
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			}
 
 			if (rgm.errors == 0) {

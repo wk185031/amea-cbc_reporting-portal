@@ -2,7 +2,7 @@ package my.com.mandrill.base;
 
 import my.com.mandrill.base.config.ApplicationProperties;
 import my.com.mandrill.base.config.DefaultProfileUtil;
-
+import my.com.mandrill.base.reporting.security.SecurityManagerService;
 import io.github.jhipster.config.JHipsterConstants;
 
 import org.slf4j.Logger;
@@ -29,9 +29,12 @@ public class BaseApp {
     private static final Logger log = LoggerFactory.getLogger(BaseApp.class);
 
     private final Environment env;
+    
+    private static SecurityManagerService securityManagerService;
 
-    public BaseApp(Environment env) {
+    public BaseApp(Environment env, SecurityManagerService securityManagerService) {
         this.env = env;
+        BaseApp.securityManagerService = securityManagerService;
     }
 
     /**
@@ -80,5 +83,6 @@ public class BaseApp {
             InetAddress.getLocalHost().getHostAddress(),
             env.getProperty("server.port"),
             env.getActiveProfiles());
+        BaseApp.securityManagerService.initialise();
     }
 }

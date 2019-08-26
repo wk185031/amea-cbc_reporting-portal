@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -35,6 +36,101 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalCashCard.processPdfRecord()");
+		generateBranchReport(rgm);
+		generateMasterListReport(rgm);
+	}
+
+	private void generateBranchReport(ReportGenerationMgr rgm) {
+		logger.debug("In TransactionSummaryGrandTotalCashCard.generateBranchReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
+		PDDocument doc = null;
+		try {
+			preProcessing(rgm);
+
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, Map<String, String>>>> branchCodeMap : filterCriteriaForCashCard(
+					rgm).entrySet()) {
+				pagination = 1;
+				doc = new PDDocument();
+				PDPage page = new PDPage();
+				doc.addPage(page);
+				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+				PDFont pdfFont = PDType1Font.COURIER;
+				float fontSize = 6;
+				float leading = 1.5f * fontSize;
+				PDRectangle pageSize = page.getMediaBox();
+				float margin = 30;
+				float width = pageSize.getWidth() - 2 * margin;
+				float startX = pageSize.getLowerLeftX() + margin;
+				float startY = pageSize.getUpperRightY() - margin;
+				String branchCode = null;
+				String branchName = null;
+				String terminal = null;
+				String location = null;
+				String cardProduct = null;
+
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
+
+				branchCode = branchCodeMap.getKey();
+				for (SortedMap.Entry<String, TreeMap<String, Map<String, String>>> branchNameMap : branchCodeMap
+						.getValue().entrySet()) {
+					branchName = branchNameMap.getKey();
+					preProcessing(rgm, branchCode, terminal, cardProduct);
+					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+					contentStream.newLineAtOffset(0, -leading);
+					pageHeight += 4;
+					for (SortedMap.Entry<String, Map<String, String>> terminalMap : branchNameMap.getValue()
+							.entrySet()) {
+						terminal = terminalMap.getKey();
+						for (SortedMap.Entry<String, String> locationMap : terminalMap.getValue().entrySet()) {
+							location = locationMap.getKey();
+							cardProduct = locationMap.getValue();
+							contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + location);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							contentStream.showText(ReportConstants.CARD_PRODUCT + " : " + cardProduct);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							preProcessing(rgm, branchCode, terminal, cardProduct);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize);
+							pageHeight += 1;
+							executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
+									fontSize);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+						}
+					}
+				}
+				contentStream.endText();
+				contentStream.close();
+
+				saveFile(rgm, doc, branchCode);
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+		} finally {
+			if (doc != null) {
+				try {
+					doc.close();
+				} catch (IOException e) {
+					rgm.errors++;
+					logger.error("Error in closing PDF file", e);
+				}
+			}
+		}
+	}
+
+	private void generateMasterListReport(ReportGenerationMgr rgm) {
+		logger.debug("In TransactionSummaryGrandTotalCashCard.generateMasterListReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -56,17 +152,18 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 			String location = null;
 			String cardProduct = null;
 
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			preProcessing(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Map<String, String>>>> branchCodeMap : filterByCriteriaCashCard(
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, Map<String, String>>>> branchCodeMap : filterCriteriaForCashCard(
 					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Map<String, String>>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
+				for (SortedMap.Entry<String, TreeMap<String, Map<String, String>>> branchNameMap : branchCodeMap
+						.getValue().entrySet()) {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal, cardProduct);
 					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
@@ -134,24 +231,17 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,
 			String filterByCardProduct) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In TransactionSummaryGrandTotalCashCard.preProcessing()");
-		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+		if (rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		}
-
-		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
-			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
-		}
-
-		if (filterByCardProduct != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			ReportGenerationFields cardProduct = new ReportGenerationFields(ReportConstants.PARAM_CARD_PRODUCT,
-					ReportGenerationFields.TYPE_STRING, "TRIM(CPD.CPD_NAME) = '" + filterByCardProduct + "'");
+					ReportGenerationFields.TYPE_STRING, "CPD.CPD_NAME = '" + filterByCardProduct + "'");
+
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 			getGlobalFileFieldsMap().put(cardProduct.getFieldName(), cardProduct);
 		}
 	}
@@ -178,7 +268,7 @@ public class TransactionSummaryGrandTotalCashCard extends PdfReportProcessor {
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
-		logger.debug("In TransactionSummaryGrandTotalCashCard.execute()");
+		logger.debug("In TransactionSummaryGrandTotalCashCard.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;

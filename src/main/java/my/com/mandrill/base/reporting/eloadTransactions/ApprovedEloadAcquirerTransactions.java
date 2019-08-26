@@ -33,7 +33,7 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 
 			pagination++;
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				preProcessing(rgm, bankCode);
@@ -71,9 +71,9 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			rgm.setBodyQuery(getIbftBodyQuery());
+			rgm.setBodyQuery(getTxnBodyQuery());
 			executeBodyQuery(rgm, false);
-			rgm.setTrailerQuery(getIbftTrailerQuery());
+			rgm.setTrailerQuery(getTxnTrailerQuery());
 			executeTrailerQuery(rgm, false);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
@@ -100,17 +100,17 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In ApprovedEloadAcquirerTransactions.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getIbftBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+			setCriteriaQuery(getTxnBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
-			setIbftTrailerQuery(
+			setTxnTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryTrailerQuery(rgm.getTrailerQuery()
@@ -125,7 +125,8 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 		logger.debug("In ApprovedEloadAcquirerTransactions.preProcessing()");
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
-					ReportGenerationFields.TYPE_STRING, "CBA.CBA_CODE = '" + filterByBankCode + "'");
+					ReportGenerationFields.TYPE_STRING,
+					"LPAD(CBA.CBA_CODE, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -214,6 +215,10 @@ public class ApprovedEloadAcquirerTransactions extends IbftReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getSequence()) {
 			case 25:
 			case 26:

@@ -9,8 +9,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -38,6 +38,94 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In ListOfPossibleAdjustments.processPdfRecord()");
+		generateBranchReport(rgm);
+		generateMasterListReport(rgm);
+	}
+
+	private void generateBranchReport(ReportGenerationMgr rgm) {
+		logger.debug("In ListOfPossibleAdjustments.generateBranchReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
+		PDDocument doc = null;
+		try {
+			preProcessing(rgm);
+
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
+				pagination = 1;
+				doc = new PDDocument();
+				PDPage page = new PDPage();
+				doc.addPage(page);
+				PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+				PDFont pdfFont = PDType1Font.COURIER;
+				float fontSize = 6;
+				float leading = 1.5f * fontSize;
+				PDRectangle pageSize = page.getMediaBox();
+				float margin = 30;
+				float width = pageSize.getWidth() - 2 * margin;
+				float startX = pageSize.getLowerLeftX() + margin;
+				float startY = pageSize.getUpperRightY() - margin;
+				String branchCode = null;
+				String branchName = null;
+				String terminal = null;
+				String location = null;
+
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
+
+				branchCode = branchCodeMap.getKey();
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
+					branchName = branchNameMap.getKey();
+					preProcessing(rgm, branchCode, terminal);
+					writePdfHeader(rgm, contentStream, leading, pagination);
+					contentStream.newLineAtOffset(0, -leading);
+					pageHeight += 4;
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						location = terminalMap.getValue();
+						total = 0.00;
+						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
+						contentStream.newLineAtOffset(0, -leading);
+						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
+						pageHeight += 2;
+						contentStream.newLineAtOffset(0, -leading);
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						preProcessing(rgm, branchCode, terminal);
+						contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+								pdfFont, fontSize);
+						pageHeight += 1;
+						writePdfTrailer(rgm, contentStream, leading);
+						pageHeight += 1;
+						contentStream.newLineAtOffset(0, -leading);
+					}
+				}
+				contentStream.endText();
+				contentStream.close();
+
+				saveFile(rgm, doc, branchCode);
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+		} finally {
+			if (doc != null) {
+				try {
+					doc.close();
+				} catch (IOException e) {
+					rgm.errors++;
+					logger.error("Error in closing PDF file", e);
+				}
+			}
+		}
+	}
+
+	private void generateMasterListReport(ReportGenerationMgr rgm) {
+		logger.debug("In ListOfPossibleAdjustments.generateMasterListReport()");
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
 		pagination = 1;
 		try {
@@ -64,36 +152,34 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, Map<String, Set<String>>>> branchCodeMap : filterByCriteria(rgm)
-					.entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, Set<String>>> branchNameMap : branchCodeMap.getValue()
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal);
 					writePdfHeader(rgm, contentStream, leading, pagination);
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 4;
-					for (SortedMap.Entry<String, Set<String>> terminalMap : branchNameMap.getValue().entrySet()) {
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
-						for (String locationList : terminalMap.getValue()) {
-							total = 0.00;
-							location = locationList;
-							contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
-							contentStream.newLineAtOffset(0, -leading);
-							contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
-							pageHeight += 2;
-							contentStream.newLineAtOffset(0, -leading);
-							writePdfBodyHeader(rgm, contentStream, leading);
-							pageHeight += 2;
-							preProcessing(rgm, branchCode, terminal);
-							contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
-							pageHeight += 1;
-							writePdfTrailer(rgm, contentStream, leading);
-							pageHeight += 1;
-							contentStream.newLineAtOffset(0, -leading);
-						}
+						location = terminalMap.getValue();
+						total = 0.00;
+						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
+						contentStream.newLineAtOffset(0, -leading);
+						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
+						pageHeight += 2;
+						contentStream.newLineAtOffset(0, -leading);
+						writePdfBodyHeader(rgm, contentStream, leading);
+						pageHeight += 2;
+						preProcessing(rgm, branchCode, terminal);
+						contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+								pdfFont, fontSize);
+						pageHeight += 1;
+						writePdfTrailer(rgm, contentStream, leading);
+						pageHeight += 1;
+						contentStream.newLineAtOffset(0, -leading);
 					}
 				}
 			}
@@ -211,14 +297,14 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TRIM(ABR.ABR_CODE) = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "TRIM(AST.AST_TERMINAL_ID) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}
@@ -248,6 +334,10 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			if (field.isEol()) {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);

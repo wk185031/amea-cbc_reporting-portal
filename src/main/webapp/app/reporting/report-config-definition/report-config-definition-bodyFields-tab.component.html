@@ -109,10 +109,13 @@
                                                                     jhiTranslate="baseApp.reportDefinition.fieldTypeLabel"
                                                                     for="field_type_{{sectionIndex}}_{{itemIndex}}">Field
                                                                     Type</label>
-                                                                <select class="form-control" id="field_type_{{sectionIndex}}_{{itemIndex}}"
-                                                                        name="field_type_{{sectionIndex}}_{{itemIndex}}" 
-                                                                        [(ngModel)]="section.fieldType" [disabled]="!isEdit">
-                                                                    <option [value]="fieldTypeOption" *ngFor="let fieldTypeOption of fieldTypeOptions">
+                                                                <select class="form-control"
+                                                                    id="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    name="field_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldType"
+                                                                    (click)="valueChange()" [disabled]="!isEdit">
+                                                                    <option [value]="fieldTypeOption"
+                                                                        *ngFor="let fieldTypeOption of fieldTypeOptions">
                                                                         {{ fieldTypeOption }}
                                                                     </option>
                                                                 </select>
@@ -126,11 +129,16 @@
                                                                     jhiTranslate="baseApp.reportDefinition.fieldDelimiterLabel"
                                                                     for="field_delimiter_{{sectionIndex}}_{{itemIndex}}">Field
                                                                     Delimiter</label>
-                                                                <input type="text" class="form-control"
-                                                                    name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                <select class="form-control"
                                                                     id="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
-                                                                    [(ngModel)]="section.delimiter" maxlength="1"
-                                                                    (keyup)="valueChange()" [disabled]="!isEdit" />
+                                                                    name="field_delimiter_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.delimiter"
+                                                                    (click)="valueChange()" [disabled]="!isEdit">
+                                                                    <option [value]="delimiterOption"
+                                                                        *ngFor="let delimiterOption of delimiterOptions">
+                                                                        {{ delimiterOption }}
+                                                                    </option>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -141,13 +149,18 @@
                                                             <div class="form-group">
                                                                 <label class="form-control-label"
                                                                     jhiTranslate="baseApp.reportDefinition.fieldFormatLabel"
-                                                                    for="field_default_value_{{sectionIndex}}_{{itemIndex}}">Field
+                                                                    for="field_format_{{sectionIndex}}_{{itemIndex}}">Field
                                                                     Format</label>
-                                                                <input type="text" class="form-control"
-                                                                    name="field_default_value_{{sectionIndex}}_{{itemIndex}}"
-                                                                    id="field_default_value_{{sectionIndex}}_{{itemIndex}}"
-                                                                    [(ngModel)]="section.fieldFormat" maxlength="15"
-                                                                    (keyup)="valueChange()" [disabled]="!isEdit" />
+                                                                <select class="form-control"
+                                                                    id="field_format_{{sectionIndex}}_{{itemIndex}}"
+                                                                    name="field_format_{{sectionIndex}}_{{itemIndex}}"
+                                                                    [(ngModel)]="section.fieldFormat"
+                                                                    (click)="valueChange()" [disabled]="!isEdit">
+                                                                    <option [value]="fieldFormatOption"
+                                                                        *ngFor="let fieldFormatOption of fieldFormatOptions">
+                                                                        {{ fieldFormatOption }}
+                                                                    </option>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -174,8 +187,8 @@
                                                                     for="field_first_{{sectionIndex}}_{{itemIndex}}">First
                                                                     Field</label>
                                                                 <input type="checkbox"
-                                                                    name="field_length_first_{{sectionIndex}}_{{itemIndex}}"
-                                                                    id="field_length_first_{{sectionIndex}}_{{itemIndex}}"
+                                                                    name="field_first_{{sectionIndex}}_{{itemIndex}}"
+                                                                    id="field_first_{{sectionIndex}}_{{itemIndex}}"
                                                                     [(ngModel)]="section.firstField" maxlength="1"
                                                                     (click)="valueChange()" [disabled]="!isEdit" />
                                                             </div>
@@ -192,7 +205,8 @@
                                                                     name="field_body_header_{{sectionIndex}}_{{itemIndex}}"
                                                                     id="field_body_header_{{sectionIndex}}_{{itemIndex}}"
                                                                     [(ngModel)]="section.bodyHeader" maxlength="1"
-                                                                    (change)="bodyHeaderValueChange(section)" [disabled]="!isEdit" />
+                                                                    (change)="bodyHeaderValueChange(section)"
+                                                                    [disabled]="!isEdit" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -211,55 +225,27 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!-- <div class="row">
+                                                    <div class="row">
                                                         <div class="col-10">
                                                             <div class="form-group form-check custom-checkbox-inline">
                                                                 <label class="form-control-label"
                                                                     jhiTranslate="baseApp.reportDefinition.justifyLeft"
-                                                                    for="justify_left_{{sectionIndex}}_{{itemIndex}}">
-                                                                    Left Justified</label>
-                                                                <input type="checkbox"
-                                                                    name="justify_left_{{sectionIndex}}_{{itemIndex}}"
+                                                                    for="exampleRadios1">Left Justified</label>
+                                                                <input type="radio"
+                                                                    name="justify_{{sectionIndex}}_{{itemIndex}}"
                                                                     id="justify_left_{{sectionIndex}}_{{itemIndex}}"
-                                                                    [(ngModel)]="section.justifyLeft" maxlength="1"
-                                                                    (click)="valueChange()" [disabled]="!isEdit" />
+                                                                    [(ngModel)]="section.leftJustified" [value]="true"
+                                                                    (click)="valueChange()" [disabled]="!isEdit">
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-10">
                                                             <div class="form-group form-check custom-checkbox-inline">
                                                                 <label class="form-control-label"
                                                                     jhiTranslate="baseApp.reportDefinition.justifyRight"
-                                                                    for="justify_right_{{sectionIndex}}_{{itemIndex}}">
-                                                                    Right Justified</label>
-                                                                <input type="checkbox"
-                                                                    name="justify_right_{{sectionIndex}}_{{itemIndex}}"
-                                                                    id="justify_right_{{sectionIndex}}_{{itemIndex}}"
-                                                                    [(ngModel)]="section.justifyRight" maxlength="1"
-                                                                    (click)="valueChange()" [disabled]="!isEdit" />
-                                                            </div>
-                                                        </div>
-                                                    </div> -->
-                                                    <div class="row">
-                                                        <div class="col-10">
-                                                            <div class="form-group form-check custom-checkbox-inline">
-                                                                <label class="form-control-label" 
-                                                                    jhiTranslate="baseApp.reportDefinition.justifyLeft" 
-                                                                    for="exampleRadios1">Left Justified</label>
-                                                                <input type="radio" name="justify_{{sectionIndex}}_{{itemIndex}}" 
-                                                                    id="justify_left_{{sectionIndex}}_{{itemIndex}}" 
-                                                                    [(ngModel)]="section.justifyLeft" [value]="true"
-                                                                    [disabled]="!isEdit">
-                                                            </div>
-                                                            <div class="form-group form-check custom-checkbox-inline">
-                                                                <label class="form-control-label" 
-                                                                    jhiTranslate="baseApp.reportDefinition.justifyRight" 
                                                                     for="exampleRadios2">Right Justified</label>
-                                                                <input type="radio" name="justify_{{sectionIndex}}_{{itemIndex}}" 
+                                                                <input type="radio"
+                                                                    name="justify_{{sectionIndex}}_{{itemIndex}}"
                                                                     id="justify_right_{{sectionIndex}}_{{itemIndex}}"
-                                                                    [(ngModel)]="section.justifyLeft" [value]="false" 
-                                                                    [disabled]="!isEdit">
+                                                                    [(ngModel)]="section.leftJustified" [value]="false"
+                                                                    (click)="valueChange()" [disabled]="!isEdit">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -267,44 +253,58 @@
                                                         <div class="col-10 form-group">
                                                             <div class="row">
                                                                 <div class="col-6">
-                                                                    <label class="form-control-label" 
+                                                                    <label class="form-control-label"
                                                                         jhiTranslate="baseApp.reportDefinition.padFieldLength"
-                                                                        for="pad_field_length_{{sectionIndex}}_{{itemIndex}}">Pad Field Length</label>
+                                                                        for="pad_field_length_{{sectionIndex}}_{{itemIndex}}">Pad
+                                                                        Field Length</label>
                                                                 </div>
                                                                 <div class="col-6">
-                                                                    <input type="text" class="form-control"
-                                                                        name="pad_field_length_{{sectionIndex}}_{{itemIndex}}"
-                                                                        id="pad_field_length_{{sectionIndex}}_{{itemIndex}}"
-                                                                        maxlength="2" (keyup)="fieldLengthChange(section, 'length', $event)" 
-                                                                        [disabled]="!isEdit" [(ngModel)]="section.padFieldLength"/>
+                                                                    <select class="form-control"
+                                                                        id="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        name="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        [disabled]="!isEdit"
+                                                                        [(ngModel)]="section.padFieldLength"
+                                                                        (change)="fieldLengthChange(section, 'length', $event)">
+                                                                        <option [value]="padFieldLengthOption"
+                                                                            *ngFor="let padFieldLengthOption of padFieldLengthOptions">
+                                                                            {{ padFieldLengthOption }}
+                                                                        </option>
+                                                                    </select>
                                                                 </div>
-                                                                
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row" *ngIf="section.enablePadFieldLength">
+                                                    <div class="row" *ngIf="section.padFieldLength > 0">
                                                         <div class="col-11 form-group">
                                                             <div class="row">
                                                                 <div class="col-1">
                                                                     <label class="form-control-label">with</label>
                                                                 </div>
                                                                 <div class="col-5">
-                                                                    <select class="form-control" id="field_length_type_{{sectionIndex}}_{{itemIndex}}"
-                                                                            name="field_length_type_{{sectionIndex}}_{{itemIndex}}" 
-                                                                            [disabled]="!isEdit || !section.enablePadFieldLength"
-                                                                            (change)="fieldLengthChange(section, 'type', $event)">
-                                                                        <option [value]="fieldLengthTypeOption"
-                                                                            *ngFor="let fieldLengthTypeOption of fieldLengthTypeOptions">
-                                                                            {{ fieldLengthTypeOption }}
+                                                                    <select class="form-control"
+                                                                        id="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        name="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        [disabled]="!isEdit"
+                                                                        [(ngModel)]="section.padFieldType"
+                                                                        (change)="fieldLengthChange(section, 'type', $event)">
+                                                                        <option [value]="padFieldTypeOption"
+                                                                            *ngFor="let padFieldTypeOption of padFieldTypeOptions">
+                                                                            {{ padFieldTypeOption }}
                                                                         </option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="col-5">
-                                                                    <input type="text" class="form-control" [(ngModel)]="section.padFieldString"
-                                                                        name="pad_field_string_{{sectionIndex}}_{{itemIndex}}"
-                                                                        id="pad_field_string_{{sectionIndex}}_{{itemIndex}}"
-                                                                        maxlength="10" (keyup)="fieldLengthChange(section, 'str', $event)" 
-                                                                        [disabled]="!isEdit || !section.enablePadFieldLength"/>
+                                                                    <select class="form-control"
+                                                                        id="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        name="field_length_type_{{sectionIndex}}_{{itemIndex}}"
+                                                                        [disabled]="!isEdit"
+                                                                        [(ngModel)]="section.padFieldValue"
+                                                                        (change)="fieldLengthChange(section, 'str', $event)">
+                                                                        <option [value]="padFieldValueOption"
+                                                                            *ngFor="let padFieldValueOption of padFieldValueOptions">
+                                                                            {{ padFieldValueOption }}
+                                                                        </option>
+                                                                    </select>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -313,7 +313,8 @@
                                                         <div class="col-10 form-group">
                                                             <div class="row">
                                                                 <div class="col-4">
-                                                                    <div class="form-group form-check custom-checkbox-inline">
+                                                                    <div
+                                                                        class="form-group form-check custom-checkbox-inline">
                                                                         <label class="form-control-label"
                                                                             jhiTranslate="baseApp.reportDefinition.decrypt"
                                                                             for="decrypt_{{sectionIndex}}_{{itemIndex}}">
@@ -322,24 +323,50 @@
                                                                             name="decrypt_{{sectionIndex}}_{{itemIndex}}"
                                                                             id="decrypt_{{sectionIndex}}_{{itemIndex}}"
                                                                             [(ngModel)]="section.decrypt" maxlength="1"
-                                                                            (change)="isDecrypt(section)" [disabled]="!isEdit" />
+                                                                            (change)="isDecrypt(section)"
+                                                                            [disabled]="!isEdit" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <label class="form-control-label"
-                                                                    *ngIf="section.enableDecryption">with key column:</label>
+                                                                        *ngIf="section.decrypt">with key
+                                                                        column:</label>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row" *ngIf="section.enableDecryption">
+                                                    <div class="row" *ngIf="section.decrypt">
                                                         <div class="col-10 
                                                         form-group">
-                                                            <input type="text" class="form-control" [(ngModel)]="section.decryptionKey"
-                                                                name="decryption_key_{{sectionIndex}}_{{itemIndex}}"
+                                                            <select class="form-control"
                                                                 id="decryption_key_{{sectionIndex}}_{{itemIndex}}"
-                                                                maxlength="50" [disabled]="!isEdit || !section.enableDecryption"
-                                                                (keyup)="valueChange()"/>
+                                                                name="decryption_key_{{sectionIndex}}_{{itemIndex}}"
+                                                                [(ngModel)]="section.decryptionKey"
+                                                                [disabled]="!isEdit">
+                                                                <option [value]="decryptionKeyOption"
+                                                                    *ngFor="let decryptionKeyOption of decryptionKeyOptions">
+                                                                    {{ decryptionKeyOption }}
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row" *ngIf="section.decrypt">
+                                                        <div class="col-10">
+                                                            <label class="form-control-label"
+                                                                *ngIf="section.decrypt">with tag
+                                                                value:</label>
+                                                        </div>
+                                                        <div class="col-10 
+                                                        form-group">
+                                                            <select class="form-control"
+                                                                id="tag_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                name="tag_value_{{sectionIndex}}_{{itemIndex}}"
+                                                                [(ngModel)]="section.tagValue" [disabled]="!isEdit">
+                                                                <option [value]="tagValueOption"
+                                                                    *ngFor="let tagValueOption of tagValueOptions">
+                                                                    {{ tagValueOption }}
+                                                                </option>
+                                                            </select>
                                                         </div>
                                                     </div>
                                                 </div>

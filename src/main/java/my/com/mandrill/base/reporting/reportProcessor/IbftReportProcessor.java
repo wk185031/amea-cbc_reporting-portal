@@ -22,8 +22,40 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(IbftReportProcessor.class);
 
-	protected SortedMap<String, String> filterByCriteriaByBank(ReportGenerationMgr rgm) {
-		logger.debug("In IbftReportProcessor.filterByCriteriaByBank()");
+	protected String retrieveReceivingBranchName(ReportGenerationMgr rgm, String toAccountNo, String toAccountNoEkyId) {
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String branchName = "";
+		try {
+			ps = rgm.connection.prepareStatement("SELECT BRC_NAME FROM BRANCH WHERE BRC_CODE = '"
+					+ getBranchCode(toAccountNo, toAccountNoEkyId) + "'");
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				Object result;
+				result = rs.getObject("BRC_NAME");
+				if (result != null) {
+					branchName = result.toString();
+				}
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the query to get the receiving branch name", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return branchName;
+	}
+
+	@Override
+	protected SortedMap<String, String> filterCriteriaByBank(ReportGenerationMgr rgm) {
+		logger.debug("In IbftReportProcessor.filterCriteriaByBank()");
 		String bankCode = null;
 		String bankName = null;
 		ResultSet rs = null;
@@ -63,6 +95,74 @@ public class IbftReportProcessor extends CsvReportProcessor {
 						}
 					}
 					criteriaMap.put(bankCode, bankName);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return criteriaMap;
+	}
+
+	protected SortedMap<String, TreeMap<String, String>> filterByChannel(ReportGenerationMgr rgm) {
+		logger.debug("In IbftReportProcessor.filterByChannel()");
+		String channel = null;
+		String bankCode = null;
+		String bankName = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, TreeMap<String, String>> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter criteria: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
+								channel = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+								bankCode = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
+							}
+						}
+					}
+					if (criteriaMap.get(channel) == null) {
+						TreeMap<String, String> bankCodeMap = new TreeMap<>();
+						bankCodeMap.put(bankCode, bankName);
+						criteriaMap.put(channel, bankCodeMap);
+					} else {
+						TreeMap<String, String> bankCodeMap = criteriaMap.get(channel);
+						bankCodeMap.put(bankCode, bankName);
+					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -170,6 +270,10 @@ public class IbftReportProcessor extends CsvReportProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
+			case 63:
+			case 64:
+			case 65:
+			case 66:
 			case 67:
 			case 68:
 			case 69:

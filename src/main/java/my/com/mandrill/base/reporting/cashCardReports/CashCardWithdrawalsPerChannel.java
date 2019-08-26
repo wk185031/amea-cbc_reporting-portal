@@ -8,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.TreeSet;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -27,11 +25,10 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
 public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(CashCardWithdrawalsPerChannel.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
-	public static final String CHINABANK_ATM = "ChinaBank ATM";
-	public static final String OTHER_BANK_ATM = "Other Bank ATM";
 	private int pagination = 0;
 
 	@Override
@@ -56,18 +53,15 @@ public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writePdfHeader(rgm, contentStream, leading, pagination);
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			for (String channel : filterByChannel(rgm)) {
-				preProcessing(rgm, channel);
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-						pdfFont, fontSize);
-				pageHeight += 1;
-			}
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+					pdfFont, fontSize);
+			pageHeight += 1;
 			contentStream.endText();
 			contentStream.close();
 
@@ -94,17 +88,13 @@ public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
-			preProcessing(rgm);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			for (String channel : filterByChannel(rgm)) {
-				preProcessing(rgm, channel);
-				executeBodyQuery(rgm);
-			}
+			executeBodyQuery(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -116,52 +106,6 @@ public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
 			} catch (IOException e) {
 				rgm.errors++;
 				logger.error("Error in closing fileOutputStream", e);
-			}
-		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardWithdrawalsPerChannel.preProcessing()");
-		if (rgm.getBodyQuery() != null) {
-			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
-		}
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm, String filterByChannel)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardWithdrawalsPerChannel.preProcessing()");
-		rgm.setBodyQuery(rgm.getTmpBodyQuery());
-		if (filterByChannel.equalsIgnoreCase(CHINABANK_ATM)) {
-			ReportGenerationFields channel = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-		} else {
-			ReportGenerationFields channel = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-		}
-	}
-
-	@Override
-	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				if (field.getFieldName().equalsIgnoreCase(ReportConstants.CHANNEL)) {
-					setFieldFormatException(true);
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					setFieldFormatException(false);
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
 			}
 		}
 	}
@@ -240,58 +184,5 @@ public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
 			}
 		}
 		return contentStream;
-	}
-
-	protected TreeSet<String> filterByChannel(ReportGenerationMgr rgm) {
-		logger.debug("In CashCardWithdrawalsPerChannel.filterByChannel()");
-		String channel = null;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		TreeSet<String> channelList = new TreeSet<>();
-		String query = getBodyQuery(rgm);
-		logger.info("Query for filter channel: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-
-				while (rs.next()) {
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when getting result", e);
-							continue;
-						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.CHANNEL)) {
-								channel = result.toString();
-							}
-						}
-					}
-					channelList.add(channel);
-				}
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the query to get the criteria", e);
-			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
-			}
-		}
-		return channelList;
 	}
 }

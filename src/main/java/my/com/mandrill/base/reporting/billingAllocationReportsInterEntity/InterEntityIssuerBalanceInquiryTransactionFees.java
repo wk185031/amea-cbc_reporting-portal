@@ -9,31 +9,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.reporting.billsPaymentExtractFiles.BillsPaymentExtractFilesSummary;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
 public class InterEntityIssuerBalanceInquiryTransactionFees extends CsvReportProcessor {
-	private final Logger logger = LoggerFactory.getLogger(InterEntityIssuerBalanceInquiryTransactionFees.class);
-	private int pagination = 0;
 
+	private final Logger logger = LoggerFactory.getLogger(InterEntityIssuerBalanceInquiryTransactionFees.class);
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		StringBuilder line = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			pagination = 1;
-			preProcessing(rgm);
-			writeHeader(rgm, pagination);
+			addReportPreProcessingFieldsToGlobalMap(rgm);
+			writeHeader(rgm);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			executeTrailerQuery(rgm);
 			rgm.writeLine(line.toString().getBytes());
-
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -47,11 +42,5 @@ public class InterEntityIssuerBalanceInquiryTransactionFees extends CsvReportPro
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
-	}
-
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In InterEntityIssuerBalanceInquiryTransactionFees.preProcessing()");
-		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 }

@@ -3,6 +3,10 @@ package my.com.mandrill.base.reporting.interEntityIbftTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
@@ -27,13 +31,12 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 		String bankName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			pagination = 0;
 			separateQuery(rgm);
 			preProcessing(rgm, bankCode);
 
 			pagination++;
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterByCriteriaByBank(rgm).entrySet()) {
+			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				preProcessing(rgm, bankCode);
@@ -68,13 +71,14 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 		try {
 			StringBuilder line = new StringBuilder();
 			line = new StringBuilder();
-			line.append("TRANSMITTING BANK : ").append(bankCode + "  ").append(bankName).append(";");
+			line.append("TRANSMITTING BANK : ").append(";").append(bankCode + "  ").append(";").append(bankName)
+					.append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
-			rgm.setBodyQuery(getIbftBodyQuery());
+			rgm.setBodyQuery(getTxnBodyQuery());
 			executeBodyQuery(rgm, false);
-			rgm.setTrailerQuery(getIbftTrailerQuery());
+			rgm.setTrailerQuery(getTxnTrailerQuery());
 			executeTrailerQuery(rgm, false);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
@@ -99,17 +103,17 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In InterEntityApprovedIbftTransactionsReceivingBank.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setIbftBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setCriteriaQuery(getIbftBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+			setCriteriaQuery(getTxnBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
-			setIbftTrailerQuery(
+			setTxnTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryTrailerQuery(rgm.getTrailerQuery()
@@ -124,7 +128,8 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsReceivingBank.preProcessing()");
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
-					ReportGenerationFields.TYPE_STRING, "CBA.CBA_CODE = LPAD('" + filterByBankCode + "', 4, '0')");
+					ReportGenerationFields.TYPE_STRING,
+					"LPAD(CBA.CBA_CODE, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -214,17 +219,28 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String toAccountNo, String toAccountNoEkyId)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
 			switch (field.getSequence()) {
 			case 24:
 			case 25:
 			case 26:
 			case 27:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				break;
 			case 28:
+				line.append(getBranchCode(toAccountNo, toAccountNoEkyId));
+				line.append(field.getDelimiter());
+				break;
 			case 29:
 			case 30:
 			case 31:
@@ -271,5 +287,78 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm, boolean summary) {
+		logger.debug("In InterEntityApprovedIbftTransactionsReceivingBank.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		String toAccountNo = null;
+		String toAccountNoEkyId = null;
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO)) {
+								toAccountNo = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.TO_ACCOUNT_NO_EKY_ID)) {
+								toAccountNoEkyId = result.toString();
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					if (summary) {
+						writeSummaryBody(rgm, lineFieldsMap);
+					} else {
+						writeBody(rgm, lineFieldsMap, toAccountNo, toAccountNoEkyId);
+					}
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 }

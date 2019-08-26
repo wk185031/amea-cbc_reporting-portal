@@ -10,6 +10,7 @@ export class ReportDefinition implements BaseEntity {
         public fileFormat?: string,
         public fileLocation?: string,
         public processingClass?: string,
+        public frequency?: string,
         public headerFields?: string,
         public bodyFields?: string,
         public trailerFields?: string,

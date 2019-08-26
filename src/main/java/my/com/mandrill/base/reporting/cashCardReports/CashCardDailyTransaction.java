@@ -28,6 +28,7 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
 public class CashCardDailyTransaction extends PdfReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(CashCardDailyTransaction.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
@@ -39,46 +40,63 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		PDDocument doc = null;
 		PDPage page = null;
 		PDPageContentStream contentStream = null;
-		String cardProduct = null;
 		pagination = 0;
 		try {
 			doc = new PDDocument();
 			preProcessing(rgm);
 
-			for (String cardProductList : filterByCardProduct(rgm)) {
-				cardProduct = cardProductList;
+			if (!executeQuery(rgm)) {
 				page = new PDPage();
 				doc.addPage(page);
-				pagination++;
 				contentStream = new PDPageContentStream(doc, page);
 				PDFont pdfFont = PDType1Font.COURIER;
 				float fontSize = 6;
-				float leading = 1.5f * fontSize;
 				PDRectangle pageSize = page.getMediaBox();
 				float margin = 30;
 				float width = pageSize.getWidth() - 2 * margin;
 				float startX = pageSize.getLowerLeftX() + margin;
 				float startY = pageSize.getUpperRightY() - margin;
-
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
-
-				writePdfHeader(rgm, contentStream, leading, pagination, cardProduct);
-				contentStream.newLineAtOffset(0, -leading);
-				pageHeight += 4;
-				contentStream.newLineAtOffset(0, -leading);
-				writePdfBodyHeader(rgm, contentStream, leading);
-				pageHeight += 2;
-				preProcessing(rgm, cardProduct);
-				contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY, pdfFont,
-						fontSize);
-				pageHeight += 1;
 				contentStream.endText();
 				contentStream.close();
-			}
+				saveFile(rgm, doc);
+			} else {
+				for (String cardProduct : filterByCardProduct(rgm)) {
+					pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+					page = new PDPage();
+					doc.addPage(page);
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					PDFont pdfFont = PDType1Font.COURIER;
+					float fontSize = 6;
+					float leading = 1.5f * fontSize;
+					PDRectangle pageSize = page.getMediaBox();
+					float margin = 30;
+					float width = pageSize.getWidth() - 2 * margin;
+					float startX = pageSize.getLowerLeftX() + margin;
+					float startY = pageSize.getUpperRightY() - margin;
 
-			saveFile(rgm, doc);
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+
+					writePdfHeader(rgm, contentStream, leading, pagination, cardProduct);
+					contentStream.newLineAtOffset(0, -leading);
+					pageHeight += 4;
+					contentStream.newLineAtOffset(0, -leading);
+					writePdfBodyHeader(rgm, contentStream, leading);
+					pageHeight += 2;
+					preProcessing(rgm, cardProduct);
+					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+							startY, pdfFont, fontSize);
+					pageHeight += 1;
+					contentStream.endText();
+					contentStream.close();
+				}
+				saveFile(rgm, doc);
+			}
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -97,21 +115,21 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		String cardProduct = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 0;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
-
 			preProcessing(rgm);
 
-			for (String cardProductMap : filterByCardProduct(rgm)) {
-				cardProduct = cardProductMap;
+			for (String cardProduct : filterByCardProduct(rgm)) {
+				StringBuilder line = new StringBuilder();
 				pagination++;
 				writeHeader(rgm, pagination, cardProduct);
 				writeBodyHeader(rgm);
 				preProcessing(rgm, cardProduct);
 				executeBodyQuery(rgm);
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -132,7 +150,7 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		}
 	}
 
-	private PDPageContentStream execute(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
 		logger.debug("In CashCardDailyTransaction.execute()");
@@ -225,7 +243,7 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 		if (filterByCardProduct != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields cardProduct = new ReportGenerationFields(ReportConstants.PARAM_CARD_PRODUCT,
-					ReportGenerationFields.TYPE_STRING, "TRIM(CPD.CPD_NAME) = '" + filterByCardProduct + "'");
+					ReportGenerationFields.TYPE_STRING, "CPD.CPD_NAME = '" + filterByCardProduct + "'");
 			getGlobalFileFieldsMap().put(cardProduct.getFieldName(), cardProduct);
 		}
 	}
@@ -322,23 +340,53 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 			PDPageContentStream contentStream, float leading)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		int fieldLength = 0;
+		boolean accName = false;
+		String accNameValue = null;
 		for (ReportGenerationFields field : fields) {
-			switch (field.getFieldName()) {
-			case ReportConstants.BEG_BALANCE:
-			case ReportConstants.DR_AMOUNT:
-			case ReportConstants.CR_AMOUNT:
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				break;
-			case ReportConstants.BALANCE:
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			if (field.isEol()) {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
-				break;
-			default:
-				setFieldFormatException(true);
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				setFieldFormatException(false);
-				break;
+			} else {
+				switch (field.getFieldName()) {
+				case ReportConstants.CUSTOMER_ID:
+					fieldLength += field.getPdfLength();
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					break;
+				case ReportConstants.ATM_CARD_NUMBER:
+					fieldLength += field.getPdfLength();
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					break;
+				case ReportConstants.FROM_ACCOUNT_NO:
+					fieldLength += field.getPdfLength();
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					break;
+				case ReportConstants.ACCOUNT_NAME:
+					if (getFieldValue(field, fieldsMap).length() > 28) {
+						contentStream.showText(
+								getFieldValue(field, fieldsMap).substring(0, 28) + String.format("%1$4s", ""));
+						accNameValue = getFieldValue(field, fieldsMap).substring(28,
+								getFieldValue(field, fieldsMap).length());
+						accName = true;
+					} else {
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					}
+					break;
+				default:
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					break;
+				}
 			}
+		}
+		if (accName) {
+			accName = false;
+			contentStream.showText(String.format("%1$" + (fieldLength + accNameValue.length()) + "s", accNameValue));
+			contentStream.newLineAtOffset(0, -leading);
+			pageHeight += 1;
 		}
 	}
 
@@ -393,5 +441,36 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 			}
 		}
 		return cardProductList;
+	}
+
+	private boolean executeQuery(ReportGenerationMgr rgm) {
+		logger.debug("In CashCardDailyTransaction.executeQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Execute query: {}", query);
+
+		try {
+			ps = rgm.connection.prepareStatement(query);
+			rs = ps.executeQuery();
+
+			if (!rs.isBeforeFirst()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the body query", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return false;
 	}
 }

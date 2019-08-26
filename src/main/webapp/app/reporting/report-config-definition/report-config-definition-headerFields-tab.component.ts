@@ -15,6 +15,13 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
 
     sectionCollapsed = [0];
 
+    fieldTypeOptions: string[] = ['String', 'Number', 'Decimal', 'Date', 'Date Time'];
+    delimiterOptions: string[] = ['', ';'];
+    fieldFormatOptions: string[] = ['', ',', '0.00', '#,##0.00', 'yyMMdd', 'MMddyyyy', 'MM/dd/yyyy', 'MM/dd/yy', 'dd/MM/yyyy', 'ddMMyyyy', 'dd/MM/yyyy HH:mm', 'yyyyMMdd', 'HH:mm', 'HH:mm:ss', 'HH:mm:ss a', 'hhmmss'];
+    padFieldLengthOptions: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+    padFieldTypeOptions: string[] = ['Leading', 'Trailing'];
+    padFieldValueOptions: string[] = ['Zeros', 'Spaces'];
+
     ngOnChanges() {
         if (!this.reportDefinition.id) {
             if (!this.reportDefinition.headerSection || this.reportDefinition.headerSection.length === 0) {
@@ -30,10 +37,20 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
             this.reportDefinition.headerSection = [];
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '1';
+            reportDefinitionSections.fieldType = 'String';
+            reportDefinitionSections.delimiter = '';
+            reportDefinitionSections.fieldFormat = '';
+            reportDefinitionSections.padFieldLength = 0;
+            reportDefinitionSections.leftJustified = true;
             this.reportDefinition.headerSection.push(reportDefinitionSections);
         } else {
             const reportDefinitionSections = new ReportDefinitionSection();
             reportDefinitionSections.sectionName = '' + (this.reportDefinition.headerSection.length + 1);
+            reportDefinitionSections.fieldType = 'String';
+            reportDefinitionSections.delimiter = '';
+            reportDefinitionSections.fieldFormat = '';
+            reportDefinitionSections.padFieldLength = 0;
+            reportDefinitionSections.leftJustified = true;
             this.reportDefinition.headerSection.push(reportDefinitionSections);
         }
         this.valueChange();
@@ -101,5 +118,28 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
 
     valueChange() {
         this.onValueChange.emit(true);
+    }
+
+    fieldLengthChange(section: ReportDefinitionSection, field: string, event: any) {
+        if (field === 'length') {
+            if (event.target.value === 0) {
+                section.padFieldLength = 0;
+                section.padFieldType = null;
+                section.padFieldValue = null;
+            } else {
+                section.padFieldLength = event.target.value;
+                if (!section.padFieldType) {
+                    section.padFieldType = 'Leading';
+                }
+                if (!section.padFieldValue) {
+                    section.padFieldValue = 'Zeros';
+                }
+            }
+        } else if (field === 'type') {
+            section.padFieldType = event.target.value;
+        } else {
+            section.padFieldValue = event.target.value;
+        }
+        this.valueChange();
     }
 }

@@ -16,9 +16,12 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
     @Output() onValueChange = new EventEmitter<boolean>();
     @Input() reportDefinition: ReportDefinition;
 
-    pdfFormat: boolean
-    csvFormat: boolean
-    txtFormat: boolean
+    pdfFormat: boolean;
+    csvFormat: boolean;
+    txtFormat: boolean;
+    daily: boolean;
+    weekly: boolean;
+    monthly: boolean;
 
     reportDefinitionList: ReportDefinition[];
     reportCategoryList: ReportCategory[];
@@ -34,8 +37,8 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
     ngOnInit() {
         if (!this.reportDefinition.id) {
             this.pdfFormat = true;
-        }
-        else {
+            this.daily = true;
+        } else {
             if (this.reportDefinition.fileFormat.indexOf('PDF') != -1) {
                 this.pdfFormat = true;
             }
@@ -44,6 +47,15 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
             }
             if (this.reportDefinition.fileFormat.indexOf('TXT') != -1) {
                 this.txtFormat = true;
+            }
+            if (this.reportDefinition.frequency.indexOf('Daily') != -1) {
+                this.daily = true;
+            }
+            if (this.reportDefinition.frequency.indexOf('Weekly') != -1) {
+                this.weekly = true;
+            }
+            if (this.reportDefinition.frequency.indexOf('Monthly') != -1) {
+                this.monthly = true;
             }
         }
         this.reportConfigCategoryService.query().subscribe((reportCategory: HttpResponse<ReportCategory[]>) => {
@@ -60,6 +72,7 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
 
     valueChange() {
         this.reportDefinition.fileFormat = '';
+        this.reportDefinition.frequency = '';
         if ((<HTMLInputElement>document.getElementById('field_pdf')).checked) {
             this.reportDefinition.fileFormat += 'PDF,';
         }
@@ -68,6 +81,15 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         }
         if ((<HTMLInputElement>document.getElementById('field_txt')).checked) {
             this.reportDefinition.fileFormat += 'TXT,';
+        }
+        if ((<HTMLInputElement>document.getElementById('field_daily')).checked) {
+            this.reportDefinition.frequency += 'Daily,';
+        }
+        if ((<HTMLInputElement>document.getElementById('field_weekly')).checked) {
+            this.reportDefinition.frequency += 'Weekly,';
+        }
+        if ((<HTMLInputElement>document.getElementById('field_monthly')).checked) {
+            this.reportDefinition.frequency += 'Monthly,';
         }
         this.onValueChange.emit(true);
     }
