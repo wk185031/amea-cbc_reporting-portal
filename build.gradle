@@ -219,10 +219,12 @@ dependencies {
     compile "io.springfox:springfox-bean-validators"
     compile "org.mariadb.jdbc:mariadb-java-client"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
+    compile "com.oracle:ojdbc8:12.2.0.1"
     compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.13' // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
     compile group: 'org.apache.commons', name: 'commons-pool2', version: '2.0' // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.54' // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
     compile group: 'org.apache.cxf', name: 'cxf', version: '3.1.6' // https://mvnrepository.com/artifact/org.apache.cxf/cxf
+    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.15'
     
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
