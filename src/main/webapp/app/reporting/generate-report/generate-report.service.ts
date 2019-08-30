@@ -7,6 +7,7 @@ import { JhiDateUtils } from 'ng-jhipster';
 
 import { createRequestOption } from '../../shared';
 import { ReportGeneration } from './generate-report.model';
+import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
 
 export type EntityResponseType = HttpResponse<ReportGeneration>;
 
@@ -17,8 +18,11 @@ export class GenerateReportService {
     private resourceSearchUrl = SERVER_API_URL + 'api/_search/reportGeneration';
     private resourceUrlNoPaging = SERVER_API_URL + 'api/reportGeneration-nopaging';
     private resourcGetParenteUrl = SERVER_API_URL + 'api/reportGeneration-parent-for-reportGeneration-and-user';
+    public reportDefinition: ReportDefinition[];
 
-    constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
+    constructor(private http: HttpClient, private dateUtils: JhiDateUtils) {
+        this.reportDefinition = [];
+    }
 
     create(reportGeneration: ReportGeneration): Observable<EntityResponseType> {
         const copy = this.convert(reportGeneration);
@@ -99,9 +103,15 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): any {
-        const req = new HttpRequest('GET', `${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`, {
-            reportProgress: true,
+    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): void {
+        this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`)
+            .subscribe((response: ReportDefinition[]) => {
+                this.reportDefinition = response;
+            });
+    }
+
+    downloadReport(reportCategoryId: number, reportId: number): any {
+        const req = new HttpRequest('GET', `${this.resourceUrl}/${reportCategoryId}/${reportId}`, {
             responseType: 'blob'
         });
         return req;

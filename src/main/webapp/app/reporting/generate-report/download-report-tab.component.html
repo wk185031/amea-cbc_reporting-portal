@@ -1,0 +1,10 @@
+<div class="card cellContainer" *ngFor="let report of reports">
+    <div class="card-header report-custom">
+        <a (click)="download(report.reportCategory.id, 0)">{{report.reportCategory.name}}</a>
+    </div>
+    <div class="card-body report-custom">
+        <div *ngFor="let report of reports">
+            <a (click)="download(report.reportCategory.id, report.id)">{{report.name}}</a>
+        </div>
+    </div>
+</div>

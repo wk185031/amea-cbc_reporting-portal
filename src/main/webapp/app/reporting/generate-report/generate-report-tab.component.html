@@ -1,0 +1,61 @@
+<form name="editForm" role="form" novalidate #editForm="ngForm"></form>
+<div>
+    <div class="row">
+        <div class="col-sm-6">
+            <label jhiTranslate="baseApp.reportGeneration.reportCategoryLabel">Category</label>
+            <br />
+            <select class="form-control" style="width: 600px" [(ngModel)]="category" (change)="filterByCategory()">
+                <option [ngValue]="categoryOption.name === category?.name ? category : categoryOption"
+                    *ngFor="let categoryOption of categories">
+                    {{categoryOption.name}}</option>
+            </select>
+        </div>
+        <div class="col-sm-6" *ngIf="category">
+            <label jhiTranslate="baseApp.reportGeneration.reportDefinitionLabel">Report</label>
+            <br />
+            <select class="form-control" style="width: 600px" [(ngModel)]="report">
+                <option [ngValue]="null">ALL</option>
+                <option [ngValue]="reportOption.name === report?.name ? report : reportOption"
+                    *ngFor="let reportOption of reports">{{reportOption.name}}</option>
+            </select>
+        </div>
+    </div>
+    <br />
+    <div class="form-group">
+        <label class="form-control-label" jhiTranslate="baseApp.reportGeneration.fileDateLabel"
+            for="field_fileDate">File Date</label>
+        <input type="text" class="form-control" name="name" id="field_fileDate" maxlength="10"
+            [(ngModel)]="generateReport.fileDate" style="width: 600px" required />
+        <div [hidden]="!(editForm.controls.fileDate?.dirty && editForm.controls.fileDate?.invalid)">
+            <small class="form-text text-danger" [hidden]="!editForm.controls.fileDate?.errors?.required"
+                jhiTranslate="entity.validation.required">
+                This field is required.
+            </small>
+            <small class="form-text text-danger" [hidden]="!editForm.controls.fileDate?.errors?.maxlength"
+                jhiTranslate="entity.validation.maxlength" translateValues="{ max: 10 }">
+                This field cannot be longer than 10 characters.
+            </small>
+        </div>
+    </div>
+    <br />
+    <label jhiTranslate="baseApp.reportGeneration.queryTxnLabel">Query Transaction Date</label>
+    <div class="row">
+        &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnStartLabel">Transaction Start Date</label>
+        <div class="col-3">
+            <input class="d-flex" id="field_fromDate" type="date" data-date="" data-date-format="dd MMM yyyy"
+                class="form-control" name="fromDate" [(ngModel)]="generateReport.txnStart" />
+        </div>
+        <label jhiTranslate="baseApp.reportGeneration.txnEndLabel">Transaction End Date</label>
+        <div class="col-3">
+            <input class="d-flex" id="field_toDate" type="date" data-date-format="dd MMM yyyy" class="form-control"
+                name="toDate" [(ngModel)]="generateReport.txnEnd" />
+        </div>
+    </div>
+    <br />
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary" (click)="generate()">
+            <span jhiTranslate="baseApp.reportGeneration.generate">Generate</span>
+        </button>
+    </div>
+</div>
+</form>

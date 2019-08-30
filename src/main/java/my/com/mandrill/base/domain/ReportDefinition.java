@@ -68,6 +68,30 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	@Column(name = "red_frequency", length = 30, nullable = false)
 	private String frequency;
 
+	@Size(max = 300)
+	@Column(name = "red_generated_path_csv", length = 300)
+	private String generatedPathCsv;
+
+	@Size(max = 300)
+	@Column(name = "red_generated_path_txt", length = 300)
+	private String generatedPathTxt;
+
+	@Size(max = 300)
+	@Column(name = "red_generated_path_pdf", length = 300)
+	private String generatedPathPdf;
+
+	@Size(max = 200)
+	@Column(name = "red_generated_filename_csv", length = 200)
+	private String generatedFileNameCsv;
+
+	@Size(max = 200)
+	@Column(name = "red_generated_filename_txt", length = 200)
+	private String generatedFileNameTxt;
+
+	@Size(max = 200)
+	@Column(name = "red_generated_filename_pdf", length = 200)
+	private String generatedFileNamePdf;
+
 	@Column(name = "red_header_fields")
 	private String headerFields;
 
@@ -188,6 +212,84 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 		this.frequency = frequency;
 	}
 
+	public String getGeneratedPathCsv() {
+		return generatedPathCsv;
+	}
+
+	public ReportDefinition generatedPathCsv(String generatedPathCsv) {
+		this.generatedPathCsv = generatedPathCsv;
+		return this;
+	}
+
+	public void setGeneratedPathCsv(String generatedPathCsv) {
+		this.generatedPathCsv = generatedPathCsv;
+	}
+
+	public String getGeneratedPathTxt() {
+		return generatedPathTxt;
+	}
+
+	public ReportDefinition generatedPathTxt(String generatedPathTxt) {
+		this.generatedPathTxt = generatedPathTxt;
+		return this;
+	}
+
+	public void setGeneratedPathTxt(String generatedPathTxt) {
+		this.generatedPathTxt = generatedPathTxt;
+	}
+
+	public String getGeneratedPathPdf() {
+		return generatedPathPdf;
+	}
+
+	public ReportDefinition generatedPathPdf(String generatedPathPdf) {
+		this.generatedPathPdf = generatedPathPdf;
+		return this;
+	}
+
+	public void setGeneratedPathPdf(String generatedPathPdf) {
+		this.generatedPathPdf = generatedPathPdf;
+	}
+
+	public String getGeneratedFileNameCsv() {
+		return generatedFileNameCsv;
+	}
+
+	public ReportDefinition generatedFileNameCsv(String generatedFileNameCsv) {
+		this.generatedFileNameCsv = generatedFileNameCsv;
+		return this;
+	}
+
+	public void setGeneratedFileNameCsv(String generatedFileNameCsv) {
+		this.generatedFileNameCsv = generatedFileNameCsv;
+	}
+
+	public String getGeneratedFileNameTxt() {
+		return generatedFileNameTxt;
+	}
+
+	public ReportDefinition generatedFileNameTxt(String generatedFileNameTxt) {
+		this.generatedFileNameTxt = generatedFileNameTxt;
+		return this;
+	}
+
+	public void setGeneratedFileNameTxt(String generatedFileNameTxt) {
+		this.generatedFileNameTxt = generatedFileNameTxt;
+	}
+
+	public String getGeneratedFileNamePdf() {
+		return generatedFileNamePdf;
+	}
+
+	public ReportDefinition generatedFileNamePdf(String generatedFileNamePdf) {
+		this.generatedFileNamePdf = generatedFileNamePdf;
+		return this;
+	}
+
+	public void setGeneratedFileNamePdf(String generatedFileNamePdf) {
+		this.generatedFileNamePdf = generatedFileNamePdf;
+	}
+
 	public String getHeaderFields() {
 		return headerFields;
 	}
@@ -292,8 +394,11 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public String toString() {
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", headerFields=" + headerFields
-				+ ", bodyFields=" + bodyFields + ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery
-				+ ", trailerQuery=" + trailerQuery + ", red=" + red + "]";
+				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", generatedPathCsv="
+				+ generatedPathCsv + ", generatedPathTxt=" + generatedPathTxt + ", generatedPathPdf=" + generatedPathPdf
+				+ ", generatedFileNameCsv=" + generatedFileNameCsv + ", generatedFileNameTxt=" + generatedFileNameTxt
+				+ ", generatedFileNamePdf=" + generatedFileNamePdf + ", headerFields=" + headerFields + ", bodyFields="
+				+ bodyFields + ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery + ", trailerQuery="
+				+ trailerQuery + ", red=" + red + "]";
 	}
 }

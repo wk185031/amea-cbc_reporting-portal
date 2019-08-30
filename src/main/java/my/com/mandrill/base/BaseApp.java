@@ -29,12 +29,10 @@ public class BaseApp {
     private static final Logger log = LoggerFactory.getLogger(BaseApp.class);
 
     private final Environment env;
-    
-    private static SecurityManagerService securityManagerService;
 
     public BaseApp(Environment env, SecurityManagerService securityManagerService) {
         this.env = env;
-        BaseApp.securityManagerService = securityManagerService;
+        securityManagerService.initialise();
     }
 
     /**
@@ -63,26 +61,29 @@ public class BaseApp {
      * @param args the command line arguments
      * @throws UnknownHostException if the local host name could not be resolved into an address
      */
-    public static void main(String[] args) throws UnknownHostException {
-        SpringApplication app = new SpringApplication(BaseApp.class);
-        DefaultProfileUtil.addDefaultProfile(app);
-        Environment env = app.run(args).getEnvironment();
-        String protocol = "http";
-        if (env.getProperty("server.ssl.key-store") != null) {
-            protocol = "https";
+    public static void main(String[] args) {
+        try {
+        	SpringApplication app = new SpringApplication(BaseApp.class);
+            DefaultProfileUtil.addDefaultProfile(app);
+            Environment env = app.run(args).getEnvironment();
+            String protocol = "http";
+            if (env.getProperty("server.ssl.key-store") != null) {
+                protocol = "https";
+            }
+            log.info("\n----------------------------------------------------------\n\t" +
+                    "Application '{}' is running! Access URLs:\n\t" +
+                    "Local: \t\t{}://localhost:{}\n\t" +
+                    "External: \t{}://{}:{}\n\t" +
+                    "Profile(s): \t{}\n----------------------------------------------------------",
+                env.getProperty("spring.application.name"),
+                protocol,
+                env.getProperty("server.port"),
+                protocol,
+                InetAddress.getLocalHost().getHostAddress(),
+                env.getProperty("server.port"),
+                env.getActiveProfiles());
+        } catch (Exception e ) {
+        	log.error("Error occurred while loading application", e);
         }
-        log.info("\n----------------------------------------------------------\n\t" +
-                "Application '{}' is running! Access URLs:\n\t" +
-                "Local: \t\t{}://localhost:{}\n\t" +
-                "External: \t{}://{}:{}\n\t" +
-                "Profile(s): \t{}\n----------------------------------------------------------",
-            env.getProperty("spring.application.name"),
-            protocol,
-            env.getProperty("server.port"),
-            protocol,
-            InetAddress.getLocalHost().getHostAddress(),
-            env.getProperty("server.port"),
-            env.getActiveProfiles());
-        BaseApp.securityManagerService.initialise();
     }
 }

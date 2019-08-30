@@ -6,20 +6,39 @@ import { UserRouteAccessService } from '../../shared';
 
 import { AppRouteAccessService } from '../../common/app-route-access-service';
 import { GenerateReportComponent } from './generate-report.component';
+import { ReportCategory } from '../report-config-category/report-config-category.model';
+import { ReportConfigCategoryService } from '../report-config-category/report-config-category.service';
+import { HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { mergeMap, map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs/observable/forkJoin';
+import { ReportConfigDefinitionService } from '../report-config-definition/report-config-definition.service';
+import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
+import { of } from 'rxjs/observable/of';
 
 @Injectable()
 export class GenerateReportResolvePagingParams implements Resolve<any> {
 
-    constructor(private paginationUtil: JhiPaginationUtil) { }
+    constructor(private paginationUtil: JhiPaginationUtil,
+        private reportConfigCategoryService: ReportConfigCategoryService,
+        private reportConfigDefinitionService: ReportConfigDefinitionService) { }
 
-    resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
         const page = route.queryParams['page'] ? route.queryParams['page'] : '1';
         const sort = route.queryParams['sort'] ? route.queryParams['sort'] : 'id,asc';
-        return {
-            page: this.paginationUtil.parsePage(page),
-            predicate: this.paginationUtil.parsePredicate(sort),
-            ascending: this.paginationUtil.parseAscending(sort)
-        };
+
+        return forkJoin([this.reportConfigCategoryService.queryNoPaging(), this.reportConfigDefinitionService.queryNoPaging()]).pipe(
+            map((value) => value),
+            mergeMap((value: Observable<[HttpResponse<ReportCategory[]>, HttpResponse<ReportDefinition[]>]>) => {
+                return of({
+                    page: this.paginationUtil.parsePage(page),
+                    predicate: this.paginationUtil.parsePredicate(sort),
+                    ascending: this.paginationUtil.parseAscending(sort),
+                    categories: value[0].body,
+                    reportDefinitions: value[1].body
+                });
+            })
+        );
     }
 }
 

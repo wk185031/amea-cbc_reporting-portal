@@ -1,4 +1,6 @@
 import { BaseEntity } from '../../shared';
+import { ReportCategory } from '../report-config-category/report-config-category.model';
+import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
 
 export class ReportGeneration implements BaseEntity {
     constructor(
@@ -11,8 +13,8 @@ export class ReportGeneration implements BaseEntity {
         public createdDate?: any,
         public lastModifiedBy?: string,
         public lastModifiedDate?: any,
-        public reportCategory?: BaseEntity,
-        public reportDefinition?: BaseEntity
+        public reportCategory?: ReportCategory,
+        public reportDefinition?: ReportDefinition
     ) {
     }
 }

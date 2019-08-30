@@ -8,6 +8,8 @@ import { AppCommonModule } from '../../common/common.module';
 import { generateReportRoute, generateReportPopupRoute, GenerateReportResolvePagingParams } from './generate-report.route';
 import { GenerateReportService } from './generate-report.service';
 import { GenerateReportComponent } from './generate-report.component';
+import { GenerateReportTabComponent } from './generate-report-tab.component';
+import { DownloadReportTabComponent } from './download-report-tab.component';
 
 const ENTITY_STATES = [
     ...generateReportRoute,
@@ -22,10 +24,14 @@ const ENTITY_STATES = [
         AppCommonModule
     ],
     declarations: [
-        GenerateReportComponent
+        GenerateReportComponent,
+        GenerateReportTabComponent,
+        DownloadReportTabComponent
     ],
     entryComponents: [
-        GenerateReportComponent
+        GenerateReportComponent,
+        GenerateReportTabComponent,
+        DownloadReportTabComponent
     ],
     providers: [
         GenerateReportService,

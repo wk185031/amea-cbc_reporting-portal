@@ -1,5 +1,6 @@
 import { BaseEntity } from '../../shared';
 import { ReportDefinitionSection } from './report-config-definition-section.model';
+import { ReportCategory } from '../report-config-category/report-config-category.model';
 
 export class ReportDefinition implements BaseEntity {
     constructor(
@@ -11,6 +12,12 @@ export class ReportDefinition implements BaseEntity {
         public fileLocation?: string,
         public processingClass?: string,
         public frequency?: string,
+        public generatedPathCsv?: string,
+        public generatedPathTxt?: string,
+        public generatedPathPdf?: string,
+        public generatedFileNameCsv?: string,
+        public generatedFileNameTxt?: string,
+        public generatedFileNamePdf?: string,
         public headerFields?: string,
         public bodyFields?: string,
         public trailerFields?: string,
@@ -20,7 +27,7 @@ export class ReportDefinition implements BaseEntity {
         public createdDate?: any,
         public lastModifiedBy?: string,
         public lastModifiedDate?: any,
-        public reportCategory?: BaseEntity,
+        public reportCategory?: ReportCategory,
         public headerSection?: ReportDefinitionSection[],
         public bodySection?: ReportDefinitionSection[],
         public trailerSection?: ReportDefinitionSection[]
