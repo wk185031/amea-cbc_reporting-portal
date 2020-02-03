@@ -187,7 +187,7 @@ dependencies {
     compile "org.hibernate:hibernate-entitymanager"
     compile "org.hibernate:hibernate-envers"
     compile "org.hibernate:hibernate-validator"
-    compile "org.liquibase:liquibase-core"
+    compile "org.liquibase:liquibase-core:3.6.3"
     compile "com.mattbertolini:liquibase-slf4j"
     compile "org.springframework.boot:spring-boot-actuator"
     compile "org.springframework.boot:spring-boot-autoconfigure"
@@ -219,7 +219,7 @@ dependencies {
     compile "io.springfox:springfox-bean-validators"
     compile "org.mariadb.jdbc:mariadb-java-client"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
-    compile "com.oracle:ojdbc8:12.2.0.1"
+    compile files('libs/ojdbc8-12.2.0.1.jar')
     compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.13' // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
     compile group: 'org.apache.commons', name: 'commons-pool2', version: '2.0' // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.54' // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
@@ -244,10 +244,6 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
-}
-
-dependencies {
-	compile files('build/libs/ojdbc8-12.2.0.1.jar')
 }
 
 task cleanResources(type: Delete) {

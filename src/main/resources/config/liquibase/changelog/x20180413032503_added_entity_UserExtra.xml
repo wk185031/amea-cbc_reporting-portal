@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <!--
+        Added the entity UserExtra.
+    -->
+    <changeSet id="20180413032503-1" author="jhipster">
+        <createTable tableName="user_extra" tablespace="AUTH_REPORTING_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="designation" type="varchar(50)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="contact_mobile" type="varchar(20)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="contact_work" type="varchar(20)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="contact_other" type="varchar(20)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_date" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="last_modified_date" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints unique="true" nullable="false" />
+            </column>
+            <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here, do not remove-->
+        </createTable>
+        <dropDefaultValue tableName="user_extra" columnName="created_date" columnDataType="datetime"/>
+        <dropDefaultValue tableName="user_extra" columnName="last_modified_date" columnDataType="datetime"/>
+        
+        <createTable tableName="user_extra_roles" tablespace="AUTH_REPORTING_TS">
+            <column name="roles_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_extras_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="user_extras_id, roles_id" tableName="user_extra_roles"/>
+        
+        <createTable tableName="user_extra_institutions" tablespace="AUTH_REPORTING_TS">
+            <column name="institutions_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_extras_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="user_extras_id, institutions_id" tableName="user_extra_institutions"/>
+        
+    </changeSet>
+    <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here, do not remove-->
+</databaseChangeLog>
