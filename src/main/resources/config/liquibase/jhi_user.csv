@@ -1,0 +1,6 @@
+ID;LOGIN;PASSWORD_HASH;FIRST_NAME;LAST_NAME;EMAIL;IMAGE_URL;ACTIVATED;LANG_KEY;ACTIVATION_KEY;RESET_KEY;CREATED_BY;CREATED_DATE
+32;cbcoperator;$2a$10$ZI4G5r0NJLA1f4wRNUcdUuodXCMHd9cmfcAaMfO/Vd/13bhqRXQRe;CBC;Operator;cbcoperator@localhost;;1;en;;;cbcadmin;2020-02-01 00:00:00
+33;cbsoperator;$2a$10$VYc.5yHwX.YhhqDrGcQtQeN4VeSm8Odm.adM8aZ3/gpKDP7DdGETK;CBS;Operator;cbsoperator@localhost;;1;en;;;cbsadmin;2020-02-01 00:00:00
+27;superadmin;$2a$10$gIQZSq1CJlxzN8rrRFXNJOiUeZ.GTlX4Bj50qTOcJKPj7C2PhHZci;Super;Admin;superadmin@localhost;;1;en;;;superuser;2020-02-01 00:00:00
+30;cbcadmin;$2a$10$.qZjtDNJu9dAGmksHms1AOBpFfhRkjCR0lMWtD3BZ1XXv0JZGR5u6;CBC;Admin;cbcadmin@localhost;;1;en;;;mandrill;2020-02-01 00:00:00
+31;cbsadmin;$2a$10$UYHpvD3ahXCtMvWIPmqjCujary2Uy.GVbwD5u1xRphdtPg6AjR.7a;CBS;Admin;cbsadmin@localhost;;1;en;;;mandrill;2020-02-01 00:00:00

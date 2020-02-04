@@ -1,0 +1,22 @@
+REC_ID;REC_NAME;REC_DESCRIPTION;CREATED_BY;CREATED_DATE
+1;GL Handoff Files;For GL Handoff Batch files;system;2020-02-01 00:00:00
+2;GL Handoff Block Sheet Listing;The block sheet listing for GL Handoff files;system;2020-02-01 00:00:00
+3;GL Handoff Final Proof Sheets;The final proof sheets for GL Handoff files;system;2020-02-01 00:00:00
+4;ATM Transaction Lists (Branch Reports);Branch reports for ATM transaction Lists;system;2020-02-01 00:00:00
+5;ATM Transaction Lists (ACD Reports);ACD Reports for ATM transaction;system;2020-02-01 00:00:00
+6;ATM Withdrawal Transactions;For ATM withdrawal transactions;system;2020-02-01 00:00:00
+7;Bills Payment Transactions;For bills payment transactions;system;2020-02-01 00:00:00
+8;IBFT Transactions;For IBFT transactions;system;2020-02-01 00:00:00
+9;POS Transactions;For POS transactions;system;2020-02-01 00:00:00
+10;Eload Transactions (Interbank);For inter-bank E-load transactions;system;2020-02-01 00:00:00
+11;Inter-Entity ATM Withdrawal Transactions;For inter-entity ATM withdrawal transactions;system;2020-02-01 00:00:00
+12;Inter-Entity IBFT Transactions;For inter-entity IBFT transactions;system;2020-02-01 00:00:00
+13;Billing Allocation Reports (Interbank);For inter-bank billing allocation;system;2020-02-01 00:00:00
+14;Billing Allocation Reports (Inter-Entity);For inter-entity billing allocation;system;2020-02-01 00:00:00
+15;Cash Card Reports;For cash card transactions;system;2020-02-01 00:00:00
+16;ECM (Electronic Channel Management) Reports;For electronic channel management;system;2020-02-01 00:00:00
+18;New Transactions Reports;For new transactions (InstaPay, Pesonet, Beep, Moving Cash, RFID, Recycler);system;2020-02-01 00:00:00
+19;Bills Payment Extract Files;To extract all bills payment transactions in more details;system;2020-02-01 00:00:00
+20;SWITCH Transaction Log File;List of all acquirer withdrawal details per transaction;system;2020-02-01 00:00:00
+21;CASA Transaction Log File;List of all issuer withdrawal details per transaction;system;2020-02-01 00:00:00
+22;BARTS Files;For other files;system;2020-02-01 00:00:00

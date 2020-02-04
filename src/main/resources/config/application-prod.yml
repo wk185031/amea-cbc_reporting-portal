@@ -14,10 +14,14 @@
 # ===================================================================
 
 logging:
-    level:
-        ROOT: DEBUG
-        my.com.mandrill.base: DEBUG
-        io.github.jhipster: DEBUG
+  level:
+    ROOT: DEBUG
+    my.com.mandrill.base: DEBUG
+    io.github.jhipster: DEBUG
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+    file: "%d %-5level [%thread] %logger : %msg%n"
+  file: /opt/apache-tomcat-8.5.33/logs/report-portal.log
 
 spring:
     profiles:
@@ -36,9 +40,9 @@ spring:
         # url: jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain
         # username: CBC_OWNER
         # password: CBC_OWNER
-        url: jdbc:oracle:thin:@153.77.198.105:1521/orcl
-        username: REPORTING_OWNER
-        password: REPORTING_OWNER
+        url: jdbc:oracle:thin:@172.20.188.31:1521/ATM5SIT
+        username: REPORT_OWNER
+        password: REPORT_OWNER
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:

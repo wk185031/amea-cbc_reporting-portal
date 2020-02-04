@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="now" value="current_timestamp" dbms="oracle"/>
+    <property name="autoIncrement" value="true"/>
+    
+ 	<changeSet id="20200101000000_report_initial" author="kw">
+		<loadData encoding="UTF-8"
+                  file="config/liquibase/app_resource.csv"
+                  separator=";"
+                  tableName="app_resource">
+            <column name="created_date" type="timestamp"/>    
+        </loadData>
+        
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/institution.csv"
+                  separator=";"
+                  tableName="institution">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+ 		<loadData encoding="UTF-8"
+                  file="config/liquibase/jhi_authority.csv"
+                  separator=";"
+                  tableName="jhi_authority">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/jhi_user.csv"
+                  separator=";"
+                  tableName="jhi_user">
+            <column name="created_date" type="timestamp"/>
+            <column name="activated" type="boolean"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/jhi_user_authority.csv"
+                  separator=";"
+                  tableName="jhi_user_authority">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/role_extra.csv"
+                  separator=";"
+                  tableName="role_extra">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/role_extra_permissions.csv"
+                  separator=";"
+                  tableName="role_extra_permissions">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/user_extra.csv"
+                  separator=";"
+                  tableName="user_extra">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/user_extra_roles.csv"
+                  separator=";"
+                  tableName="user_extra_roles">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/user_extra_institutions.csv"
+                  separator=";"
+                  tableName="user_extra_institutions">
+            <column name="created_date" type="timestamp"/>
+        </loadData>      
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/report_category.csv"
+                  separator=";"
+                  tableName="report_category">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+    
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/job.csv"
+                  separator=";"
+                  tableName="job">
+            <column name="schedule_time" type="date"/>
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/task_group.csv"
+                  separator=";"
+                  tableName="task_group">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/task.csv"
+                  separator=";"
+                  tableName="task">
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report_definition.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
+ 	</changeSet>
+</databaseChangeLog>

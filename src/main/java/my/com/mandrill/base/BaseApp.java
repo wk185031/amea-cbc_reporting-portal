@@ -1,25 +1,26 @@
 package my.com.mandrill.base;
 
-import my.com.mandrill.base.config.ApplicationProperties;
-import my.com.mandrill.base.config.DefaultProfileUtil;
-import my.com.mandrill.base.reporting.security.SecurityManagerService;
-import io.github.jhipster.config.JHipsterConstants;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collection;
+
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.*;
+import org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collection;
+import io.github.jhipster.config.JHipsterConstants;
+import my.com.mandrill.base.config.ApplicationProperties;
+import my.com.mandrill.base.config.DefaultProfileUtil;
 
 @ComponentScan
 @EnableAutoConfiguration(exclude = {MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class})
@@ -30,9 +31,9 @@ public class BaseApp {
 
     private final Environment env;
 
-    public BaseApp(Environment env, SecurityManagerService securityManagerService) {
+    public BaseApp(Environment env) {
         this.env = env;
-        securityManagerService.initialise();
+        //securityManagerService.initialise();
     }
 
     /**

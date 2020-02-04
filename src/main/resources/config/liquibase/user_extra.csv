@@ -1,0 +1,6 @@
+ID;NAME;DESIGNATION;CONTACT_MOBILE;CONTACT_WORK;CONTACT_OTHER;CREATED_BY;CREATED_DATE;USER_ID
+1;superadmin;;;;;system;2020-02-01 00:00:00;27
+4;cbcoperator;;;;;cbcadmin;2020-02-01 00:00:00;32
+2;cbcadmin;;;;;mandrill;2020-02-01 00:00:00;30
+3;cbsadmin;;;;;mandrill;2020-02-01 00:00:00;31
+5;cbsoperator;;;;;cbsadmin;2020-02-01 00:00:00;33

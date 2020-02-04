@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+    <property name="now" value="current_timestamp" dbms="oracle"/>
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="20191016140000" author="KokWeng">
+        
+        <createTable tableName="report_category" tablespace="REPORT_REPORTING_TS">
+            <column name="rec_id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rec_name" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+			<column name="rec_description" type="varchar(500)"/>            
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+
+		<createTable tableName="report_definition" tablespace="REPORT_REPORTING_TS">
+            <column name="red_id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="red_rec_id" type="bigint">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_name" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_description" type="varchar(500)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_file_name_prefix" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_file_format" type="varchar(15)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_file_location" type="varchar(255)"/>
+            <column name="red_processing_class" type="varchar(255)"/>
+            <column name="red_header_fields" type="clob"/>
+            <column name="red_body_fields" type="clob"/>
+            <column name="red_trailer_fields" type="clob"/>
+            <column name="red_body_query" type="clob"/>
+            <column name="red_trailer_query" type="clob"/>
+            <column name="red_frequency" type="varchar(30)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="red_generated_path_csv" type="varchar(300)"/>
+            <column name="red_generated_path_txt" type="varchar(300)"/>
+            <column name="red_generated_path_pdf" type="varchar(300)"/>
+            <column name="red_generated_filename_csv" type="varchar(300)"/>
+            <column name="red_generated_filename_txt" type="varchar(300)"/>
+            <column name="red_generated_filename_pdf" type="varchar(300)"/>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="red_rec_id"
+                                 baseTableName="report_definition"
+                                 constraintName="fk_def_category_id"
+                                 referencedColumnNames="rec_id"
+                                 referencedTableName="report_category"/>
+   
+        <createTable tableName="job" tablespace="REPORT_REPORTING_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1000)"/>
+            <column name="status" type="varchar(20)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="schedule_time" type="timestamp"/>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_sync" type="varchar(1000)"/>
+        </createTable>
+        
+        <createTable tableName="job_history" tablespace="REPORT_REPORTING_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="job_id" type="bigint">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="job_id"
+                                 baseTableName="job_history"
+                                 constraintName="fk_history_job_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="job"/>
+        
+        <createTable tableName="task_group" tablespace="REPORT_REPORTING_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+			<column name="description" type="varchar(1000)"/>
+			<column name="status" type="varchar(20)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="job_id" type="bigint">  
+				<constraints nullable="false"/>
+			</column>          
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="job_id"
+                                 baseTableName="task_group"
+                                 constraintName="fk_task_job_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="job"/>
+        
+        <createTable tableName="task" tablespace="REPORT_REPORTING_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+            	<constraints nullable="false"/>
+            </column>
+			<column name="description" type="varchar(1000)"/>
+			<column name="content" type="varchar(3000)"/>
+			<column name="sequence" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="status" type="varchar(20)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="type" type="varchar(20)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="task_group_id" type="bigint">   
+				<constraints nullable="false"/>
+			</column>         
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="task_group_id"
+                                 baseTableName="task"
+                                 constraintName="fk_task_group_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="task_group"/>
+        
+    </changeSet>
+</databaseChangeLog>

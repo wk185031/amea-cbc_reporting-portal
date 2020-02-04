@@ -1,0 +1,42 @@
+ID;CODE;NAME;JHI_TYPE;DESCRIPTION;SEQ_NO;DEPTH;CREATED_BY;CREATED_DATE;LAST_MODIFIED_BY;LAST_MODIFIED_DATE;PARENT_ID
+1;MENU:AppAdmin;Menu: App Admin;MAIN_MENU;;1;1;system;2020-02-01 00:00:00;;;
+2;MENU:Institution;Menu: Institution;MENU;;2;2;system;2020-02-01 00:00:00;;;1
+3;OPER:Institution.READ;Operation: Read Institution;OPER;;3;3;system;2020-02-01 00:00:00;;;2
+4;OPER:Institution.CREATE;Operation: Create Institution;OPER;;4;3;system;2020-02-01 00:00:00;;;2
+5;OPER:Institution.UPDATE;Operation: Update Institution;OPER;;5;3;system;2020-02-01 00:00:00;;;2
+6;OPER:Institution.DELETE;Operation: Delete Institution;OPER;;6;3;system;2020-02-01 00:00:00;;;2
+7;MENU:UserRole;Menu: User Role;MENU;;7;2;system;2020-02-01 00:00:00;;;1
+8;OPER:UserRole.READ;Operation: Read User Role;OPER;;8;3;system;2020-02-01 00:00:00;;;7
+9;OPER:UserRole.CREATE;Operation: Create User Role;OPER;;9;3;system;2020-02-01 00:00:00;;;7
+10;OPER:UserRole.UPDATE;Operation: Update User Role;OPER;;10;3;system;2020-02-01 00:00:00;;;7
+11;OPER:UserRole.DELETE;Operation: Delete User Role;OPER;;11;3;system;2020-02-01 00:00:00;;;7
+12;MENU:User;Menu: User;MENU;;12;2;system;2020-02-01 00:00:00;;;1
+13;OPER:User.READ;Operation: Read User;OPER;;13;3;system;2020-02-01 00:00:00;;;12
+14;OPER:User.CREATE;Operation: Create User;OPER;;14;3;system;2020-02-01 00:00:00;;;12
+15;OPER:User.UPDATE;Operation: Update User;OPER;;15;3;system;2020-02-01 00:00:00;;;12
+16;OPER:User.DELETE;Operation: Delete User;OPER;;16;3;system;2020-02-01 00:00:00;;;12
+17;MENU:SystemConfiguration;Menu: System Configuration;MENU;;17;2;system;2020-02-01 00:00:00;;;1
+18;OPER:SystemConfiguration.READ;Operation: Read System Configuration;OPER;;18;3;system;2020-02-01 00:00:00;;;17
+19;OPER:SystemConfiguration.CREATE;Operation: Create System Configuration;OPER;;19;3;system;2020-02-01 00:00:00;;;17
+20;OPER:SystemConfiguration.UPDATE;Operation: Update System Configuration;OPER;;20;3;system;2020-02-01 00:00:00;;;17
+21;OPER:SystemConfiguration.DELETE;Operation: Delete System Configuration;OPER;;21;3;system;2020-02-01 00:00:00;;;17
+22;MENU:EntityAudit;Menu: EntityAudit;MENU;;22;2;system;2020-02-01 00:00:00;;;1
+23;OPER:EntityAudit.READ;Operation: Read EntityAudit;OPER;;23;3;system;2020-02-01 00:00:00;;;22
+24;MENU:Dashboard;Menu: Dashboard;MAIN_MENU;;24;1;system;2020-02-01 00:00:00;;;
+25;MENU:ReportConfiguration;Menu: Report Configuration;MAIN_MENU;;25;1;system;2020-02-01 00:00:00;;;
+26;MENU:ReportCategory;Menu: Report Category;MENU;;26;2;system;2020-02-01 00:00:00;;;25
+27;OPER:ReportCategory.READ;Operation: Read Report Category;OPER;;27;3;system;2020-02-01 00:00:00;;;26
+28;OPER:ReportCategory.CREATE;Operation: Create Report Category;OPER;;28;3;system;2020-02-01 00:00:00;;;26
+29;OPER:ReportCategory.UPDATE;Operation: Update Report Category;OPER;;29;3;system;2020-02-01 00:00:00;;;26
+30;OPER:ReportCategory.DELETE;Operation: Delete Report Category;OPER;;30;3;system;2020-02-01 00:00:00;;;26
+31;MENU:ReportDefinition;Menu: Report Definition;MENU;;31;2;system;2020-02-01 00:00:00;;;25
+32;OPER:ReportDefinition.READ;Operation: Read Report Definition;OPER;;32;3;system;2020-02-01 00:00:00;;;31
+33;OPER:ReportDefinition.CREATE;Operation: Create Report Definition;OPER;;33;3;system;2020-02-01 00:00:00;;;31
+34;OPER:ReportDefinition.UPDATE;Operation: Update Report Definition;OPER;;34;3;system;2020-02-01 00:00:00;;;31
+35;OPER:ReportDefinition.DELETE;Operation: Delete Report Definition;OPER;;35;3;system;2020-02-01 00:00:00;;;31
+36;MENU:Operation;Menu: Operation;MAIN_MENU;;36;1;system;2020-02-01 00:00:00;;;
+37;MENU:GenerateReport;Menu: Generate Report;MENU;;37;2;system;2020-02-01 00:00:00;;;36
+38;MENU:JobScheduler;Menu: Job Scheduler;MENU;;38;3;system;2020-02-01 00:00:00;;;36
+39;MENU:TaskGroup;Menu: Task Group;MENU;;39;4;system;2020-02-01 00:00:00;;;36
+40;MENU:Task;Menu: Task;MENU;;40;5;system;2020-02-01 00:00:00;;;36
+41;MENU:Data Source Synchronization;Menu: Data Source Synchronization;MENU;;41;6;system;2020-02-01 00:00:00;;;36

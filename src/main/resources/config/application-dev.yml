@@ -14,18 +14,24 @@
 # ===================================================================
 
 logging:
-    level:
-        ROOT: DEBUG
-        my.com.mandrill.base: DEBUG
-        io.github.jhipster: DEBUG
+  level:
+    ROOT: DEBUG
+    my.com.mandrill.base: DEBUG
+    io.github.jhipster: DEBUG
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+    file: "%d %-5level [%thread] %logger : %msg%n"
+  file: /opt/apache-tomcat-8.5.33/logs/report-portal.log
 
 spring:
     profiles:
         active: dev
-        include: swagger
+        # include: swagger, no-liquibase
+    main:
+      banner-mode:"off"
     devtools:
         restart:
-            enabled: true
+            enabled: false
         livereload:
             enabled: false # we use gulp + BrowserSync for livereload
     jackson:
@@ -35,9 +41,9 @@ spring:
        # url: jdbc:mariadb://localhost:3306/base
        # username: mandrill
        # password: mandrill
-        url: jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain
-        username: CBC_OWNER
-        password: CBC_OWNER
+        url: jdbc:oracle:thin:@192.168.222.101:1521/orclcdb.localdomain
+        username: REPORT_OWNER_SIT
+        password: REPORT_OWNER_SIT
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
