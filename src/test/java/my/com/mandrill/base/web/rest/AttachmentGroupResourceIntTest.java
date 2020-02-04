@@ -96,12 +96,12 @@ public class AttachmentGroupResourceIntTest {
      * if they test an entity which requires the current entity.
      */
     public static AttachmentGroup createEntity(EntityManager em) {
-        AttachmentGroup attachmentGroup = new AttachmentGroup()
-            .entity(DEFAULT_ENTITY)
-            .createdBy(DEFAULT_CREATED_BY)
-            .createdDate(DEFAULT_CREATED_DATE)
-            .lastModifiedBy(DEFAULT_LAST_MODIFIED_BY)
-            .lastModifiedDate(DEFAULT_LAST_MODIFIED_DATE);
+        AttachmentGroup attachmentGroup = new AttachmentGroup();
+        attachmentGroup.setEntity(DEFAULT_ENTITY);
+        attachmentGroup.setCreatedBy(DEFAULT_CREATED_BY);
+        attachmentGroup.setCreatedDate(DEFAULT_CREATED_DATE);
+        attachmentGroup.setLastModifiedBy(DEFAULT_LAST_MODIFIED_BY);
+        attachmentGroup.setLastModifiedDate(DEFAULT_LAST_MODIFIED_DATE);
         return attachmentGroup;
     }
 
@@ -266,12 +266,12 @@ public class AttachmentGroupResourceIntTest {
         AttachmentGroup updatedAttachmentGroup = attachmentGroupRepository.findOne(attachmentGroup.getId());
         // Disconnect from session so that the updates on updatedAttachmentGroup are not directly saved in db
         em.detach(updatedAttachmentGroup);
-        updatedAttachmentGroup
-            .entity(UPDATED_ENTITY)
-            .createdBy(UPDATED_CREATED_BY)
-            .createdDate(UPDATED_CREATED_DATE)
-            .lastModifiedBy(UPDATED_LAST_MODIFIED_BY)
-            .lastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
+
+        updatedAttachmentGroup.setEntity(UPDATED_ENTITY);
+        updatedAttachmentGroup.setCreatedBy(UPDATED_CREATED_BY);
+        updatedAttachmentGroup.setCreatedDate(UPDATED_CREATED_DATE);
+        updatedAttachmentGroup.setLastModifiedBy(UPDATED_LAST_MODIFIED_BY);
+        updatedAttachmentGroup.setLastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
 
         restAttachmentGroupMockMvc.perform(put("/api/attachment-groups")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)

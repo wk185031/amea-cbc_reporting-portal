@@ -85,7 +85,7 @@ public class AttachmentResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final AttachmentResource attachmentResource = new AttachmentResource(attachmentRepository, attachmentSearchRepository);
+        final AttachmentResource attachmentResource = new AttachmentResource(attachmentRepository, attachmentSearchRepository, null);
         this.restAttachmentMockMvc = MockMvcBuilders.standaloneSetup(attachmentResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)

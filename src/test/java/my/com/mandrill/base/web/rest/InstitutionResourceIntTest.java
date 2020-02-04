@@ -111,7 +111,7 @@ public class InstitutionResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final InstitutionResource institutionResource = new InstitutionResource(institutionRepository, institutionSearchRepository, appService);
+        final InstitutionResource institutionResource = new InstitutionResource(institutionRepository, institutionSearchRepository, appService, null);
         this.restInstitutionMockMvc = MockMvcBuilders.standaloneSetup(institutionResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
