@@ -244,6 +244,13 @@
                     </span>
                 </a>
                 <ul class="dropdown-menu" ngbDropdownMenu>
+                	<li>
+                        <a class="dropdown-item" routerLink="generate-report" routerLinkActive="active" 
+                            [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
+                            <i class="fa fa-file-text-o" aria-hidden="true"></i>
+                            <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
+                        </a>
+                    </li>
                     <li>
                         <a class="dropdown-item" routerLink="job" routerLinkActive="active"
                             (click)="collapseNavbar()">
@@ -270,13 +277,6 @@
                             [routerLinkActiveOptions]="{ exact: true }" (click)="collapseNavbar()">
                             <i class="fa fa-fw fa-refresh" aria-hidden="true"></i>
                             <span jhiTranslate="baseApp.databaseSynchronization.title">Database Synchronization</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" routerLink="generate-report" routerLinkActive="active" 
-                            [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
-                            <i class="fa fa-file-text-o" aria-hidden="true"></i>
-                            <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
                         </a>
                     </li>
                 </ul>
