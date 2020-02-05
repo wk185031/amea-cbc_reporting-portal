@@ -7,6 +7,8 @@ import { Subscription } from 'rxjs';
 import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { Principal } from '../../shared';
 import { ReportGeneration } from './generate-report.model';
+import { NgxUiLoaderService } from 'ngx-ui-loader';
+import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'generate-report-tab',
@@ -24,12 +26,15 @@ export class GenerateReportTabComponent implements OnInit {
     reports: ReportDefinition[];
     @Input() allReports: ReportDefinition[];
     generateReport: ReportGeneration;
+    generated: String;
+    failed: String;
 
     constructor(
         private generateReportService: GenerateReportService,
         private jhiAlertService: JhiAlertService,
         private principal: Principal,
-        private eventManager: JhiEventManager
+        private eventManager: JhiEventManager,
+        private ngxLoader: NgxUiLoaderService
     ) {
         this.reports = [];
     }
@@ -52,6 +57,8 @@ export class GenerateReportTabComponent implements OnInit {
         });
         this.registerChangeInReportGeneration();
         this.category = this.categories[0];
+        this.generated = "baseApp.reportGenerationResult.generated";
+        this.failed = "baseApp.reportGenerationResult.failed";
     }
 
     ngOnDestroy() {
@@ -60,8 +67,14 @@ export class GenerateReportTabComponent implements OnInit {
         }
     }
 
-    private onError(error: any) {
-        this.jhiAlertService.error(error.message, null, null);
+    private onSuccess(msg: any) {
+        this.ngxLoader.stop();
+        this.jhiAlertService.success(msg, null, null);
+    }
+
+    private onError(msg: any) {
+        this.ngxLoader.stop();
+        this.jhiAlertService.error(msg, null, null);
     }
 
     registerChangeInReportGeneration() {
@@ -82,11 +95,16 @@ export class GenerateReportTabComponent implements OnInit {
 
     generate() {
         if (this.generateReport && this.generateReport.fileDate) {
+            this.ngxLoader.start();
             this.generateReportService.generateReport(this.category.id,
                 this.report ? this.report.id : 0,
                 this.generateReport.fileDate,
                 this.generateReport.txnStart,
-                this.generateReport.txnEnd);
+                this.generateReport.txnEnd).subscribe(
+                (res: HttpResponse<ReportDefinition[]>) => {
+                    this.onSuccess(this.generated);
+                },
+                (res: HttpErrorResponse) => this.onError(this.failed));
         }
     }
 }

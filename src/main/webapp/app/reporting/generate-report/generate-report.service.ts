@@ -83,6 +83,15 @@ export class GenerateReportService {
         return res.clone({ body });
     }
 
+    private convertArrayDefinitionResponse(res: HttpResponse<ReportGeneration[]>): HttpResponse<ReportDefinition[]> {
+        const jsonResponse: ReportDefinition[] = res.body;
+        const body: ReportDefinition[] = [];
+        for (let i = 0; i < jsonResponse.length; i++) {
+            body.push(this.convertItemFromServer(jsonResponse[i]));
+        }
+        return res.clone({ body });
+    }
+
     /**
      * Convert a returned JSON object to ReportGeneration.
      */
@@ -103,11 +112,9 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): void {
-        this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`)
-            .subscribe((response: ReportDefinition[]) => {
-                this.reportDefinition = response;
-            });
+    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): Observable<HttpResponse<ReportDefinition[]>> {
+        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`, { observe: 'response' })
+        .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 
     downloadReport(reportCategoryId: number, reportId: number): any {

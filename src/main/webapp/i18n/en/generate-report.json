@@ -13,6 +13,10 @@
             "createdDateLabel": "Created Date :",
             "lastModifiedByLabel": "Last Modified By :",
             "lastModifiedDateLabel": "Last Modified Date :"
+        },
+        "reportGenerationResult": {
+            "generated": "Report Generated",
+            "failed": "Report failed to generate"
         }
     }
 }

@@ -6939,6 +6939,13 @@ ngx-infinite-scroll@0.5.1:
   resolved "https://registry.yarnpkg.com/ngx-infinite-scroll/-/ngx-infinite-scroll-0.5.1.tgz#dd9452c602ff7c3222f0ca168481aa14140286b7"
   integrity sha1-3ZRSxgL/fDIi8MoWhIGqFBQChrc=
 
+ngx-ui-loader@1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/ngx-ui-loader/-/ngx-ui-loader-1.2.5.tgz#e328e4780e668aea6b156f6b2f073ce0789f1583"
+  integrity sha512-f366Wh2OCwNqJZR3CDoz/wyYGv03s95nYahE5AEOBsZn1tWNP5YbmxWQDyaMv+a3BdaDXEJuGTWjXn6ad8jw6g==
+  dependencies:
+    tslib "^1.9.0"
+
 ngx-webstorage@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/ngx-webstorage/-/ngx-webstorage-2.0.1.tgz#232446262241e8fd0d794a03821c0b5e28459295"

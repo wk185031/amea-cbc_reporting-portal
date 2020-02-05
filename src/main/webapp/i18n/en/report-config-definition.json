@@ -36,7 +36,7 @@
             "fieldDefaultValueLabel": "Field Default Value : ",
             "fieldFirstLabel": "First Field : ",
             "fieldBodyHeaderLabel": "Body Header : ",
-            "fieldEolLabel": "End of Line (EOL) : ",
+            "fieldEocLabel": "End of Column (EOC) : ",
             "createdByLabel": "Create By :",
             "createdDateLabel": "Created Date :",
             "lastModifiedByLabel": "Last Modified By :",
