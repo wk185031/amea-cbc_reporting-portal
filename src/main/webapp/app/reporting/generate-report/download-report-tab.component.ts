@@ -1,102 +1,84 @@
-import { Component, OnInit, OnDestroy, Input, OnChanges } from '@angular/core';
-import { HttpResponse, HttpErrorResponse, HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { HttpResponse, HttpClient } from '@angular/common/http';
 import { HttpEvent } from '@angular/common/http/src/response';
 import { Principal } from '../../shared';
 import { GenerateReportService } from './generate-report.service';
 import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
+import { JhiAlertService } from 'ng-jhipster';
+import { GeneratedReportDTO } from './generatedReportDTO.dto';
 
+import { UserExtraService, UserExtra } from '../../entities/user-extra';
 @Component({
     selector: 'download-report-tab',
     templateUrl: './download-report-tab.component.html'
 })
 export class DownloadReportTabComponent implements OnInit {
     reports: ReportDefinition[];
+    generatedReportDTOs: GeneratedReportDTO[];
+    userExtra: UserExtra;
+    institutionId: number;
+    branchId: number;
 
     constructor(
         private generateReportService: GenerateReportService,
-        private http: HttpClient
+        private jhiAlertService: JhiAlertService,
+        private userExtraService: UserExtraService,
+        private http: HttpClient,
+        private principal: Principal
     ) {
     }
 
     ngOnInit() {
-        this.reports = this.generateReportService.reportDefinition;
+        this.principal.identity().then((account) => {
+            this.institutionId = this.principal.getSelectedInstitutionId();
+            // For Branch
+            /*
+            this.userExtraService.find(+account.id).subscribe((res: HttpResponse<UserExtra>) => {
+                this.userExtra = res.body; 
+                branchId = ths.userExtra.branch;
+            });
+            */
+            this.generateReportService.getReportList(this.institutionId).subscribe((data: any) => {
+                this.generatedReportDTOs = data;
+            }, (error) => {
+                this.onError(error.message);
+                this.generatedReportDTOs = [];
+            });
+        });
+
     }
 
-    download(reportCategoryId: number, reportId: number) {
-        for (const report of this.reports) {
-            console.log(reportCategoryId);
-            const req = this.generateReportService.downloadReport(reportCategoryId, reportId);
-            this.http.request(req).subscribe(
-                (requestEvent: HttpEvent<Blob>) => {
-                    if (requestEvent instanceof HttpResponse) {
-                        if (requestEvent.body) {
-                            if (reportId === 0) {
-                                if (report.generatedFileNamePdf) {
-                                    const fileName = report.reportCategory.name + "_PDF.zip";
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                                if (report.generatedFileNameTxt) {
-                                    const fileName = report.reportCategory.name + "_TXT.zip";
-                                    console.log(fileName);
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                                if (report.generatedFileNameCsv) {
-                                    const fileName = report.reportCategory.name + "_CSV.zip";
-                                    console.log(fileName);
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                            } else {
-                                if (report.generatedFileNamePdf) {
-                                    console.log(report.generatedFileNamePdf);
-                                    const fileName = report.generatedFileNamePdf;
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                                if (report.generatedFileNameTxt) {
-                                    console.log(report.generatedFileNameTxt);
-                                    const fileName = report.generatedFileNameTxt;
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                                if (report.generatedFileNameCsv) {
-                                    console.log(report.generatedFileNameCsv);
-                                    const fileName = report.generatedFileNameCsv;
-                                    const a: any = document.createElement('a');
-                                    a.href = window.URL.createObjectURL(requestEvent.body);
-                                    a.target = '_blank';
-                                    a.download = fileName;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                }
-                            }
+    download(reportCategoryId: number, date: string, reportName: string) {
+        console.log('reportCategoryId: ' + reportCategoryId + ', date: ' + date + ', file: ' + reportName);
+        const req = this.generateReportService.downloadReport(reportCategoryId, date, reportName);
+        this.http.request(req).subscribe(
+            (requestEvent: HttpEvent<Blob[]>) => {
+                if (requestEvent instanceof HttpResponse) {
+                    if (requestEvent.body) {
+                        if (reportName === 'All') {
+                            const fileName = date + '.zip';
+                            const a: any = document.createElement('a');
+                            a.href = window.URL.createObjectURL(requestEvent.body);
+                            a.target = '_blank';
+                            a.download = fileName;
+                            document.body.appendChild(a);
+                            a.click();
+                        } else {
+                            const fileName = date + '-' + reportName + '.zip';
+                            const a: any = document.createElement('a');
+                            a.href = window.URL.createObjectURL(requestEvent.body);
+                            a.target = '_blank';
+                            a.download = fileName;
+                            document.body.appendChild(a);
+                            a.click();
                         }
                     }
-                    this.generateReportService.reportDefinition = this.generateReportService.reportDefinition.filter((existingReport) => existingReport.id !== report.id);
                 }
-            );
-        }
+            }
+        );
+    }
+
+    private onError(error: any) {
+        this.jhiAlertService.error(error.message, null, null);
     }
 }

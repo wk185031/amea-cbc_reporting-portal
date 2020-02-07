@@ -18,6 +18,8 @@ export class GenerateReportService {
     private resourceSearchUrl = SERVER_API_URL + 'api/_search/reportGeneration';
     private resourceUrlNoPaging = SERVER_API_URL + 'api/reportGeneration-nopaging';
     private resourcGetParenteUrl = SERVER_API_URL + 'api/reportGeneration-parent-for-reportGeneration-and-user';
+    private resourceGetGeneratedReportList = SERVER_API_URL + 'api/report-get-generated-list';
+    private resourceDownloadReport = SERVER_API_URL + 'api/download-report';
     public reportDefinition: ReportDefinition[];
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) {
@@ -89,6 +91,7 @@ export class GenerateReportService {
         for (let i = 0; i < jsonResponse.length; i++) {
             body.push(this.convertItemFromServer(jsonResponse[i]));
         }
+        this.reportDefinition = body;
         return res.clone({ body });
     }
 
@@ -117,10 +120,16 @@ export class GenerateReportService {
         .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 
-    downloadReport(reportCategoryId: number, reportId: number): any {
-        const req = new HttpRequest('GET', `${this.resourceUrl}/${reportCategoryId}/${reportId}`, {
+    downloadReport(reportCategoryId: number, date: string, filename: string): any {
+        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${reportCategoryId}/${date}/${filename}`, {
+            requestProgress: true,
             responseType: 'blob'
         });
         return req;
+    }
+
+    getReportList(institutionId: number): Observable<Response> {
+        return this.http.get(`${this.resourceGetGeneratedReportList}/${institutionId}`)
+            .map((res: any) => res);
     }
 }

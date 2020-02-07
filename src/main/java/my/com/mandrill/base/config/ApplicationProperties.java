@@ -15,6 +15,8 @@ public class ApplicationProperties {
 
     private final AbsolutePath imageAttachmentBasePath = new AbsolutePath();
 
+    private final AbsolutePath reportDir = new AbsolutePath();
+
 	public boolean isLanguageSelection() {
 		return languageSelection;
 	}
@@ -33,6 +35,10 @@ public class ApplicationProperties {
 
     public AbsolutePath getImageAttachmentBasePath() {
         return imageAttachmentBasePath;
+    }
+
+    public AbsolutePath getReportDir() {
+        return reportDir;
     }
 
     public static class AbsolutePath {

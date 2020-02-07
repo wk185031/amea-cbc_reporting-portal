@@ -175,3 +175,5 @@ application:
     languageSelection: "true"
     imageAttachmentBasePath:
         path : "C:\\base\\attachment"
+    reportDir:
+        path: "/home/oracle/Reporting/reports"

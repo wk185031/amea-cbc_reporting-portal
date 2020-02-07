@@ -1,10 +1,18 @@
-<div class="card cellContainer" *ngFor="let report of reports">
-    <div class="card-header report-custom">
-        <a (click)="download(report.reportCategory.id, 0)">{{report.reportCategory.name}}</a>
-    </div>
-    <div class="card-body report-custom">
-        <div *ngFor="let report of reports">
-            <a (click)="download(report.reportCategory.id, report.id)">{{report.name}}</a>
+<div *ngIf="!generatedReportDTOs">
+    <p><i>No available report to download</i></p>
+</div>
+
+<div *ngIf="generatedReportDTOs">
+    <div class="card cellContainer" *ngFor="let generatedReport of generatedReportDTOs">
+        <div class="card-header report-custom">
+            <a (click)="download(institutionId,generatedReport.date, 'All')">{{generatedReport.date}}</a>
+            <!-- <a (click)="download(institutionId, branchId, generatedReport.date, 'All')">{{generatedReport.date}}</a>-->
+        </div>
+        <div class="card-body report-custom">
+            <div *ngFor="let report of generatedReport.reportList">
+                <a (click)="download(institutionId, generatedReport.date, report)">{{report}}</a>
+                <!-- <a (click)="download(institutionId, branchId, generatedReport.date, report)">{{report}}</a> -->
+            </div>
         </div>
     </div>
 </div>
