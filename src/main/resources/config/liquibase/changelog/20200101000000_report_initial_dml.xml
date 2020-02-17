@@ -100,11 +100,11 @@
                   tableName="task">
             <column name="created_date" type="timestamp"/>
         </loadData>
-        
+
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report_definition.sql"
-                 splitStatements="true" 
+                 splitStatements="false" 
                  stripComments="true" />
  	</changeSet>
 </databaseChangeLog>
