@@ -14,10 +14,11 @@
             </div>
             <div class="card-body">
                 <div *ngIf="generateReportTab === 'nav-link active'">
-                    <generate-report-tab [categories]="categories" [allReports]="reportDefinitions"></generate-report-tab>
+                    <generate-report-tab [categories]="categories" [allReports]="reportDefinitions">
+                    </generate-report-tab>
                 </div>
                 <div *ngIf="downloadReportTab === 'nav-link active'">
-                    <download-report-tab></download-report-tab>
+                    <download-report-tab [categories]="categories"></download-report-tab>
                 </div>
             </div>
         </div>

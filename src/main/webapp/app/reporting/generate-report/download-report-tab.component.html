@@ -1,17 +1,60 @@
-<div *ngIf="!generatedReportDTOs">
-    <p><i>No available report to download</i></p>
-</div>
-
-<div *ngIf="generatedReportDTOs">
-    <div class="card cellContainer" *ngFor="let generatedReport of generatedReportDTOs">
-        <div class="card-header report-custom">
-            <a (click)="download(institutionId,generatedReport.date, 'All')">{{generatedReport.date}}</a>
-            <!-- <a (click)="download(institutionId, branchId, generatedReport.date, 'All')">{{generatedReport.date}}</a>-->
+<div>
+    <div class="row">
+        <div class="col-4 treeborder">
+            <form name="editForm" role="form" novalidate #editForm="ngForm">
+                <div>
+                    <div>
+                        <label jhiTranslate="baseApp.reportGeneration.reportCategoryLabel"
+                            for="category">Category</label>
+                        <br />
+                        <select class="form-control" [(ngModel)]="category" name="category">
+                            <option [ngValue]="allCategory" selected>All</option>
+                            <option [ngValue]="categoryOption" *ngFor="let categoryOption of categories">
+                                {{categoryOption.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <br />
+                <div>
+                    <label jhiTranslate="baseApp.reportGeneration.reportTypeLabel">Report Type</label>
+                    <br />
+                    <input type="radio" name="reportType" value="daily" [(ngModel)]="reportType" /> Daily
+                    <input type="radio" name="reportType" value="monthly" [(ngModel)]="reportType" /> Monthly
+                </div>
+                <br />
+                <div>
+                    <label jhiTranslate="baseApp.reportGeneration.reportDateLabel">Report Date</label>
+                    <input class="d-flex form-control" *ngIf="reportType === 'daily'" id="reportDate" type="date"
+                        data-date-format="dd MMM yyyy" name="reportDate" [(ngModel)]="reportDate" />
+                    <input class="d-flex form-control" *ngIf="reportType === 'monthly'" id="reportMonth" type="month"
+                        name="reportMonth" [(ngModel)]="reportMonth" />
+                </div>
+                <br />
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" (click)="getReport()">
+                        <span jhiTranslate="baseApp.reportGeneration.find">Find</span>
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="card-body report-custom">
-            <div *ngFor="let report of generatedReport.reportList">
-                <a (click)="download(institutionId, generatedReport.date, report)">{{report}}</a>
-                <!-- <a (click)="download(institutionId, branchId, generatedReport.date, report)">{{report}}</a> -->
+
+        <div class="col-8">
+            <h2><span>{{downloadReportCategory?.name}}</span></h2>
+            <div *ngIf="!generatedReportDTO?.reportList">
+                <p><i>No available report to download</i></p>
+            </div>
+            <div *ngIf="generatedReportDTO?.reportList && downloadReportCategory.id !== 0" class="report-custom">
+                <div>
+                    <a (click)="download('All', downloadReportCategory.id)">Download All</a>
+                </div>
+                <div *ngFor="let report of generatedReportDTO.reportList">
+                    <a (click)="download(report, downloadReportCategory.id)">{{report}}</a>
+                </div>
+            </div>
+            <div *ngIf="generatedReportDTO?.reportList && downloadReportCategory.id === 0" class="report-custom">
+                <div>
+                    <a (click)="download('All', downloadReportCategory.id)">Download All</a>
+                </div>
             </div>
         </div>
     </div>

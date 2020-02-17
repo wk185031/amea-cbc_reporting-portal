@@ -7,26 +7,37 @@ import java.util.List;
  */
 public class GeneratedReportDTO {
 
-	private String date;
+	private ReportCategory reportCategory;
+	private String reportDate;
 	private List<String> reportList;
 
-	public GeneratedReportDTO(String date, List<String> reportList) {
+	public GeneratedReportDTO(ReportCategory reportCategory, String reportDate, List<String> reportList) {
 		super();
-		this.date = date;
+		this.reportCategory = reportCategory;
+		this.reportDate = reportDate;
 		this.reportList = reportList;
 	}
 
 	public GeneratedReportDTO() {
-		this.date = null;
+		this.reportCategory = null;
+		this.reportDate = null;
 		this.reportList = null;
 	}
 
-	public String getDate() {
-		return date;
+	public ReportCategory getReportCategory() {
+		return reportCategory;
 	}
 
-	public void setDate(String date) {
-		this.date = date;
+	public void setReportCategory(ReportCategory reportCategory) {
+		this.reportCategory = reportCategory;
+	}
+
+	public String getReportDate() {
+		return reportDate;
+	}
+
+	public void setReportDate(String reportDate) {
+		this.reportDate = reportDate;
 	}
 
 	public List<String> getReportList() {
@@ -39,7 +50,7 @@ public class GeneratedReportDTO {
 	
 	@Override
 	public String toString() {
-		return "GeneratedReportDTO [date=" + date + ", reportList=" + reportList + "]";
+		return "GeneratedReportDTO [reportDate=" + reportDate + "]";
 	}
 
 }
