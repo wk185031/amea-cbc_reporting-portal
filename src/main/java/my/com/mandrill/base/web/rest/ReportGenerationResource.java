@@ -47,12 +47,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.GeneratedReportDTO;
+import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
@@ -71,6 +73,7 @@ public class ReportGenerationResource {
 	private final ReportCategoryRepository reportCategoryRepository;
 	private final JobRepository jobRepository;
 	private final JobHistoryRepository jobHistoryRepository;
+	private final InstitutionRepository institutionRepository;
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
@@ -78,11 +81,12 @@ public class ReportGenerationResource {
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
-			JobHistoryRepository jobHistoryRepository, Environment env) {
+			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository, Environment env) {
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.jobRepository = jobRepository;
 		this.jobHistoryRepository = jobHistoryRepository;
+		this.institutionRepository = institutionRepository;
 		this.env = env;
 	}
 
@@ -106,13 +110,39 @@ public class ReportGenerationResource {
 					@Override
 					public void run() {
 						if (!executed) {
-							for (ReportDefinition reportDefinitionList : reportDefinitionRepository
-									.findAll(orderByIdAsc())) {
-								if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
-									generateDailyReport();
-								}
-								if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
-									generateMonthlyReport();
+							Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+
+							ZonedDateTime currentDate = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+							LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
+							String todayDate = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
+									.format(currentDate);
+							LocalDate lastDayOfMonth = YearMonth
+									.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
+
+							for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
+									.filter(jobHistory -> jobHistory.getJob().getId() == job.getId())
+									.collect(Collectors.toList())) {
+								logger.debug("Job ID: {}, Job History Status: {}", jobHistoryList.getJob().getId(),
+										jobHistoryList.getStatus());
+
+								if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)
+										&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
+												.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
+									logger.debug(
+											"Job History Status: {}, Created Date: {}. Start generating reports. Yesterday Date: {}, Today Date: {}",
+											jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate,
+											currentDate);
+
+									List<Institution> institutions = institutionRepository.findAll();
+									for (Institution institution : institutions) {
+										generateDailyReport(institution.getId());
+										if (yesterdayDate.equals(lastDayOfMonth)) {
+											generateMonthlyReport(institution.getId());
+										}
+									}
+									executed = true;
+									jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
+									jobHistoryRepository.save(jobHistoryList);
 								}
 							}
 						}
@@ -133,107 +163,93 @@ public class ReportGenerationResource {
 		return nextTime.getTime();
 	}
 
-	private void generateDailyReport() {
+	private void generateDailyReport(Long institutionId) {
 		logger.info("In ReportGenerationResource.generateDailyReport()");
-		Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
-		ZonedDateTime currentDate = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
 		LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
-		String todayDate = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01).format(currentDate);
 
-		for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
-				.filter(jobHistory -> jobHistory.getJob().getId() == job.getId()).collect(Collectors.toList())) {
-			logger.debug("Job ID: {}, Job History Status: {}", jobHistoryList.getJob().getId(),
-					jobHistoryList.getStatus());
-			if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)
-					&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
-							.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
-				logger.debug(
-						"Job History Status: {}, Created Date: {}. Start generating reports. Yesterday Date: {}, Today Date: {}",
-						jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate, currentDate);
-				ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-				reportGenerationMgr.setYesterdayDate(yesterdayDate);
-				reportGenerationMgr.setTodayDate(yesterdayDate);
+		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+				+ institutionId + File.separator
+				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_06).format(yesterdayDate) + File.separator
+				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_07).format(yesterdayDate) + File.separator;
 
-				for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
-					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
-					reportGenerationMgr.setFileName(reportDefinitionList.getName());
-					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
-					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
-					reportGenerationMgr.setFileLocation(reportDefinitionList.getFileLocation());
-					reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
-					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
-					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
-					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
-					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
-					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
-					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-					reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
-				}
+		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		reportGenerationMgr.setYesterdayDate(yesterdayDate);
+		reportGenerationMgr.setTodayDate(yesterdayDate);
+
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
+				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
+				reportGenerationMgr.setFileName(reportDefinitionList.getName());
+				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+				reportGenerationMgr.setFileLocation(
+						directory + reportDefinitionList.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
+				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
+				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
+				reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
+				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
+				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
+				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
+				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 			}
-			executed = true;
-			jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
 		}
 	}
 
-	private void generateMonthlyReport() {
+	private void generateMonthlyReport(Long institutionId) {
 		logger.info("In ReportGenerationResource.generateMonthlyReport()");
-		Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
 		LocalDate firstDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
-		ZonedDateTime currentDate = ZonedDateTime.from(lastDayOfMonth);
-		String endDayOfMonth = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01).format(currentDate);
 
-		for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
-				.filter(jobHistory -> jobHistory.getJob().getId() == job.getId()).collect(Collectors.toList())) {
-			logger.debug("Job ID: {}, Job History Status: {}", jobHistoryList.getJob().getId(),
-					jobHistoryList.getStatus());
-			if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)
-					&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
-							.format(jobHistoryList.getCreatedDate()).equals(endDayOfMonth)) {
-				logger.debug(
-						"Job History Status: {}, Created Date: {}. Start generating reports. Yesterday Date: {}, Today Date: {}",
-						jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), firstDayOfMonth, lastDayOfMonth);
-				ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-				reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
-				reportGenerationMgr.setTodayDate(lastDayOfMonth);
+		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+				+ institutionId + File.separator
+				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_06).format(lastDayOfMonth) + File.separator
+				+ "00" + File.separator;
 
-				for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
-					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
-					reportGenerationMgr.setFileName(reportDefinitionList.getName());
-					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
-					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
-					reportGenerationMgr.setFileLocation(reportDefinitionList.getFileLocation());
-					reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
-					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
-					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
-					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
-					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
-					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
-					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-					reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
-				}
+		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
+		reportGenerationMgr.setTodayDate(lastDayOfMonth);
+
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
+				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
+				reportGenerationMgr.setFileName(reportDefinitionList.getName());
+				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+				reportGenerationMgr.setFileLocation(
+						directory + reportDefinitionList.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
+				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
+				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
+				reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
+				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
+				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
+				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
+				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 			}
-			executed = true;
-			jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
 		}
 	}
 
-	@GetMapping("/reportGeneration/{reportCategoryId}/{reportId}/{fileDate}/{txnStart}/{txnEnd}")
+	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long reportCategoryId,
-			@PathVariable Long reportId, @PathVariable String fileDate, @PathVariable String txnStart,
-			@PathVariable String txnEnd) throws ParseException {
+	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
+			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @PathVariable String txnDate)
+			throws ParseException {
 		logger.debug(
-			"User: {}, Rest to generate Report Category ID: {}, Report ID: {}, File Date: {}, Txn Start Date: {}, Txn End Date: {}",
-			SecurityUtils.getCurrentUserLogin().orElse(""), reportCategoryId, reportId, fileDate, txnStart, txnEnd);
+				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
+				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId, txnDate);
 		ReportDefinition reportDefinition = null;
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
+		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
+
 		reportGenerationMgr.setGenerate(true);
-		reportGenerationMgr.setFileDate(getFileDate(fileDate));
-		reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnStart));
-		reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnEnd));
+		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
+
+		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+				+ institutionId + File.separator + txnDate.substring(0, 7);
 
 		if (reportId == 0) {
 			for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
@@ -242,15 +258,32 @@ public class ReportGenerationResource {
 					reportGenerationMgr.setFileName(reportDefinitionList.getName());
 					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
-					reportGenerationMgr.setFileLocation(reportDefinitionList.getFileLocation());
 					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
 					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
 					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
 					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-					reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-							env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+
+					if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
+						reportGenerationMgr.setFileLocation(directory + File.separator + txnDate.substring(8, 10)
+								+ File.separator + reportDefinitionList.getReportCategory().getName() + File.separator);
+						reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
+						reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
+						reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+								env.getProperty(ReportConstants.DB_USERNAME),
+								env.getProperty(ReportConstants.DB_PASSWORD));
+					}
+
+					if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
+						reportGenerationMgr.setFileLocation(directory + File.separator + "00" + File.separator
+								+ reportDefinitionList.getReportCategory().getName() + File.separator);
+						reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
+						reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
+						reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+								env.getProperty(ReportConstants.DB_USERNAME),
+								env.getProperty(ReportConstants.DB_PASSWORD));
+					}
 				}
 			}
 		} else {
@@ -259,15 +292,31 @@ public class ReportGenerationResource {
 			reportGenerationMgr.setFileName(reportDefinition.getName());
 			reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
 			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-			reportGenerationMgr.setFileLocation(reportDefinition.getFileLocation());
 			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
 			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
 			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
 			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
 			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
 			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+
+			if (reportDefinition.getFrequency().contains(ReportConstants.DAILY)) {
+				reportGenerationMgr.setFileLocation(directory + File.separator + txnDate.substring(8, 10)
+						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
+				reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
+				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+			}
+
+			if (reportDefinition.getFrequency().contains(ReportConstants.MONTHLY)) {
+				reportGenerationMgr.setFileLocation(directory + File.separator + "00" + File.separator
+						+ reportDefinition.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
+				reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
+				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+			}
+
 		}
 
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
@@ -311,6 +360,10 @@ public class ReportGenerationResource {
 				+ File.separator + reportCategory.getName());
 		logger.debug("Path =  " + directory.getAbsolutePath());
 
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
+
 		List<String> reportList = new ArrayList<>();
 		File[] reports = directory.listFiles();
 
@@ -337,6 +390,10 @@ public class ReportGenerationResource {
 		String reportDay = reportDate.substring(8, 10);
 		File directory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay);
+
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
 
 		List<String> reportList = new ArrayList<>();
 		File[] dirs = directory.listFiles();
@@ -467,7 +524,7 @@ public class ReportGenerationResource {
 			logger.debug("File path = " + files[i].getAbsolutePath());
 			if (files[i].isFile() && !files[i].getName().contains(".zip")) {
 				filesListInDir.add(files[i].getAbsolutePath());
-			} else if(files[i].isDirectory()) {
+			} else if (files[i].isDirectory()) {
 				populateFilesList(files[i], filesListInDir);
 			}
 		}

@@ -22,34 +22,12 @@
         </div>
     </div>
     <br />
-    <div class="form-group">
-        <label class="form-control-label" jhiTranslate="baseApp.reportGeneration.fileDateLabel"
-            for="field_fileDate">File Date</label>
-        <input type="text" class="form-control" name="name" id="field_fileDate" maxlength="10"
-            [(ngModel)]="generateReport.fileDate" style="width: 600px" required />
-        <div [hidden]="!(editForm.controls.fileDate?.dirty && editForm.controls.fileDate?.invalid)">
-            <small class="form-text text-danger" [hidden]="!editForm.controls.fileDate?.errors?.required"
-                jhiTranslate="entity.validation.required">
-                This field is required.
-            </small>
-            <small class="form-text text-danger" [hidden]="!editForm.controls.fileDate?.errors?.maxlength"
-                jhiTranslate="entity.validation.maxlength" translateValues="{ max: 10 }">
-                This field cannot be longer than 10 characters.
-            </small>
-        </div>
-    </div>
-    <br />
     <label jhiTranslate="baseApp.reportGeneration.queryTxnLabel">Query Transaction Date</label>
     <div class="row">
-        &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnStartLabel">Transaction Start Date</label>
+        &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnDateLabel">Transaction Date</label>
         <div class="col-3">
-            <input class="d-flex" id="field_fromDate" type="date" data-date="" data-date-format="dd MMM yyyy"
-                class="form-control" name="fromDate" [(ngModel)]="generateReport.txnStart" />
-        </div>
-        <label jhiTranslate="baseApp.reportGeneration.txnEndLabel">Transaction End Date</label>
-        <div class="col-3">
-            <input class="d-flex" id="field_toDate" type="date" data-date-format="dd MMM yyyy" class="form-control"
-                name="toDate" [(ngModel)]="generateReport.txnEnd" />
+            <input class="d-flex" id="field_reportDate" type="date" data-date="" data-date-format="dd MMM yyyy"
+                class="form-control" name="reportDate" [(ngModel)]="reportDate" />
         </div>
     </div>
     <br />

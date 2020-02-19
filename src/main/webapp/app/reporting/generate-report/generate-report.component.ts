@@ -4,7 +4,7 @@ import { ReportCategory } from '../report-config-category/report-config-category
 import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
 
 @Component({
-    selector: 'generate-report',
+    selector: 'jhi-generate-report',
     templateUrl: './generate-report.component.html'
 })
 export class GenerateReportComponent {

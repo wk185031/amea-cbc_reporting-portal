@@ -7,7 +7,7 @@ import { JhiAlertService } from 'ng-jhipster';
 import { GeneratedReportDTO } from './generatedReportDTO.dto';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
 @Component({
-    selector: 'download-report-tab',
+    selector: 'jhi-download-report-tab',
     templateUrl: './download-report-tab.component.html'
 })
 export class DownloadReportTabComponent implements OnInit {
@@ -37,7 +37,7 @@ export class DownloadReportTabComponent implements OnInit {
         this.todaydate = this.formatDateToString(today);
         this.reportDate = this.todaydate;
         this.reportMonth = this.todaydate.substring(0, 7);
-        this.reportType = "daily";
+        this.reportType = 'daily';
         this.category = this.allCategory;
         this.generatedReportDTO = new GeneratedReportDTO();
         this.principal.identity().then((account) => {
@@ -67,7 +67,8 @@ export class DownloadReportTabComponent implements OnInit {
     }
 
     download(reportName: string, reportCategoryId: number) {
-        const req = this.generateReportService.downloadReport(this.institutionId, (this.reportType === 'monthly' ? this.reportMonth + '-00' : this.reportDate), reportCategoryId, reportName);
+        const req = this.generateReportService.downloadReport(this.institutionId,
+            (this.reportType === 'monthly' ? this.reportMonth + '-00' : this.reportDate), reportCategoryId, reportName);
         this.http.request(req).subscribe(
             (requestEvent: HttpEvent<Blob[]>) => {
                 if (requestEvent instanceof HttpResponse) {

@@ -115,8 +115,8 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(reportCategoryId: number, reportId: number, fileDate: string, txnStart, txnEnd): Observable<HttpResponse<ReportDefinition[]>> {
-        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${reportCategoryId}/${reportId}/${fileDate}/${txnStart}/${txnEnd}`, { observe: 'response' })
+    generateReport(institutionId: number, reportCategoryId: number, reportId: number, txnDate: string): Observable<HttpResponse<ReportDefinition[]>> {
+        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${institutionId}/${reportCategoryId}/${reportId}/${txnDate}`, { observe: 'response' })
             .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 

@@ -394,11 +394,6 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public String toString() {
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", generatedPathCsv="
-				+ generatedPathCsv + ", generatedPathTxt=" + generatedPathTxt + ", generatedPathPdf=" + generatedPathPdf
-				+ ", generatedFileNameCsv=" + generatedFileNameCsv + ", generatedFileNameTxt=" + generatedFileNameTxt
-				+ ", generatedFileNamePdf=" + generatedFileNamePdf + ", headerFields=" + headerFields + ", bodyFields="
-				+ bodyFields + ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery + ", trailerQuery="
-				+ trailerQuery + ", red=" + red + "]";
+				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", rec=" + red.getName() + "]";
 	}
 }

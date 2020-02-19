@@ -6,26 +6,26 @@ import { ReportDefinition } from '../report-config-definition/report-config-defi
 import { Subscription } from 'rxjs';
 import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { Principal } from '../../shared';
-import { ReportGeneration } from './generate-report.model';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
-    selector: 'generate-report-tab',
+    selector: 'jhi-generate-report-tab',
     templateUrl: './generate-report-tab.component.html'
 })
 export class GenerateReportTabComponent implements OnInit {
     currentAccount: any;
     eventSubscriber: Subscription;
     deleteEventSubscriber: Subscription;
-    fromDateString: String;
-    toDateString: String;
-    category: ReportCategory;
+    institutionId: number;
     @Input() categories: ReportCategory[];
+    category: ReportCategory;
+    allCategory: ReportCategory = { id: 0, name: 'All' };
+    @Input() allReports: ReportDefinition[];
     report: ReportDefinition;
     reports: ReportDefinition[];
-    @Input() allReports: ReportDefinition[];
-    generateReport: ReportGeneration;
+    todaydate: string;
+    reportDate: string;
     generated: String;
     failed: String;
 
@@ -40,25 +40,24 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     loadAll() {
-        const toDate = new Date();
-        toDate.setDate(toDate.getDate() - 1);
-        this.generateReport.txnEnd = this.formatDateString(toDate);
-        this.generateReport.txnStart = this.formatDateString(toDate);
+        const today = new Date();
+        this.todaydate = this.formatDateString(today);
+        this.reportDate = this.todaydate;
         this.category = this.categories[0];
         this.report = null;
         this.filterByCategory();
     }
 
     ngOnInit() {
-        this.generateReport = new ReportGeneration();
         this.loadAll();
         this.principal.identity().then((account) => {
             this.currentAccount = account;
+            this.institutionId = this.principal.getSelectedInstitutionId();
         });
         this.registerChangeInReportGeneration();
         this.category = this.categories[0];
-        this.generated = "baseApp.reportGenerationResult.generated";
-        this.failed = "baseApp.reportGenerationResult.failed";
+        this.generated = 'baseApp.reportGenerationResult.generated';
+        this.failed = 'baseApp.reportGenerationResult.failed';
     }
 
     ngOnDestroy() {
@@ -90,21 +89,16 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     filterByCategory() {
-        this.reports = this.allReports.filter(report => report.reportCategory.id === this.category.id);
+        this.reports = this.allReports.filter((report) => report.reportCategory.id === this.category.id);
     }
 
     generate() {
-        if (this.generateReport && this.generateReport.fileDate) {
             this.ngxLoader.start();
-            this.generateReportService.generateReport(this.category.id,
-                this.report ? this.report.id : 0,
-                this.generateReport.fileDate,
-                this.generateReport.txnStart,
-                this.generateReport.txnEnd).subscribe(
+            this.generateReportService.generateReport(this.institutionId, this.category.id,
+                this.report ? this.report.id : 0, this.reportDate).subscribe(
                 (res: HttpResponse<ReportDefinition[]>) => {
                     this.onSuccess(this.generated);
                 },
                 (res: HttpErrorResponse) => this.onError(this.failed));
-        }
     }
 }

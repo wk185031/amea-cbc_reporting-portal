@@ -40,10 +40,10 @@
 
         <div class="col-8">
             <h2><span>{{downloadReportCategory?.name}}</span></h2>
-            <div *ngIf="!generatedReportDTO?.reportList">
+            <div *ngIf="!generatedReportDTO?.reportList?.length">
                 <p><i>No available report to download</i></p>
             </div>
-            <div *ngIf="generatedReportDTO?.reportList && downloadReportCategory.id !== 0" class="report-custom">
+            <div *ngIf="generatedReportDTO?.reportList?.length  && downloadReportCategory.id !== 0" class="report-custom">
                 <div>
                     <a (click)="download('All', downloadReportCategory.id)">Download All</a>
                 </div>
@@ -51,7 +51,7 @@
                     <a (click)="download(report, downloadReportCategory.id)">{{report}}</a>
                 </div>
             </div>
-            <div *ngIf="generatedReportDTO?.reportList && downloadReportCategory.id === 0" class="report-custom">
+            <div *ngIf="generatedReportDTO?.reportList?.length && downloadReportCategory.id === 0" class="report-custom">
                 <div>
                     <a (click)="download('All', downloadReportCategory.id)">Download All</a>
                 </div>

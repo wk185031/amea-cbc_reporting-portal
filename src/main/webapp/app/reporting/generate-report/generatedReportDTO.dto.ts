@@ -1,4 +1,4 @@
-import { ReportCategory } from "../report-config-category/report-config-category.model";
+import { ReportCategory } from '../report-config-category/report-config-category.model';
 
 export class GeneratedReportDTO {
     constructor(
