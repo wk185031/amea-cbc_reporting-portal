@@ -21,7 +21,9 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -142,7 +144,7 @@ public class ReportCategoryResource {
 	public ResponseEntity<List<ReportCategory>> getAllReportCategories(Pageable pageable) {
 		log.debug("User: {}, REST request to get a page of ReportCategory",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
-		Page<ReportCategory> page = reportCategoryRepository.findAll(pageable);
+		Page<ReportCategory> page = reportCategoryRepository.findAll(new PageRequest(0, 1, new Sort(Sort.Direction.ASC, "name")));
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportCategory");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
@@ -159,8 +161,7 @@ public class ReportCategoryResource {
 	public ResponseEntity<List<ReportCategory>> getAllReportCategoriesNoPaging() {
 		log.debug("User: {}, REST request to all Report Categories without paging",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
-		List<ReportCategory> reportCategory = reportCategoryRepository.findAll();
-		reportCategory.sort(Comparator.comparing(ReportCategory::getId));
+		List<ReportCategory> reportCategory = reportCategoryRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
 		return new ResponseEntity<>(reportCategory, HttpStatus.OK);
 	}
 

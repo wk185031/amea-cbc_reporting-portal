@@ -1,5 +1,5 @@
 # ===================================================================
-# Spring Boot configuration for the "prod" profile.
+# Spring Boot configuration for the "dev" profile.
 #
 # This configuration overrides the application.yml file.
 #
@@ -21,28 +21,29 @@ logging:
   pattern:
     console: "%d %-5level %logger : %msg%n"
     file: "%d %-5level [%thread] %logger : %msg%n"
-  file: /opt/apache-tomcat-8.5.33/logs/report-portal.log
+  file: /authentic/apache-tomcat-8.5.33/logs/report-portal.log
 
 spring:
+    application:
+      name: reporting-portal
+
     profiles:
-        active: dev
-        include: swagger
+        active: kl
+        # include: swagger, no-liquibase
+    main:
+      #banner-mode: off
     devtools:
         restart:
             enabled: false
         livereload:
-            enabled: false
+            enabled: false # we use gulp + BrowserSync for livereload
+    jackson:
+        serialization.indent_output: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        # url: jdbc:mariadb://localhost:3306/base
-        # username: mandrill
-        # password: mandrill
-        # url: jdbc:oracle:thin:@192.168.222.101:59161/orclcdb.localdomain
-        # username: CBC_OWNER
-        # password: CBC_OWNER
         url: jdbc:oracle:thin:@172.20.188.31:1521/ATM5SIT
-        username: REPORT_OWNER
-        password: REPORT_OWNER
+        username: ATM5RPT
+        password: Auth5Reports-SIT219
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
@@ -50,26 +51,25 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
+        dblink: ATM5SIT
     jpa:
-        #database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-        #database: MYSQL
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle
-        show-sql: false
+        show-sql: true
         properties:
             hibernate.id.new_generator_mappings: true
             hibernate.cache.use_second_level_cache: true
             hibernate.cache.use_query_cache: false
-            hibernate.generate_statistics: false
+            hibernate.generate_statistics: true
             hibernate.cache.region.factory_class: io.github.jhipster.config.jcache.NoDefaultJCacheRegionFactory
     data:
         elasticsearch:
-            # cluster-name:
-            # cluster-nodes: localhost:9300
+            cluster-name:
+            cluster-nodes:
             properties:
                 path:
-                    logs: elasticsearch/log
-                    data: elasticsearch/data
+                    logs: build/elasticsearch/log
+                    data: build/elasticsearch/data
     mail:
         host: smtppro04.mschosting.com
         port: 465
@@ -83,11 +83,13 @@ spring:
             ssl.enable: true
         properties.mail.smtps:
             auth: true
+    messages:
+        cache-seconds: 1
     thymeleaf:
-        cache: true
+        cache: false
 
 liquibase:
-    contexts: prod
+    contexts: dev
 
 # ===================================================================
 # To enable SSL, generate a certificate using:
@@ -99,21 +101,15 @@ liquibase:
 # Then, modify the server.ssl properties so your "server" configuration looks like:
 #
 # server:
-#    port: 443
+#    port: 8443
 #    ssl:
 #        key-store: keystore.p12
 #        key-store-password: <your-password>
 #        key-store-type: PKCS12
 #        key-alias: base
-#        # The ciphers suite enforce the security by deactivating some old and deprecated SSL cipher, this list was tested against SSL Labs (https://www.ssllabs.com/ssltest/)
-#        ciphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
 # ===================================================================
 server:
     port: 8080
-    compression:
-        enabled: true
-        mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
-        min-response-size: 1024
 
 # ===================================================================
 # JHipster specific properties
@@ -124,30 +120,36 @@ server:
 jhipster:
     http:
         version: V_1_1 # To use HTTP/2 you will need SSL support (see above the "server.ssl" configuration)
-        cache: # Used by the CachingHttpHeadersFilter
-            timeToLiveInDays: 1461
     cache: # Cache configuration
         ehcache: # Ehcache configuration
             time-to-live-seconds: 3600 # By default objects stay 1 hour in the cache
-            max-entries: 1000 # Number of objects in each cache entry
+            max-entries: 100 # Number of objects in each cache entry
+    # CORS is only enabled by default with the "dev" profile, so BrowserSync can access the API
+    cors:
+        allowed-origins: "*"
+        allowed-methods: "*"
+        allowed-headers: "*"
+        exposed-headers: "Authorization,Link,X-Total-Count"
+        allow-credentials: true
+        max-age: 1800
     security:
         authentication:
             jwt:
-                secret: 340418675d9c96cbfbc278382933381eb02ca6c4
+                secret: my-secret-token-to-change-in-production
                 # Token is valid 24 hours
                 token-validity-in-seconds: 86400
                 token-validity-in-seconds-for-remember-me: 2592000
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: ci@mandrill.com.my
-        base-url: http://my-server-url-to-change # Modify according to your server's URL
+        base-url: http://127.0.0.1:8080
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
-        graphite:
+        graphite: # Use the "graphite" Maven profile to have the Graphite dependencies
             enabled: false
-            host: 153.77.198.105
+            host: localhost
             port: 2003
             prefix: base
-        prometheus:
+        prometheus: # Use the "prometheus" Maven profile to have the Prometheus dependencies
             enabled: false
             endpoint: /prometheusMetrics
         logs: # Reports Dropwizard metrics in the logs
@@ -156,7 +158,7 @@ jhipster:
     logging:
         logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
             enabled: false
-            host: 153.77.198.105
+            host: localhost
             port: 5000
             queue-size: 512
 
@@ -171,9 +173,9 @@ jhipster:
 # ===================================================================
 
 application:
-    selfRegistration: "true"
-    languageSelection: "true"
+    selfRegistration: true
+    languageSelection: true
     imageAttachmentBasePath:
-        path : "C:\\base\\attachment"
+        path : /tmp
     reportDir:
-        path: "/home/oracle/Reporting/reports"
+        path: /tmp

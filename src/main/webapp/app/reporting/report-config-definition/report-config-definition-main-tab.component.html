@@ -89,9 +89,11 @@
                 <input type="checkbox" name="daily" id="field_daily" [(ngModel)]="daily" (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.dailyLabel"
                     for="field_pdf">Daily</label>
+                <!--
                 <input type="checkbox" name="weekly" id="field_weekly" [(ngModel)]="weekly" (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.weeklyLabel"
                     for="field_csv">Weekly</label>
+                -->
                 <input type="checkbox" name="monthly" id="field_monthly" [(ngModel)]="monthly"
                     (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.monthlyLabel"
@@ -114,7 +116,7 @@
             <div class="form-group">
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.fileOutputLocationLabel"
                     for="field_fileLocation">File Output Location</label>
-                <input type="text" class="form-control" name="fileLocation" id="field_fileLocation" maxlength="255"
+                <input type="text" [disabled]="true" class="form-control" name="fileLocation" id="field_fileLocation" maxlength="255"
                     [(ngModel)]="reportDefinition.fileLocation" (keyup)="valueChange()" />
                 <div [hidden]="!(editForm.controls.fileLocation?.dirty && editForm.controls.fileLocation?.invalid)">
                     <small class="form-text text-danger" [hidden]="!editForm.controls.fileLocation?.errors?.maxlength"

@@ -145,7 +145,7 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_ATM + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
 			break;
@@ -166,7 +166,7 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_EBK + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'EBK'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'EBK'");
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
 			break;
@@ -187,7 +187,7 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_MBK + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'MBK'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'MBK'");
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
 			break;
@@ -197,7 +197,7 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_IVR + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'IVR'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'IVR'");
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
 			break;

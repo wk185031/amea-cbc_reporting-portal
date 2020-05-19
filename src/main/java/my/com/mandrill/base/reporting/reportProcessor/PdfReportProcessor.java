@@ -233,8 +233,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.PDF_FORMAT));
+					
+					String fileFullPath = rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT;
+					doc.save(new File(fileFullPath));
+					logger.info("New file generated in: {}", fileFullPath);
 				} else {
 					throw new Exception("Path is not configured.");
 				}
@@ -267,8 +269,10 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					doc.save(new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate
-							+ ReportConstants.PDF_FORMAT));
+					String fileFullPath = rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
+					doc.save(new File(fileFullPath));
+					logger.info("New file generated in: {}", fileFullPath);
+					
 				} else {
 					throw new Exception("Path is not configured.");
 				}

@@ -165,7 +165,7 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 		logger.debug("In ApprovedPesonetTransactionsTransmittingBank.preProcessing()");
 		if (filterByChannel != null) {
 			ReportGenerationFields channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = '" + filterByChannel + "'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = '" + filterByChannel + "'");
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 		}
 
@@ -197,7 +197,7 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING, "\"CHANNEL\",");
 			ReportGenerationFields channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL \"CHANNEL\",");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL \"CHANNEL\",");
 			ReportGenerationFields grouping = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING, "GROUP BY \"CHANNEL\" ORDER BY \"CHANNEL\" ASC");
 

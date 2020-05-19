@@ -9,6 +9,7 @@ public final class ReportConstants {
 	public static final String DB_URL = "spring.datasource.url";
 	public static final String DB_USERNAME = "spring.datasource.username";
 	public static final String DB_PASSWORD = "spring.datasource.password";
+	public static final String DB_LINK = "spring.datasource.dblink";
 
 	// DB Synchronizer
 	public static final String JOB_NAME = "DB_SYNC";

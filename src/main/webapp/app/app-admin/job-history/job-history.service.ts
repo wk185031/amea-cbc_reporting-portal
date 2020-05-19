@@ -70,8 +70,9 @@ export class JobHistoryService {
      */
     private convertItemFromServer(jobHistory: JobHistory): JobHistory {
         const copy: JobHistory = Object.assign({}, jobHistory);
-        copy.createdDate = this.dateUtils
-            .convertDateTimeFromServer(jobHistory.createdDate);
+        console.log("###" + jobHistory.createdDate);
+        // copy.createdDate = this.dateUtils
+        //     .convertDateTimeFromServer(jobHistory.createdDate);
         return copy;
     }
 

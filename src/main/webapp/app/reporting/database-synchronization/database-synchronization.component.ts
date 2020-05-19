@@ -38,7 +38,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
     tableSync: string[];
     tablesMap: Map<string, boolean>;
     tablesArr: string[];
-    
+
     constructor(
         private databaseSynchronizationService: DatabaseSynchronizationService,
         private jhiAlertService: JhiAlertService,
@@ -54,8 +54,8 @@ export class DatabaseSynchronizationComponent implements OnInit {
     loadJob() {
         this.jobService.query({
             name: "DB_SYNC"
-        }).subscribe((res: HttpResponse<Job[]>) => { 
-            this.job = res.body[0]; 
+        }).subscribe((res: HttpResponse<Job[]>) => {
+            this.job = res.body[0];
             this.loadTableSync();
         }, (res: HttpErrorResponse) => this.onError(res.message));
     }
@@ -124,7 +124,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
         this.readonlyInputs = true;
         this.spinners = false;
         this.tablesMap = new Map<string, boolean>();
-        this.databaseSynchronizationService.getTableName().subscribe((res: HttpResponse<string[]>) => { 
+        this.databaseSynchronizationService.getTableName().subscribe((res: HttpResponse<string[]>) => {
             this.tablesArr = res.body;
             this.loadJob();
         }, (res: HttpErrorResponse) => this.onError(res.message));;
@@ -139,8 +139,8 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     periodicSyncTimeCheck() {
-        setInterval(() => { 
-            this.getPreviousSyncTime(); 
+        setInterval(() => {
+            this.getPreviousSyncTime();
         }, 1000 * 60 * 5);
     }
 
@@ -148,11 +148,14 @@ export class DatabaseSynchronizationComponent implements OnInit {
         let query = "status: COMPLETED && job.id: " + this.job.id;
         this.jobHistoryService.search({
             query: query,
-        }).subscribe((res: HttpResponse<JobHistory[]>) => { 
+        }).subscribe((res: HttpResponse<JobHistory[]>) => {
             this.jobHistories = res.body.sort((a,b) => {
                 return (a.createdDate < b.createdDate) ? 1 : -1;
             });
             this.jobHistory = this.jobHistories[0];
+            console.log("Jobhistory id: " + this.jobHistory.id);
+            console.log("Jobhistory createdDate: " + this.jobHistory.createdDate);
+
         }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
@@ -177,7 +180,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
 
     private onSaveError() {
     }
-    
+
     ngOnDestroy() {
         if (this.eventManager && this.eventSubscriber) {
             this.eventManager.destroy(this.eventSubscriber);

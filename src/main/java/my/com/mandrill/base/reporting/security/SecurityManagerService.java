@@ -96,6 +96,7 @@ public class SecurityManagerService {
 		this.localWebServiceRepository = localWebServiceRepository;
 		this.secureKeyRepository = secureKeyRepository;
 		this.encryptionKeyRepository = encryptionKeyRepository;
+		initialise();
 	}
 
 	static {

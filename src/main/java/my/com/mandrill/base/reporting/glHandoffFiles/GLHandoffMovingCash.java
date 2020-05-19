@@ -135,7 +135,7 @@ public class GLHandoffMovingCash extends BatchProcessor {
 		case ReportConstants.ATM_PAY_TO_MOBILE_WITHDRAWAL:
 		case ReportConstants.ATM_EMERGENCY_CASH_WITHDRAWAL:
 			ReportGenerationFields channelEC = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
 			getGlobalFileFieldsMap().put(channelEC.getFieldName(), channelEC);
 			break;
 		case ReportConstants.MBK_PAY_TO_MOBILE_OB_DEPOSIT:

@@ -282,7 +282,7 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ISS_NAME = 'CBS' AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
+					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ISS_NAME = 'CBS' AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:

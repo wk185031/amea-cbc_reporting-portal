@@ -135,7 +135,7 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_ATM + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' AND CTR.CTR_CHANNEL = 'ATM'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC' AND CTR.CTR_CHANNEL = 'ATM'");
 
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
@@ -156,7 +156,7 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_EBK + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'EBK' AND CTR.CTR_CHANNEL = 'EBK'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'EBK' AND CTR.CTR_CHANNEL = 'EBK'");
 
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
@@ -177,7 +177,7 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_MBK + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'MBK' AND CTR.CTR_CHANNEL = 'MBK'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'MBK' AND CTR.CTR_CHANNEL = 'MBK'");
 
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
@@ -187,7 +187,7 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
 					"'" + ReportConstants.CHINABANK_IVR + "'");
 			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'IVR' AND CTR.CTR_CHANNEL = 'IVR'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'IVR' AND CTR.CTR_CHANNEL = 'IVR'");
 
 			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);

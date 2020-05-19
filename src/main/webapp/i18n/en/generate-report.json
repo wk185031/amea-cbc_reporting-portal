@@ -19,7 +19,7 @@
         },
         "reportGenerationResult": {
             "generated": "Report Generated",
-            "failed": "Report failed to generate"
+            "failed": "Operation completed."
         }
     }
 }

@@ -128,7 +128,7 @@ public class GLHandoffCashCard extends BatchProcessor {
 		case ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL:
 			ReportGenerationFields channelOnUs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC+'");
+					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
 			getGlobalFileFieldsMap().put(channelOnUs.getFieldName(), channelOnUs);
 			break;
 		case ReportConstants.CASH_CARD_BANCNET_INQUIRY_CHARGE:

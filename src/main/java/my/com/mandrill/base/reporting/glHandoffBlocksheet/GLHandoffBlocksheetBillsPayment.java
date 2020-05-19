@@ -287,27 +287,27 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 		switch (filterByGlDescription) {
 		case ReportConstants.ATM_BILLS_PAYMENT:
 			ReportGenerationFields channelAtm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_CHANNEL = 'ATM'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'ATM'");
 			getGlobalFileFieldsMap().put(channelAtm.getFieldName(), channelAtm);
 			break;
 		case ReportConstants.BIR_REMITTANCE:
 			ReportGenerationFields channelBir = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '019'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '019'");
 			getGlobalFileFieldsMap().put(channelBir.getFieldName(), channelBir);
 			break;
 		case ReportConstants.BANCNET_EGOV_PHILHEALTH:
 			ReportGenerationFields channelPh = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '063'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '063'");
 			getGlobalFileFieldsMap().put(channelPh.getFieldName(), channelPh);
 			break;
 		case ReportConstants.BANCNET_EGOV_PAG_IBIG:
 			ReportGenerationFields channelIbig = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '067'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '067'");
 			getGlobalFileFieldsMap().put(channelIbig.getFieldName(), channelIbig);
 			break;
 		case ReportConstants.BANCNET_EGOV_SSS:
 			ReportGenerationFields channelSss = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '065'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '065'");
 			getGlobalFileFieldsMap().put(channelSss.getFieldName(), channelSss);
 			break;
 		default:

@@ -90,7 +90,7 @@ public class ReportGenerationResource {
 		this.env = env;
 	}
 
-	@Scheduled(cron = "0 0 0 * * *")
+	//@Scheduled(cron = "0 13 6 * * *")
 	public void initialise() {
 		executed = false;
 		if (scheduleTimer != null) {
@@ -129,7 +129,7 @@ public class ReportGenerationResource {
 										&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
 												.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
 									logger.debug(
-											"Job History Status: {}, Created Date: {}. Start generating reports. Yesterday Date: {}, Today Date: {}",
+											"Job History Status: {}, Created Date: {}. Start generating reports. Transaction Date: {}, Report Run Date: {}",
 											jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate,
 											currentDate);
 

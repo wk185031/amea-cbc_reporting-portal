@@ -12,7 +12,7 @@
     <property name="autoIncrement" value="true"/>
     
  	<changeSet id="00000000000000_base_ddl" author="kw">
- 		<createTable tableName="jhi_user" tablespace="REPORT_REPORTING_TS">
+ 		<createTable tableName="jhi_user" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -47,13 +47,13 @@
         <dropDefaultValue tableName="jhi_user"
 			columnName="created_date" columnDataType="datetime" />
         
-        <createTable tableName="jhi_authority" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="jhi_authority" tablespace="auth_reporting_ts">
             <column name="name" type="varchar(50)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
         </createTable>
         
-        <createTable tableName="jhi_user_authority" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="jhi_user_authority" tablespace="auth_reporting_ts">
             <column name="user_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
@@ -73,7 +73,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="jhi_user"/>
         
- 		<createTable tableName="jhi_persistent_audit_event" tablespace="REPORT_REPORTING_TS">
+ 		<createTable tableName="jhi_persistent_audit_event" tablespace="auth_reporting_ts">
             <column name="event_id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -84,7 +84,7 @@
             <column name="event_type" type="varchar(255)"/>
         </createTable>
         
-        <createTable tableName="jhi_persistent_audit_evt_data" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="jhi_persistent_audit_evt_data" tablespace="auth_reporting_ts">
             <column name="event_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
@@ -111,7 +111,7 @@
                                  referencedColumnNames="event_id"
                                  referencedTableName="jhi_persistent_audit_event"/>
                      
-        <createTable tableName="user_extra" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="user_extra" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -154,7 +154,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="jhi_user"/>
         
-        <createTable tableName="role_extra" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="role_extra" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -180,7 +180,7 @@
         <dropDefaultValue tableName="role_extra" columnName="created_date" columnDataType="datetime"/>
         <dropDefaultValue tableName="role_extra" columnName="last_modified_date" columnDataType="datetime"/>
 
-        <createTable tableName="user_extra_roles" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="user_extra_roles" tablespace="auth_reporting_ts">
             <column name="roles_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
@@ -200,7 +200,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="role_extra"/>                       
         
-        <createTable tableName="attachment_group" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="attachment_group" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -223,7 +223,7 @@
         <dropDefaultValue tableName="attachment_group" columnName="created_date" columnDataType="datetime"/>
         <dropDefaultValue tableName="attachment_group" columnName="last_modified_date" columnDataType="datetime"/>
         
-        <createTable tableName="attachment" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="attachment" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -257,7 +257,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="attachment_group"/>
         
-        <createTable tableName="institution" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="institution" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -321,7 +321,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="institution"/>
         
-        <createTable tableName="user_extra_institutions" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="user_extra_institutions" tablespace="auth_reporting_ts">
             <column name="institutions_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
@@ -341,7 +341,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="institution"/>                         
         
-        <createTable tableName="app_resource" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="app_resource" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -387,7 +387,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="app_resource"/>
         
-        <createTable tableName="role_extra_permissions" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="role_extra_permissions" tablespace="auth_reporting_ts">
             <column name="permissions_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
@@ -407,7 +407,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="app_resource"/>
         
-        <createTable tableName="system_configuration" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="system_configuration" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -436,7 +436,7 @@
         <dropDefaultValue tableName="system_configuration" columnName="created_date" columnDataType="datetime"/>
         <dropDefaultValue tableName="system_configuration" columnName="last_modified_date" columnDataType="datetime"/>
         
-        <createTable tableName="jhi_entity_audit_event" tablespace="REPORT_REPORTING_TS">
+        <createTable tableName="jhi_entity_audit_event" tablespace="auth_reporting_ts">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

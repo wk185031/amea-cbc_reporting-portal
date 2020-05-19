@@ -651,7 +651,7 @@ end^;;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -903,7 +903,7 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -947,7 +947,7 @@ ORDER BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -990,7 +990,7 @@ ORDER BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -1029,7 +1029,7 @@ ORDER BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -3671,7 +3671,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -3723,7 +3723,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN  ELSE 0 END AS "CASH DISPENSED"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -3778,7 +3778,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -3834,7 +3834,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN  ELSE 0 END AS "CASH DISPENSED"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -3890,7 +3890,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -3939,7 +3939,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN  ELSE 0 END AS "CASH DISPENSED"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -3989,7 +3989,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -4038,7 +4038,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN TXN.TRL_AMT_TXN  ELSE 0 END AS "CASH DISPENSED"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -4061,7 +4061,7 @@ ORDER BY
 60;7;Daily Payment Transaction Report by Acquirer/Issuer Branch;List of daily payment transaction by acquirer/issuer branch;EFDLRN03;PDF,CSV,;/home/oracle/Reporting/reports/BillsPaymentTxns/;my.com.mandrill.base.reporting.billsPaymentTransactions.DailyPaymentTransactionReportAcquirerIssuerBranch;[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"Number","delimiter":";","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"57","pdfLength":"57","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"53","pdfLength":"53","fieldType":"String","delimiter":";","defaultValue":"DAILY PAYMENT TRANSACTION REPORT","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"TODAYS DATE","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"9","fieldName":"BRANCH NAME","csvTxtLength":"60","pdfLength":"60","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"File Name2","csvTxtLength":"51","pdfLength":"51","fieldType":"String","defaultValue":"BY ACQUIRER/ISSUER BRANCH","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","delimiter":";","defaultValue":"AS OF DATE","leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"12","fieldName":"As of Date Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"13","fieldName":"EFP003-01","csvTxtLength":"8","pdfLength":"8","fieldType":"String","delimiter":";","defaultValue":"EFP003-01","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"14","fieldName":"Space1","csvTxtLength":"40","pdfLength":"40","fieldType":"String","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","fieldName":"Space2","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","fieldName":"Space3","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"RunDate","csvTxtLength":"11","pdfLength":"11","fieldType":"String","delimiter":";","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"18","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"19","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"TIME","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"20","fieldName":"Time Value","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","eol":true,"leftJustified":true,"padFieldLength":0}];[{"sequence":1,"sectionName":"1","fieldName":"ACCOUNT","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"ACCOUNT NUMBER","bodyHeader":true,"firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"BANK","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","defaultValue":"BANK CODE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"TERMINAL","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"TERMINAL NUMBER","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"COMPANY","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"COMPANY CODE","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"MN","csvTxtLength":"8","pdfLength":"8","fieldType":"String","defaultValue":"MN","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"POSTING","csvTxtLength":"18","pdfLength":"18","fieldType":"String","defaultValue":"POSTING DATE","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TIME","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"SEQUENCE","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"SEQUENCE NUMBER","bodyHeader":true,"fieldFormat":"","delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"TRANSACTION","csvTxtLength":"27","pdfLength":"27","fieldType":"String","defaultValue":"TRANSACTION AMOUNT","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"SUBSCRIBER","csvTxtLength":"26","pdfLength":"26","fieldType":"String","defaultValue":"SUBSCRIBER ACCOUNT NUMBER","bodyHeader":true,"delimiter":";","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"NUMBER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":" ","firstField":true,"bodyHeader":true,"delimiter":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"CODE","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"NUMBER","csvTxtLength":"13","pdfLength":"13","fieldType":"String","bodyHeader":true,"delimiter":"","defaultValue":" ","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","bodyHeader":true,"delimiter":"","defaultValue":" ","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"DATE","csvTxtLength":"32","pdfLength":"32","fieldType":"String","defaultValue":" ","bodyHeader":true,"delimiter":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"NUMBER","csvTxtLength":"19","pdfLength":"19","fieldType":"String","defaultValue":" ","bodyHeader":true,"delimiter":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"AMOUNT","csvTxtLength":"22","pdfLength":"22","fieldType":"String","defaultValue":" ","bodyHeader":true,"delimiter":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":18,"sectionName":"18","fieldName":"ACCOUNT NUMBER","csvTxtLength":"26","pdfLength":"26","fieldType":"String","defaultValue":" ","bodyHeader":true,"delimiter":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"19","fieldName":"FROM ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":20,"sectionName":"20","fieldName":"BANK CODE","csvTxtLength":"8","pdfLength":"8","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"21","fieldName":"TERMINAL","csvTxtLength":"16","pdfLength":"16","fieldType":"String","defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"22","fieldName":"BANK MNEM","csvTxtLength":"10","pdfLength":"10","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"23","fieldName":"MN","csvTxtLength":"9","pdfLength":"9","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"24","fieldName":"DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"25","fieldName":"TIME","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","fieldFormat":"HH:mm:ss","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"26","fieldName":"SEQ NUMBER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","firstField":false,"defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":27,"sectionName":"27","fieldName":"AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":28,"sectionName":"28","fieldName":"SUBSCRIBER ACCT NUMBER","csvTxtLength":"24","pdfLength":"24","fieldType":"String","eol":true,"delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"TRL_CUSTOM_DATA_EKY_ID","tagValue":"BILLERSUBN"}];[{"sequence":1,"sectionName":"1","fieldName":"MN","csvTxtLength":"3","pdfLength":"3","fieldType":"String","defaultValue":"","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"TOTAL TRAN","csvTxtLength":"20","pdfLength":"20","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"TOTAL","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}];^select
       {Branch_Code} "BRANCH CODE",
       {Branch_Name} "BRANCH NAME",
-      TXN.TRL_ORIGIN_CHANNEL "CHANNEL",
+      TXNC.TRL_ORIGIN_CHANNEL "CHANNEL",
       TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
       TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
       LPAD(CBA.CBA_CODE, 4, 0) "BANK CODE",
@@ -4076,9 +4076,10 @@ ORDER BY
       TXN.TRL_CUSTOM_DATA_EKY_ID
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL_ID
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
-      JOIN CBC_BILLER CBL ON LPAD(TXN.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
+      JOIN CBC_BILLER CBL ON LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
       {Join_Criteria}
 WHERE
       TXN.TRL_TSC_CODE = 50
@@ -4096,9 +4097,10 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
-      JOIN CBC_BILLER CBL ON LPAD(TXN.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
+      JOIN CBC_BILLER CBL ON LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
       {Join_Criteria}
 WHERE
       TXN.TRL_TSC_CODE = 50
@@ -4128,7 +4130,7 @@ SELECT
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -4208,7 +4210,7 @@ SELECT
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4243,7 +4245,7 @@ SELECT
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -4321,7 +4323,7 @@ SELECT
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4457,7 +4459,7 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       TXN.TRL_PAN_EKY_ID
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4477,7 +4479,7 @@ START SELECT
       COUNT(TXN.TRL_ID) * 7.00 "RECEIVING INCOME"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4494,7 +4496,7 @@ end^;^select
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4508,7 +4510,7 @@ START SELECT
       SUM(COUNT(TXN.TRL_ID) * 7.00) AS "RECEIVING INCOME"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -4686,8 +4688,8 @@ GROUP BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -4732,7 +4734,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -4771,7 +4773,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (40, 41, 43, 44, 46, 47, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
 WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
@@ -4809,7 +4811,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -4842,7 +4844,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
 WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
@@ -4948,7 +4950,7 @@ WHERE
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -4998,7 +5000,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (21, 24, 26) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -5048,7 +5050,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (21, 24, 26) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -5088,8 +5090,8 @@ ORDER BY
       CASE WHEN ATA.ATA_TXN_STATE LIKE '%Suspect dispense%' THEN 'SUSPECT DISPENSE' ELSE 'PRESENTER ERROR' END AS "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -5133,8 +5135,8 @@ ORDER BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -5176,7 +5178,7 @@ ORDER BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
 WHERE
@@ -5203,7 +5205,8 @@ SELECT
       TXN.TRL_AMT_TXN "TOTAL AMOUNT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BILLER CBL ON LPAD(TXN.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_BILLER CBL ON LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
 WHERE
        TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = 'F'
@@ -5246,8 +5249,8 @@ WHERE
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -5285,7 +5288,7 @@ FROM
       TRANSACTION_LOG TXN
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = 'F'
@@ -5317,8 +5320,8 @@ SELECT
       TXN.TRL_AMT_TXN "NET SETTLEMENT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -5341,7 +5344,7 @@ FROM
       TRANSACTION_LOG TXN
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = 'F'
@@ -5353,8 +5356,8 @@ START SELECT
       SUM(TXN.TRL_AMT_TXN) "NET SETTLEMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = LPAD(CBI.CBI_BIN, 6, '0')
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = LPAD(CBI.CBI_BIN, 6, '0')
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -5384,7 +5387,7 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       TXN.TRL_PAN_EKY_ID
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 44
@@ -5406,7 +5409,7 @@ START SELECT
       COUNT(TXN.TRL_ID) * 5.00 "RECEIVING INCOME"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 44
@@ -5425,7 +5428,7 @@ end^;^select
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 44
@@ -5512,7 +5515,7 @@ FROM
      TRANSACTION_LOG TXN
      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-     JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+     JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 1
@@ -5538,7 +5541,7 @@ FROM
      TRANSACTION_LOG TXN
      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-     JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+     JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 1
@@ -5570,7 +5573,7 @@ WHERE
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
 WHERE
@@ -5598,7 +5601,7 @@ SELECT
       TXN.TRL_AMT_TXN "NET SETTLEMENT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
@@ -5617,7 +5620,7 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "NET SETTLEMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
@@ -5644,8 +5647,9 @@ WHERE
       TXN.TRL_CUSTOM_DATA_EKY_ID
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BILLER CBL ON LPAD(TXN.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BILLER CBL ON LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
 WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = 'F'
@@ -5663,6 +5667,7 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = 'F'
@@ -5683,18 +5688,18 @@ WHERE
       TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
       TXN.TRL_AMT_TXN  "Tran Amount",
       0 "TELEPHONE NUMBER",
-      LPAD(TXN.TRL_BILLER_CODE, 3, '0') "BILLER CODE",
+      LPAD(TXNC.TRL_BILLER_CODE, 3, '0') "BILLER CODE",
       '' "CARDHOLDER NAME",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN '1' 
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'OB' THEN '2'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'IVR' THEN '4'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN '5'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN '6'
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN '1' 
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'OB' THEN '2'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'IVR' THEN '4'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN '5'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN '6'
       END AS "PAYMENT MODE",
       TXN.TRL_CARD_ACPT_TERMINAL_IDENT "TERMINAL"   
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 50
@@ -6112,7 +6117,7 @@ GROUP BY
       "CAM COUNT"
 ;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
 128;18;List of RFID Payments;List all approved RFID transactions and all successful reversals;List of RFID Payments;CSV,;/home/oracle/Reporting/reports/NewTransactionReports/;my.com.mandrill.base.reporting.newTransactionReports.ListRfidPayments;[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0010","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"56","pdfLength":"56","fieldType":"String","defaultValue":"CHINA BANK CORPORATION","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"54","pdfLength":"54","fieldType":"String","defaultValue":"LIST OF RFID PAYMENTS REPORT","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TODAYS DATE","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"9","fieldName":"BRANCH NAME","csvTxtLength":"101","pdfLength":"101","fieldType":"String","defaultValue":"","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldName":"Space1","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"AS OF DATE","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"12","fieldName":"As of Date Value","csvTxtLength":"17","pdfLength":"17","fieldType":"Date","fieldFormat":"MM/dd/yyyy","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"13","fieldName":"EFP000-0","csvTxtLength":"8","pdfLength":"8","fieldType":"String","defaultValue":"EFP000-0","eol":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"14","fieldName":"Space2","csvTxtLength":"100","pdfLength":"100","fieldType":"String","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldName":"Space3","leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldName":"Space4","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"RunDate","csvTxtLength":"11","pdfLength":"11","fieldType":"String","defaultValue":"RUNDATE","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"18","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","fieldFormat":"MM/dd/yyyy","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"19","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TIME","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"20","fieldName":"Time Value","eol":true,"fieldType":"Date","fieldFormat":"HH:mm:ss","csvTxtLength":"10","pdfLength":"10","delimiter":";","leftJustified":true,"padFieldLength":0}];[{"sequence":1,"sectionName":"1","fieldName":"Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"Date","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"firstField":true},{"sequence":2,"sectionName":"2","fieldName":"Time","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"Time","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Seq No.","csvTxtLength":"8","pdfLength":"8","fieldType":"String","defaultValue":"Seq No.","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Trace No.","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"Trace No.","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"Tran Mnem","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"Tran Mnem","bodyHeader":true,"fieldFormat":"","delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"RFID Ref No.","csvTxtLength":"9","pdfLength":"9","fieldType":"String","defaultValue":"RFID Ref No.","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"Bank Mnem","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"Bank Mnem","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"ATM Card No.","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ATM Card No.","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"Account Number","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"Account Number","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"RFID Acct No.","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"RFID Acct No.","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"RFID Plate No.","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"RFID Plate No.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"12","fieldName":"Trans Amount","csvTxtLength":"8","pdfLength":"8","fieldType":"String","defaultValue":"Trans Amount","bodyHeader":true,"eol":false,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"Trans Fee","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"Trans Fee","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"Tran Code Remarks","csvTxtLength":"11","pdfLength":"11","fieldType":"String","defaultValue":"Tran Code Remarks","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"firstField":false,"eol":true},{"sequence":15,"sectionName":"15","fieldName":"DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","fieldFormat":"MM/dd/yyyy","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"firstField":true},{"sequence":16,"sectionName":"16","fieldName":"TIME","csvTxtLength":"13","pdfLength":"13","fieldType":"Date","fieldFormat":"HH:mm:ss","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"SEQ NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","firstField":false,"defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":18,"sectionName":"18","fieldName":"TRACE NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":19,"sectionName":"19","fieldName":"TRAN MNEM","csvTxtLength":"7","pdfLength":"7","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":20,"sectionName":"20","fieldName":"RFID REF NO","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"21","fieldName":"BANK MNEM","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"22","fieldName":"ATM CARD NUMBER","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":"19","decrypt":true,"decryptionKey":"TRL_PAN_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":23,"sectionName":"23","fieldName":"FROM ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":24,"sectionName":"24","fieldName":"RFID ACCT NO","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"25","fieldName":"RFID PLATE NO","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":26,"sectionName":"26","fieldName":"AMOUNT","csvTxtLength":"6","pdfLength":"6","fieldType":"Decimal","eol":false,"delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"fieldFormat":"#,##0.00"},{"sequence":27,"sectionName":"27","fieldName":"TRAN FEE","csvTxtLength":"18","pdfLength":"18","fieldType":"Decimal","delimiter":";","leftJustified":false,"padFieldLength":"0","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros","fieldFormat":"#,##0.00","tagValue":null},{"sequence":28,"sectionName":"28","fieldName":"COMMENT","csvTxtLength":"30","pdfLength":"30","fieldType":"String","eol":true,"delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}];[{"sequence":1,"sectionName":"1","fieldName":"Space1","csvTxtLength":"140","pdfLength":"140","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"Space2","csvTxtLength":"16","pdfLength":"16","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","firstField":false,"eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldName":"Space3","csvTxtLength":"17","pdfLength":"17","fieldType":"String","delimiter":";","fieldFormat":"","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"4","fieldName":"Space4","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"5","fieldName":"Space5","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"6","fieldName":"Space6","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"Space7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"Space8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":9,"sectionName":"9","fieldName":"Space9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"10","fieldName":"Space10","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"11","fieldName":"TOTAL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"defaultValue":"TOTAL"},{"sequence":12,"sectionName":"12","fieldName":"AMOUNT","csvTxtLength":"16","pdfLength":"16","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":13,"sectionName":"13","fieldName":"TRAN FEE","csvTxtLength":"10","pdfLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":true}];^select
-      TXN.TRL_ORIGIN_CHANNEL "CHANNEL",
+      TXNC.TRL_ORIGIN_CHANNEL "CHANNEL",
       ABR.ABR_CODE "BRANCH CODE",
       ABR.ABR_NAME "BRANCH NAME",
       SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
@@ -6135,8 +6140,8 @@ GROUP BY
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6157,8 +6162,8 @@ ORDER BY
        SUM(NVL(TXN.TRL_ISS_CHARGE_AMT, 0)) "TRAN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6206,12 +6211,12 @@ SELECT
       ABR.ABR_NAME "BRANCH NAME",
       SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
       AST.AST_ALO_LOCATION_ID "LOCATION",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -6280,12 +6285,12 @@ FROM (
 SELECT
       BRC.BRC_CODE "BRANCH CODE",
       BRC.BRC_NAME "BRANCH NAME",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6333,12 +6338,12 @@ FROM (
 SELECT
       BRC.BRC_CODE "BRANCH CODE",
       BRC.BRC_NAME "BRANCH NAME",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6370,12 +6375,12 @@ SELECT
       0.00 "FEE SHARE FATP"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -6402,12 +6407,12 @@ SELECT
       0.00 "FEE SHARE FATP"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6432,12 +6437,12 @@ SELECT
       10.00 * COUNT("MBK COUNT") "MBK FEE"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6472,12 +6477,12 @@ SELECT
 FROM (
 SELECT
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
 WHERE
@@ -6517,12 +6522,12 @@ FROM (
 SELECT
       BRC.BRC_CODE "BRANCH CODE",
       BRC.BRC_NAME "BRANCH NAME",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6557,12 +6562,12 @@ FROM (
 SELECT
       BRC.BRC_CODE "BRANCH CODE",
       BRC.BRC_NAME "BRANCH NAME",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6591,12 +6596,12 @@ SELECT
       0.00 "FEE SHARE FATP"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
 WHERE
@@ -6619,12 +6624,12 @@ SELECT
       10.00 * COUNT("MBK COUNT") "MBK FEE"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6649,12 +6654,12 @@ SELECT
       10.00 * COUNT("MBK COUNT") "MBK FEE"
 FROM (
 SELECT
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
-      CASE WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN 1 END AS "ATM COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'ATM' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "ATM TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 1 END AS "EBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "EBK TOTAL",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 1 END AS "MBK COUNT",
+      CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "MBK TOTAL"
 FROM 
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -6688,8 +6693,8 @@ END THIRD PAGE;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Monthly;;;;
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6730,8 +6735,8 @@ end^;^select
        SUM(NVL(TXN.TRL_ISS_CHARGE_AMT, 0)) "TRAN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6782,8 +6787,8 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6842,8 +6847,8 @@ end^;^select
        SUM(NVL(TXN.TRL_ISS_CHARGE_AMT, 0)) "TRAN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -6917,7 +6922,7 @@ FROM
      TRANSACTION_LOG TXN
      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-     JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+     JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 31
@@ -6943,7 +6948,7 @@ FROM
      TRANSACTION_LOG TXN
      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-     JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+     JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 31
@@ -6959,6 +6964,7 @@ WHERE
      COUNT(TXN.TRL_ID) * 7.00 "TOTAL EXPENSE"
 FROM 
      TRANSACTION_LOG TXN
+     JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -6966,7 +6972,7 @@ WHERE
       AND TXN.TRL_TQU_ID = 'F'
       AND TXN.TRL_ACTION_RESPONSE_CODE = '0'
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'
-      AND LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '019'
+      AND LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '019'
       AND {Txn_Date}
 GROUP BY
       ABR.ABR_CODE,
@@ -6977,6 +6983,7 @@ ORDER BY
       COUNT(TXN.TRL_ID) * 7.00 "TOTAL EXPENSE"
 FROM 
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -6984,7 +6991,7 @@ WHERE
       AND TXN.TRL_TQU_ID = 'F'
       AND TXN.TRL_ACTION_RESPONSE_CODE = '0'
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'
-      AND LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '019'
+      AND LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '019'
       AND {Txn_Date};system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily,Monthly,;;;;;;
 85;13;Bills Payment Earnings (Per Branch);Total volume of bills payment transactions per biller per channel and its corresponding share of income for CBC's earnings as issuer and as acquirer then per branch for allocation as issuer/acquirer;Bills Payment Earnings (Per Branch);CSV,;/home/oracle/Reporting/reports/BillingAllocationInterbank/;my.com.mandrill.base.reporting.billingAllocationReportsInterBank.BillsPaymentEarnings;[];[];[];;;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily,Monthly,;;;;;;
 86;13;IBFT Transaction Fees;Total volume of IBFT transactions of CBC as transmitting, receiving and as acquiring bank and its corresponding fees as expense and income per branch;IBFT Transaction Fees;CSV,;/home/oracle/Reporting/reports/BillingAllocationInterbank/;my.com.mandrill.base.reporting.billingAllocationReportsInterBank.IbftTransactionFees;[{"sequence":1,"sectionName":"1","fieldName":"Bank Name","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHINA BANKING CORPORATION","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Report ID","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"REPORT ID:","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"Daily Billing Allocation","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"DAILY BILLING ALLOCATION","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","defaultValue":"","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"9","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"Frequency","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"FREQUENCY:","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"Title","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"INTERBANK FUND TRANSFER TRANSACTIONS AND TOTAL BILLING (ALL CHANNELS)","firstField":true,"eol":false,"leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"12","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","firstField":false,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"13","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"14","fieldName":"","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","fieldName":"Date","csvTxtLength":"11","pdfLength":"11","fieldType":"String","delimiter":";","defaultValue":"DATE:","leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","fieldName":"RunDate Value","csvTxtLength":"10","pdfLength":"","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0}];[{"sequence":1,"sectionName":"1","fieldName":"BRANCH CODE","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"BRANCH CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":2,"sectionName":"2","fieldName":"BRANCH NAME","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"BRANCH NAME","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":3,"sectionName":"3","fieldName":"EXPENSE FOR TRANSMITTING","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","bodyHeader":true,"defaultValue":"EXPENSE FOR TRANSMITTING","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":4,"sectionName":"4","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":5,"sectionName":"5","fieldName":"INCOME AS TRANSMITTING","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"INCOME AS TRANSMITTING","firstField":false,"bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":6,"sectionName":"6","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":7,"sectionName":"7","fieldName":"INCOME AS ACQUIRER BANK","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","firstField":false,"defaultValue":"INCOME AS ACQUIRER BANK","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":8,"sectionName":"8","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":9,"sectionName":"9","fieldName":"INCOME AS RECEIVING BANK","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"defaultValue":"INCOME AS RECEIVING BANK","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":10,"sectionName":"10","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":11,"sectionName":"11","fieldName":"TOTAL BILLING","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TOTAL BILLING","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":12,"sectionName":"12","csvTxtLength":"10","fieldType":"String","delimiter":";","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":13,"sectionName":"13","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":14,"sectionName":"14","fieldName":"RATE PER COUNT = 25.00","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"RATE PER COUNT = 25.00","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":15,"sectionName":"15","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":16,"sectionName":"16","fieldName":"RATE PER COUNT = 7.00","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"RATE PER COUNT = 7.00","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":17,"sectionName":"17","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":18,"sectionName":"18","fieldName":"RATE PER COUNT = 6.00","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"RATE PER COUNT = 6.00","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":19,"sectionName":"19","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":20,"sectionName":"20","fieldName":"RATE PER COUNT = 7.00","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"RATE PER COUNT = 7.00","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":21,"sectionName":"21","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":22,"sectionName":"22","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":23,"sectionName":"23","csvTxtLength":"10","fieldType":"String","delimiter":";","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":24,"sectionName":"24","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":25,"sectionName":"25","fieldName":"COUNT","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":26,"sectionName":"26","fieldName":"EXPENSE","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"EXPENSE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":27,"sectionName":"27","fieldName":"COUNT","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":28,"sectionName":"28","fieldName":"INCOME","csvTxtLength":"10","pdfLength":"","fieldType":"String","delimiter":";","defaultValue":"INCOME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":29,"sectionName":"29","fieldName":"COUNT","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":30,"sectionName":"30","fieldName":"INCOME","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"INCOME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":31,"sectionName":"31","fieldName":"COUNT","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":32,"sectionName":"32","fieldName":"INCOME","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"INCOME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":33,"sectionName":"33","csvTxtLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":34,"sectionName":"34","fieldName":"BRANCH CODE","csvTxtLength":"10","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":35,"sectionName":"35","fieldName":"BRANCH NAME","csvTxtLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":36,"sectionName":"36","fieldName":"TRANSMITTING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":37,"sectionName":"37","fieldName":"TRANSMITTING EXPENSE","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":38,"sectionName":"38","fieldName":"TRANSMITTING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":39,"sectionName":"39","fieldName":"TRANSMITTING INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":40,"sectionName":"40","fieldName":"ACQUIRER COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":41,"sectionName":"41","fieldName":"ACQUIRER INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":42,"sectionName":"42","fieldName":"RECEIVING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":43,"sectionName":"43","fieldName":"RECEIVING INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":44,"sectionName":"44","fieldName":"TOTAL BILLING","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null}];[{"sequence":1,"sectionName":"1","fieldName":"","csvTxtLength":"10","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":2,"sectionName":"2","fieldName":"OVER-ALL TOTAL","csvTxtLength":"10","fieldType":"String","delimiter":";","defaultValue":"OVER-ALL TOTAL","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":3,"sectionName":"3","fieldName":"TRANSMITTING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":4,"sectionName":"4","fieldName":"TRANSMITTING EXPENSE","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":5,"sectionName":"5","fieldName":"TRANSMITTING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"6","fieldName":"TRANSMITTING INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"ACQUIRER COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":8,"sectionName":"8","fieldName":"ACQUIRER INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":9,"sectionName":"9","fieldName":"RECEIVING COUNT","csvTxtLength":"10","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":10,"sectionName":"10","fieldName":"RECEIVING INCOME","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":11,"sectionName":"11","fieldName":"TOTAL BILLING","csvTxtLength":"10","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null}];START ISSUING
@@ -7121,7 +7128,7 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE != 0 THEN TXN.TRL_AMT_TXN END AS "UNSUCC TXN AMT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
@@ -7187,8 +7194,8 @@ ORDER BY
       0 AS "CR AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -7241,7 +7248,7 @@ SELECT
       TXN.TRL_SYSTEM_TIMESTAMP "TIME"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CUSTOMER CUST ON CRD.CRD_CUST_ID = CUST.CUST_ID
       JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
@@ -7288,8 +7295,8 @@ ORDER BY
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TQU_ID != 'R' THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CR AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CUSTOMER CUST ON CRD.CRD_CUST_ID = CUST.CUST_ID
@@ -7310,8 +7317,8 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "SUB TOTAL AMOUNT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CUSTOMER CUST ON CRD.CRD_CUST_ID = CUST.CUST_ID
@@ -7423,9 +7430,9 @@ ORDER BY
 FROM (
 SELECT
       CASE WHEN TXN.TRL_ORIGIN_ICH_NAME = 'NDC+' THEN 'ChinaBank ATM'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'EBK' THEN 'ChinaBank Online'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'MBK' THEN 'Mobile Banking'
-               WHEN TXN.TRL_ORIGIN_CHANNEL = 'IVR' THEN 'Tellerphone'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'EBK' THEN 'ChinaBank Online'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'MBK' THEN 'Mobile Banking'
+               WHEN TXNC.TRL_ORIGIN_CHANNEL = 'IVR' THEN 'Tellerphone'
                WHEN TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID NOT IN ('9990', '0000009990') THEN 'Other Bank ATM'
                WHEN TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID IN ('9990', '0000009990') THEN 'BancNet Online'
       END AS "CHANNEL",
@@ -7433,7 +7440,7 @@ SELECT
       TXN.TRL_AMT_TXN "TOTAL TXN AMT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
@@ -7486,7 +7493,7 @@ ORDER BY
       AST.AST_TERMINAL_ID ASC,
       AJL.AJL_TIMESTAMP ASC;;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily,;;;;;;
 120;18;Approved InstaPay Transactions As Transmitting Bank;List all approved InstaPay transactions - CBC as the transmitting/source bank;Approved InstaPay Transactions As Transmitting Bank;CSV,;/home/oracle/Reporting/reports/NewTransactionReports/;my.com.mandrill.base.reporting.newTransactionReports.ApprovedInstaPayTransactionsTransmittingBank;[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"Number","delimiter":";","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"57","pdfLength":"57","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"53","pdfLength":"53","fieldType":"String","delimiter":";","defaultValue":"APPROVED INSTAPAY TRANSACTIONS AS TRANSMITTING BANK","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"File Name2","csvTxtLength":"53","pdfLength":"53","fieldType":"String","delimiter":";","defaultValue":"SUMMARY OF APPROVED INSTAPAY TRANSACTIONS AS TRANSMITTING BANK","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"TODAYS DATE","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"9","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"BRANCH NAME","csvTxtLength":"64","pdfLength":"64","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"File Name3","csvTxtLength":"47","pdfLength":"47","fieldType":"String","defaultValue":"(for RETAIL ACCOUNTS)","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"12","fieldName":"File Name4","csvTxtLength":"47","pdfLength":"47","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"13","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","delimiter":";","defaultValue":"AS OF DATE","leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"14","fieldName":"As of Date Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","fieldName":"","csvTxtLength":"8","pdfLength":"8","fieldType":"String","delimiter":";","defaultValue":"","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","fieldName":"Space1","csvTxtLength":"40","pdfLength":"40","fieldType":"String","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"Space2","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"18","fieldName":"Space3","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"19","fieldName":"RunDate","csvTxtLength":"11","pdfLength":"11","fieldType":"String","delimiter":";","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"20","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":21,"sectionName":"21","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"TIME","leftJustified":true,"padFieldLength":0},{"sequence":22,"sectionName":"22","fieldName":"Time Value","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","eol":true,"leftJustified":true,"padFieldLength":0}];[{"sequence":1,"sectionName":"1","fieldName":"ACQUIRING BANK","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","defaultValue":"ACQUIRING BANK","bodyHeader":true,"firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Space1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Space3","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"Space4","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Space5","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TRACE","csvTxtLength":"9","pdfLength":"9","fieldType":"String","defaultValue":"TRACE","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"BRANCH","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"BRANCH","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"TRANSMITTING","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TRANSMITTING","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"Space6","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"TRANS","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"TRANS","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"RECEIVING","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"RECEIVING","bodyHeader":true,"delimiter":";","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"MNEM","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"MNEM","bodyHeader":true,"fieldFormat":"","delimiter":";","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"BRAN","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"BRAN","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"TERM","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TERM","bodyHeader":true,"delimiter":";","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"DATE","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":" DATE","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"TIME","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":" TIME","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":18,"sectionName":"18","fieldName":"SEQ NO","csvTxtLength":"8","pdfLength":"8","fieldType":"String","bodyHeader":true,"delimiter":";","defaultValue":" SEQ NO","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"19","fieldName":"NO","csvTxtLength":"8","pdfLength":"8","fieldType":"String","bodyHeader":true,"delimiter":";","defaultValue":" NO","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":20,"sectionName":"20","fieldName":"CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":" CODE","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"21","fieldName":"ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","defaultValue":" ACCOUNT NO","bodyHeader":true,"delimiter":";","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"22","fieldName":"CARD NO","csvTxtLength":"22","pdfLength":"22","fieldType":"String","defaultValue":" CARD NO","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"23","fieldName":"AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"String","defaultValue":" AMOUNT","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"24","fieldName":"ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","defaultValue":" ACCOUNT NO","bodyHeader":true,"delimiter":";","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"25","fieldName":"ACQUIRER BANK MNEM","csvTxtLength":"4","pdfLength":"4","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"26","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":27,"sectionName":"27","fieldName":"TERMINAL","csvTxtLength":"6","pdfLength":"6","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":28,"sectionName":"28","fieldName":"DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","defaultValue":"","delimiter":";","fieldFormat":"MM/dd/yyyy","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":29,"sectionName":"29","fieldName":"TIME","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":30,"sectionName":"30","fieldName":"SEQ NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":31,"sectionName":"31","fieldName":"TRACE NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","firstField":false,"defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":32,"sectionName":"32","fieldName":"ISSUER BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":33,"sectionName":"33","fieldName":"FROM ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","eol":true,"delimiter":";","leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":34,"sectionName":"34","fieldName":"ATM CARD NUMBER","csvTxtLength":"22","pdfLength":"22","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":"19","decrypt":true,"decryptionKey":"TRL_PAN_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":35,"sectionName":"35","fieldName":"AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":36,"sectionName":"36","fieldName":"TO ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","eol":true,"leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_2_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":37,"sectionName":"37","fieldName":"Space6","csvTxtLength":"30","pdfLength":"30","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":38,"sectionName":"38","fieldName":"Space7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":39,"sectionName":"39","fieldName":"Space8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":40,"sectionName":"40","fieldName":"Space9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":41,"sectionName":"41","fieldName":"INSTAPAY TRANSACTION FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"INSTAPAY TRANSACTION FEE","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":42,"sectionName":"42","fieldName":"RECEIVING BANK","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"RECEIVING BANK","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"firstField":true},{"sequence":43,"sectionName":"43","fieldName":"PER","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"PER","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":44,"sectionName":"44","fieldName":"Space10","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":45,"sectionName":"45","fieldName":"COUNT","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":46,"sectionName":"46","fieldName":"AMOUNT","csvTxtLength":"27","pdfLength":"27","fieldType":"String","delimiter":";","defaultValue":"AMOUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":47,"sectionName":"47","fieldName":"BANCNET FEE SHARE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"BANCNET FEE SHARE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":48,"sectionName":"48","fieldName":"INSTAPAY INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"INSTAPAY INCOME","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":49,"sectionName":"49","fieldName":"CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":50,"sectionName":"50","fieldName":"CHANNEL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHANNEL","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":51,"sectionName":"51","fieldName":"NAME","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":52,"sectionName":"52","fieldName":"Space11","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":53,"sectionName":"53","fieldName":"Space12","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":54,"sectionName":"54","fieldName":"(P1.00)","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"(P1.00)","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":55,"sectionName":"55","fieldName":"(P9.00)","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"(P9.00)","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true},{"sequence":56,"sectionName":"56","fieldName":"BANK CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":57,"sectionName":"57","fieldName":"BANK NAME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":58,"sectionName":"58","fieldName":"CHANNEL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":59,"sectionName":"59","fieldName":"TRAN COUNT","csvTxtLength":"25","pdfLength":"25","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":60,"sectionName":"60","fieldName":"AMOUNT","csvTxtLength":"27","pdfLength":"27","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":61,"sectionName":"61","fieldName":"BANCNET FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":62,"sectionName":"62","fieldName":"INSTAPAY INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}];[{"sequence":1,"sectionName":"1","fieldName":"SUB TOTAL","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"SUB TOTAL","firstField":false,"delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Space1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Space3","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"Space4","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Space5","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"Space6","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"COUNT :","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"COUNT :","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"TOTAL TRAN","csvTxtLength":"21","pdfLength":"21","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"AMOUNT :","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","defaultValue":"AMOUNT :","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"TOTAL","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"TOTAL","csvTxtLength":"17","pdfLength":"17","fieldType":"String","delimiter":";","defaultValue":"TOTAL","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"Space7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"TOTAL TRAN","csvTxtLength":"21","pdfLength":"21","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"TOTAL AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"BANCNET FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"INSTAPAY INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}];^select
-      TXN.TRL_ORIGIN_CHANNEL "CHANNEL",
+      TXNC.TRL_ORIGIN_CHANNEL "CHANNEL",
       BRC.BRC_CODE "ISSUER BRANCH CODE",
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) "TERMINAL",
@@ -7610,7 +7617,7 @@ SELECT
       SUM(TXN.TRL_AMT_TXN) "RECEIVING TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 46
@@ -7660,7 +7667,7 @@ SELECT
       SUM(TXN.TRL_AMT_TXN) "RECEIVING TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 47
@@ -7697,8 +7704,8 @@ END RECEIVING;;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -7725,8 +7732,8 @@ SELECT
       CASE WHEN TXN.TRL_TQU_ID = 'R' THEN TXN.TRL_ISS_CHARGE_AMT END AS "TRAN FEE CR"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -7946,7 +7953,7 @@ SELECT
       SUM(TXN.TRL_AMT_TXN) "RECEIVING TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
@@ -8202,7 +8209,7 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -8222,7 +8229,7 @@ START SELECT
       SUM(TXN.TRL_AMT_TXN) "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
@@ -8239,7 +8246,7 @@ end^;^select
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
@@ -8280,7 +8287,7 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00Daily;;;;;;
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
 WHERE
@@ -8298,7 +8305,7 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "NET SETTLEMENT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD(CBA.CBA_CODE, 10, '0')
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ACCOUNT_TYPE ATP ON TXN.TRL_ACCOUNT_TYPE_1_ATP_ID = ATP.ATP_ID
@@ -8331,7 +8338,7 @@ GROUP BY
       ARC.ARC_NAME "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -8366,7 +8373,7 @@ SELECT
       TXN.TRL_ID "ITEMS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -8391,7 +8398,7 @@ end^;^select
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -8408,7 +8415,7 @@ START SELECT
       7.50 * COUNT(TXN.TRL_ID) "TOTAL TXN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -8713,7 +8720,7 @@ SELECT
       SUM(TXN.TRL_AMT_TXN) "RECEIVING TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 44
@@ -8990,7 +8997,7 @@ ORDER BY
       TXN.TRL_PAN_EKY_ID
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 46
@@ -9010,7 +9017,7 @@ START SELECT
       SUM(TXN.TRL_AMT_TXN) "AMOUNT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 46
@@ -9028,7 +9035,7 @@ end^;^select
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 46
@@ -9042,7 +9049,7 @@ START SELECT
       SUM(TXN.TRL_AMT_TXN) "TOTAL AMOUNT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 46
@@ -9052,7 +9059,7 @@ WHERE
       AND {Txn_Date}
 end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
 122;18;Approved Pesonet Transactions As Transmitting Bank;Detailed of all approved Pesonet transactions - CBC as the transmitting/source bank;Approved Pesonet Transactions As Transmitting Bank;CSV,;/home/oracle/Reporting/reports/NewTransactionReports/;my.com.mandrill.base.reporting.newTransactionReports.ApprovedPesonetTransactionsTransmittingBank;[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"Number","delimiter":";","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"57","pdfLength":"57","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"53","pdfLength":"53","fieldType":"String","delimiter":";","defaultValue":"APPROVED PESONET TRANSACTIONS AS TRANSMITTING BANK","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"File Name2","csvTxtLength":"53","pdfLength":"53","fieldType":"String","delimiter":";","defaultValue":"SUMMARY OF APPROVED PESONET TRANSACTIONS AS TRANSMITTING BANK","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"TODAYS DATE","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","defaultValue":"","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"9","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"BRANCH NAME","csvTxtLength":"64","pdfLength":"64","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"File Name3","csvTxtLength":"47","pdfLength":"47","fieldType":"String","defaultValue":"(for RETAIL ACCOUNTS)","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"12","fieldName":"File Name4","csvTxtLength":"47","pdfLength":"47","fieldType":"String","delimiter":";","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"13","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","delimiter":";","defaultValue":"AS OF DATE","leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"14","fieldName":"As of Date Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","fieldName":"","csvTxtLength":"8","pdfLength":"8","fieldType":"String","delimiter":";","defaultValue":"","firstField":false,"eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","fieldName":"Space1","csvTxtLength":"40","pdfLength":"40","fieldType":"String","firstField":true,"delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"Space2","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"18","fieldName":"Space3","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"19","fieldName":"RunDate","csvTxtLength":"11","pdfLength":"11","fieldType":"String","delimiter":";","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"20","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":21,"sectionName":"21","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"TIME","leftJustified":true,"padFieldLength":0},{"sequence":22,"sectionName":"22","fieldName":"Time Value","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","eol":true,"leftJustified":true,"padFieldLength":0}];[{"sequence":1,"sectionName":"1","fieldName":"ACQUIRING BANK","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","defaultValue":"ACQUIRING BANK","bodyHeader":true,"firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Space1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Space3","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"Space4","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Space5","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TRACE","csvTxtLength":"9","pdfLength":"9","fieldType":"String","defaultValue":"TRACE","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"BRANCH","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"BRANCH","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"TRANSMITTING","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TRANSMITTING","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"Space6","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"TRANS","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"TRANS","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"RECEIVING","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"RECEIVING","bodyHeader":true,"delimiter":";","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"MNEM","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"MNEM","bodyHeader":true,"fieldFormat":"","delimiter":";","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"BRAN","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"BRAN","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"TERM","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TERM","bodyHeader":true,"delimiter":";","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"DATE","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":" DATE","firstField":false,"bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"TIME","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":" TIME","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":18,"sectionName":"18","fieldName":"SEQ NO","csvTxtLength":"8","pdfLength":"8","fieldType":"String","bodyHeader":true,"delimiter":";","defaultValue":" SEQ NO","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"19","fieldName":"NO","csvTxtLength":"8","pdfLength":"8","fieldType":"String","bodyHeader":true,"delimiter":";","defaultValue":" NO","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":20,"sectionName":"20","fieldName":"CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":" CODE","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"21","fieldName":"ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","defaultValue":" ACCOUNT NO","bodyHeader":true,"delimiter":";","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"22","fieldName":"CARD NO","csvTxtLength":"22","pdfLength":"22","fieldType":"String","defaultValue":" CARD NO","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"23","fieldName":"AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"String","defaultValue":" AMOUNT","bodyHeader":true,"delimiter":";","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"24","fieldName":"ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","defaultValue":" ACCOUNT NO","bodyHeader":true,"delimiter":";","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"25","fieldName":"ACQUIRER BANK MNEM","csvTxtLength":"4","pdfLength":"4","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"26","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":27,"sectionName":"27","fieldName":"TERMINAL","csvTxtLength":"6","pdfLength":"6","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":28,"sectionName":"28","fieldName":"DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","defaultValue":"","delimiter":";","fieldFormat":"MM/dd/yyyy","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":29,"sectionName":"29","fieldName":"TIME","csvTxtLength":"15","pdfLength":"15","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":30,"sectionName":"30","fieldName":"SEQ NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","fieldFormat":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":31,"sectionName":"31","fieldName":"TRACE NUMBER","csvTxtLength":"8","pdfLength":"8","fieldType":"String","firstField":false,"defaultValue":"","delimiter":";","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":32,"sectionName":"32","fieldName":"ISSUER BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":33,"sectionName":"33","fieldName":"FROM ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","eol":true,"delimiter":";","leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":34,"sectionName":"34","fieldName":"ATM CARD NUMBER","csvTxtLength":"22","pdfLength":"22","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":"19","decrypt":true,"decryptionKey":"TRL_PAN_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":35,"sectionName":"35","fieldName":"AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":36,"sectionName":"36","fieldName":"TO ACCOUNT NO","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","eol":true,"leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_2_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":37,"sectionName":"37","fieldName":"Space6","csvTxtLength":"30","pdfLength":"30","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":38,"sectionName":"38","fieldName":"Space7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":39,"sectionName":"39","fieldName":"Space8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":40,"sectionName":"40","fieldName":"Space9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":41,"sectionName":"41","fieldName":"PESONET TRANSACTION FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"PESONET TRANSACTION FEE","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":42,"sectionName":"42","fieldName":"RECEIVING BANK","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"RECEIVING BANK","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"firstField":true},{"sequence":43,"sectionName":"43","fieldName":"PER","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"PER","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":44,"sectionName":"44","fieldName":"Space10","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":45,"sectionName":"45","fieldName":"COUNT","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":46,"sectionName":"46","fieldName":"AMOUNT","csvTxtLength":"27","pdfLength":"27","fieldType":"String","delimiter":";","defaultValue":"AMOUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":47,"sectionName":"47","fieldName":"PCHC FEE SHARE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"PCHC FEE SHARE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":48,"sectionName":"48","fieldName":"PESONET INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"PESONET INCOME","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":49,"sectionName":"49","fieldName":"CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":50,"sectionName":"50","fieldName":"CHANNEL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHANNEL","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":51,"sectionName":"51","fieldName":"NAME","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":52,"sectionName":"52","fieldName":"Space11","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":53,"sectionName":"53","fieldName":"Space12","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":54,"sectionName":"54","fieldName":"(P1.00)","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"(P1.00)","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":55,"sectionName":"55","fieldName":"(P9.00)","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"(P9.00)","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true},{"sequence":56,"sectionName":"56","fieldName":"BANK CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":57,"sectionName":"57","fieldName":"BANK NAME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":58,"sectionName":"58","fieldName":"CHANNEL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":59,"sectionName":"59","fieldName":"TRAN COUNT","csvTxtLength":"25","pdfLength":"25","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":60,"sectionName":"60","fieldName":"AMOUNT","csvTxtLength":"27","pdfLength":"27","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":61,"sectionName":"61","fieldName":"PCHC FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":62,"sectionName":"62","fieldName":"PESONET INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}];[{"sequence":1,"sectionName":"1","fieldName":"SUB TOTAL","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"SUB TOTAL","firstField":false,"delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Space1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Space3","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"Space4","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Space5","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"Space6","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"COUNT :","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","defaultValue":"COUNT :","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"TOTAL TRAN","csvTxtLength":"21","pdfLength":"21","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"AMOUNT :","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","defaultValue":"AMOUNT :","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"TOTAL","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"TOTAL","csvTxtLength":"17","pdfLength":"17","fieldType":"String","delimiter":";","defaultValue":"TOTAL","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"Space7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"TOTAL TRAN","csvTxtLength":"21","pdfLength":"21","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"TOTAL AMOUNT","csvTxtLength":"26","pdfLength":"26","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"PCHC FEE","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"17","fieldName":"PESONET INCOME","csvTxtLength":"15","pdfLength":"15","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}];^select
-      TXN.TRL_ORIGIN_CHANNEL "CHANNEL",
+      TXNC.TRL_ORIGIN_CHANNEL "CHANNEL",
       BRC.BRC_CODE "ISSUER BRANCH CODE",
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) "TERMINAL",
@@ -9163,8 +9170,8 @@ end^;system;2020-02-01 00:00:00;system;2020-02-01 00:00:00;Daily;;;;;;
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -9186,8 +9193,8 @@ ORDER BY
        SUM(NVL(TXN.TRL_ISS_CHARGE_AMT, 0)) "TRAN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -9220,8 +9227,8 @@ WHERE
       '00 - Approved' "COMMENT"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -9243,8 +9250,9 @@ ORDER BY
        SUM(NVL(TXN.TRL_ISS_CHARGE_AMT, 0)) "TRAN FEE"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
@@ -9283,12 +9291,13 @@ WHERE
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 40, 42, 43, 44, 45, 50, 52)
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9327,7 +9336,7 @@ ORDER BY
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
@@ -9349,7 +9358,8 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "TOTAL AMOUNT"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_BILLER CBL ON LPAD(TXN.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_BILLER CBL ON LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = LPAD(CBL.CBL_CODE, 3, '0')
 WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = 'F'
@@ -9364,6 +9374,7 @@ ORDER BY
       SUM(TXN.TRL_AMT_TXN) "TOTAL AMOUNT"
 FROM 
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = 'F'
@@ -9399,12 +9410,13 @@ WHERE
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 40, 42, 43, 44, 45, 50, 52)
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9443,12 +9455,13 @@ ORDER BY
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', 0000009991, '0000009997')
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9486,12 +9499,13 @@ ORDER BY
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE = 44
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9528,7 +9542,7 @@ ORDER BY
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000008883', '0000009991', '0000009997') THEN TXN.TRL_CARD_ACPT_TERMINAL_IDENT ELSE '0' END AS "MERCHANT ID",
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"
@@ -9558,7 +9572,7 @@ SELECT
       TXN.TRL_ID "ITEMS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -9581,7 +9595,7 @@ ORDER BY
       COUNT(TXN.TRL_ID) "ITEMS"
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
@@ -9623,8 +9637,9 @@ SELECT
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS"
 FROM 
       TRANSACTION_LOG TXN
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXN.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 21, 26, 31, 40, 42, 43, 44, 45, 50, 52)
@@ -9667,12 +9682,13 @@ ORDER BY
       SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0'), -4) "RECEIVING BANK CODE",
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"       
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 40, 42, 43, 44, 45, 50, 52)
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9708,12 +9724,13 @@ ORDER BY
       SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0'), -4) "RECEIVING BANK CODE",
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"        
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 40, 42, 43, 44, 45, 50, 52)
       AND TXN.TRL_TQU_ID IN ('F', 'R')
@@ -9749,13 +9766,14 @@ ORDER BY
       SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0'), -4) "RECEIVING BANK CODE",
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"       
 FROM
       TRANSACTION_LOG TXN
-      JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 40, 42, 43, 44, 45, 50, 52)
@@ -9791,7 +9809,7 @@ ORDER BY
       SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0'), -4) "RECEIVING BANK CODE",
       TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
-      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXN.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, '0') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
       TXN.TRL_CUSTOM_DATA_EKY_ID,
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE"       

@@ -237,7 +237,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields billerCode = new ReportGenerationFields(ReportConstants.PARAM_BILLER_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_BILLER_CODE, 3, '0') = '" + filterByBillerCode + "'");
+					"LPAD(TXNC.TRL_BILLER_CODE, 3, '0') = '" + filterByBillerCode + "'");
 			getGlobalFileFieldsMap().put(billerCode.getFieldName(), billerCode);
 		}
 	}

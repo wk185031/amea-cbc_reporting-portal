@@ -358,7 +358,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", 'CBC' AS \"RECEIVING BANK MNEM\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
+					"JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);
@@ -372,7 +372,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"JOIN CBC_BIN CBI ON TXN.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
+					"JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);

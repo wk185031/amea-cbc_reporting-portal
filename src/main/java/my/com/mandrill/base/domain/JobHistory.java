@@ -1,7 +1,10 @@
 package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -17,6 +20,12 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.elasticsearch.annotations.Document;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 
 import io.swagger.annotations.ApiModel;
 
@@ -47,7 +56,7 @@ public class JobHistory implements Serializable {
 
 	@NotNull
     @Column(name = "created_date", nullable = false)
-    private ZonedDateTime createdDate;
+    private Instant createdDate;
     
     @NotNull
     @Size(max = 100)
@@ -103,16 +112,16 @@ public class JobHistory implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public ZonedDateTime getCreatedDate() {
+    public Instant getCreatedDate() {
         return createdDate;
     }
 
-    public JobHistory createdDate(ZonedDateTime createdDate) {
+    public JobHistory createdDate(Instant createdDate) {
         this.createdDate = createdDate;
         return this;
     }
 
-    public void setCreatedDate(ZonedDateTime createdDate) {
+    public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
     }
 

@@ -65,6 +65,7 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.JobHistory.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.TaskGroup.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.Task.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.TxnLogCustom.class.getName(), jcacheConfiguration);
         };
     }
 }
