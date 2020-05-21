@@ -15,6 +15,7 @@ import { DatePipe } from '@angular/common';
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 import { JobHistoryService } from '../../app-admin/job-history';
 import { JobHistory } from '../../app-admin/job-history/job-history.model';
+import { NgxUiLoaderService } from 'ngx-ui-loader';
 
 @Component({
     selector: 'database-synchronization',
@@ -47,7 +48,8 @@ export class DatabaseSynchronizationComponent implements OnInit {
         private http: HttpClient,
         private jobService: JobService,
         private datePipe: DatePipe,
-        private jobHistoryService: JobHistoryService
+        private jobHistoryService: JobHistoryService,
+        private ngxLoader: NgxUiLoaderService
     ) {
     }
 
@@ -156,10 +158,12 @@ export class DatabaseSynchronizationComponent implements OnInit {
             console.log("Jobhistory id: " + this.jobHistory.id);
             console.log("Jobhistory createdDate: " + this.jobHistory.createdDate);
 
+
         }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
     saveSchedulerChanges() {
+        this.ngxLoader.start();
         this.newTime.setHours(this.time.hour, this.time.minute, this.time.second);
         this.job.scheduleTime = this.datePipe.transform(this.newTime, 'yyyy-MM-ddTHH:mm:ss');
         this.job.createdDate = this.datePipe.transform(this.job.createdDate, 'yyyy-MM-ddTHH:mm:ss');
@@ -172,6 +176,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     private onSaveSuccess(result: Job) {
+        this.ngxLoader.stop();
         this.eventManager.broadcast({ name: 'jobListModification', content: 'OK'});
         if (this.p.isOpen()) {
             this.p.close();
@@ -179,6 +184,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     private onSaveError() {
+        this.ngxLoader.stop();
     }
 
     ngOnDestroy() {
@@ -199,7 +205,11 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     syncDatabase() {
+        this.ngxLoader.start();
         const req = this.databaseSynchronizationService.syncDatabase(this.currentAccount.login);
-        this.http.request(req).subscribe((res: HttpResponse<any>) => this.getPreviousSyncTime());
+        this.http.request(req).subscribe((res: HttpResponse<any>) => {
+            this.ngxLoader.stop();
+            this.getPreviousSyncTime();
+        });
     }
 }

@@ -1,5 +1,6 @@
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { NgxUiLoaderModule } from 'ngx-ui-loader';
 
 import { BaseSharedModule } from '../../shared/shared.module';
 import { BaseAdminModule } from '../../admin/admin.module';
@@ -18,7 +19,8 @@ const ENTITY_STATES = [
         BaseSharedModule,
         BaseAdminModule,
         RouterModule.forChild(ENTITY_STATES),
-        AppCommonModule
+        AppCommonModule,
+        NgxUiLoaderModule,
     ],
     declarations: [
         DatabaseSynchronizationComponent
