@@ -158,7 +158,6 @@ export class DatabaseSynchronizationComponent implements OnInit {
             console.log("Jobhistory id: " + this.jobHistory.id);
             console.log("Jobhistory createdDate: " + this.jobHistory.createdDate);
 
-
         }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
@@ -194,6 +193,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     private onError(error: any) {
+        this.ngxLoader.stop();
         this.jhiAlertService.error(error.message, null, null);
     }
 
@@ -208,8 +208,11 @@ export class DatabaseSynchronizationComponent implements OnInit {
         this.ngxLoader.start();
         const req = this.databaseSynchronizationService.syncDatabase(this.currentAccount.login);
         this.http.request(req).subscribe((res: HttpResponse<any>) => {
-            this.ngxLoader.stop();
+            this.spinners = !(this.spinners);
             this.getPreviousSyncTime();
+            if (!(this.spinners)) {
+                this.ngxLoader.stop();
+            }
         });
     }
 }
