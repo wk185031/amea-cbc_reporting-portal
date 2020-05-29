@@ -204,6 +204,11 @@ export class DatabaseSynchronizationComponent implements OnInit {
         return (yyyy + '-' + MM + '-' + dd);
     }
 
+    onSuccess() {
+      this.ngxLoader.stop();
+      this.getPreviousSyncTime();
+    }
+
     syncDatabase() {
         this.ngxLoader.start();
         const req = this.databaseSynchronizationService.syncDatabase(this.currentAccount.login);
