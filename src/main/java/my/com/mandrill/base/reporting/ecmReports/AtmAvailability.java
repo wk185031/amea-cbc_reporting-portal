@@ -134,7 +134,7 @@ public class AtmAvailability extends CsvReportProcessor {
 		} else if (rgm.getYesterdayDate() != null) {
 			noOfDaysInMonth = rgm.getYesterdayDate().lengthOfMonth();
 		}
-		int targetHour = 24 * noOfDaysInMonth;
+		double targetHour = 24 * noOfDaysInMonth;
 
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
@@ -150,7 +150,7 @@ public class AtmAvailability extends CsvReportProcessor {
 								+ getTerminal() + "'");
 				ZonedDateTime availableOutageHour = ZonedDateTime
 						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
-				double available = (targetHour - availableOutageHour.getHour() / targetHour);
+				double available = ((targetHour - availableOutageHour.getHour()) / targetHour) * 100;
 				line.append(availableFormatter.format(available) + "%");
 				setAvailablePercentage(available);
 				totalPercentage += available;
@@ -162,7 +162,7 @@ public class AtmAvailability extends CsvReportProcessor {
 								+ getTerminal() + "'");
 				ZonedDateTime unavailableOutageHour = ZonedDateTime
 						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
-				double unavailable = (targetHour - unavailableOutageHour.getHour() / targetHour);
+				double unavailable = ((targetHour - unavailableOutageHour.getHour()) / targetHour) * 100;
 				line.append(unavailableFormatter.format(unavailable) + "%");
 				break;
 			case ReportConstants.STANDARD:

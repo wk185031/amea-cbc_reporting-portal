@@ -160,7 +160,7 @@ public class BancNetAtmAvailability extends CsvReportProcessor {
 				break;
 			case ReportConstants.PERCENTAGE:
 				DecimalFormat formatter = new DecimalFormat("#,##0.00");
-				double percentage = (getTargetHour() - getOutageHour() / getTargetHour());
+				double percentage = ((Double.valueOf(getTargetHour() - getOutageHour()) / getTargetHour())) * 100;
 				line.append(formatter.format(percentage) + "%");
 				totalPercentage += percentage;
 				break;

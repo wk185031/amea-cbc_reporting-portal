@@ -387,7 +387,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			if ("Institution".equals(institution.getType())) {
 				reportService.generateAllReports(transactionDate, institution.getId());
 			}		
-		}	
+		}
 	}
 
 	private void postProcessData() {
