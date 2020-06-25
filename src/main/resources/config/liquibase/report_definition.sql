@@ -6486,8 +6486,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ORIGIN_ICH_NAME = ''CBS_Bridge''
-      AND TXN.TRL_ISS_NAME = ''CBC''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Txn_Date}
 ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,
@@ -6507,8 +6507,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ORIGIN_ICH_NAME = ''CBS_Bridge''
-      AND TXN.TRL_ISS_NAME = ''CBC''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Txn_Date}
 GROUP BY
       TXN.TRL_TQU_ID,
@@ -6547,7 +6547,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBS''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -6582,7 +6583,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBS''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -6610,7 +6612,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBS''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -6627,7 +6630,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBS''
+      AND {Deo_Name}
+      AND {Iss_Name}
       AND {Txn_Date}
 END');
 	

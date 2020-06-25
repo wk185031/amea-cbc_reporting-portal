@@ -36,6 +36,7 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 		pagination = 1;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
+			preProcessingInstitution(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
@@ -63,7 +64,7 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -219,6 +220,20 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 					logger.error("Error closing DB resources", e);
 				}
 			}
+		}
+	}
+	
+	private void preProcessingInstitution(ReportGenerationMgr rgm)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessingInstitution()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
+		}
+
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
 		}
 	}
 }
