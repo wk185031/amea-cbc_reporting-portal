@@ -1,4 +1,5 @@
 import { BaseEntity, User } from './../../shared';
+import { Branch } from '../branch';
 
 export class UserExtra implements BaseEntity {
     constructor(
@@ -15,6 +16,7 @@ export class UserExtra implements BaseEntity {
         public user?: User,
         public roles?: BaseEntity[],
         public institutions?: BaseEntity[],
+        public branches?: Branch[]
     ) {
     }
 }

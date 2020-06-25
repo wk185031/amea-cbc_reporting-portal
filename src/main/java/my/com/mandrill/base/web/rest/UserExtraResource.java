@@ -138,8 +138,12 @@ public class UserExtraResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+UPDATE+"')")
     public ResponseEntity<UserExtra> updateUserExtra(@Valid @RequestBody UserExtra userExtra) throws URISyntaxException {
         log.debug("REST request to update UserExtra : {}", userExtra);
+                
         if (userExtra.getId() == null) {
             return createUserExtra(userExtra);
+        } else {
+        	UserExtra usrExtra = userExtraRepository.findOne(userExtra.getId());
+        	userExtra.setCreatedDate(usrExtra.getCreatedDate());
         }
         
         Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);

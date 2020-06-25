@@ -15,6 +15,7 @@ import { RoleExtraService } from '../role/role-extra.service';
 import { Institution } from '../../entities/institution';
 import { InstitutionService } from '../institution/institution.service';
 import { Principal } from '../../shared/auth/principal.service';
+import { BranchService, Branch } from '../../entities/branch';
 
 @Component({
     selector: 'jhi-user-extra-dialog',
@@ -31,12 +32,14 @@ export class UserExtraEditDialogComponent implements OnInit {
     roleextras: RoleExtra[];
     activated: boolean;
     institutions: Institution[];
+    branches: Branch[];
 
     constructor(public activeModal: NgbActiveModal,
                 private jhiLanguageService: JhiLanguageService,
                 private jhiAlertService: JhiAlertService,
                 private userExtraService: UserExtraService,
                 private institutionService: InstitutionService,
+                private branchService: BranchService,
                 private roleExtraService: RoleExtraService,
                 private eventManager: JhiEventManager,
                 private principal: Principal) {
@@ -53,6 +56,8 @@ export class UserExtraEditDialogComponent implements OnInit {
             .subscribe((res: HttpResponse<RoleExtra[]>) => { this.roleextras = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
         this.institutionService.queryNoPaging()
             .subscribe((res: HttpResponse<Institution[]>) => { this.institutions = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
+        this.branchService.query()
+            .subscribe((res: HttpResponse<Branch[]>) => { this.branches = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
         this.activated = this.userExtra.user.activated.valueOf();
     }
 
@@ -91,7 +96,12 @@ export class UserExtraEditDialogComponent implements OnInit {
     trackRoleExtraById(index: number, item: RoleExtra) {
         return item.id;
     }
+
     trackinstitutionById(index: number, item: Institution) {
+        return item.id;
+    }
+
+    trackBranchById(index: number, item: Branch) {
         return item.id;
     }
 

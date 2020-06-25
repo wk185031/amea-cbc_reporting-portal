@@ -45,6 +45,7 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".roles", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".institutions", jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".branches", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.RoleExtra.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.RoleExtra.class.getName() + ".permissions", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.AppResource.class.getName(), jcacheConfiguration);
@@ -59,6 +60,7 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.SecureKey.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.LocalWebService.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.EncryptionKey.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.Branch.class.getName(), jcacheConfiguration);
             // jhipster-needle-ehcache-add-entry
             cm.createCache(my.com.mandrill.base.domain.EntityAuditEvent.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.Job.class.getName(), jcacheConfiguration);

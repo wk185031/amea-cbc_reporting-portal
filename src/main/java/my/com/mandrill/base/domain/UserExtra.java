@@ -83,6 +83,14 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
                joinColumns = @JoinColumn(name="user_extras_id", referencedColumnName="id"),
                inverseJoinColumns = @JoinColumn(name="institutions_id", referencedColumnName="id"))
     private Set<Institution> institutions = new HashSet<>();
+    
+    @ManyToMany(fetch = FetchType.EAGER)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @NotNull
+    @JoinTable(name = "user_extra_branches",
+               joinColumns = @JoinColumn(name="user_extra_id", referencedColumnName="id"),
+               inverseJoinColumns = @JoinColumn(name="branch_id", referencedColumnName="abr_id"))
+    private Set<Branch> branches = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -218,7 +226,15 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
-    @Override
+    public Set<Branch> getBranches() {
+		return branches;
+	}
+
+	public void setBranches(Set<Branch> branches) {
+		this.branches = branches;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

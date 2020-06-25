@@ -44,7 +44,8 @@
                 "contactOther": "Other Contacts",
                 "institution": "Corporate Structures",
                 "role": "Role",
-                "selectLanguage": "Please Select A Language"
+                "selectLanguage": "Please Select A Language",
+                "branch": "Branch"
             },
             "name": "Name",
             "designation": "Designation",

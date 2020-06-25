@@ -37,6 +37,7 @@ import { ReportConfigDefinitionModule } from './reporting/report-config-definiti
 // import { DashboardModule } from './reporting/dashboard/dashboard.module';
 import { GenerateReportModule } from './reporting/generate-report/generate-report.module';
 import { DatabaseSynchronizationModule } from './reporting/database-synchronization/database-synchronization.module';
+import { BranchService } from './entities/branch';
 
 @NgModule({
     imports: [
@@ -70,6 +71,7 @@ import { DatabaseSynchronizationModule } from './reporting/database-synchronizat
         PaginationConfig,
         UserRouteAccessService,
         AppRouteAccessService,
+        BranchService,
         AppRouteSelfRegistrationService,
         {
             provide: HTTP_INTERCEPTORS,
