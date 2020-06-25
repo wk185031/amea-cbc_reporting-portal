@@ -4769,8 +4769,9 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 21, 24, 26, 40, 42, 43, 44, 45, 46, 47, 50, 51, 52, 122, 133)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Deo_Name}
       AND {Branch_Code}
-      AND {Terminal}
+      AND {Terminal} 
       AND {Txn_Date}
 ORDER BY
       ABR.ABR_CODE ASC,
@@ -4816,9 +4817,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -4867,6 +4869,7 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 21, 24, 26, 40, 42, 43, 44, 45, 46, 47, 50, 51, 52, 122, 133, 142, 143)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Deo_Name}
       AND {Txn_Date}
 )
 GROUP BY
@@ -4905,9 +4908,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Iss_Name}
       AND {Txn_Date}
 )
 GROUP BY
@@ -4947,6 +4951,7 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 21, 24, 26, 40, 42, 43, 44, 45, 46, 47, 50, 51, 52, 122, 133, 142, 143)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Deo_Name}
       AND {Txn_Date}
 )
 START SELECT
@@ -4979,9 +4984,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
+      AND {Iss_Name}
       AND {Txn_Date}
 )
 END');

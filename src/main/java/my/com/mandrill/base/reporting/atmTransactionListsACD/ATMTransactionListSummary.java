@@ -51,6 +51,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
 
+			preProcessing(rgm);
 			separateQuery(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 
@@ -125,6 +126,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
+			preProcessing(rgm);
 			separateQuery(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
@@ -145,7 +147,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -170,6 +172,21 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Errors in processingDetails", e);
+		}
+	}
+	
+	private void preProcessing(ReportGenerationMgr rgm)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In ATMTransactionListSummary.preProcessing()");
+
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+
+		}
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
 		}
 	}
 

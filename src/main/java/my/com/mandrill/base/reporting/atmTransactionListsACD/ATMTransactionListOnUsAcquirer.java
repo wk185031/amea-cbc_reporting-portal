@@ -84,6 +84,7 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListOnUsAcquirer.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'"));
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
