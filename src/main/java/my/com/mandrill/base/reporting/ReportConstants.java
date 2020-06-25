@@ -61,6 +61,8 @@ public final class ReportConstants {
 	public static final String PARAM_CIF = "CIF_No";
 	public static final String PARAM_TO_ACCOUNT = "To_Account";
 	public static final String PARAM_ACC_TYPE = "Acc_Type";
+	public static final String PARAM_DEO_NAME = "Deo_Name";
+	public static final String PARAM_ISSUER_NAME = "Iss_Name";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
