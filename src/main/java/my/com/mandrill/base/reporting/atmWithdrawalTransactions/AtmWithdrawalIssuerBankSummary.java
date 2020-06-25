@@ -51,6 +51,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
 
+			preProcessingInstitution(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
@@ -96,6 +97,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
+			preProcessingInstitution(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
@@ -108,7 +110,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -308,6 +310,18 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 			} else {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
+		}
+	}
+	
+	private void preProcessingInstitution(ReportGenerationMgr rgm)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessingInstitution()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+		}
+
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
 		}
 	}
 }

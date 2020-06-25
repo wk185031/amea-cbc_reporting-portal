@@ -5027,7 +5027,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_ISS_NAME IS NULL
+      AND {Deo_Name}
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -5070,7 +5071,8 @@ WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_ISS_NAME IS NULL
+      AND {Deo_Name}
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -5107,7 +5109,8 @@ WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_ISS_NAME IS NULL
+      AND {Deo_Name}
       AND {Txn_Date}
 )
 GROUP BY
@@ -5129,7 +5132,8 @@ WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_ISS_NAME IS NULL
+      AND {Deo_Name}
       AND {Txn_Date}
 START SELECT
       COUNT(TXN.TRL_ID) "NET COUNT",
@@ -5146,7 +5150,8 @@ WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_ISS_NAME IS NULL
+      AND {Deo_Name}
       AND {Txn_Date}
 END');
 	
@@ -5184,9 +5189,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND {Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -5219,9 +5223,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND {Iss_Name}
       AND {Txn_Date}
 )
 GROUP BY
@@ -5240,9 +5243,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != ''0000000010''
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_DEO_NAME IS NULL
+      AND {Iss_Name}
       AND {Txn_Date}
 ');
 	
