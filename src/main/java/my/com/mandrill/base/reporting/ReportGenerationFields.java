@@ -66,6 +66,7 @@ public class ReportGenerationFields {
 	private LocalDate todayDate;
 	private LocalDate yesterdayDate;
 	private boolean generate;
+	private String institution;
 
 	public ReportGenerationFields() {
 		super();
@@ -411,6 +412,14 @@ public class ReportGenerationFields {
 
 	public void setGenerate(boolean generate) {
 		this.generate = generate;
+	}
+
+	public String getInstitution() {
+		return institution;
+	}
+
+	public void setInstitution(String institution) {
+		this.institution = institution;
 	}
 
 	public String format() {

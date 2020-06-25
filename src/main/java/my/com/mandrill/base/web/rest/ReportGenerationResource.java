@@ -78,6 +78,8 @@ public class ReportGenerationResource {
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
 	private boolean executed = false;
+	private static final String CBC_INSTITUTION = "ChinaBank (CBC)";
+	private static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
@@ -244,7 +246,21 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
+		
+		String instShortCode = null;
+		
+		List<Institution> institutions = institutionRepository.findAll();
+		for (Institution institution : institutions) {
+			if("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
+				if(institution.getName().equals(CBC_INSTITUTION)) {
+					instShortCode = "CBC";
+				} else if (institution.getName().equals(CBS_INSTITUTION)) {
+					instShortCode = "CBS";
+				}
+			}
+		}
 
+		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(true);
 		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
 

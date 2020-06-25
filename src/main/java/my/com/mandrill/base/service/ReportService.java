@@ -34,21 +34,21 @@ public class ReportService {
 	private ReportDefinitionRepository reportDefinitionRepository;
 
 	
-	public void generateAllReports(LocalDate transactionDate, Long institutionId) {
+	public void generateAllReports(LocalDate transactionDate, Long institutionId, String instShortCode) {
 		LocalDate runDate = LocalDate.now();
 		LocalDate lastDayOfMonth = YearMonth
 				.from(LocalDateTime.now()).atEndOfMonth();
 		
 		log.info("Generate report for institution:{} [Transaction date={}, Report Generation date={}", institutionId, transactionDate, runDate);
 		
-		generateDailyReport(transactionDate, institutionId);
+		generateDailyReport(transactionDate, institutionId, instShortCode);
 		if (YearMonth.from(transactionDate).atEndOfMonth().isEqual(transactionDate)) {
 			log.info("Generate monthly report.");
-			generateMonthlyReport(transactionDate, institutionId);
+			generateMonthlyReport(transactionDate, institutionId, instShortCode);
 		}
 	}
 	
-	public void generateDailyReport(LocalDate transactionDate, Long institutionId) {
+	public void generateDailyReport(LocalDate transactionDate, Long institutionId, String instShortCode) {
 		log.debug("In ReportGenerationResource.generateDailyReport()");
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
@@ -59,6 +59,7 @@ public class ReportService {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
+		reportGenerationMgr.setInstitution(instShortCode);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -82,7 +83,7 @@ public class ReportService {
 		}
 	}
 
-	public void generateMonthlyReport(LocalDate transactionDate, Long institutionId) {
+	public void generateMonthlyReport(LocalDate transactionDate, Long institutionId, String instShortCode) {
 		log.debug("In ReportGenerationResource.generateMonthlyReport()");
 		LocalDate firstDayOfMonth = YearMonth.from(transactionDate).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(transactionDate).atEndOfMonth();
@@ -95,6 +96,7 @@ public class ReportService {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
+		reportGenerationMgr.setInstitution(instShortCode);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {

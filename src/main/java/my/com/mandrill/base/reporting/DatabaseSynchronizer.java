@@ -90,6 +90,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String ORIGIN_CHANNEL = "ORIG_CHAN";
 	private static final String BANCNET_ONLINE_ACQ_ID = "9990";
 	private static final String BANCNET_ONLINE_CHANNEL_LABEL = "BANCNET_ONLINE";
+	private static final String CBC_INSTITUTION = "ChinaBank (CBC)";
+	private static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
 
 	private Map<String, String> matchingBinCache = new HashMap<String, String>();
 
@@ -382,10 +384,17 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		log.debug("Database synchronizer done. Start generate report tasks.");
 		LocalDate transactionDate = LocalDate.now().minusDays(1L);
 		
+		String instShortCode = null;
+		
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
 			if ("Institution".equals(institution.getType())) {
-				reportService.generateAllReports(transactionDate, institution.getId());
+				if(institution.getName().equals(CBC_INSTITUTION)) {
+					instShortCode = "CBC";
+				} else if (institution.getName().equals(CBS_INSTITUTION)) {
+					instShortCode = "CBS";
+				}
+				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
 			}		
 		}
 	}
