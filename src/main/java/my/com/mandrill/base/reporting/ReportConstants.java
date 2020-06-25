@@ -27,6 +27,10 @@ public final class ReportConstants {
 	// Report Generation Time
 	public static final String START_TIME = "00:00:00";
 	public static final String END_TIME = "23:59:59";
+	
+	// Report Generation Institution
+	public static final String CBC_INSTITUTION = "ChinaBank (CBC)";
+	public static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
 
 	// Report Generation Date Format
 	public static final String DATE_FORMAT_01 = "yyyyMMdd";

@@ -78,8 +78,6 @@ public class ReportGenerationResource {
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
 	private boolean executed = false;
-	private static final String CBC_INSTITUTION = "ChinaBank (CBC)";
-	private static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
@@ -252,9 +250,9 @@ public class ReportGenerationResource {
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
 			if("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
-				if(institution.getName().equals(CBC_INSTITUTION)) {
+				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
 					instShortCode = "CBC";
-				} else if (institution.getName().equals(CBS_INSTITUTION)) {
+				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 					instShortCode = "CBS";
 				}
 			}
