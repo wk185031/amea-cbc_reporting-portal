@@ -122,7 +122,7 @@ liquibase:
 #        key-alias: base
 # ===================================================================
 server:
-    port: 8080
+    port: 9080
 
 info:
     project:
@@ -193,6 +193,6 @@ application:
     selfRegistration: true
     languageSelection: true
     imageAttachmentBasePath:
-        path : c:\\Users\\jw250564\\cbc-reporting\\image
+        path : /tmp
     reportDir:
-        path: c:\\Users\\jw250564\\cbc-reporting\\reports
+        path: c:/MyTemp

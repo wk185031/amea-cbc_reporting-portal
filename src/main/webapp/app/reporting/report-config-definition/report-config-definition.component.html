@@ -8,12 +8,6 @@
                     </h4>
                 </div>
                 <div class="col-8">
-                    <div>
-                        <span class="hidden-sm-down" jhiTranslate="baseApp.reportDefinition.filterByBranch">
-                            Filter By Branch
-                        </span>
-                        <input type="checkbox" id="filterByBranch" (change)="filterByBranch($event)">
-                    </div>
                     <div class="row float-right" *appHasAnyPermission="['OPER:ReportDefinition.CREATE']">
                         <button class="btn btn-primary float-right jh-create-entity create-reportDefinition"
                             [routerLink]="['/', { outlets: { popup: ['report-definition-new'] } }]">
