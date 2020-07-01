@@ -115,21 +115,21 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(institutionId: number, reportCategoryId: number, reportId: number, txnDate: string): Observable<HttpResponse<ReportDefinition[]>> {
-        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${institutionId}/${reportCategoryId}/${reportId}/${txnDate}`, { observe: 'response' })
+    generateReport(branchId:number, institutionId: number, reportCategoryId: number, reportId: number, txnDate: string): Observable<HttpResponse<ReportDefinition[]>> {
+        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${branchId}/${institutionId}/${reportCategoryId}/${reportId}/${txnDate}`, { observe: 'response' })
             .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 
-    downloadReport(institutionId: number, date: string, reportCategoryId: number, reportName: string): any {
-        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}`, {
+    downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string): any {
+        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${branchId}/${institutionId}/${date}/${reportCategoryId}/${reportName}`, {
             requestProgress: true,
             responseType: 'blob'
         });
         return req;
     }
 
-    getReport(institutionId: number, date: string, reportCategoryId: number): Observable<Response> {
-        return this.http.get(`${this.resourceGetGeneratedReport}/${institutionId}/${date}/${reportCategoryId}`)
+    getReport(branchId:number, institutionId: number, date: string, reportCategoryId: number): Observable<Response> {
+        return this.http.get(`${this.resourceGetGeneratedReport}/${branchId}/${institutionId}/${date}/${reportCategoryId}`)
             .map((res: any) => res);
     }
 }

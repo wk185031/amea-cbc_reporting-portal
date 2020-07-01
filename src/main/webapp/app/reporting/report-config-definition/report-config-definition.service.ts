@@ -101,7 +101,7 @@ export class ReportConfigDefinitionService {
     }
 
     findReportDefinitionStructures(): Observable<HttpResponse<any>> {
-        return this.http.get<any>(`${this.resourceReportDefinitionStructures}`, { observe: 'response' })
+        return this.http.get<any>(`${this.resourceReportDefinitionStructures}/`, { observe: 'response' })
             .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
     }
 }

@@ -10,7 +10,7 @@
                     <jhi-alert-error></jhi-alert-error>
                     <fieldset class="mandrill-fieldset">
                         <legend class="mandrill-legend" jhiTranslate="baseApp.userExtra.detail.detail"></legend>
-        
+
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col">
@@ -39,7 +39,7 @@
                                         </dd>
                                     </dl>
                                 </div>
-        
+
                                 <div class="col">
                                     <dl class="row-md jh-entity-details">
                                         <dt><span jhiTranslate="baseApp.userExtra.detail.contactMobile">Contact (mobile)</span></dt>
@@ -56,13 +56,21 @@
                                         </dd>
                                     </dl>
                                 </div>
-        
+
                                 <div class="col">
-                                    
+                                  <dl class="row-md jh-entity-details">
+                                      <dt><span jhiTranslate="baseApp.userExtra.detail.branch">Branch</span></dt>
+                                      <dd>
+                                          <span *ngFor="let branch of userExtra.branches; let last = last; let i = index;"">
+                                              <a>{{branch.abr_name}}</a> ({{branch.id}}){{last ? '' : ', '}} 
+                                          </span>
+                                      </dd>
+                                  </dl>
                                 </div>
+
                             </div>
                         </div>
-        
+
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col text-right">
@@ -86,4 +94,3 @@
             </div>
         </div>
     </div>
-    

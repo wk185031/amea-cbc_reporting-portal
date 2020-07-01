@@ -245,7 +245,7 @@
                 </a>
                 <ul class="dropdown-menu" ngbDropdownMenu>
                 	<li *ngIf="isMenuEnabled('MENU:GenerateReport')">
-                        <a class="dropdown-item" routerLink="generate-report" routerLinkActive="active" 
+                        <a class="dropdown-item" routerLink="generate-report" routerLinkActive="active"
                             [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
                             <i class="fa fa-file-text-o" aria-hidden="true"></i>
                             <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
@@ -321,6 +321,29 @@
                     </ul>
                 </div>
             </li>
+            <!--
+            <li ngbDropdown class="nav-item dropdown pointer" *ngIf="isAuthenticated()">
+                <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);"
+                    id="branchesnavBarDropdown" *ngIf="selectedBranch">
+                    <span>{{selectedBranch.abr_name}}
+                        <b class="caret"></b>
+                    </span>
+                </a>
+                <div class="dropdown-menu" ngbDropdownMenu>
+                    <input type="text" class="form-control branch-filter" (click)="onFilter()" #filter
+                        (keyup)="onKeyup(filter.value)" />
+                    <ul class="branch-filter-list" *ngIf="allBranches?.length > 1">
+                        <li *ngFor="let branch of branches">
+                            <a class="dropdown-item" [jhiActiveMenu]="language" href="javascript:void(0);"
+                                (click)="changeBranch(branch.id);collapseNavbar();">
+                                <i class="fa fa-fw fa-asterisk" aria-hidden="true"></i>
+                                <span class="word-wrap">{{branch?.abr_name}}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            -->
             <li ngbDropdown class="nav-item dropdown pointer" placement="bottom-right" routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: true}">
                 <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="account-menu">

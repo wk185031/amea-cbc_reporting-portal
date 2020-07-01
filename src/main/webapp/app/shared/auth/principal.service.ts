@@ -9,10 +9,19 @@ export class Principal {
     private authenticated = false;
     private authenticationState = new Subject<any>();
     private selectedInstitutionId: number;
+    private selectedBranchId: number;
 
     constructor(
         private account: AccountService
     ) {}
+
+    setSelectedBranchId(id: number) {
+        this.selectedBranchId = id;
+    }
+
+    getSelectedBranchId() {
+        return this.selectedBranchId;
+    }
 
     setSelectedInstitutionId(id: number) {
         this.selectedInstitutionId = id;

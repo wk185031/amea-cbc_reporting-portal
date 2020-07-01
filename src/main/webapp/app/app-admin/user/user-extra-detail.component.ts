@@ -60,7 +60,7 @@ export class UserExtraDetailComponent implements OnInit, OnDestroy {
             (response) => this.load(this.userExtra.id)
         );
     }
-    
+
     private getSelectedOptionName(selectedVals: Array<any>, option: string): string {
         if (selectedVals) {
             for (let i = 0; i < selectedVals.length; i++) {

@@ -14,6 +14,7 @@ import { RoleExtra  } from '../../entities/role-extra';
 import { RoleExtraService } from '../role/role-extra.service';
 import { Institution } from '../../entities/institution';
 import { InstitutionService } from '../institution/institution.service';
+import { BranchService, Branch } from '../../entities/branch';
 import { Principal } from '../../shared/auth/principal.service';
 
 @Component({
@@ -30,6 +31,7 @@ export class UserExtraNewDialogComponent implements OnInit {
     roleExtras: RoleExtra[];
     activated: boolean;
     institutions: Institution[];
+    branches: Branch[];
 
     constructor(public activeModal: NgbActiveModal,
                 private jhiLanguageService: JhiLanguageService,
@@ -37,6 +39,7 @@ export class UserExtraNewDialogComponent implements OnInit {
                 private userExtraService: UserExtraService,
                 private institutionService: InstitutionService,
                 private roleExtraService: RoleExtraService,
+                private branchService: BranchService,
                 private eventManager: JhiEventManager,
                 private principal: Principal) {
         this.principal.identity().then((account) => {
@@ -53,6 +56,8 @@ export class UserExtraNewDialogComponent implements OnInit {
             .subscribe((res: HttpResponse<RoleExtra[]>) => { this.roleExtras = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
         this.institutionService.query()
             .subscribe((res: HttpResponse<Institution[]>) => { this.institutions = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
+        this.branchService.query()
+            .subscribe((res: HttpResponse<Branch[]>) => { this.branches = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
     }
 
     clear() {
@@ -93,6 +98,10 @@ export class UserExtraNewDialogComponent implements OnInit {
     }
 
     trackinstitutionById(index: number, item: Institution) {
+        return item.id;
+    }
+
+    trackBranchById(index: number, item: Branch) {
         return item.id;
     }
 

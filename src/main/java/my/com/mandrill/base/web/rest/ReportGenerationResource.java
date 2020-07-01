@@ -232,14 +232,14 @@ public class ReportGenerationResource {
 		}
 	}
 
-	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
+	@GetMapping("/reportGeneration/{branchId}/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
+	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long branchId, @PathVariable Long institutionId,
 			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @PathVariable String txnDate)
 			throws ParseException {
 		logger.debug(
-				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
-				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId, txnDate);
+				"User: {}, Rest to generate Report Branch ID: {}, Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
+				SecurityUtils.getCurrentUserLogin().orElse(""), branchId, institutionId, reportCategoryId, reportId, txnDate);
 		ReportDefinition reportDefinition = null;
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
@@ -336,13 +336,13 @@ public class ReportGenerationResource {
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
 	}
 
-	@GetMapping("/report-get-generated/{institutionId}/{reportDate}/{reportCategoryId}")
+	@GetMapping("/report-get-generated/{branchId}/{institutionId}/{reportDate}/{reportCategoryId}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long institutionId,
+	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long branchId, @PathVariable Long institutionId,
 			@PathVariable String reportDate, @PathVariable Long reportCategoryId) {
-		logger.debug("User: {}, REST request to get generated report by institution and report category",
-				SecurityUtils.getCurrentUserLogin());
+		logger.debug("User: {}, REST request to get generated report by institution and report category, Branch ID : {} ",
+				SecurityUtils.getCurrentUserLogin(), branchId);
 
 		GeneratedReportDTO result = null;
 
@@ -424,12 +424,12 @@ public class ReportGenerationResource {
 		return result;
 	}
 
-	@GetMapping("/download-report/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}")
+	@GetMapping("/download-report/{branchId}/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId, @PathVariable String reportDate,
+	public ResponseEntity<Resource> downloadReport(@PathVariable Long branchId, @PathVariable Long institutionId, @PathVariable String reportDate,
 			@PathVariable Long reportCategoryId, @PathVariable String reportName) {
-		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
+		logger.debug("User: {}, REST request to download report, Branch ID : {}", SecurityUtils.getCurrentUserLogin(), branchId);
 
 		Resource resource = null;
 		Path outputPath = null;

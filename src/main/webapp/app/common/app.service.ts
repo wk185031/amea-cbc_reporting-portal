@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import { JhiDateUtils } from 'ng-jhipster';
+import { Branch } from '../entities/branch/branch.model';
 import { Institution } from '../entities/institution/institution.model';
 import { AppResource } from '../entities/app-resource/app-resource.model';
 import { HttpClient, HttpResponse } from '@angular/common/http';
@@ -8,6 +9,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 @Injectable()
 export class AppService {
 
+    private URL_BRANCHES_FOR_USER = 'api/branches-for-user';
     private URL_INSTITUTIONS_FOR_USER = 'api/institutions-for-user';
     private URL_APP_RESOURCES_FOR_USER = 'api/app-resources-for-user';
     private URL_SESSION_LOGOUT = 'api/session-logout';
@@ -16,6 +18,10 @@ export class AppService {
                 private dateUtils: JhiDateUtils) {
     }
 
+    queryBranchesForUser(req?: any): Observable<HttpResponse<Branch[]>> {
+        return this.http.get<Branch[]>(this.URL_BRANCHES_FOR_USER, { observe: 'response'})
+            .map((res: HttpResponse<Branch[]>) => this.convertArrayResponse(res));
+    }
     queryInstitutionsForUser(req?: any): Observable<HttpResponse<Institution[]>> {
         return this.http.get<Institution[]>(this.URL_INSTITUTIONS_FOR_USER, { observe: 'response'})
             .map((res: HttpResponse<Institution[]>) => this.convertArrayResponse(res));

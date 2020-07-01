@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import my.com.mandrill.base.domain.AppResource;
+import my.com.mandrill.base.domain.Branch;
 import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.InstitutionStructure;
 import my.com.mandrill.base.domain.RoleExtra;
 import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.repository.BranchRepository;
 import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
 
@@ -34,14 +36,41 @@ public class AppService {
 
 	private final InstitutionRepository institutionRepository;
 
+	private final BranchRepository branchRepository;
+
 
 	public AppService(
 			UserExtraRepository userExtraRepository,
-			InstitutionRepository institutionRepository) {
+			InstitutionRepository institutionRepository,
+			BranchRepository branchRepository) {
 		this.userExtraRepository = userExtraRepository;
 		this.institutionRepository = institutionRepository;
+		this.branchRepository = branchRepository;
 	}
+	
+	//Get Branches of companies
+	public Set<Branch> getAllBranchWithChildsOfUser(String user) {
+        log.debug("Finding all branches accessible by user " + user);
+        Set<Branch> companyBranch = new HashSet<>();
 
+        List<UserExtra> userExtraList = userExtraRepository.findByUserLogin(user);
+        if (userExtraList == null || userExtraList.isEmpty()) {
+            log.warn("User is not linked to UserExtra entity");
+            return companyBranch;
+        }
+
+        // User is surely only linked to 1 UserExtra
+        UserExtra userExtra = userExtraList.get(0);
+
+        log.debug("Companies accessible by user: " + userExtra.getBranches());
+        for(Branch userBranch:userExtra.getBranches()){
+            if(!companyBranch.contains(userBranch)) {
+            	companyBranch.add(userBranch);
+            }
+        }
+        return companyBranch;
+    }
+	
 	/**
 	 * Get all accessible companies for a given user.
 	 *
@@ -64,7 +93,7 @@ public class AppService {
 		log.debug("Companies accessible by user: " + userExtra.getInstitutions());
 		return userExtra.getInstitutions();
 	}
-
+    
     /**
      * Get all accessible companies for a given user.
      *

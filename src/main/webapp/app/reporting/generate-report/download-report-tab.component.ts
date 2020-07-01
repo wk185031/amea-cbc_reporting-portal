@@ -42,6 +42,7 @@ export class DownloadReportTabComponent implements OnInit {
         this.generatedReportDTO = new GeneratedReportDTO();
         this.principal.identity().then((account) => {
             this.institutionId = this.principal.getSelectedInstitutionId();
+            this.branchId = this.principal.getSelectedBranchId();
             this.getReport();
         });
     }
@@ -51,13 +52,13 @@ export class DownloadReportTabComponent implements OnInit {
         this.downloadReportDate = this.reportDate;
 
         if (this.reportType === 'monthly') {
-            this.generateReportService.getReport(this.institutionId, this.reportMonth + '-00', this.category.id).subscribe((data: any) => {
+            this.generateReportService.getReport(this.branchId, this.institutionId, this.reportMonth + '-00', this.category.id).subscribe((data: any) => {
                 this.generatedReportDTO = data;
             }, (error) => {
                 this.onError(error.message);
             });
         } else {
-            this.generateReportService.getReport(this.institutionId, this.reportDate, this.category.id).subscribe((data: any) => {
+            this.generateReportService.getReport(this.branchId, this.institutionId, this.reportDate, this.category.id).subscribe((data: any) => {
                 this.generatedReportDTO = data;
             }, (error) => {
                 this.onError(error.message);
@@ -67,7 +68,7 @@ export class DownloadReportTabComponent implements OnInit {
     }
 
     download(reportName: string, reportCategoryId: number) {
-        const req = this.generateReportService.downloadReport(this.institutionId,
+        const req = this.generateReportService.downloadReport(this.branchId, this.institutionId,
             (this.reportType === 'monthly' ? this.reportMonth + '-00' : this.reportDate), reportCategoryId, reportName);
         this.http.request(req).subscribe(
             (requestEvent: HttpEvent<Blob[]>) => {

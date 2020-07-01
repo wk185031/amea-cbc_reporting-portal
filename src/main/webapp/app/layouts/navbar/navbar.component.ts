@@ -11,6 +11,7 @@ import { VERSION } from '../../app.constants';
 import { AppService } from '../../common/app.service';
 import { AppPermissionService } from '../../common/app-permission.service';
 import { AppResource } from '../../entities/app-resource/app-resource.model';
+import { Branch } from '../../entities/branch/branch.model';
 import { Institution } from '../../entities/institution/institution.model';
 import { HttpResponse } from '@angular/common/http';
 
@@ -30,6 +31,9 @@ export class NavbarComponent implements OnInit {
     version: string;
 
     account: Account;
+    selectedBranch: Branch;
+    branches: Branch[];
+    allBranches: Branch[];
     selectedInstitution: Institution;
     institutions: Institution[];
     allInstitutions: Institution[];
@@ -72,6 +76,14 @@ export class NavbarComponent implements OnInit {
         this.principal.identity().then((account) => {
             this.account = account;
         });
+
+        //retrieve Branch for companies
+        this.appService.queryBranchesForUser().subscribe((res: HttpResponse<Branch[]>) => {
+            this.branches = res.body;
+            this.branches = this.branches;
+            this.changeBranch(this.branches[0].id) ;
+        });
+
         // retrieve all the companies accessible by this user
         // TODO
         this.appService.queryInstitutionsForUser().subscribe((res: HttpResponse<Institution[]>) => {
@@ -88,6 +100,17 @@ export class NavbarComponent implements OnInit {
             this.appResources.forEach((resource: AppResource) => console.log('Granted permission:' + resource.code));
         });
 
+    }
+
+    changeBranch(id: number) {
+        for (const branch of this.branches) {
+            if (branch.id === id) {
+                this.selectedBranch = branch;
+                break;
+            }
+        }
+        this.principal.setSelectedBranchId(this.selectedBranch.id);
+        this.router.navigate(['/']);
     }
 
     changeInstitution(id: number) {

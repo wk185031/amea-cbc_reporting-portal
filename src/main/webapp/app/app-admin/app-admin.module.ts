@@ -2,6 +2,7 @@ import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 import { BaseUserExtraModule } from './user/user-extra.module';
 import { BaseRoleExtraModule } from './role/role-extra.module';
+// import { BaseBranchModule } from './branch/branch.module';
 import { BaseSystemConfigurationModule } from './system-configuration/system-configuration.module';
 import { BaseInstitutionModule } from './institution/institution.module';
 import { BaseAppResourceModule } from './role/app-resource/app-resource.module';
@@ -15,6 +16,7 @@ import { BaseJobHistoryModule } from './job-history/job-history.module';
     imports: [
         BaseUserExtraModule,
         BaseRoleExtraModule,
+        //BaseBranchModule,
         BaseSystemConfigurationModule,
         BaseInstitutionModule,
         BaseAppResourceModule,

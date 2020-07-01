@@ -18,6 +18,7 @@ export class GenerateReportTabComponent implements OnInit {
     eventSubscriber: Subscription;
     deleteEventSubscriber: Subscription;
     institutionId: number;
+    branchId: number;
     @Input() categories: ReportCategory[];
     category: ReportCategory;
     allCategory: ReportCategory = { id: 0, name: 'All' };
@@ -53,6 +54,7 @@ export class GenerateReportTabComponent implements OnInit {
         this.principal.identity().then((account) => {
             this.currentAccount = account;
             this.institutionId = this.principal.getSelectedInstitutionId();
+            this.branchId = this.principal.getSelectedBranchId();
         });
         this.registerChangeInReportGeneration();
         this.category = this.categories[0];
@@ -94,7 +96,7 @@ export class GenerateReportTabComponent implements OnInit {
 
     generate() {
             this.ngxLoader.start();
-            this.generateReportService.generateReport(this.institutionId, this.category.id,
+            this.generateReportService.generateReport(this.branchId, this.institutionId, this.category.id,
                 this.report ? this.report.id : 0, this.reportDate).subscribe(
                 (res: HttpResponse<ReportDefinition[]>) => {
                     this.onSuccess(this.generated);

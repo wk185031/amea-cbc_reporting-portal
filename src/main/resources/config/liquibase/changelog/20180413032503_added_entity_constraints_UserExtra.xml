@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <!--
+        Added the constraints for entity UserExtra.
+    -->
+    <changeSet id="20180413032503-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="user_extra"
+                                 constraintName="fk_user_extra_user_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="jhi_user"/>
+
+        <addForeignKeyConstraint baseColumnNames="user_extras_id"
+                                 baseTableName="user_extra_roles"
+                                 constraintName="fk_user_extra_roles_user_extras_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user_extra"/>
+        <addForeignKeyConstraint baseColumnNames="roles_id"
+                                 baseTableName="user_extra_roles"
+                                 constraintName="fk_user_extra_roles_roles_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="role_extra"/>
+        
+        <addForeignKeyConstraint baseColumnNames="user_extras_id"
+                                 baseTableName="user_extra_institutions"
+                                 constraintName="fk_user_extra_institutions_user_extras_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user_extra"/>
+        <addForeignKeyConstraint baseColumnNames="institutions_id"
+                                 baseTableName="user_extra_institutions"
+                                 constraintName="fk_user_extra_institutions_institutions_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="institution"/>
+        
+        <addForeignKeyConstraint baseColumnNames="user_extras_id"
+                                 baseTableName="user_extra_branches"
+                                 constraintName="fk_user_extra_branches_user_extras_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user_extra"/>
+        <addForeignKeyConstraint baseColumnNames="branches_id"
+                                 baseTableName="user_extra_branches"
+                                 constraintName="fk_user_extra_branches_branches_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="branch"/>
+        
+    </changeSet>
+</databaseChangeLog>

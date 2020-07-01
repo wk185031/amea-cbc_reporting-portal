@@ -1,6 +1,7 @@
 {
     "baseApp": {
         "reportDefinition": {
+	    "filterByBranch": "Filter By Branch",
             "created": "Report is created!",
             "updated": "Report is updated!",
             "deleted": "Report is deleted!",

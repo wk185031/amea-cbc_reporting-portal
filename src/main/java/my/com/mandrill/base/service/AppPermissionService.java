@@ -44,6 +44,7 @@ public class AppPermissionService {
     
     public static final String RESOURCE_INSTITUTION = "Institution";
     public static final String RESOURCE_USER_ROLE = "UserRole";
+    public static final String RESOURCE_BRANCH = "Branch";
     public static final String RESOURCE_USER = "User";
     public static final String RESOURCE_SYSTEM_CONFIGURATION = "SystemConfiguration";
     public static final String RESOURCE_CUSTOMER = "Customer";

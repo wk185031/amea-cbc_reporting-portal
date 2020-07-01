@@ -20,6 +20,8 @@ export class ReportConfigDefinitionComponent implements OnInit {
     reportDefinitionId: number;
     mode: string;
     nodes: TreeModule;
+    filterBranch: boolean;
+    branchId: number;
 
     constructor(
         private reportConfigDefinitionService: ReportConfigDefinitionService,
@@ -30,7 +32,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
     }
 
     loadAll() {
-        this.reportConfigDefinitionService.findReportDefinitionStructures().subscribe(
+        this.reportConfigDefinitionService.findReportDefinitionStructures(this.branchId).subscribe(
             (response: HttpResponse<any>) => {
                 this.nodes = response.body;
             },
@@ -39,6 +41,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
 
     ngOnInit() {
         this.mode = 'view';
+        this.branchId = this.principal.getSelectedBranchId();
         this.loadAll();
         this.principal.identity().then((account) => {
             this.currentAccount = account;
@@ -81,5 +84,14 @@ export class ReportConfigDefinitionComponent implements OnInit {
 
     private onError(error) {
         this.jhiAlertService.error(error.message, null, null);
+    }
+
+    filterByBranch(event) {
+        this.filterBranch = event.target.checked;
+        if (this.filterBranch) {
+            console.log("FILTERRRRRRRR");
+        } else {
+            console.log("NO FILTERRRRRRRRRRR");
+        }
     }
 }

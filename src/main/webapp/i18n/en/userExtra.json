@@ -28,7 +28,8 @@
                 "contactWork": "Direct Telephone Line",
                 "contactOther": "Other Contacts",
                 "institution": "Corporate Structures",
-                "role": "Role"
+                "role": "Role",
+                "branch": "Branch"
             },
             "create": {
                 "username": "User Name",
