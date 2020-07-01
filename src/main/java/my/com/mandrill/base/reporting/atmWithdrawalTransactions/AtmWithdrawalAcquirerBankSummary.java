@@ -60,6 +60,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			String terminal = null;
 			String location = null;
 
+			preProcessingInstitution(rgm);
 			separateQuery(rgm);
 			preProcessing(rgm);
 
@@ -166,6 +167,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 			pagination = 1;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
+			preProcessingInstitution(rgm);
 			separateQuery(rgm);
 			preProcessing(rgm);
 			bankDetails = false;
@@ -230,6 +232,18 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 				rgm.errors++;
 				logger.error("Error in closing fileOutputStream", e);
 			}
+		}
+	}
+	
+	private void preProcessingInstitution(ReportGenerationMgr rgm)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessingInstitution()");
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'"));
+		}
+
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'"));
 		}
 	}
 
