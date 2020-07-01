@@ -32,7 +32,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
     }
 
     loadAll() {
-        this.reportConfigDefinitionService.findReportDefinitionStructures(this.branchId).subscribe(
+        this.reportConfigDefinitionService.findReportDefinitionStructures().subscribe(
             (response: HttpResponse<any>) => {
                 this.nodes = response.body;
             },

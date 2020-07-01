@@ -238,7 +238,7 @@ public class ReportDefinitionResource {
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
 
-	@GetMapping("/reportDefinition-structures")
+	@GetMapping("/reportDefinition-structures/")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
 			+ "')")
