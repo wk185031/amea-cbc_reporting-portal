@@ -20,7 +20,6 @@ export class ReportConfigDefinitionComponent implements OnInit {
     reportDefinitionId: number;
     mode: string;
     nodes: TreeModule;
-    filterBranch: boolean;
 
     constructor(
         private reportConfigDefinitionService: ReportConfigDefinitionService,
@@ -28,13 +27,13 @@ export class ReportConfigDefinitionComponent implements OnInit {
         private principal: Principal,
         private eventManager: JhiEventManager
     ) {
+        this.principal.identity().then((account) => {
+            this.currentAccount = account;
+        });
     }
 
     ngOnInit() {
         this.mode = 'view';
-        this.principal.identity().then((account) => {
-            this.currentAccount = account;
-        });
         this.loadAll();
         this.registerChangeInReportDefinition();
     }
@@ -58,8 +57,10 @@ export class ReportConfigDefinitionComponent implements OnInit {
     }
 
     registerChangeInReportDefinition() {
-        this.eventSubscriber = this.eventManager.subscribe('reportConfigDefinitionListModification', (response) => this.loadAll());
-        this.deleteEventSubscriber = this.eventManager.subscribe('reportConfigDefinitionTreeStructureDelete', (response) => this.loadAll());
+        this.eventSubscriber = this.eventManager.subscribe('reportConfigDefinitionListModification', (response) =>
+            this.loadAll());
+        this.deleteEventSubscriber = this.eventManager.subscribe('reportConfigDefinitionTreeStructureDelete', (response) =>
+            this.loadAll());
     }
 
     onNotify(id: number): void {

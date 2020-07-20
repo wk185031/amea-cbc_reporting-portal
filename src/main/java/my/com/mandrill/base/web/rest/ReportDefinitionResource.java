@@ -157,7 +157,7 @@ public class ReportDefinitionResource {
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-
+	
 	/**
 	 * GET /reportDefinition : get all the report definition without paging
 	 *
@@ -175,6 +175,7 @@ public class ReportDefinitionResource {
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
+	
 
 	/**
 	 * GET /reportDefinition/:id : get the "id" reportDefinition.
@@ -237,16 +238,18 @@ public class ReportDefinitionResource {
 				"/api/_search/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-
-	@GetMapping("/reportDefinition-structures/")
+	
+	@GetMapping("/reportDefinition-structures")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
 			+ "')")
-	public ResponseEntity<String> getReportDefinitionStructures() {
+	public ResponseEntity<String> getReportDefinitionStructuresFilterWithBranch() {
 		log.debug("User: {}, REST request to get Report Definition Structures",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
 		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByIdAsc());
-		List<ReportDefinition> children = reportDefinitionRepository.findAll(orderByIdAsc());
+		List<ReportDefinition> children = null;
+		//HQ User branch ID
+		children = reportDefinitionRepository.findAll(orderByIdAsc());
 		List<TreeStructure> structures = new ArrayList<>();
 		Long incrementNumber = new Long(1);
 		for (ReportCategory parent : parents) {
@@ -254,6 +257,10 @@ public class ReportDefinitionResource {
 			structure.setId(incrementNumber);
 			incrementNumber++;
 			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
+			
+			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
+				continue;
+			}
 			for (TreeStructure childStructures : structure.getChildren()) {
 				childStructures.setId(incrementNumber);
 				incrementNumber++;
@@ -266,7 +273,7 @@ public class ReportDefinitionResource {
 		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
 	}
-
+	
 	public List<TreeStructure> buildReportDefinitionTree(List<ReportDefinition> all, Long parentId) {
 		List<ReportDefinition> children = all.stream()
 				.filter(reportDefinition -> reportDefinition.getReportCategory() != null
