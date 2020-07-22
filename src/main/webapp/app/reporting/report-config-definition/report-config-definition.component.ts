@@ -20,6 +20,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
     reportDefinitionId: number;
     mode: string;
     nodes: TreeModule;
+    branchId: number;
 
     constructor(
         private reportConfigDefinitionService: ReportConfigDefinitionService,
@@ -29,17 +30,27 @@ export class ReportConfigDefinitionComponent implements OnInit {
     ) {
         this.principal.identity().then((account) => {
             this.currentAccount = account;
+            this.branchId = this.principal.getSelectedBranchId();
         });
     }
 
     ngOnInit() {
         this.mode = 'view';
-        this.loadAll();
+        this.loadAllFilterWithBranch(this.branchId);
         this.registerChangeInReportDefinition();
     }
-
+    /*
     loadAll() {
         this.reportConfigDefinitionService.findReportDefinitionStructures().subscribe(
+            (response: HttpResponse<any>) => {
+                this.nodes = response.body;
+            },
+            (response: HttpErrorResponse) => this.onError(response.message));
+    }
+    */
+
+    loadAllFilterWithBranch(branchId: number) {
+        this.reportConfigDefinitionService.findReportDefinitionStructuresFilterWithBranch(this.branchId).subscribe(
             (response: HttpResponse<any>) => {
                 this.nodes = response.body;
             },
@@ -58,9 +69,9 @@ export class ReportConfigDefinitionComponent implements OnInit {
 
     registerChangeInReportDefinition() {
         this.eventSubscriber = this.eventManager.subscribe('reportConfigDefinitionListModification', (response) =>
-            this.loadAll());
+            this.loadAllFilterWithBranch(this.branchId));
         this.deleteEventSubscriber = this.eventManager.subscribe('reportConfigDefinitionTreeStructureDelete', (response) =>
-            this.loadAll());
+            this.loadAllFilterWithBranch(this.branchId));
     }
 
     onNotify(id: number): void {

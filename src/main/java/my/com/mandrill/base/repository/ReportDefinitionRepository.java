@@ -14,5 +14,6 @@ import my.com.mandrill.base.domain.ReportDefinition;
  */
 @Repository
 public interface ReportDefinitionRepository extends JpaRepository<ReportDefinition, Long> {
-	
+	@Query("select reportDefinition from ReportDefinition reportDefinition where reportDefinition.branchFlag = 'branch'")
+    List<ReportDefinition> findAllReportDefinitionWithBranch(Sort sort);
 }

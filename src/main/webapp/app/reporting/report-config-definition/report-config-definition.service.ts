@@ -99,9 +99,14 @@ export class ReportConfigDefinitionService {
         copy.lastModifiedDate = this.dateUtils.toDate(reportDefinition.lastModifiedDate);
         return copy;
     }
-    
+    /*
     findReportDefinitionStructures(): Observable<HttpResponse<any>> {
         return this.http.get<any>(`${this.resourceReportDefinitionStructures}`, { observe: 'response' })
+            .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
+    }
+    */
+    findReportDefinitionStructuresFilterWithBranch(branchId: number): Observable<HttpResponse<any>> {
+        return this.http.get<any>(`${this.resourceReportDefinitionStructures}/${branchId}`, { observe: 'response' })
             .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
     }
 }

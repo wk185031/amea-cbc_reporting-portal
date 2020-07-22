@@ -71,6 +71,8 @@ public class ReportDefinitionResource {
 	private final ReportDefinitionRepository reportDefinitionRepository;
 
 	private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
+	
+	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportDefinitionResource(ReportCategoryRepository reportCategoryRepository,
 			ReportDefinitionRepository reportDefinitionRepository,
@@ -176,7 +178,6 @@ public class ReportDefinitionResource {
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
 	
-
 	/**
 	 * GET /reportDefinition/:id : get the "id" reportDefinition.
 	 *
@@ -239,6 +240,7 @@ public class ReportDefinitionResource {
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
 	
+	//Previous query without branch filter
 	@GetMapping("/reportDefinition-structures")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
@@ -250,6 +252,46 @@ public class ReportDefinitionResource {
 		List<ReportDefinition> children = null;
 		//HQ User branch ID
 		children = reportDefinitionRepository.findAll(orderByIdAsc());
+		List<TreeStructure> structures = new ArrayList<>();
+		Long incrementNumber = new Long(1);
+		for (ReportCategory parent : parents) {
+			TreeStructure structure = new TreeStructure(parent);
+			structure.setId(incrementNumber);
+			incrementNumber++;
+			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
+			
+			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
+				continue;
+			}
+			for (TreeStructure childStructures : structure.getChildren()) {
+				childStructures.setId(incrementNumber);
+				incrementNumber++;
+			}
+			structures.add(structure);
+		}
+		JSONArray jsonStructures = new JSONArray();
+		for (TreeStructure reportDefinitionStructure : structures) {
+			jsonStructures.put(new JSONObject(reportDefinitionStructure));
+		}
+		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
+	}
+	
+	//New URL for retrieve reports with branch
+	@GetMapping("/reportDefinition-structures/{branchId}")
+	@Timed
+	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
+			+ "')")
+	public ResponseEntity<String> getReportDefinitionStructuresFilterWithBranch(@PathVariable Long branchId) {
+		log.debug("User: {}, REST request to get Report Definition Structures, Branch Id : {}",
+				SecurityUtils.getCurrentUserLogin().orElse(""), branchId);
+		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByIdAsc());
+		List<ReportDefinition> children = null;
+		//HQ User branch ID
+		if (branchId.toString().equals(MASTER_BRANCH_ID)) {
+			children = reportDefinitionRepository.findAll(orderByIdAsc());
+		} else {
+			children = reportDefinitionRepository.findAllReportDefinitionWithBranch(orderByIdAsc());
+		}
 		List<TreeStructure> structures = new ArrayList<>();
 		Long incrementNumber = new Long(1);
 		for (ReportCategory parent : parents) {

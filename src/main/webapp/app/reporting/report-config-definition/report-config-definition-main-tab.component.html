@@ -125,6 +125,14 @@
                     </small>
                 </div>
             </div>
+            <div class="form-group">
+              <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.generateScheduleLabel"
+                  for="field_generateSchedule">Generate Schedule</label>
+              <div *ngIf="scheduleFlag">
+                <ngb-timepicker  meridian="true" name="dailySchedule" id="field_dailySchedule"
+                    [ngModel]="time" (ngModelChange)="saveScheduleTime($event)"></ngb-timepicker>
+              </div>
+            </div>
         </div>
     </div>
 </form>

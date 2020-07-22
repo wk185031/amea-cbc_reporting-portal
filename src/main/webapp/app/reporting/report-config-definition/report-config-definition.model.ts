@@ -30,7 +30,9 @@ export class ReportDefinition implements BaseEntity {
         public reportCategory?: ReportCategory,
         public headerSection?: ReportDefinitionSection[],
         public bodySection?: ReportDefinitionSection[],
-        public trailerSection?: ReportDefinitionSection[]
+        public trailerSection?: ReportDefinitionSection[],
+        public branchFlag?: string,
+        public dailyScheduleTime?: any
     ) {
     }
 }

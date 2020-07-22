@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap/timepicker/timepicker.module';
 import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
 import { ReportConfigCategoryService } from '../report-config-category/report-config-category.service';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'report-config-definition-main-tab',
@@ -22,19 +24,26 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
     daily: boolean;
     weekly: boolean;
     monthly: boolean;
+    timeAsDate: Date;
+    time: NgbTimeStruct;
+    timeString: String;
+    scheduleFlag: boolean;
 
     reportDefinitionList: ReportDefinition[];
     reportCategoryList: ReportCategory[];
+
 
     constructor(
         public activeModal: NgbActiveModal,
         private reportConfigDefinitionService: ReportConfigDefinitionService,
         private reportConfigCategoryService: ReportConfigCategoryService,
-        private jhiAlertService: JhiAlertService
+        private jhiAlertService: JhiAlertService,
+        private datePipe: DatePipe
     ) {
     }
 
     ngOnInit() {
+        this.scheduleFlag = true;
         if (!this.reportDefinition.id) {
             this.pdfFormat = true;
             this.daily = true;
@@ -64,6 +73,8 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         this.reportConfigDefinitionService.query().subscribe((reportDefinition: HttpResponse<ReportDefinition[]>) => {
             this.reportDefinitionList = reportDefinition.body;
         }, (error: HttpErrorResponse) => this.onError(error.message));
+        this.timeAsDate = new Date(this.reportDefinition.dailyScheduleTime * 1000);
+        this.time = {hour: this.timeAsDate.getHours(), minute: this.timeAsDate.getMinutes(), second: this.timeAsDate.getSeconds()};
     }
 
     private onError(error: any) {
@@ -73,6 +84,7 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
     valueChange() {
         this.reportDefinition.fileFormat = '';
         this.reportDefinition.frequency = '';
+
         if ((<HTMLInputElement>document.getElementById('field_pdf')).checked) {
             this.reportDefinition.fileFormat += 'PDF,';
         }
@@ -85,12 +97,18 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         if ((<HTMLInputElement>document.getElementById('field_daily')).checked) {
             this.reportDefinition.frequency += 'Daily,';
         }
+        /*
         if ((<HTMLInputElement>document.getElementById('field_weekly')).checked) {
             this.reportDefinition.frequency += 'Weekly,';
         }
+        */
         if ((<HTMLInputElement>document.getElementById('field_monthly')).checked) {
             this.reportDefinition.frequency += 'Monthly,';
         }
+
+        this.timeAsDate.setHours(this.time.hour, this.time.minute, this.time.second);
+        this.reportDefinition.dailyScheduleTime = this.timeAsDate.getTime() / 1000;
+        console.log("dailyscheduleTime : " + this.reportDefinition.dailyScheduleTime);
         this.onValueChange.emit(true);
     }
 
@@ -100,4 +118,12 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         }
         this.valueChange();
     }
+
+    saveScheduleTime(currentTime: NgbTimeStruct){
+        this.time.hour = currentTime.hour;
+        this.time.minute = currentTime.minute;
+        this.time.second = currentTime.second;
+        this.valueChange();
+    }
+
 }

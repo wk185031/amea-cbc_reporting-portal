@@ -2,6 +2,7 @@ package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -107,6 +108,12 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	@Column(name = "red_trailer_query")
 	private String trailerQuery;
 
+	@Column(name = "red_branch_flag")
+	private String branchFlag;
+	
+	@Column(name = "red_daily_schedule_time")
+	private ZonedDateTime dailyScheduleTime;
+	
 	@ManyToOne(optional = false)
 	@NotNull
 	private ReportCategory red;
@@ -367,7 +374,33 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public void setReportCategory(ReportCategory red) {
 		this.red = red;
 	}
+	
+	public String getBranchFlag() {
+		return branchFlag;
+	}
 
+	public ReportDefinition branchFlag(String branchFlag) {
+		this.branchFlag = branchFlag;
+		return this;
+	}
+
+	public void setBranchFlag(String branchFlag) {
+		this.branchFlag = branchFlag;
+	}
+	
+	public ZonedDateTime getDailyScheduleTime() {
+		return dailyScheduleTime;
+	}
+
+	public ReportDefinition dailyScheduleTime(ZonedDateTime dailyScheduleTime) {
+		this.dailyScheduleTime = dailyScheduleTime;
+		return this;
+	}
+
+	public void setDailyScheduleTime(ZonedDateTime dailyScheduleTime) {
+		this.dailyScheduleTime = dailyScheduleTime;
+	}
+	
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 	@Override
@@ -394,6 +427,7 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public String toString() {
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", rec=" + red.getName() + "]";
+				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", rec=" + red.getName() 
+				+ ", branchFlag=" + branchFlag + ", dailyScheduleTime=" + dailyScheduleTime + "]";
 	}
 }
