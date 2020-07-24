@@ -109,4 +109,9 @@ export class ReportConfigDefinitionService {
         return this.http.get<any>(`${this.resourceReportDefinitionStructures}/${branchId}`, { observe: 'response' })
             .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
     }
+
+    queryNoPagingFilterWithBranch(branchId: number): Observable<HttpResponse<ReportDefinition[]>> {
+      return this.http.get<ReportDefinition[]>(`${this.resourceUrlNoPaging}/${branchId}`, { observe: 'response' })
+          .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayResponse(res));
+    }
 }

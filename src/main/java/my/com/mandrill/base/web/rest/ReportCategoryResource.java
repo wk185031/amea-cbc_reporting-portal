@@ -64,6 +64,8 @@ public class ReportCategoryResource {
 	private final ReportCategoryRepository reportCategoryRepository;
 
 	private final ReportCategorySearchRepository reportCategorySearchRepository;
+	
+	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportCategoryResource(ReportCategoryRepository reportCategoryRepository,
 			ReportCategorySearchRepository reportCategorySearchRepository) {
@@ -148,7 +150,7 @@ public class ReportCategoryResource {
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportCategory");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-
+	
 	/**
 	 * GET /reportCategory : get all the report categories without paging
 	 *
@@ -162,6 +164,27 @@ public class ReportCategoryResource {
 		log.debug("User: {}, REST request to all Report Categories without paging",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
 		List<ReportCategory> reportCategory = reportCategoryRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
+		return new ResponseEntity<>(reportCategory, HttpStatus.OK);
+	}
+
+	/**
+	 * GET /reportCategory : get all the report categories without paging
+	 *
+	 * @return the ResponseEntity with status 200 (OK) and the list of report
+	 *         categories in body
+	 */
+	@GetMapping("/reportCategory-nopaging/{branchId}")
+	@Timed
+	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_CATEGORY + DOT + READ + "')")
+	public ResponseEntity<List<ReportCategory>> getAllReportCategoriesNoPagingWithBranch(@PathVariable Long branchId) {
+		log.debug("User: {}, REST request to all Report Categories without paging",
+				SecurityUtils.getCurrentUserLogin().orElse(""));
+		List<ReportCategory> reportCategory = null;
+		if (branchId.toString().equals(MASTER_BRANCH_ID)) {
+			reportCategory = reportCategoryRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
+		} else {
+			reportCategory= reportCategoryRepository.findAllReportCategoryWithBranch(new Sort(Sort.Direction.ASC, "name"));
+		}
 		return new ResponseEntity<>(reportCategory, HttpStatus.OK);
 	}
 

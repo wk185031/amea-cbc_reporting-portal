@@ -98,4 +98,9 @@ export class ReportConfigCategoryService {
         copy.lastModifiedDate = this.dateUtils.toDate(reportCategory.lastModifiedDate);
         return copy;
     }
+
+    queryNoPagingFilterWithBranch(branchId: number): Observable<HttpResponse<ReportCategory[]>> {
+        return this.http.get<ReportCategory[]>(`${this.resourceUrlNoPaging}/${branchId}`, { observe: 'response' })
+            .map((res: HttpResponse<ReportCategory[]>) => this.convertArrayResponse(res));
+    }
 }

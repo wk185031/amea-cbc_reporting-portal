@@ -21,13 +21,15 @@ export class GenerateReportResolvePagingParams implements Resolve<any> {
 
     constructor(private paginationUtil: JhiPaginationUtil,
         private reportConfigCategoryService: ReportConfigCategoryService,
-        private reportConfigDefinitionService: ReportConfigDefinitionService) { }
+        private reportConfigDefinitionService: ReportConfigDefinitionService) {
+    }
 
     resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
         const page = route.queryParams['page'] ? route.queryParams['page'] : '1';
         const sort = route.queryParams['sort'] ? route.queryParams['sort'] : 'id,asc';
-
-        return forkJoin([this.reportConfigCategoryService.queryNoPaging(), this.reportConfigDefinitionService.queryNoPaging()]).pipe(
+        const branchId = route.params.id;
+        return forkJoin([this.reportConfigCategoryService.queryNoPagingFilterWithBranch(branchId),
+            this.reportConfigDefinitionService.queryNoPagingFilterWithBranch(branchId)]).pipe(
             map((value) => value),
             mergeMap((value: Observable<[HttpResponse<ReportCategory[]>, HttpResponse<ReportDefinition[]>]>) => {
                 return of({
@@ -39,12 +41,26 @@ export class GenerateReportResolvePagingParams implements Resolve<any> {
                 });
             })
         );
+
     }
 }
 
 export const generateReportRoute: Routes = [
     {
         path: 'generate-report',
+        component: GenerateReportComponent,
+        resolve: {
+            'pagingParams': GenerateReportResolvePagingParams
+        },
+        data: {
+            authorities: ['ROLE_USER'],
+            appPermission: ['MENU:GenerateReport'],
+            pageTitle: 'baseApp.reportGeneration.title'
+        },
+        canActivate: [UserRouteAccessService, AppRouteAccessService]
+    },
+    {
+        path: 'generate-report/:id',
         component: GenerateReportComponent,
         resolve: {
             'pagingParams': GenerateReportResolvePagingParams
