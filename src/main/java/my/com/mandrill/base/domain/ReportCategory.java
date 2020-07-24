@@ -44,7 +44,12 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
 	@Size(max = 255)
 	@Column(name = "rec_description", length = 255, nullable = false)
 	private String description;
-
+	
+	@Size(max = 255)
+	@Column(name = "rec_branch_flag")
+	private String branchFlag;
+	
+	
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
 	public Long getId() {
@@ -80,6 +85,19 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
+	public String getBranchFlag() {
+		return branchFlag;
+	}
+
+	public ReportCategory branchFlag(String branchFlag) {
+		this.branchFlag = branchFlag;
+		return this;
+	}
+
+	public void setBranchFlag(String branchFlag) {
+		this.branchFlag = branchFlag;
+	}
 
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
@@ -110,6 +128,7 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
         "id=" + getId() +
         ", name='" + getName() + "'" +
         ", description='" + getDescription() + "'" +
+        ", branch='" + getBranchFlag() + "'" +
         ", createdBy='" + getCreatedBy() + "'" +
         ", createdDate='" + getCreatedDate() + "'" +
         ", lastModifiedBy='" + getLastModifiedBy() + "'" +
