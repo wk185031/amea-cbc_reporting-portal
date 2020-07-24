@@ -179,29 +179,6 @@ public class ReportDefinitionResource {
 	}
 	
 	/**
-	 * GET /reportDefinition : get all the report definition without paging
-	 *
-	 * @return the ResponseEntity with status 200 (OK) and the list of report
-	 *         definition in body
-	 */
-	@GetMapping("/reportDefinition-nopaging/{branchId}")
-	@Timed
-	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
-			+ "')")
-	public ResponseEntity<List<ReportDefinition>> getAllReportDefinitionNoPagingWithBranch(@PathVariable Long branchId) {
-		// log.debug("User: {}, REST request to all ReportDefinition without paging",
-		// SecurityUtils.getCurrentUserLogin().orElse(""));
-		List<ReportDefinition> reportDefinition = null;
-		if (branchId.toString().equals(MASTER_BRANCH_ID)) {
-			reportDefinition = reportDefinitionRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
-		} else {
-			reportDefinition= reportDefinitionRepository.findAllReportDefinitionWithBranch(new Sort(Sort.Direction.ASC, "name"));
-		}
-		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
-		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
-	}
-	
-	/**
 	 * GET /reportDefinition/:id : get the "id" reportDefinition.
 	 *
 	 * @param id
