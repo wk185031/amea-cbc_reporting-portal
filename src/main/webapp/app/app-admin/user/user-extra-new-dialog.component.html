@@ -89,7 +89,7 @@
               <div class="form-group required ">
                   <label jhiTranslate="baseApp.userExtra.create.branch" for="field_branch">Branch</label>
                   <select class="form-control" id="field_branch" multiple name="branch" [(ngModel)]="userExtra.branches" required>
-                      <option [ngValue]="getSelected(userExtra.branches, branchOption)" *ngFor="let branchOption of branches; trackBy: trackBranchById">{{branchOption.abr_name}} ({{branchOption.id}})</option>
+                      <option [ngValue]="getSelected(userExtra.branches, branchOption)" *ngFor="let branchOption of branches; trackBy: trackBranchById">{{branchOption.abr_name}} ({{branchOption.abr_code}})</option>
                   </select>
                    <div [hidden]="!(newForm.controls.branch?.dirty && newForm.controls.branch?.invalid)">
                       <small class="form-text text-danger"

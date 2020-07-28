@@ -62,7 +62,7 @@
                                       <dt><span jhiTranslate="baseApp.userExtra.detail.branch">Branch</span></dt>
                                       <dd>
                                           <span *ngFor="let branch of userExtra.branches; let last = last; let i = index;"">
-                                              <a>{{branch.abr_name}}</a> ({{branch.id}}){{last ? '' : ', '}} 
+                                              <a>{{branch.abr_name}}</a> ({{branch.abr_code}}){{last ? '' : ', '}} 
                                           </span>
                                       </dd>
                                   </dl>
