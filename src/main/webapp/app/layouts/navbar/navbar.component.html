@@ -244,9 +244,9 @@
                     </span>
                 </a>
                 <ul class="dropdown-menu" ngbDropdownMenu>
-                	<li *ngIf="isMenuEnabled('MENU:GenerateReport')">
+                	<li *ngIf="isMenuEnabled('MENU:GenerateReport') && isBranchExist">
                         <a class="dropdown-item" [routerLink]="['generate-report', branches[0].id]" routerLinkActive="active"
-                            [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
+                        [routerLinkActiveOptions]="{exact: true}" (click)="collapseNavbar()">
                             <i class="fa fa-file-text-o" aria-hidden="true"></i>
                             <span jhiTranslate="baseApp.reportGeneration.title">Generate Report</span>
                         </a>

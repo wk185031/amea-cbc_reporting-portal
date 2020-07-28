@@ -112,7 +112,10 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	private String branchFlag;
 	
 	@Column(name = "red_daily_schedule_time")
-	private ZonedDateTime dailyScheduleTime;
+	private ZonedDateTime scheduleTime;
+	
+	@Column(name = "red_ins_id")
+	private Long institutionId;
 	
 	@ManyToOne(optional = false)
 	@NotNull
@@ -388,17 +391,30 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 		this.branchFlag = branchFlag;
 	}
 	
-	public ZonedDateTime getDailyScheduleTime() {
-		return dailyScheduleTime;
+	public ZonedDateTime getScheduleTime() {
+		return scheduleTime;
 	}
 
-	public ReportDefinition dailyScheduleTime(ZonedDateTime dailyScheduleTime) {
-		this.dailyScheduleTime = dailyScheduleTime;
+	public ReportDefinition scheduleTime(ZonedDateTime scheduleTime) {
+		this.scheduleTime = scheduleTime;
 		return this;
 	}
 
-	public void setDailyScheduleTime(ZonedDateTime dailyScheduleTime) {
-		this.dailyScheduleTime = dailyScheduleTime;
+	public void setScheduleTime(ZonedDateTime scheduleTime) {
+		this.scheduleTime = scheduleTime;
+	}
+	
+	public Long getInstitutionId() {
+		return this.institutionId;
+	}
+
+	public ReportDefinition institutionId(Long institutionId) {
+		this.institutionId = institutionId;
+		return this;
+	}
+
+	public void setInstitutionId(Long institutionId) {
+		this.institutionId = institutionId;
 	}
 	
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
@@ -428,6 +444,6 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
 				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", rec=" + red.getName() 
-				+ ", branchFlag=" + branchFlag + ", dailyScheduleTime=" + dailyScheduleTime + "]";
+				+ ", branchFlag=" + branchFlag + ", scheduleTime=" + scheduleTime + ", instutionId=" + institutionId + "]";
 	}
 }

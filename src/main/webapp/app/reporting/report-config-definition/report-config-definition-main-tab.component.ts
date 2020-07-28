@@ -73,7 +73,7 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         this.reportConfigDefinitionService.query().subscribe((reportDefinition: HttpResponse<ReportDefinition[]>) => {
             this.reportDefinitionList = reportDefinition.body;
         }, (error: HttpErrorResponse) => this.onError(error.message));
-        this.timeAsDate = new Date(this.reportDefinition.dailyScheduleTime * 1000);
+        this.timeAsDate = new Date(this.reportDefinition.scheduleTime * 1000);
         this.time = {hour: this.timeAsDate.getHours(), minute: this.timeAsDate.getMinutes(), second: this.timeAsDate.getSeconds()};
     }
 
@@ -107,8 +107,7 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         }
 
         this.timeAsDate.setHours(this.time.hour, this.time.minute, this.time.second);
-        this.reportDefinition.dailyScheduleTime = this.timeAsDate.getTime() / 1000;
-        console.log("dailyscheduleTime : " + this.reportDefinition.dailyScheduleTime);
+        this.reportDefinition.scheduleTime = this.timeAsDate.getTime() / 1000;
         this.onValueChange.emit(true);
     }
 
@@ -116,6 +115,16 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         if (this.reportCategoryList) {
             this.reportCategoryList = this.reportCategoryList.filter(reportCategory => reportCategory.name);
         }
+        this.valueChange();
+    }
+
+    selectBranchFlag(branchFlag: string) {
+        this.reportDefinition.branchFlag = branchFlag;
+        this.valueChange();
+    }
+
+    selectInstitutionId(institutionId: string) {
+        this.reportDefinition.institutionId = Number(institutionId);
         this.valueChange();
     }
 

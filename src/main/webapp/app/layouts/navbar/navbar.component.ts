@@ -40,6 +40,7 @@ export class NavbarComponent implements OnInit {
     appResources: AppResource[];
     isSelfRegistration: boolean;
     isLanguageSelection: boolean;
+    isBranchExist: boolean;
 
     constructor(
         private loginService: LoginService,
@@ -73,15 +74,19 @@ export class NavbarComponent implements OnInit {
     }
 
     refreshNavbar() {
+        this.isBranchExist = false;
         this.principal.identity().then((account) => {
             this.account = account;
         });
 
         //retrieve Branch for companies
         this.appService.queryBranchesForUser().subscribe((res: HttpResponse<Branch[]>) => {
-            this.branches = res.body;
-            this.branches = this.branches;
-            this.changeBranch(this.branches[0].id) ;
+            if (res.body[0].id != undefined) {
+                this.isBranchExist = true;
+                this.branches = res.body;
+                this.allBranches = this.branches;
+                this.changeBranch(this.branches[0].id);
+            }
         });
 
         // retrieve all the companies accessible by this user

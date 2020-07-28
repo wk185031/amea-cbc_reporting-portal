@@ -26,14 +26,14 @@
                     <dd>
                         <span>{{reportDefinition.fileFormat}}</span>
                     </dd>
-                </dl>
-            </div>
-            <div class="col-6">
-                <dl class="row-md jh-entity-details">
                     <dt><span jhiTranslate="baseApp.reportDefinition.frequencyLabel">Frequency</span></dt>
                     <dd>
                         <span>{{reportDefinition.frequency}}</span>
                     </dd>
+                </dl>
+            </div>
+            <div class="col-6">
+                <dl class="row-md jh-entity-details">
                     <dt><span jhiTranslate="baseApp.reportDefinition.processingClassLabel">Processing
                             Class</span></dt>
                     <dd>
@@ -43,6 +43,18 @@
                             Location</span></dt>
                     <dd>
                         <span>{{reportDefinition.fileLocation}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.branchFlagLabel">Branch Flag</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.branchFlag}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.scheduleTimeLabel">Schedule Time</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.scheduleTime * 1000 | date: 'HH:mm'}}</span>
+                    </dd>
+                    <dt><span jhiTranslate="baseApp.reportDefinition.institutionLabel">Institution ID</span></dt>
+                    <dd>
+                        <span>{{reportDefinition.institutionId}}</span>
                     </dd>
                 </dl>
             </div>

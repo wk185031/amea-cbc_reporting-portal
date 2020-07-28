@@ -126,12 +126,30 @@
                 </div>
             </div>
             <div class="form-group">
-              <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.generateScheduleLabel"
-                  for="field_generateSchedule">Generate Schedule</label>
-              <div *ngIf="scheduleFlag">
-                <ngb-timepicker  meridian="true" name="dailySchedule" id="field_dailySchedule"
-                    [ngModel]="time" (ngModelChange)="saveScheduleTime($event)"></ngb-timepicker>
-              </div>
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.branchFlagLabel"
+                    for="field_branchFlag">Branch Flag</label>
+                <select class="form-control" id="field_branchFlag" name="branchFlag"
+                    [ngModel]="reportDefinition.branchFlag" (ngModelChange)="selectBranchFlag($event)" required>
+                    <option>branch</option>
+                    <option>master</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.scheduleTimeLabel"
+                    for="field_scheduleTime">Schedule Time</label>
+                <div *ngIf="scheduleFlag">
+                    <ngb-timepicker  meridian="true" name="schedule" id="field_schedule"
+                      [ngModel]="time" (ngModelChange)="saveScheduleTime($event)"></ngb-timepicker>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.institutionLabel"
+                    for="field_institution">Institution</label>
+                <select class="form-control" id="field_institution" name="institution"
+                    [ngModel]="reportDefinition.institutionId" (ngModelChange)="selectInstitutionId($event)" required>
+                    <option>22</option>
+                    <option>2</option>
+                </select>
             </div>
         </div>
     </div>
