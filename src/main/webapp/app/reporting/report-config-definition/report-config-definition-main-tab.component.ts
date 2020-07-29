@@ -5,8 +5,10 @@ import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
-import { ReportConfigCategoryService } from '../report-config-category/report-config-category.service';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
+import { ReportConfigCategoryService } from '../report-config-category/report-config-category.service';
+import { Institution } from '../../entities/institution/institution.model';
+import { InstitutionService } from '../../entities/institution/institution.service';
 import { DatePipe } from '@angular/common';
 
 @Component({
@@ -31,12 +33,13 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
 
     reportDefinitionList: ReportDefinition[];
     reportCategoryList: ReportCategory[];
-
+    institutions: Institution[];
 
     constructor(
         public activeModal: NgbActiveModal,
         private reportConfigDefinitionService: ReportConfigDefinitionService,
         private reportConfigCategoryService: ReportConfigCategoryService,
+        private institutionService: InstitutionService,
         private jhiAlertService: JhiAlertService,
         private datePipe: DatePipe
     ) {
@@ -72,6 +75,9 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         }, (error: HttpErrorResponse) => this.onError(error.message));
         this.reportConfigDefinitionService.query().subscribe((reportDefinition: HttpResponse<ReportDefinition[]>) => {
             this.reportDefinitionList = reportDefinition.body;
+        }, (error: HttpErrorResponse) => this.onError(error.message));
+        this.institutionService.query().subscribe((institutions: HttpResponse<Institution[]>) => {
+            this.institutions = institutions.body;
         }, (error: HttpErrorResponse) => this.onError(error.message));
         this.timeAsDate = new Date(this.reportDefinition.scheduleTime * 1000);
         this.time = {hour: this.timeAsDate.getHours(), minute: this.timeAsDate.getMinutes(), second: this.timeAsDate.getSeconds()};
@@ -123,8 +129,8 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         this.valueChange();
     }
 
-    selectInstitutionId(institutionId: string) {
-        this.reportDefinition.institutionId = Number(institutionId);
+    selectInstitutionId(selectedInstitution: Institution) {
+        this.reportDefinition.institutionId = selectedInstitution.id;
         this.valueChange();
     }
 

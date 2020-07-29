@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
+import { Institution } from '../../entities/institution/institution.model';
+import { InstitutionService } from '../../entities/institution/institution.service';
 
 @Component({
     selector: 'report-config-definition-detail',
@@ -17,10 +19,12 @@ export class ReportConfigDefinitionDetailComponent implements OnInit, OnDestroy,
     reportDefinition: ReportDefinition;
     reportDefinitionId: number;
     tabValue: string;
+    institution: Institution;
 
     constructor(
         private eventManager: JhiEventManager,
         private reportConfigDefinitionService: ReportConfigDefinitionService,
+        private institutionService: InstitutionService,
         private jhiAlertService: JhiAlertService,
         private route: ActivatedRoute
     ) {
@@ -48,6 +52,7 @@ export class ReportConfigDefinitionDetailComponent implements OnInit, OnDestroy,
                 this.reportDefinition.headerSection = JSON.parse(this.reportDefinition.headerFields);
                 this.reportDefinition.bodySection = JSON.parse(this.reportDefinition.bodyFields);
                 this.reportDefinition.trailerSection = JSON.parse(this.reportDefinition.trailerFields);
+                this.getInstitution(reportDefinition.body.institutionId);
             }, (error: HttpErrorResponse) => this.onError(error.message));
         }
     }
@@ -79,5 +84,11 @@ export class ReportConfigDefinitionDetailComponent implements OnInit, OnDestroy,
                 }
                 this.load(this.reportDefinitionId);
             });
+    }
+
+    getInstitution(id: number) {
+        this.institutionService.find(id).subscribe((institution: HttpResponse<Institution>) => {
+            this.institution = institution.body;
+        }, (error: HttpErrorResponse) => this.onError(error.message));
     }
 }

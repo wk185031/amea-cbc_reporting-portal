@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
 import { ReportDefinition } from './report-config-definition.model';
 import { ReportConfigDefinitionService } from './report-config-definition.service';
+import { Institution } from '../../entities/institution/institution.model';
+import { InstitutionService } from '../../entities/institution/institution.service';
 
 @Component({
     selector: 'report-config-definition-view',
@@ -17,10 +19,12 @@ export class ReportConfigDefinitionViewComponent implements OnInit, OnDestroy, O
     private eventSubscriber: Subscription;
 
     reportDefinition: ReportDefinition;
+    institution: Institution;
 
     constructor(
         private eventManager: JhiEventManager,
         private reportConfigDefinitionService: ReportConfigDefinitionService,
+        private institutionService: InstitutionService,
         private jhiAlertService: JhiAlertService,
         private route: ActivatedRoute
     ) {
@@ -43,6 +47,7 @@ export class ReportConfigDefinitionViewComponent implements OnInit, OnDestroy, O
         if (id) {
             this.reportConfigDefinitionService.find(id).subscribe((reportDefinition: HttpResponse<ReportDefinition>) => {
                 this.reportDefinition = reportDefinition.body;
+                this.getInstitution(reportDefinition.body.institutionId);
             }, (error: HttpErrorResponse) => this.onError(error.message));
         }
     }
@@ -70,5 +75,11 @@ export class ReportConfigDefinitionViewComponent implements OnInit, OnDestroy, O
                 }
                 this.load(this.reportDefinitionId);
             });
+    }
+
+    getInstitution(id: number) {
+        this.institutionService.find(id).subscribe((institution: HttpResponse<Institution>) => {
+            this.institution = institution.body;
+        }, (error: HttpErrorResponse) => this.onError(error.message));
     }
 }

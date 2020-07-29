@@ -146,9 +146,10 @@
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.institutionLabel"
                     for="field_institution">Institution</label>
                 <select class="form-control" id="field_institution" name="institution"
-                    [ngModel]="reportDefinition.institutionId" (ngModelChange)="selectInstitutionId($event)" required>
-                    <option>22</option>
-                    <option>2</option>
+                    [ngModel]="institutions" (ngModelChange)="selectInstitutionId($event)" required>
+                    <option
+                        [ngValue]="institution" *ngFor="let institution of institutions">
+                        {{institution.name}}</option>
                 </select>
             </div>
         </div>
