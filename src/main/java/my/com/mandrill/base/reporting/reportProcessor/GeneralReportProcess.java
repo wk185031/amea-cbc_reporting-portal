@@ -261,7 +261,7 @@ public class GeneralReportProcess {
 			fieldValue = field.getDefaultValue();
 		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {
 			fieldValue = globalFileFieldsMap.get(field.getFieldName()).getValue();
-		} else if (fieldsMap.containsKey(field.getFieldName())) {
+		} else if (null != fieldsMap && fieldsMap.containsKey(field.getFieldName())) {
 			fieldValue = fieldsMap.get(field.getFieldName()).getValue();
 		} else {
 			fieldValue = "";

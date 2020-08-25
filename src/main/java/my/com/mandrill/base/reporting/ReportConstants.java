@@ -67,6 +67,8 @@ public final class ReportConstants {
 	public static final String PARAM_ACC_TYPE = "Acc_Type";
 	public static final String PARAM_DEO_NAME = "Deo_Name";
 	public static final String PARAM_ISSUER_NAME = "Iss_Name";
+	public static final String PARAM_FROM_DATE = "From_Date";
+	public static final String PARAM_TO_DATE = "To_Date";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
