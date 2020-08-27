@@ -341,7 +341,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					log.debug("Inserting latest data into table " + table);
 					try {
 						rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@"
-								+ env.getProperty(ReportConstants.DB_LINK));
+								+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 					} finally {
 						if (rs != null) {
 							rs.close();

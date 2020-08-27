@@ -9,7 +9,8 @@ public final class ReportConstants {
 	public static final String DB_URL = "spring.datasource.url";
 	public static final String DB_USERNAME = "spring.datasource.username";
 	public static final String DB_PASSWORD = "spring.datasource.password";
-	public static final String DB_LINK = "spring.datasource.dblink";
+	public static final String DB_LINK_AUTHENTIC = "spring.datasource.dblink1";
+	public static final String DB_LINK_DCMS = "spring.datasource.dblink2";
 
 	// DB Synchronizer
 	public static final String JOB_NAME = "DB_SYNC";
@@ -31,6 +32,8 @@ public final class ReportConstants {
 	// Report Generation Institution
 	public static final String CBC_INSTITUTION = "ChinaBank (CBC)";
 	public static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
+	public static final String DCMS_CBC_INSTITUTION = "1";
+	public static final String DCMS_CBS_INSTITUTION = "2";
 
 	// Report Generation Date Format
 	public static final String DATE_FORMAT_01 = "yyyyMMdd";
@@ -69,6 +72,7 @@ public final class ReportConstants {
 	public static final String PARAM_ISSUER_NAME = "Iss_Name";
 	public static final String PARAM_FROM_DATE = "From_Date";
 	public static final String PARAM_TO_DATE = "To_Date";
+	public static final String PARAM_DB_LINK = "Db_Link";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -102,6 +106,7 @@ public final class ReportConstants {
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
 	public static final String RUNDATE_VALUE = "RunDate Value";
 	public static final String TIME_VALUE = "Time Value";
+	public static final String REPORT_ID = "Report Id";
 	public static final String FILE_NAME = "File Name";
 	public static final String FILE_UPLOAD_DATE = "File Upload Date";
 	public static final String AC_NUMBER = "A/C Number";

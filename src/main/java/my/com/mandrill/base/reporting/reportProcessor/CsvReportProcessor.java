@@ -675,10 +675,15 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			line.append(field.getFieldName());
-			line.append(field.getDelimiter());
+			if(field.isEol()) {
+				line.append(field.getFieldName());
+				line.append(field.getDelimiter());
+				line.append(getEol());				
+			} else {
+				line.append(field.getFieldName());
+				line.append(field.getDelimiter());
+			}			
 		}
-		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
 

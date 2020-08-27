@@ -64,7 +64,8 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
-        dblink: ATM5SIT
+        dblink1: ATM5SIT
+        dblink2: DCSMADM
     jpa:
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle
@@ -122,7 +123,7 @@ liquibase:
 #        key-alias: base
 # ===================================================================
 server:
-    port: 9080
+    port: 8080
 
 info:
     project:

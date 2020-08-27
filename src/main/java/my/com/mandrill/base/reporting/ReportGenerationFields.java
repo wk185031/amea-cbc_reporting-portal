@@ -67,6 +67,7 @@ public class ReportGenerationFields {
 	private LocalDate yesterdayDate;
 	private boolean generate;
 	private String institution;
+	private String dcmsDbLink;
 
 	public ReportGenerationFields() {
 		super();
@@ -420,6 +421,14 @@ public class ReportGenerationFields {
 
 	public void setInstitution(String institution) {
 		this.institution = institution;
+	}
+
+	public String getDcmsDbLink() {
+		return dcmsDbLink;
+	}
+
+	public void setDcmsDbLink(String dcmsDbLink) {
+		this.dcmsDbLink = dcmsDbLink;
 	}
 
 	public String format() {

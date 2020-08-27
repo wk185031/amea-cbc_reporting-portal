@@ -38,7 +38,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -133,11 +132,21 @@ public class ReportGenerationResource {
 											jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate,
 											currentDate);
 
+									String instShortCode = null;
+									
 									List<Institution> institutions = institutionRepository.findAll();
 									for (Institution institution : institutions) {
-										generateDailyReport(institution.getId());
+										if ("Institution".equals(institution.getType())) {
+											if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+												instShortCode = "CBC";
+											} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+												instShortCode = "CBS";
+											}
+										}		
+										
+										generateDailyReport(institution.getId(), instShortCode);
 										if (yesterdayDate.equals(lastDayOfMonth)) {
-											generateMonthlyReport(institution.getId());
+											generateMonthlyReport(institution.getId(), instShortCode);
 										}
 									}
 									executed = true;
@@ -163,7 +172,7 @@ public class ReportGenerationResource {
 		return nextTime.getTime();
 	}
 
-	private void generateDailyReport(Long institutionId) {
+	private void generateDailyReport(Long institutionId, String instShortCode) {
 		logger.info("In ReportGenerationResource.generateDailyReport()");
 		LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
 
@@ -175,6 +184,8 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(yesterdayDate);
 		reportGenerationMgr.setTodayDate(yesterdayDate);
+		reportGenerationMgr.setInstitution(instShortCode);	
+		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
@@ -197,7 +208,7 @@ public class ReportGenerationResource {
 		}
 	}
 
-	private void generateMonthlyReport(Long institutionId) {
+	private void generateMonthlyReport(Long institutionId, String instShortCode) {
 		logger.info("In ReportGenerationResource.generateMonthlyReport()");
 		LocalDate firstDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
@@ -210,6 +221,8 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
+		reportGenerationMgr.setInstitution(instShortCode);		
+		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -261,6 +274,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(true);
 		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
+		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator + txnDate.substring(0, 7);

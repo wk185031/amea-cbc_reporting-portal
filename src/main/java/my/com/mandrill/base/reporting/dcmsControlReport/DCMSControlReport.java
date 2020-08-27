@@ -1,9 +1,12 @@
 package my.com.mandrill.base.reporting.dcmsControlReport;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -15,6 +18,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +33,10 @@ public class DCMSControlReport extends PdfReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
-
+	private static final String EMBOSSED_RECORDS_REPORT_ID_PREFIX = "EMBPINML";
+	private static final String PIN_MAILER_REPORT_ID_PREFIX = "EFPINML";
+	private static final String EMBOSSED_RECORDS_FILE_NAME_PREFIX = "Control Report for Embossed Records";
+		
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In DCMSControlReport.processPdfRecord(): " + rgm.getFileNamePrefix());
@@ -181,10 +188,49 @@ public class DCMSControlReport extends PdfReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In DCMSControlReport.preProcessing():" + rgm.getFileNamePrefix());
+		
+		// replace {From_Date}/{To_Date}/{Db_Link}/{Iss_Name} to actual value
+		rgm.setBodyQuery(rgm.getBodyQuery()
+				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().atStartOfDay().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_DB_LINK + "}", rgm.getDcmsDbLink())
+				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 
-		rgm.setBodyQuery(rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().atStartOfDay().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
-				.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'"));
-
+		// add report id to global map
+		ReportGenerationFields reportId = new ReportGenerationFields(ReportConstants.REPORT_ID,
+				ReportGenerationFields.TYPE_STRING, 
+				((rgm.getFileNamePrefix().equals(EMBOSSED_RECORDS_FILE_NAME_PREFIX) ? EMBOSSED_RECORDS_REPORT_ID_PREFIX : PIN_MAILER_REPORT_ID_PREFIX) 
+						+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMdd"))));
+		getGlobalFileFieldsMap().put(reportId.getFieldName(), reportId);
+		
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
+
+	@Override
+	protected void execute(ReportGenerationMgr rgm, File file) {
+		try {
+			rgm.fileOutputStream = new FileOutputStream(file);
+			pagination = 1;
+			preProcessing(rgm);
+			writeHeader(rgm, pagination);
+			writeBodyHeader(rgm);
+			executeBodyQuery(rgm);
+			writeTrailer(rgm, null);
+			rgm.fileOutputStream.flush();
+			rgm.fileOutputStream.close();
+		} catch (IOException | InstantiationException | IllegalAccessException | ClassNotFoundException | JSONException e) {
+			rgm.errors++;
+			logger.error("Error in generating CSV file", e);
+		} finally {
+			try {
+				if (rgm.fileOutputStream != null) {
+					rgm.fileOutputStream.close();
+					rgm.exit();
+				}
+			} catch (IOException e) {
+				rgm.errors++;
+				logger.error("Error in closing fileOutputStream", e);
+			}
+		}
+	}	
 }
