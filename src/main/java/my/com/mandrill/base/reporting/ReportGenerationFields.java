@@ -623,7 +623,10 @@ public class ReportGenerationFields {
 	}
 
 	public String formatPdfBodyValue(String tempValue) {
-		if (leftJustified) {
+		if(tempValue.length() > pdfLength) {
+			return tempValue.substring(0, pdfLength);
+		}
+		if(leftJustified) {
 			return formatLeftJustifiedPdfValue(tempValue);
 		} else {
 			return formatRightJustifiedPdfValue(tempValue);
