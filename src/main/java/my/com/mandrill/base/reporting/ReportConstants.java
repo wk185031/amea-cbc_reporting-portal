@@ -9,8 +9,8 @@ public final class ReportConstants {
 	public static final String DB_URL = "spring.datasource.url";
 	public static final String DB_USERNAME = "spring.datasource.username";
 	public static final String DB_PASSWORD = "spring.datasource.password";
-	public static final String DB_LINK_AUTHENTIC = "spring.datasource.dblink1";
-	public static final String DB_LINK_DCMS = "spring.datasource.dblink2";
+	public static final String DB_LINK_AUTHENTIC = "spring.datasource.dblink";
+	public static final String DB_SCHEMA_DCMS = "spring.datasource.dcmsschema";
 
 	// DB Synchronizer
 	public static final String JOB_NAME = "DB_SYNC";
@@ -72,7 +72,7 @@ public final class ReportConstants {
 	public static final String PARAM_ISSUER_NAME = "Iss_Name";
 	public static final String PARAM_FROM_DATE = "From_Date";
 	public static final String PARAM_TO_DATE = "To_Date";
-	public static final String PARAM_DB_LINK = "Db_Link";
+	public static final String PARAM_DCMS_DB_SCHEMA = "DCMS_Schema";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";

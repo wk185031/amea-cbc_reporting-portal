@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import org.slf4j.Logger;
@@ -60,7 +59,7 @@ public class ReportService {
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
 		reportGenerationMgr.setInstitution(instShortCode);	
-		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -98,7 +97,7 @@ public class ReportService {
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);
-		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {

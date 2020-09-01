@@ -52,6 +52,7 @@ spring:
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
         dblink: ATM5SIT
+        dcmsschema: DCMSADM
     jpa:
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle

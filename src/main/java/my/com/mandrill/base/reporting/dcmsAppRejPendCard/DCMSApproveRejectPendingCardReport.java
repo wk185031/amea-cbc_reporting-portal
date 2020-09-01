@@ -189,11 +189,11 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In DCMSApproveRejectPendingCardReport.preProcessing():" + rgm.getFileNamePrefix());
 		
-		// replace {From_Date}/{To_Date}/{Db_Link}/{Iss_Name} to actual value
+		// replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Name} to actual value
 		rgm.setBodyQuery(rgm.getBodyQuery()
 				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'")
 				.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'")
-				.replace("{" + ReportConstants.PARAM_DB_LINK + "}", rgm.getDcmsDbLink())
+				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", rgm.getDcmsDbSchema())
 				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 		
 		addReportPreProcessingFieldsToGlobalMap(rgm);

@@ -11007,28 +11007,28 @@ ORDER BY
 FROM 
   (SELECT 
     (SELECT COUNT(*) 
-    FROM ISSUANCE_DEBIT_CARD_REQUEST@{Db_Link} req 
-    INNER JOIN ISSUANCE_CARD@{Db_Link} crd 
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req 
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd 
     ON req.DCR_CRD_ID = crd.CRD_ID 
     WHERE crd.CRD_EMB_ID IS NOT NULL 
     AND req.DCR_INS_ID = {Iss_Name}
     AND TRUNC(req.DCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'') 
     ) AS New_Card, 
     (SELECT COUNT(*) 
-    FROM support_card_renewal@{Db_Link} 
+    FROM {DCMS_Schema}.support_card_renewal 
     WHERE CRN_STS_ID = 91 
     AND CRN_INS_ID = {Iss_Name}
     AND CRN_CREATED_TS BETWEEN {From_Date} AND {To_Date} 
     ) AS Replacement_Card , 
     (SELECT SUM(BCR_NUMBER_OF_CARDS) 
-    FROM ISSUANCE_BULK_CARD_REQUEST@{Db_Link}
+    FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST
     WHERE BCR_STS_ID = 70 
     AND BCR_INS_ID = {Iss_Name}
     AND TRUNC(BCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'') 
     ) AS Pre_Generated_Card, 
     (SELECT COUNT(*) 
-    FROM ISSUANCE_DEBIT_CARD_REQUEST@{Db_Link} req 
-    INNER JOIN ISSUANCE_CARD@{Db_Link} crd 
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req 
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd 
     ON req.DCR_CRD_ID = crd.CRD_ID 
     WHERE req.DCR_REQ_FROM_BATCH = 1 
     AND crd.CRD_EMB_ID IS NOT NULL 
@@ -11052,16 +11052,16 @@ FROM
 FROM 
   (SELECT 
     (SELECT COUNT(*) 
-    FROM ISSUANCE_DEBIT_CARD_REQUEST@{Db_Link} req 
-    INNER JOIN ISSUANCE_CARD@{Db_Link} crd 
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req 
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd 
     ON req.DCR_CRD_ID = crd.CRD_ID 
-    Where  crd.crd_pin_offset IS Not Null 
+    Where crd.crd_pin_offset IS Not Null 
     AND req.DCR_INS_ID = {Iss_Name}
     AND TRUNC(req.DCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS New_Card,	
     (SELECT COUNT(*) 
-    FROM ISSUANCE_DEBIT_CARD_REQUEST@{Db_Link} req 
-    INNER JOIN ISSUANCE_CARD@{Db_Link} crd 
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req 
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd 
     On Req.Dcr_Crd_Id = Crd.Crd_Id 
     WHERE req.DCR_REQUEST_TYPE = ''Auto Renewal'' OR req.DCR_REQUEST_TYPE=''Renew'' OR req.DCR_REQUEST_TYPE=''Replace''
     And Crd.Crd_Pin_Offset Is Not Null 
@@ -11069,14 +11069,14 @@ FROM
     And Trunc(Req.Dcr_Created_Ts) Between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'') 
     ) AS Replacement_Card , 
     (SELECT Count(crd_id) 
-    From Issuance_Card@{Db_Link}
+    From {DCMS_Schema}.Issuance_Card
     Where Crd_Bcr_Id Like ''B%'' And Crd_Pin_Offset Is Not Null
     AND Crd_Ins_id = {Iss_Name}
     AND TRUNC(crd_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'') 
     ) AS Pre_Generated_Card, 
     (SELECT COUNT(*) 
-    FROM ISSUANCE_DEBIT_CARD_REQUEST@{Db_Link} req 
-    INNER JOIN ISSUANCE_CARD@{Db_Link} crd 
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req 
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd 
     ON req.DCR_CRD_ID = crd.CRD_ID 
     WHERE req.DCR_REQ_FROM_BATCH = 1 OR DCR_REQUEST_TYPE=''Bulk upload''
     And Crd.crd_pin_offset Is Not Null
@@ -11102,10 +11102,10 @@ FROM
 	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
 	MS.STS_NAME AS STATUS 
 FROM 
-	SUPPORT_ACCOUNT_DELINKING@{Db_Link} SALD 
-	JOIN ISSUANCE_CLIENT_CARD_MAPPING@{Db_Link} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID 
-	JOIN ISSUANCE_CARD@{Db_Link} IC ON ICCM.CCM_CLT_ID = IC.CRD_ID 
-	JOIN MASTER_STATUS@{Db_Link} MS ON SALD.ADL_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING SALD 
+	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID 
+	JOIN {DCMS_Schema}.ISSUANCE_CARD IC ON ICCM.CCM_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON SALD.ADL_STS_ID=MS.STS_ID 
 Where 
 	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	AND STS_ID IN (88,90,91)
@@ -11120,9 +11120,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Add_On_Card@{Db_Link} Rac 
-	Join Issuance_Card@{Db_Link} Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id 
-	Join  Master_Status@{Db_Link} Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Add_On_Card Rac 
+	Join {DCMS_Schema}.Issuance_Card Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Rac.Aoc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11137,10 +11137,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Account_Linking@{Db_Link} Sal 
-	Join Issuance_Client_Card_Mapping@{Db_Link}  Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sal.Acl_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Account_Linking Sal 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping  Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sal.Acl_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11156,10 +11156,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Card_Activation@{Db_Link} Sac 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sac.Caa_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Card_Activation Sac 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sac.Caa_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11175,10 +11175,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Card_Renewal@{Db_Link} Scr 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scr.Crn_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Card_Renewal Scr 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scr.Crn_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11194,10 +11194,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Activation@{Db_Link} Scca 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Activation Scca 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11213,10 +11213,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Renewal@{Db_Link} Sccr 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Renewal Sccr 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11232,10 +11232,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Dehotlist@{Db_Link} Sccd 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Dehotlist Sccd 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id 
 Where 
     To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11251,10 +11251,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Hotlist@{Db_Link} Scch 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Hotlist Scch 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scch.Hot_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11270,10 +11270,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Reset_Pin_Counter@{Db_Link} Sccrp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter Sccrp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11289,14 +11289,14 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Hotlist@{Db_Link} Scht 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Hotlist Scht 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
-	And Scht.Cc_Hot_Ins_Id = {Iss_Name} 
+	And Scht.Cc_Hot_Ins_Id = {Iss_Name}
 Union All 
 Select 
 	''REPIN'' Functionname, 
@@ -11308,10 +11308,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Repin@{Db_Link} Sdrp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Repin Sdrp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id 
 Where 
     To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11327,10 +11327,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Reset_Pin_Counter@{Db_Link} Srp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Reset_Pin_Counter Srp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11346,10 +11346,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_STOP_RENEWAL@{Db_Link} Scrn 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_STOP_RENEWAL Scrn 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scrn.SRN_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,90,91)
@@ -11365,10 +11365,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Default_Acc_Req_Map@{Db_Link} Dac 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Default_Acc_Req_Map Dac 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Dac.DAR_Sts_Id=Ms.Sts_Id  
 Where 
     To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN(88,89,91)
@@ -11384,10 +11384,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Txn_Limit_Request_Map@{Db_Link} Stlu 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Txn_Limit_Request_Map Stlu 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN(88,89,91)
@@ -11403,10 +11403,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Txn_Limit_Req_Map@{Db_Link} Scctlu 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map Scctlu 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id 
 Where
 	To_Date(Scctlu.CC_TRM_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,89,91)
@@ -11422,10 +11422,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Repin@{Db_Link} Srp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Cc_Repin Srp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,89,91)
@@ -11441,9 +11441,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Address_Update_Req_Map@{Db_Link} Sarm 
-	Join ISSUANCE_CARD@{Db_Link} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
-	JOIN MASTER_STATUS@{Db_Link} MS ON Sarm.AUR_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm 
+	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID 
 WHERE 
 	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,89,91)
@@ -11459,9 +11459,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Address_Update_Req_Map@{Db_Link} Sarm 
-	Join ISSUANCE_CARD@{Db_Link} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
-	JOIN  MASTER_STATUS@{Db_Link} MS ON Sarm.AUR_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm 
+	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID 
 WHERE 
 	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,89,91)
@@ -11477,15 +11477,14 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Dehotlist@{Db_Link} Sdhl 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Dehotlist Sdhl 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id IN (88,89,91)
-	And Sdhl.Dhl_Ins_Id = {Iss_Name}
-');
+	And Sdhl.Dhl_Ins_Id = {Iss_Name}');
 	TRAILER_QUERY := null;
 	
 	INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES ( 153, 17, 'Approved Rejected Card Records', 'Lists the card records processed that are approved or rejected', 'Approved Rejected Card Records', 'PDF,CSV,', '/tmp/Reporting/reports/DCMSApproveRejectPending/', 'my.com.mandrill.base.reporting.dcmsAppRejPendCard.DCMSApproveRejectPendingCardReport', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Daily', 'mandrill', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id from institution where name = 'ChinaBank (CBC)'));
@@ -11503,10 +11502,10 @@ Where
 	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
 	MS.STS_NAME AS STATUS 
 FROM 
-	SUPPORT_ACCOUNT_DELINKING@{Db_Link} SALD 
-	JOIN ISSUANCE_CLIENT_CARD_MAPPING@{Db_Link} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID 
-	JOIN ISSUANCE_CARD@{Db_Link} IC ON ICCM.CCM_CLT_ID = IC.CRD_ID 
-	JOIN MASTER_STATUS@{Db_Link} MS ON SALD.ADL_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING SALD 
+	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID 
+	JOIN {DCMS_Schema}.ISSUANCE_CARD IC ON ICCM.CCM_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON SALD.ADL_STS_ID=MS.STS_ID 
 Where 
 	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	AND STS_ID = 89
@@ -11522,9 +11521,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Add_On_Card@{Db_Link} Rac 
-	Join Issuance_Card@{Db_Link} Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Add_On_Card Rac 
+	Join {DCMS_Schema}.Issuance_Card Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Rac.Aoc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11540,17 +11539,17 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Account_Linking@{Db_Link} Sal 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sal.Acl_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Account_Linking Sal 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status  Ms On Sal.Acl_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
 	And Sal.Acl_Ins_Id = {Iss_Name}
 Union All 
 Select 
-	''Card Activation'' As Functionname, 
+	''Card Activation''As Functionname, 
 	Sac.Caa_Created_Ts As Issue_Date, 
 	Ic.Crd_Number_Masked, 
 	Sac.Caa_Created_By As Maker, 
@@ -11559,12 +11558,12 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Card_Activation@{Db_Link} Sac 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sac.Caa_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Card_Activation Sac 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id 
 Where 
-	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'') 
+	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
 	And Sac.Caa_Ins_Id = {Iss_Name}
 UNION ALL 
@@ -11578,10 +11577,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Card_Renewal@{Db_Link} Scr 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scr.Crn_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Card_Renewal Scr 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89 
@@ -11597,10 +11596,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Activation@{Db_Link} Scca 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Activation Scca 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
 Where 
 	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11616,10 +11615,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Renewal@{Db_Link} Sccr 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Renewal Sccr 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11635,10 +11634,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Dehotlist@{Db_Link} Sccd 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Dehotlist Sccd 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11654,10 +11653,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Hotlist@{Db_Link} Scch 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Hotlist Scch 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scch.Hot_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11673,10 +11672,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Reset_Pin_Counter@{Db_Link} Sccrp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter Sccrp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11692,10 +11691,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Hotlist@{Db_Link} Scht 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Cc_Hotlist Scht 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11711,10 +11710,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Repin@{Db_Link} Sdrp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Repin Sdrp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11730,10 +11729,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Reset_Pin_Counter@{Db_Link} Srp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_Reset_Pin_Counter Srp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11749,10 +11748,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_STOP_RENEWAL@{Db_Link} Scrn 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id 
+	{DCMS_Schema}.Support_STOP_RENEWAL Scrn 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id 
 Where 
 	To_Date(Scrn.SRN_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11768,10 +11767,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Default_Acc_Req_Map@{Db_Link} Dac 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Default_Acc_Req_Map Dac 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Dac.DAR_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89 
@@ -11787,10 +11786,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Txn_Limit_Req_Map@{Db_Link} Scctlu 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map Scctlu 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Scctlu.CC_TRM_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11806,10 +11805,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Repin@{Db_Link} Srp 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Cc_Repin Srp 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11825,9 +11824,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Address_Update_Req_Map@{Db_Link} Sarm 
-	Join ISSUANCE_CARD@{Db_Link} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
-	JOIN  MASTER_STATUS@{Db_Link} MS ON Sarm.AUR_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm 
+	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID 
 WHERE 
 	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11843,9 +11842,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Cc_Add_Update_Req_Map@{Db_Link} Sarcm 
-	Join ISSUANCE_CARD@{Db_Link} IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID 
-	JOIN MASTER_STATUS@{Db_Link} MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID 
+	{DCMS_Schema}.Support_Cc_Add_Update_Req_Map Sarcm 
+	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID 
+	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID 
 WHERE 
 	To_Date(Sarcm.CC_Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11861,10 +11860,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Dehotlist@{Db_Link} Sdhl 
-	Join Issuance_Client_Card_Mapping@{Db_Link} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Dehotlist Sdhl 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89
@@ -11880,10 +11879,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status 
 From 
-	Support_Txn_Limit_Request_Map@{Db_Link} Stlu 
-	Join Issuance_Client_Card_Mapping@{Db_Link}  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id 
-	Join Issuance_Card@{Db_Link} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
-	Join Master_Status@{Db_Link} Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id  
+	{DCMS_Schema}.Support_Txn_Limit_Request_Map Stlu 
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id 
+	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id 
+	Join {DCMS_Schema}.Master_Status Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id  
 Where 
 	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') 
 	And Sts_Id = 89

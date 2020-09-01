@@ -185,7 +185,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setYesterdayDate(yesterdayDate);
 		reportGenerationMgr.setTodayDate(yesterdayDate);
 		reportGenerationMgr.setInstitution(instShortCode);	
-		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
@@ -222,7 +222,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);		
-		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -274,7 +274,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(true);
 		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
-		reportGenerationMgr.setDcmsDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator + txnDate.substring(0, 7);
