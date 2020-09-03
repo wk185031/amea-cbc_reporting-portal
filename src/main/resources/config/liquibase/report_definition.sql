@@ -10270,27 +10270,54 @@ END');
 	HEADER_FIELD := TO_CLOB('[]');
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"14","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"15","fieldName":"BANK ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"BANK ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"16","fieldName":"CARD / IVRS NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"17","fieldName":"ACCOUNT NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"18","fieldName":"OPERATION FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"OPERATION FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"19","fieldName":"EMBOSSED NAME","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"EMBOSSED NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"20","fieldName":"CARD / IVRS TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"21","fieldName":"CARD SUBTYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD SUBTYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"22","fieldName":"CARD / IVRS STATUS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS STATUS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"23","fieldName":"NO. OF JOINT ACCOUNT HOLDERS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"NO. OF JOINT ACCOUNT HOLDERS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"24","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"25","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT HOLDER TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"26","fieldName":"DEL / ADD / MOD FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"DEL / ADD / MOD FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"1","fieldName":"CIF","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"2","fieldName":"BANK ID","csvTxtLength":"8","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"3","fieldName":"ATM CARD NUMBER","csvTxtLength":"19","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":17,"sectionName":"4","fieldName":"FROM ACCOUNT NO","csvTxtLength":"16","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":18,"sectionName":"5","fieldName":"OPERATION FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"6","fieldName":"ACCOUNT NAME","csvTxtLength":"80","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":20,"sectionName":"7","fieldName":"CARD TYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"8","fieldName":"CARD SUBTYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"9","fieldName":"CARD STATUS","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"10","fieldName":"NO OF JOINT ACC HOLDERS","csvTxtLength":"2","fieldType":"Integer","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"11","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"12","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"13","fieldName":"FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
 	TRAILER_FIELD := TO_CLOB('[]');
-	BODY_QUERY := TO_CLOB('SELECT
-      CUST.CUST_ID "CIF",
-      ''CBC01'' "BANK ID",
-      CRD.CRD_PAN "ATM CARD NUMBER",
-      ACN.ACN_ACCOUNT_NUMBER "FROM ACCOUNT NO",
-      ''A'' AS "OPERATION FLAG",
-      CRD.CRD_CARDHOLDER_NAME "ACCOUNT NAME",
-      ''DEBIT'' AS "CARD TYPE",
-      '''' AS "CARD SUBTYPE",
-      '''' AS "CARD STATUS",
-      0 AS "NO OF JOINT ACC HOLDERS",
-      CUST.CUST_ID "JOINT ACC CIF",
-      '''' AS "JOINT ACCOUNT HOLDER TYPE",
-      ''A'' AS "JOINT ACC OPERATION FLAG"
-FROM
-      CARD CRD 
-      JOIN CUSTOMER CUST ON CRD.CRD_CUST_ID = CUST.CUST_ID
-      JOIN CARD_ACCOUNT CAT ON CRD.CRD_ID = CAT.CAT_CRD_ID
-      JOIN ACCOUNT ACN ON CAT.CAT_ACN_ID = ACN.ACN_ID
-ORDER BY
-      CUST.CUST_ID ASC');
+	BODY_QUERY := TO_CLOB('select * from
+(select 
+	clt.clt_cif_number as "CIF",
+	''{Iss_Name}'' as "BANK ID",
+	crd.crd_number as "ATM CARD NUMBER",
+	bac.bac_account_number as "FROM ACCOUNT NO",
+	''A'' as "OPERATION FLAG",
+	dcr.dcr_embossing_name as "ACCOUNT NAME",
+	''ATM'' as "CARD TYPE",
+	prs.prs_name as "CARD SUBTYPE",
+	sts.sts_name as "CARD STATUS",
+	'''' AS "NO OF JOINT ACC HOLDERS", 
+	'''' AS "JOINT ACC CIF", 
+	'''' AS "JOINT ACCOUNT HOLDER TYPE", 
+	'''' AS "JOINT ACC OPERATION FLAG" 
+from 
+	{DCMS_Schema}.issuance_debit_card_request dcr
+	inner join {DCMS_Schema}.issuance_card crd on crd.crd_id = dcr.dcr_crd_id
+	inner join {DCMS_Schema}.issuance_client clt on clt.clt_id = dcr.dcr_clt_id
+	inner join {DCMS_Schema}.issuance_bank_account bac on bac.bac_clt_id = clt.clt_id
+	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = dcr.dcr_prs_id
+	inner join {DCMS_Schema}.master_status sts on sts_id = dcr.dcr_sts_id
+where dcr.dcr_ins_id = {Iss_Id}
+union all
+select 
+	clt.clt_cif_number as "CIF",
+	''{Iss_Name}'' as "BANK ID",
+	csh.csh_card_number as "ATM CARD NUMBER",
+	bac.bac_account_number as "FROM ACCOUNT NO",
+	''A'' as "OPERATION FLAG",
+	ccr.ccr_embossing_name as "ACCOUNT NAME",
+	''CASH'' as "CARD TYPE",
+	prs.prs_name as "CARD SUBTYPE",
+	sts.sts_name as "CARD STATUS",
+	'''' AS "NO OF JOINT ACC HOLDERS", 
+	'''' AS "JOINT ACC CIF", 
+	'''' AS "JOINT ACCOUNT HOLDER TYPE", 
+	'''' AS "JOINT ACC OPERATION FLAG" 
+from 
+	{DCMS_Schema}.issuance_cash_card_request ccr
+	inner join {DCMS_Schema}.issuance_cash_card csh on csh.csh_id = ccr.ccr_csh_id
+	inner join {DCMS_Schema}.issuance_client clt on clt.clt_id = ccr.ccr_clt_id
+	inner join {DCMS_Schema}.issuance_bank_account bac on bac.bac_clt_id = clt.clt_id
+	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = ccr.ccr_prs_id
+	inner join {DCMS_Schema}.master_status sts on sts_id = ccr.ccr_sts_id
+	where ccr.ccr_ins_id = {Iss_Id}) tb
+order by 
+	tb.cif, tb."ATM CARD NUMBER"');
 	TRAILER_QUERY := null;
 	
 	INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES ( 135, 18, 'Finacle 360', 'Card/account relationship file for Finacle 360 view', 'Finacle 360', 'CSV,', '/tmp/Reporting/reports/NewTransactionReports/', 'my.com.mandrill.base.reporting.newTransactionReports.Finacle360', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Daily', 'mandrill', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id  from institution  where name = 'ChinaBank (CBC)'));

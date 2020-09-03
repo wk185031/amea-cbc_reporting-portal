@@ -3,33 +3,21 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeSet;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.reporting.ReportConstants;
-import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.reporting.cashCardReports.CashCardWithdrawalsPerChannel;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
 public class Finacle360 extends CsvReportProcessor {
 	
 	private final Logger logger = LoggerFactory.getLogger(Finacle360.class);
+	
+	private static final String CBC_BANK_NAME = "CBC01";
+	private static final String CBS_BANK_NAME = "CBC02";
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -59,6 +47,13 @@ public class Finacle360 extends CsvReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In Finacle360.preProcessing()");
+		
+		// replace {DCMS_Schema}/{Iss_Name}/{Iss_Id} to actual value
+		rgm.setBodyQuery(rgm.getBodyQuery()
+				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? CBC_BANK_NAME : CBS_BANK_NAME)
+				.replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
+		
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
 }
