@@ -17,7 +17,7 @@ export class ReportConfigDefinitionHeaderFieldsTabComponent implements OnChanges
 
     fieldTypeOptions: string[] = ['String', 'Number', 'Decimal', 'Date', 'Date Time'];
     delimiterOptions: string[] = ['', ';'];
-    fieldFormatOptions: string[] = ['', ',', '0.00', '#,##0.00', 'yyMMdd', 'MMddyyyy', 'MM/dd/yyyy', 'MM/dd/yy', 'dd/MM/yyyy', 'ddMMyyyy', 'dd/MM/yyyy HH:mm', 'yyyyMMdd', 'HH:mm', 'HH:mm:ss', 'HH:mm:ss a', 'hhmmss'];
+    fieldFormatOptions: string[] = ['', ',', '0.00', '#,##0.00', 'yyMMdd', 'MMddyyyy', 'MM/dd/yyyy', 'MM/dd/yy', 'dd/MM/yyyy', 'ddMMyyyy', 'dd/MM/yyyy HH:mm', 'yyyyMMdd', 'HH:mm', 'HH:mm:ss', 'HH:mm:ss a', 'hhmmss', 'dd MMM yyyy'];
     padFieldLengthOptions: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
     padFieldTypeOptions: string[] = ['Leading', 'Trailing'];
     padFieldValueOptions: string[] = ['Zeros', 'Spaces'];

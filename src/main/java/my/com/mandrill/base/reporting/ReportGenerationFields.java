@@ -745,22 +745,22 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-	public String formatTxtBodyHeaderValue(String tempValue) {
-		if (fieldName != null) {
-			if (fieldName.contains(ReportConstants.LINE)) {
-				tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
-			} else {
-				if (leftJustified) {
-					tempValue = String.format("%1$-" + csvTxtLength + "s", fieldName);
-				} else {
-					tempValue = String.format("%1$" + csvTxtLength + "s", fieldName);
-				}
-			}
-		} else {
-			tempValue = String.format("%1$-" + csvTxtLength + "s", "");
-		}
-		return tempValue;
-	}
+    public String formatTxtBodyHeaderValue(String tempValue) {
+        if (fieldName != null) {
+            if (fieldName.contains(ReportConstants.LINE)) {
+                tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
+            } else {
+                if (leftJustified) {
+                    tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+                } else {
+                    tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+                }
+            }
+        } else {
+            tempValue = String.format("%1$-" + csvTxtLength + "s", "");
+        }
+        return tempValue;
+    }
 
 	public String formatTxtBodyValue(String tempValue) {
 		if (leftJustified) {
