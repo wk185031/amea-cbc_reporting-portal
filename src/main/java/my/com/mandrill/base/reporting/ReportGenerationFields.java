@@ -611,9 +611,9 @@ public class ReportGenerationFields {
 				tempValue = String.format("%" + pdfLength + "s", " ").replace(' ', tempValue.charAt(0));
 			} else {
 				if (leftJustified) {
-					tempValue = String.format("%1$-" + pdfLength + "s", fieldName);
+					tempValue = String.format("%1$-" + pdfLength + "s", tempValue);
 				} else {
-					tempValue = String.format("%1$" + pdfLength + "s", fieldName);
+					tempValue = String.format("%1$" + pdfLength + "s", tempValue);
 				}
 			}
 		} else {
