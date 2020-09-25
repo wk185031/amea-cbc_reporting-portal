@@ -65,6 +65,7 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
         String branchCode = null;
         try {
             rgm.fileOutputStream = new FileOutputStream(file);
+            preProcessing(rgm);
             addReportPreProcessingFieldsToGlobalMap(rgm);
             writeHeader(rgm);
             writeBodyHeader(rgm);
@@ -89,9 +90,20 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
         }
     }
 
+    private void preProcessing(ReportGenerationMgr rgm)
+        throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        logger.debug("In TransmittalReleaseReportForAllBranches.preProcessing():" + rgm.getFileNamePrefix());
+
+        rgm.setBodyQuery(rgm.getBodyQuery()
+            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
+            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
+
+        addReportPreProcessingFieldsToGlobalMap(rgm);
+    }
+
     private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int sum)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        logger.debug("In TransmittalSlipForNewPins.preProcessingBodyTrailer()");
+        logger.debug("In TransmittalReleaseReportForAllBranches.preProcessingBodyTrailer()");
 
         ReportGenerationFields overallTotal = new ReportGenerationFields(ReportConstants.TOTAL,
             ReportGenerationFields.TYPE_STRING, String.valueOf(sum));

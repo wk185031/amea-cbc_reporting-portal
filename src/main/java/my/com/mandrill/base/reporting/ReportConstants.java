@@ -28,7 +28,7 @@ public final class ReportConstants {
 	// Report Generation Time
 	public static final String START_TIME = "00:00:00";
 	public static final String END_TIME = "23:59:59";
-	
+
 	// Report Generation Institution
 	public static final String CBC_INSTITUTION = "ChinaBank (CBC)";
 	public static final String CBS_INSTITUTION = "China Bank Savings (CBS)";
@@ -212,6 +212,8 @@ public final class ReportConstants {
 	public static final String UNAVAILABLE = "UNAVAILABLE";
 	public static final String STANDARD = "STANDARD";
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
+	public static final String PRODUCT_CODE = "PRODUCT_CODE";
+	public static final String PRODUCT_NAME = "PRODUCT_NAME";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";

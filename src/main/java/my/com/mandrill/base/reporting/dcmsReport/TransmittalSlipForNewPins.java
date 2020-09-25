@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -65,6 +67,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
     protected void execute(ReportGenerationMgr rgm, File file) {
         try {
             rgm.fileOutputStream = new FileOutputStream(file);
+            preProcessing(rgm);
             executeBodyQuery(rgm);
             rgm.fileOutputStream.flush();
             rgm.fileOutputStream.close();
@@ -83,6 +86,17 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                 logger.error("Error in closing fileOutputStream", e);
             }
         }
+    }
+
+    private void preProcessing(ReportGenerationMgr rgm)
+        throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        logger.debug("In TransmittalSlipForNewPins.preProcessing():" + rgm.getFileNamePrefix());
+
+        rgm.setBodyQuery(rgm.getBodyQuery()
+            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
+            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
+
+        addReportPreProcessingFieldsToGlobalMap(rgm);
     }
 
     private void preProcessingHeader(ReportGenerationMgr rgm, String brcName, String brcCode)
@@ -227,7 +241,6 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                             }
                         }
                     }
-
                     preProcessingBodyTrailer(rgm, branch.split(",")[0], totalCount);
                     writeTrailer(rgm, null);
                 }

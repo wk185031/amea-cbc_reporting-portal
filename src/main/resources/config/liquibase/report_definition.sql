@@ -12003,33 +12003,33 @@ group by
     ((SELECT
     (SELECT CLT_FIRST_NAME || ""|| CLT_MIDDLE_NAME || "" || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
     "NEW" AS REMARKS,
-    (select brn_name from DCMSADM.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
-    (select brn_code from DCMSADM.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
-    (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
-    FROM DCMSADM.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
+    (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
+    (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
+    (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
     union
     (select
     clt.CLT_FIRST_NAME || "" ||clt.CLT_MIDDLE_NAME || "" || clt.CLT_LAST_NAME as Account_Name,
     "REPLACEMENT" as Remarks,
-     (select brn_name from DCMSADM.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
-     (select brn_code from DCMSADM.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
-     (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from DCMSADM.SUPPORT_CARD_RENEWAL ren
-     inner join DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
-     inner join DCMSADM.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
-     inner join DCMSADM.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
+     (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
+     (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
+     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+     from {DCMS_Schema}.SUPPORT_CARD_RENEWAL ren
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
+     inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
      where ren.CRN_STS_ID = 88)
      union
      (select
      rclt.CLT_FIRST_NAME || "" ||rclt.CLT_MIDDLE_NAME || ""|| rclt.CLT_LAST_NAME as Account_Name,
      "PIN REGENERATION" as Remarks,
-     (select brn_name from DCMSADM.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
-     (select brn_code from DCMSADM.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
-     (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from DCMSADM.SUPPORT_REPIN rpin
-     inner join DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
-     inner join DCMSADM.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
-     inner join DCMSADM.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
+     (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
+     (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
+     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+     from {DCMS_Schema}.SUPPORT_REPIN rpin
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
+     inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
      where rpin.REP_STS_ID = 88)) tb group by tb.branch_code');
 
      TRAILER_QUERY := null;
@@ -12044,33 +12044,33 @@ group by
       (SELECT
       (SELECT CLT_FIRST_NAME || "" || CLT_MIDDLE_NAME || "" || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
       "NEW" AS REMARKS,
-      (select brn_name from DCMSADM.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
-      (select brn_code from DCMSADM.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
-      FROM DCMSADM.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
+      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
+      FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
       union
       (select
       clt.CLT_FIRST_NAME || "" ||clt.CLT_MIDDLE_NAME || "" || clt.CLT_LAST_NAME as Account_Name,
       "REPLACEMENT" as Remarks,
-      (select brn_name from DCMSADM.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
-      (select brn_code from DCMSADM.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-      from DCMSADM.SUPPORT_CARD_RENEWAL ren
-      inner join DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
-      inner join DCMSADM.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
-      inner join DCMSADM.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
+      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+      from {DCMS_Schema}.SUPPORT_CARD_RENEWAL ren
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
+      inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
       where ren.CRN_STS_ID = 88)
       union
       (select
       rclt.CLT_FIRST_NAME || "" ||rclt.CLT_MIDDLE_NAME || "" || rclt.CLT_LAST_NAME as Account_Name,
       "PIN REGENERATION" as Remarks,
-      (select brn_name from DCMSADM.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
-      (select brn_code from DCMSADM.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM DCMSADM.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-      from DCMSADM.SUPPORT_REPIN rpin
-      inner join DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
-      inner join DCMSADM.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
-      inner join DCMSADM.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
+      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+      from {DCMS_Schema}.SUPPORT_REPIN rpin
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
+      inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
       where rpin.REP_STS_ID = 88)');
 
       TRAILER_QUERY := null;
@@ -12081,7 +12081,7 @@ group by
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH:","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"BRANCH:","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"BRANCH CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":"","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldName":"BRANCH NAME","csvTxtLength":"42","pdfLength":"42","fieldType":"String","delimiter":"","fieldFormat":"","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"4","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"5","fieldName":"PRODUCT","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"PRODUCT","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PRODUCT NAME","csvTxtLength":"46","pdfLength":"46","fieldType":"String","defaultValue":"PRODUCT NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"TOTAL","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"TOTAL","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"8","fieldName":"FEE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"FEE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"9","fieldName":"TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TOTAL","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"10","fieldName":"TYPE","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TYPE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"11","fieldName":"","csvTxtLength":"46","pdfLength":"46","fieldType":"String","delimiter":"","fieldFormat":"","firstField":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true},{"sequence":12,"sectionName":"12","fieldName":"COUNT","csvTxtLength":"7","pdfLength":"7","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":13,"sectionName":"13","fieldName":"(PER CARD)","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"(PER CARD)","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"14","fieldName":"PRODUCT CODE","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"15","fieldName":"PRODUCT NAME","csvTxtLength":"46","pdfLength":"46","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"16","fieldName":"TOTAL COUNT","csvTxtLength":"7","pdfLength":"7","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":17,"sectionName":"17","fieldName":"FEE PER CARD","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"SPACE","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"fieldName":"TRAILER","csvTxtLength":"30","pdfLength":"30","eol":true,"defaultValue":"*** END OF REPORT ***"}]');
 	BODY_QUERY := TO_CLOB('select * from
-(select 
+(select
 	brn.brn_code as "BRANCH CODE",
 	brn.brn_name as "BRANCH NAME",
 	prs.prs_code as "PRODUCT CODE",
@@ -12089,18 +12089,18 @@ group by
 	count(cfs.cfs_amount) as "TOTAL COUNT",
 	sum(cfs.cfs_amount)/count(cfs.cfs_amount) as "FEE PER CARD",
 	sum(cfs.cfs_amount) as "TOTAL"
-from 
+from
 	{DCMS_Schema}.issuance_card crd
 	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = crd.crd_prs_id
 	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = crd.crd_brn_id
 	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = crd.crd_prs_id
-where 
+where
 	crd.crd_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and crd.crd_ins_id = {Iss_Id}
-group by 
+group by
 	brn.brn_code, brn.brn_name, prs.prs_code, prs.prs_name
-union 
-select 
+union
+select
 	brn.brn_code as "BRANCH CODE",
 	brn.brn_name as "BRANCH NAME",
 	prs.prs_code as "PRODUCT CODE",
@@ -12108,59 +12108,184 @@ select
 	count(cfs.cfs_amount) as "TOTAL COUNT",
 	sum(cfs.cfs_amount)/count(cfs.cfs_amount) as "FEE PER CARD",
 	sum(cfs.cfs_amount) as "TOTAL"
-from 
+from
 	{DCMS_Schema}.issuance_cash_card csh
 	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = csh.csh_prs_id
 	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = csh.csh_brn_id
 	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = csh.csh_prs_id
-where 
+where
 	csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and csh.csh_ins_id = {Iss_Id}
-group by 
+group by
 	brn.brn_code, brn.brn_name, prs.prs_code, prs.prs_name) tb
-order by 
+order by
 	tb."BRANCH CODE", tb."PRODUCT NAME"');
 	TRAILER_QUERY := null;
-	
+
 	INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES (159, 17, 'Branch Billing On Card Processed', 'Branch Billing On Card Processed by product', 'Branch Billing On Card Processed', 'PDF,CSV,', '/tmp/Reporting/reports/DCMSBranchBilling/', 'my.com.mandrill.base.reporting.dcmsBranchBilling.DCMSBranchBillingForCardProcessed', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Daily', 'mandrill', CURRENT_TIMESTAMP, 'master', to_timestamp('20200821 09:00:00', 'yyyymmdd hh24:mi:ss'), (select id from institution where name = 'ChinaBank (CBC)'));
 
     HEADER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"BILLING REPORT FOR BRANCHES","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TODAYS DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"45","pdfLength":"45","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SUMMARY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"(SUMMARY)","leftJustified":false,"padFieldLength":0},{"sequence":11,"sectionName":"11","fieldName":"SPACE","csvTxtLength":"42","pdfLength":"42","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"AS OF DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"As of Date Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":14,"sectionName":"14","fieldName":"Report Id","csvTxtLength":"9","pdfLength":"9","fieldType":"String","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":"<Report Id>"},{"sequence":15,"sectionName":"15","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":16,"sectionName":"16","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"Space1","csvTxtLength":"100","pdfLength":"100","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":18,"sectionName":"18","fieldName":"RunDate","csvTxtLength":"11","pdfLength":"11","fieldType":"String","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":19,"sectionName":"19","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":20,"sectionName":"20","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":21,"sectionName":"21","fieldName":"Time Value","eol":true,"fieldType":"Date","fieldFormat":"HH:mm:ss","csvTxtLength":"10","pdfLength":"10","leftJustified":true,"padFieldLength":0,"delimiter":";"}]');
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BRANCH","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"BRANCH","csvTxtLength":"48","pdfLength":"48","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BRANCH","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldName":"TOTAL BILL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"defaultValue":"TOTAL BILL"},{"sequence":4,"sectionName":"4","fieldName":"CODE","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"5","fieldName":"NAME","csvTxtLength":"48","pdfLength":"48","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"6","fieldName":"AMOUNT","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"AMOUNT","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"BRANCH_CODE","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"BRANCH_NAME","csvTxtLength":"48","pdfLength":"48","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":9,"sectionName":"9","fieldName":"TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","csvTxtLength":"13","pdfLength":"13","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"GRAND TOTAL","csvTxtLength":"48","pdfLength":"48","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"GRAND TOTAL","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldName":"OVER-ALL TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"4","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"fieldName":"Line"},{"sequence":5,"sectionName":"6","csvTxtLength":"46","pdfLength":"46","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"7","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"5","fieldName":"END","csvTxtLength":"50","pdfLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"*** END OF REPORT ***","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
 	BODY_QUERY := TO_CLOB('select * from
-(select 
+(select
 	brn.brn_code as branch_code,
 	brn.brn_name as branch_name,
 	sum(cfs.cfs_amount) as total
-from 
+from
 	{DCMS_Schema}.issuance_card crd
 	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = crd.crd_prs_id
 	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = crd.crd_brn_id
 	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = crd.crd_prs_id
-where 
+where
 	crd.crd_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and crd.crd_ins_id = {Iss_Id}
-group by 
+group by
 	brn.brn_code, brn.brn_name
-union 
-select 
+union
+select
 	brn.brn_code as branch_code,
 	brn.brn_name as branch_name,
 	sum(cfs.cfs_amount) as total
-from 
+from
 	{DCMS_Schema}.issuance_cash_card csh
 	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = csh.csh_prs_id
 	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = csh.csh_brn_id
 	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = csh.csh_prs_id
-where 
+where
 	csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and csh.csh_ins_id = {Iss_Id}
-group by 
+group by
 	brn.brn_code, brn.brn_name) tb
-order by 
+order by
 	tb.branch_code');
 	TRAILER_QUERY := null;
-	
+
 	INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES (160, 17, 'Branch Billing Summary', 'Summary of branch billing to each branch', 'Branch Billing Summary', 'PDF,CSV,', '/tmp/Reporting/reports/DCMSBranchBilling/', 'my.com.mandrill.base.reporting.dcmsBranchBilling.DCMSBranchBillingSummary', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Daily', 'mandrill', CURRENT_TIMESTAMP, 'master', to_timestamp('20200821 09:00:00', 'yyyymmdd hh24:mi:ss'), (select id from institution where name = 'ChinaBank (CBC)'));
+
+    HEADER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"0100","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","pdfLength":"62","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"csvTxtLength":"62","defaultValue":"CHINA BANKING CORPORATION"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","pdfLength":"48","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"MONTHLY CARD FILE REPORT","leftJustified":true,"padFieldLength":0,"csvTxtLength":"48"},{"sequence":4,"sectionName":"4","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","defaultValue":"TODAYS DATE"},{"sequence":5,"sectionName":"5","fieldName":"Todays Date Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","defaultValue":"","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"6","pdfLength":"6","fieldType":"Number","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"18","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"18","csvTxtLength":"4","pdfLength":"4","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"10","fieldName":"As Of Date","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"csvTxtLength":"15","pdfLength":"15","defaultValue":"AS OF DATE"},{"sequence":12,"sectionName":"11","fieldName":"As of Date Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"12","fieldName":"EFP012-01","csvTxtLength":"9","pdfLength":"9","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"EFP012-01","eol":true,"leftJustified":false,"padFieldLength":0},{"sequence":14,"sectionName":"13","fieldName":"","csvTxtLength":"96","pdfLength":"96","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"19","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":false,"leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"20","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"14","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"15","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"16","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TIME","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"17","fieldName":"Time Value","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","eol":true,"leftJustified":true,"padFieldLength":0}]');
+    BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"2","fieldName":"Branch","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BRANCH","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"3","fieldName":"Branch Name","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"csvTxtLength":"40","pdfLength":"40","defaultValue":"BRANCH NAME","bodyHeader":true},{"sequence":3,"sectionName":"4","fieldName":"Active","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"ACTIVE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"5","fieldName":"Inactive","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"INACTIVE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"6","fieldName":"Renewed","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"RENEWED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"7","fieldName":"Replaced","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"REPLACED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"8","fieldName":"Closed","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CLOSED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":false},{"sequence":8,"sectionName":"23","fieldName":"Total Count","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TOTAL COUNT","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":9,"sectionName":"11","fieldName":"CD","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CD","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"23","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"12","fieldName":"Cards","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARDS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"13","fieldName":"Cards","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARDS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":13,"sectionName":"14","fieldName":"Cards","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARDS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"15","fieldName":"Cards","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARDS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"16","fieldName":"Cards","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARDS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true},{"sequence":16,"sectionName":"20","fieldName":"BRANCH_CODE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":17,"sectionName":"21","fieldName":"BRANCH_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"22","fieldName":"ACTIVE_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"23","fieldName":"INACTIVE_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":20,"sectionName":"24","fieldName":"RENEWED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"25","fieldName":"REPLACED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"26","fieldName":"CLOSED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":false},{"sequence":23,"sectionName":"24","fieldName":"TOTAL_COUNT","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":"","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
+    TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true,"fieldName":"Space1"},{"sequence":2,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"fieldName":"Space2"},{"sequence":3,"sectionName":"1","fieldName":"Grand Total","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"GRAND TOTAL: ","firstField":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"2","fieldName":"TOTAL_ACTIVE","csvTxtLength":"21","pdfLength":"21","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"3","fieldName":"TOTAL_INACTIVE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"4","fieldName":"TOTAL_RENEWED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"5","fieldName":"TOTAL_REPLACED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"6","fieldName":"TOTAL_CLOSED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":false},{"sequence":9,"sectionName":"7","fieldName":"TOTAL_TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":true}]');
+    BODY_QUERY := ('select
+                report_summary.BRANCH_CODE,
+                report_summary.BRANCH_NAME,
+                report_summary.ACTIVE_CARDS,
+                report_summary.INACTIVE_CARDS,
+                report_summary.RENEWED_CARDS,
+                report_summary.REPLACED_CARDS,
+                report_summary.CLOSED_CARDS as CLOSED_CARDS,
+                (select report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS from dual) AS TOTAL_COUNT from
+                (SELECT
+                        (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
+                        (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
+                        (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
+                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_ACTIVE
+                          WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
+                          AND trunc(CRD_ACTIVE.crd_created_ts)
+                          between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                          )AS ACTIVE_CARDS,
+
+                        (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
+                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                          WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
+                          AND trunc(CRD_INACTIVE.crd_created_ts)
+                          between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                         )AS INACTIVE_CARDS,
+
+                        (SELECT COUNT(*) FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL RNWL
+                        INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
+                        INNER JOIN {DCMS_Schema}.ISSUANCE_CARD SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
+                        WHERE SUB_CRD.CRD_BRN_ID = CRD.CRD_BRN_ID AND RNWL.CRN_STS_ID = 1
+                         ) AS RENEWED_CARDS,
+
+                    (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
+                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                          WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
+                          AND trunc(CRD_INACTIVE.crd_created_ts)
+                          between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                          ) AS REPLACED_CARDS,
+
+
+                                (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
+                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_CLOSED
+                          WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 74
+                          AND trunc(CRD_CLOSED.crd_created_ts)
+                          between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                          ) AS CLOSED_CARDS
+
+
+                    FROM {DCMS_Schema}.ISSUANCE_CARD CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
+                    GROUP BY CRD.CRD_BRN_ID
+                    ORDER BY BRANCH_CODE) report_summary');
+
+    TRAILER_QUERY := null;
+
+    INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES (161, 17, 'Monthly Card File Report', 'Monthly Card File Report', 'MONTHLY_CARD_FILE_REPORT', 'PDF,CSV,', ' ', 'my.com.mandrill.base.reporting.dcmsReport.MonthlyCardFileReport', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Monthly', 'cbcadmin', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id from institution where name = 'ChinaBank (CBC)'));
+
+    HEADER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"0100","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"54","pdfLength":"54","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHINA BANKING CORPORATION","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"54","pdfLength":"54","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"MONTHLY CARDBASE REPORT","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TODAYS DATE ","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"Page","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"6","pdfLength":"6","fieldType":"Number","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"","csvTxtLength":"55","pdfLength":"55","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":9,"sectionName":"19","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"9","fieldName":"File Name2","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"(SUMMARY)","leftJustified":true,"padFieldLength":0},{"sequence":11,"sectionName":"21","csvTxtLength":"34","pdfLength":"34","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":12,"sectionName":"10","fieldName":"As of Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"AS OF DATE ","leftJustified":true,"padFieldLength":0},{"sequence":13,"sectionName":"11","fieldName":"As of Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","leftJustified":true,"padFieldLength":0},{"sequence":14,"sectionName":"12","fieldName":"REPORT ID","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"defaultValue":"<REPORT ID>"},{"sequence":15,"sectionName":"13","fieldName":"","csvTxtLength":"94","pdfLength":"94","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"20","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"21","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"14","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"RUNDATE","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"15","fieldName":"RunDate Value","csvTxtLength":"11","pdfLength":"11","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yy","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"16","fieldName":"Time","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TIME","leftJustified":true,"padFieldLength":0},{"sequence":21,"sectionName":"17","fieldName":"Time Value","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"HH:mm:ss","eol":true,"leftJustified":true,"padFieldLength":0}]');
+    BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"CARD TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CARD TYPE: ","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"PRODUCT_CODE","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldName":"PRODUCT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"21","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"firstField":true},{"sequence":5,"sectionName":"6","fieldName":"Branch","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BRANCH","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"7","fieldName":"Branch Name","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BRANCH NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"8","fieldName":"Active","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"ACTIVE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"9","fieldName":"Inactive","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"INACTIVE","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true,"eol":false},{"sequence":9,"sectionName":"10","fieldName":"Renewed","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"RENEWED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"11","fieldName":"Replaced","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"REPLACED","firstField":false,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"13","fieldName":"Closed","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CLOSED","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"12","fieldName":"Total","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TOTAL","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true},{"sequence":13,"sectionName":"14","fieldName":"Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CODE","firstField":true,"bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"15","fieldName":"BRANCH_CODE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"16","fieldName":"BRANCH_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"17","fieldName":"ACTIVE_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":17,"sectionName":"18","fieldName":"INACTIVE_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"19","fieldName":"RENEWED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"20","fieldName":"REPLACED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":20,"sectionName":"21","fieldName":"CLOSED_CARDS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"22","fieldName":"TOTAL_COUNT","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
+    TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"1","fieldName":"Grand Total","csvTxtLength":"18","pdfLength":"18","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"GRAND TOTAL: ","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"2","fieldName":"TOTAL_ACTIVE","csvTxtLength":"28","pdfLength":"28","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"3","fieldName":"TOTAL_INACTIVE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"4","fieldName":"TOTAL_RENEWED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"5","fieldName":"TOTAL_REPLACED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"6","fieldName":"TOTAL_CLOSED","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"7","fieldName":"TOTAL_TOTAL","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":true}]');
+
+    BODY_QUERY := TO_CLOB('select
+                                       report_summary.PRODUCT_CODE,
+                                       report_summary.PRODUCT_NAME,
+                                       report_summary.BRANCH_CODE,
+                                       report_summary.BRANCH_NAME,
+                                       report_summary.ACTIVE_CARDS,
+                                       report_summary.INACTIVE_CARDS,
+                                       report_summary.RENEWED_CARDS,
+                                       report_summary.REPLACED_CARDS,
+                                       report_summary.CLOSED_CARDS as CLOSED_CARDS,
+                                       (select report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS from dual) AS TOTAL_COUNT from
+                                       (SELECT
+                                               (select prs_code from {DCMS_Schema}.card_program_setup where prs_id = crd.crd_prs_id) AS PRODUCT_CODE,
+                                               (select prs_name from {DCMS_Schema}.card_program_setup where prs_id = crd.crd_prs_id) AS PRODUCT_NAME,
+                                               (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
+                                               (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
+                                               (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_ACTIVE
+                                                 WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
+                                                 AND trunc(CRD_ACTIVE.crd_created_ts)
+                                                 between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                                                 )AS ACTIVE_CARDS,
+
+                                               (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
+                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
+                                                  between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                                                )AS INACTIVE_CARDS,
+
+                                               (SELECT COUNT(*)
+                            FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL RNWL
+                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
+                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CARD SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
+                                               WHERE SUB_CRD.CRD_BRN_ID = CRD.CRD_BRN_ID AND RNWL.CRN_STS_ID = 1
+                                                ) AS RENEWED_CARDS,
+
+                                           (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
+                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
+                                                  between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+                                                 ) AS REPLACED_CARDS,
+
+
+                                                       (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_CLOSED
+                                                 WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 74
+                                                 AND trunc(CRD_CLOSED.crd_created_ts)
+                                                  between To_Date({From_Date},'dd-MM-yy hh24:mi:ss') And To_Date({To_Date},'dd-MM-yy hh24:mi:ss')
+                                                 ) AS CLOSED_CARDS
+
+
+                                           FROM {DCMS_Schema}.ISSUANCE_CARD CRD WHERE
+                                           CRD.CRD_INS_ID = {Iss_Id}
+                                           GROUP BY crd.crd_prs_id, CRD.CRD_BRN_ID
+                                           ORDER BY BRANCH_CODE) report_summary');
+
+     TRAILER_QUERY := null;
+
+     INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES (162, 17, 'Monthly Cardbase Report', 'Monthly Cardbase Report', 'MONTHLY_CARDBASE_REPORT', 'PDF,CSV,', ' ', 'my.com.mandrill.base.reporting.dcmsReport.MonthlyCardbaseReport', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Monthly', 'cbcadmin', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id from institution where name = 'ChinaBank (CBC)'));
 
 END;
