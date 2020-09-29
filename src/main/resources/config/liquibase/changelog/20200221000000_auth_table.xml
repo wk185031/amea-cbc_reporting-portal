@@ -13,6 +13,10 @@
                  path="config/liquibase/auth_table.sql"
                  splitStatements="false" 
                  stripComments="true" />
- 	
+    <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/export-table_details.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
  	</changeSet>
 </databaseChangeLog>
