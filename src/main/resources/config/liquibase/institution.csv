@@ -1,4 +1,4 @@
 ID;NAME;JHI_TYPE;BUSINESS_REG_NO;INDUSTRY;ADDRESS;PHONE;FAX;EMAIL;CREATED_BY;CREATED_DATE;PARENT_ID
-1;ChinaBank Corporation;;;FINANCIAL SERVICES;China Bank Building 8745 Paseo de Roxas corner Villar Street, Makati City 1226 Philippines;(632) 888-55-888;;online@chinabank.ph;system;2020-02-01 00:00:00;
+1;ChinaBank Corporation (HQ);;;FINANCIAL SERVICES;China Bank Building 8745 Paseo de Roxas corner Villar Street, Makati City 1226 Philippines;(632) 888-55-888;;online@chinabank.ph;system;2020-02-01 00:00:00;
 22;ChinaBank (CBC);Institution;;FINANCIAL SERVICES;ChinaBank;;;;system;2020-02-01 00:00:00;1
 2;China Bank Savings (CBS);Institution;;FINANCIAL SERVICES;VGP Center (6772 Ayala Avenue);(02) 8884-7878;;;system;2020-02-01 00:00:00;1

@@ -338,10 +338,12 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						}
 					}
 
+					String schemaTable = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) +"." + table;
+					
 					log.debug("Inserting latest data into table " + table);
 					try {
-						rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + table + "@"
-								+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
+						rs = stmt.executeQuery(
+								"INSERT INTO " + table + " SELECT * FROM " + schemaTable + "@" + env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 					} finally {
 						if (rs != null) {
 							rs.close();
@@ -378,23 +380,23 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory2.setCreatedDate(Instant.now());
 		jobHistory2.setCreatedBy(user);
 		jobHistoryResource.createJobHistory(jobHistory2);
-		
-		log.debug("Database synchronizer done. Start generate report tasks.");
-		LocalDate transactionDate = LocalDate.now().minusDays(1L);
-		
-		String instShortCode = null;
-		
-		List<Institution> institutions = institutionRepository.findAll();
-		for (Institution institution : institutions) {
-			if ("Institution".equals(institution.getType())) {
-				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-					instShortCode = "CBC";
-				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-					instShortCode = "CBS";
-				}
-				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
-			}		
-		}
+
+//		log.debug("Database synchronizer done. Start generate report tasks.");
+//		LocalDate transactionDate = LocalDate.now().minusDays(1L);
+//		
+//		String instShortCode = null;
+//		
+//		List<Institution> institutions = institutionRepository.findAll();
+//		for (Institution institution : institutions) {
+//			if ("Institution".equals(institution.getType())) {
+//				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//					instShortCode = "CBC";
+//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//					instShortCode = "CBS";
+//				}
+//				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+//			}		
+//		}
 	}
 
 	private void postProcessData() {

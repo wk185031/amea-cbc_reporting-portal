@@ -13,17 +13,6 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
-management:
-    security:
-        roles: ADMIN
-    context-path: /management
-    info:
-        git:
-            mode: full
-    health:
-        mail:
-            enabled: false # When using the MailService, configure an SMTP server and set this to true
-
 logging:
   level:
     ROOT: DEBUG
@@ -32,15 +21,15 @@ logging:
   pattern:
     console: "%d %-5level %logger : %msg%n"
     file: "%d %-5level [%thread] %logger : %msg%n"
-  file: logs/report-portal.log
+  file: /authentic/apache-tomcat-8.5.33/logs/report-portal.log
 
 spring:
     application:
       name: reporting-portal
 
     profiles:
-        active: kl
-        #include: swagger, no-liquibase
+        active: dev
+        # include: swagger, no-liquibase
     main:
       #banner-mode: off
     devtools:
@@ -52,11 +41,9 @@ spring:
         serialization.indent_output: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        #url: jdbc:oracle:thin:@172.20.188.31:1521/ATM5SIT
-        url: jdbc:oracle:thin:@192.168.222.101:1521/ORCLCDB.localdomain
+        url: jdbc:oracle:thin:@172.20.188.31:1521/DEVT
         username: ATM5RPT
-        #password: Auth5Reports-SIT219
-        password: ATM5RPT
+        password: Auth5Reports-SIT219
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
@@ -64,10 +51,8 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
-        dblink: ATM5UAT
-        schema:
-          authentic: ATM5ADM
-          dcms: DCMSADM
+        dblink: ATM5SIT
+        dcmsschema: DCMSADM
     jpa:
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle
@@ -87,16 +72,16 @@ spring:
                     logs: build/elasticsearch/log
                     data: build/elasticsearch/data
     mail:
-        host: localhost
-        port: 9465
+        host: smtppro04.mschosting.com
+        port: 465
         username: ci@mandrill.com.my
         password: icp45$wd
-        protocol: smtp
+        protocol: smtps
         debug: true
         properties.mail.smtp:
-            starttls.enable: false
-            starttls.required: false
-            ssl.enable: false
+            starttls.enable: true
+            starttls.required: true
+            ssl.enable: true
         properties.mail.smtps:
             auth: true
     messages:
@@ -126,10 +111,6 @@ liquibase:
 # ===================================================================
 server:
     port: 8080
-
-info:
-    project:
-        version: #project.version#
 
 # ===================================================================
 # JHipster specific properties
@@ -198,4 +179,4 @@ application:
     imageAttachmentBasePath:
         path : /tmp
     reportDir:
-        path: c:/MyTemp
+        path: /tmp
