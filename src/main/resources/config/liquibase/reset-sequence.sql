@@ -1,0 +1,10 @@
+alter table app_resource modify id generated as identity(start with 100);
+alter table institution modify id generated as identity(start with 100);
+alter table jhi_user modify id generated as identity(start with 100);
+alter table role_extra modify id generated as identity(start with 100);
+alter table user_extra modify id generated as identity(start with 100);
+alter table report_category modify rec_id generated as identity(start with 100);
+alter table job modify id generated as identity(start with 100);
+alter table task_group modify id generated as identity(start with 100);
+alter table task modify id generated as identity(start with 100);
+alter table report_definition modify red_id generated as identity(start with 100);

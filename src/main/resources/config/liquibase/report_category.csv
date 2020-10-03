@@ -15,6 +15,7 @@ REC_ID;REC_NAME;REC_DESCRIPTION;CREATED_BY;CREATED_DATE
 14;Billing Allocation Reports (Inter-Entity);For inter-entity billing allocation;system;2020-02-01 00:00:00
 15;Cash Card Reports;For cash card transactions;system;2020-02-01 00:00:00
 16;ECM (Electronic Channel Management) Reports;For electronic channel management;system;2020-02-01 00:00:00
+17;DCMS Reports;DCMS Reports;system;2020-02-01 00:00:00
 18;New Transactions Reports;For new transactions (InstaPay, Pesonet, Beep, Moving Cash, RFID, Recycler);system;2020-02-01 00:00:00
 19;Bills Payment Extract Files;To extract all bills payment transactions in more details;system;2020-02-01 00:00:00
 20;SWITCH Transaction Log File;List of all acquirer withdrawal details per transaction;system;2020-02-01 00:00:00

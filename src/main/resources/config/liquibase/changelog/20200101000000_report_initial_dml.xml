@@ -105,6 +105,10 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report_definition.sql"
                  splitStatements="false" 
+                 stripComments="true" />           
+         <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/reset-sequence.sql"
                  stripComments="true" />
  	</changeSet>
 </databaseChangeLog>
