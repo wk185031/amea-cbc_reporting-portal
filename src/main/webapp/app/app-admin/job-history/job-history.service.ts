@@ -14,7 +14,8 @@ export type EntityResponseType = HttpResponse<JobHistory>;
 export class JobHistoryService {
 
     private resourceUrl =  SERVER_API_URL + 'api/job-history';
-    private resourceSearchUrl = SERVER_API_URL + 'api/_search/job-history';
+    //private resourceSearchUrl = SERVER_API_URL + 'api/_search/job-history';
+    private resourceSearchUrl = SERVER_API_URL + 'api/_searchlatest/job-history';
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
 
@@ -45,11 +46,17 @@ export class JobHistoryService {
         return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response'});
     }
 
-    search(req?: any): Observable<HttpResponse<JobHistory[]>> {
-        const options = createRequestOption(req);
-        return this.http.get<JobHistory[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
-            .map((res: HttpResponse<JobHistory[]>) => this.convertArrayResponse(res));
-    }
+    //search(req?: any): Observable<HttpResponse<JobHistory[]>> {
+    //   const options = createRequestOption(req);
+    //  return this.http.get<JobHistory[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
+    //     .map((res: HttpResponse<JobHistory[]>) => this.convertArrayResponse(res));
+    //}
+
+    search(req?: any): Observable<HttpResponse<JobHistory>> {
+            const options = createRequestOption(req);
+            return this.http.get<JobHistory>(this.resourceSearchUrl, { params: options, observe: 'response' })
+                .map((res: HttpResponse<JobHistory>) => res);
+        }
 
     private convertResponse(res: EntityResponseType): EntityResponseType {
         const body: JobHistory = this.convertItemFromServer(res.body);
@@ -70,9 +77,11 @@ export class JobHistoryService {
      */
     private convertItemFromServer(jobHistory: JobHistory): JobHistory {
         const copy: JobHistory = Object.assign({}, jobHistory);
-        console.log("###" + jobHistory.createdDate);
-        // copy.createdDate = this.dateUtils
-        //     .convertDateTimeFromServer(jobHistory.createdDate);
+        //console.log("###" + jobHistory.createdDate);
+        copy.createdDate = this.dateUtils.convertDateTimeFromServer(jobHistory.createdDate);
+        console.log(jobHistory.createdDate);
+        console.log(copy.createdDate);
+
         return copy;
     }
 
@@ -82,6 +91,7 @@ export class JobHistoryService {
     private convert(jobHistory: JobHistory): JobHistory {
         const copy: JobHistory = Object.assign({}, jobHistory);
         copy.createdDate = this.dateUtils.toDate(jobHistory.createdDate);
+
         return copy;
     }
 }

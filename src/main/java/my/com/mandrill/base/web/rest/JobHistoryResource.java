@@ -4,6 +4,7 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -152,6 +153,18 @@ public class JobHistoryResource {
         return StreamSupport
             .stream(jobHistorySearchRepository.search(queryStringQuery(query)).spliterator(), false)
             .collect(Collectors.toList());
+    }
+
+    @GetMapping("/_searchlatest/job-history")
+    @Timed
+    //public List<JobHistory> getLatestJobHistorys (@RequestParam String query) {
+    public JobHistory getLatestJobHistorys(@RequestParam String query) {
+        log.debug("REST request to search JobHistorys for query {}", query);
+
+        Optional<JobHistory> optHistory = StreamSupport.stream(jobHistorySearchRepository.search(queryStringQuery(query)).spliterator(),
+            false).sorted(Comparator.comparing(JobHistory::getCreatedDate).reversed()).findFirst();
+
+        return optHistory.get();
     }
 
 }

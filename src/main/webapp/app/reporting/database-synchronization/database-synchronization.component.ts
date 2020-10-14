@@ -120,7 +120,9 @@ export class DatabaseSynchronizationComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.principal.identity().then((account) => {
+       //this.jobHistory.createdDate();
+
+       this.principal.identity().then((account) => {
             this.currentAccount = account;
         });
         this.readonlyInputs = true;
@@ -130,6 +132,7 @@ export class DatabaseSynchronizationComponent implements OnInit {
             this.tablesArr = res.body;
             this.loadJob();
         }, (res: HttpErrorResponse) => this.onError(res.message));;
+
     }
 
     editScheduler() {
@@ -146,20 +149,29 @@ export class DatabaseSynchronizationComponent implements OnInit {
         }, 1000 * 60 * 5);
     }
 
-    getPreviousSyncTime() {
-        let query = "status: COMPLETED && job.id: " + this.job.id;
-        this.jobHistoryService.search({
-            query: query,
-        }).subscribe((res: HttpResponse<JobHistory[]>) => {
-            this.jobHistories = res.body.sort((a,b) => {
-                return (a.createdDate < b.createdDate) ? 1 : -1;
-            });
-            this.jobHistory = this.jobHistories[0];
-            console.log("Jobhistory id: " + this.jobHistory.id);
-            console.log("Jobhistory createdDate: " + this.jobHistory.createdDate);
+   // getPreviousSyncTime() {
+   //  let query = "status: COMPLETED && job.id: " + this.job.id;
+   //  this.jobHistoryService.search({
+   //    query: query,
+   //     }).subscribe((res: HttpResponse<JobHistory[]>) => {
+   //        this.jobHistories = res.body.sort((a,b) => {
+   //           return (a.createdDate < b.createdDate) ? 1 : -1;
+   //       });
+   //       this.jobHistory = this.jobHistories[0];
+   //       console.log("Jobhistory id: " + this.jobHistory.id);
+   //       console.log("Jobhistory createdDate: " + this.jobHistory.createdDate);
 
-        }, (res: HttpErrorResponse) => this.onError(res.message));
-    }
+   //   }, (res: HttpErrorResponse) => this.onError(res.message));
+   //}
+
+    getPreviousSyncTime() {
+            let query = "status: COMPLETED && job.id: " + this.job.id;
+            this.jobHistoryService.search({
+                query: query,
+            }).subscribe((res: HttpResponse<JobHistory>) => {
+                this.jobHistory = res.body;
+            }, (res: HttpErrorResponse) => this.onError(res.message));
+        }
 
     saveSchedulerChanges() {
         this.ngxLoader.start();
