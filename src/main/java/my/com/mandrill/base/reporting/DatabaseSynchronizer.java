@@ -244,7 +244,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 //    	task1.setCreatedDate(ZonedDateTime.now());
 //    	task1.setTaskGroup(taskGroup);
 //    	createTask(task1);
-//    	
+//
 //    	Task task2 = new Task();
 //    	task2.setName("Sync DB Oracle-11g");
 //    	task2.setStatus(ReportConstants.STATUS_ACTIVE);
@@ -255,7 +255,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 //    	task2.setCreatedDate(ZonedDateTime.now());
 //    	task2.setTaskGroup(taskGroup);
 //    	createTask(task2);
-//    	
+//
 //    	Task task3 = new Task();
 //    	task3.setName("Sync DB Oracle-12c");
 //    	task3.setStatus(ReportConstants.STATUS_ACTIVE);
@@ -381,6 +381,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory2.setCreatedBy(user);
 		jobHistoryResource.createJobHistory(jobHistory2);
 
+<<<<<<< Updated upstream
 //		log.debug("Database synchronizer done. Start generate report tasks.");
 //		LocalDate transactionDate = LocalDate.now().minusDays(1L);
 //		
@@ -397,6 +398,24 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 //				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
 //			}		
 //		}
+=======
+		log.debug("Database synchronizer done. Start generate report tasks.");
+		LocalDate transactionDate = LocalDate.now().minusDays(1L);
+
+		String instShortCode = null;
+
+		List<Institution> institutions = institutionRepository.findAll();
+		for (Institution institution : institutions) {
+			if ("Institution".equals(institution.getType())) {
+				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+					instShortCode = "CBC";
+				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+					instShortCode = "CBS";
+				}
+				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+			}
+		}
+>>>>>>> Stashed changes
 	}
 
 	private void postProcessData() {

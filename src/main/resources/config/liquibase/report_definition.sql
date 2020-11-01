@@ -11814,7 +11814,13 @@ order by
                           ) AS CLOSED_CARDS
 
 
+<<<<<<< Updated upstream
                     FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
+=======
+                    FROM {DCMS_Schema}.ISSUANCE_CARD CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
+                    AND trunc(CRD.crd_created_ts)
+                    between To_Date({From_Date},'dd-MM-YY hh24:mi:ss') And To_Date({To_Date},'dd-MM-YY hh24:mi:ss')
+>>>>>>> Stashed changes
                     GROUP BY CRD.CRD_BRN_ID
                     ORDER BY BRANCH_CODE) report_summary');
 
@@ -11881,6 +11887,8 @@ order by
 
                                            FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD WHERE
                                            CRD.CRD_INS_ID = {Iss_Id}
+                                           AND trunc(CRD.crd_created_ts)
+                                           between To_Date({From_Date},'dd-MM-yy hh24:mi:ss') And To_Date({To_Date},'dd-MM-yy hh24:mi:ss')
                                            GROUP BY crd.crd_prs_id, CRD.CRD_BRN_ID
                                            ORDER BY BRANCH_CODE) report_summary');
 

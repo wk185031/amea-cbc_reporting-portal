@@ -431,6 +431,8 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     private void preProcessing(ReportGenerationMgr rgm)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In MonthlyCardbaseReport.preProcessing():" + rgm.getFileNamePrefix());
+        logger.debug("CHECK TXN END DATE : " + rgm.getTxnEndDate());
+        logger.debug("CHECK TXN START DATE : " + rgm.getTxnStartDate());
 
         LocalDate date = rgm.getTxnStartDate();
 

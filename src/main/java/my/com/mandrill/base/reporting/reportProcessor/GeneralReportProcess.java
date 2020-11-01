@@ -304,8 +304,10 @@ public class GeneralReportProcess {
 			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
 			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
 
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
+//			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
+            ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+                ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
