@@ -28,12 +28,10 @@ public abstract class AbstractAuditingEventEntity implements Serializable {
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, length = 50, updatable = false)
-
     private String createdBy;
 
     @CreatedDate
-    @Column(name = "created_date", nullable = false)
-
+    @Column(name = "created_date", nullable = false, updatable = false)
     private Instant createdDate = Instant.now();
 
     @LastModifiedBy

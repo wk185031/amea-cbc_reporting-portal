@@ -8,3 +8,4 @@ alter table job modify id generated as identity(start with 100);
 alter table task_group modify id generated as identity(start with 100);
 alter table task modify id generated as identity(start with 100);
 alter table report_definition modify red_id generated as identity(start with 100);
+UPDATE REPORT_DEFINITION SET RED_DAILY_SCHEDULE_TIME = TO_TIMESTAMP('2020-01-01 02:00:00', 'YYYY-MM-DD HH24:MI:SS');

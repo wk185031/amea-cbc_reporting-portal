@@ -68,6 +68,7 @@ public class ReportGenerationFields {
 	private boolean generate;
 	private String institution;
 	private String dcmsDbSchema;
+	private String dblink;
 
 	public ReportGenerationFields() {
 		super();
@@ -429,6 +430,14 @@ public class ReportGenerationFields {
 
 	public void setDcmsDbSchema(String dcmsDbSchema) {
 		this.dcmsDbSchema = dcmsDbSchema;
+	}
+	
+	public String getDbLink() {
+		return dblink;
+	}
+
+	public void setDbLink(String dblink) {
+		this.dblink = dblink;
 	}
 
 	public String format() {

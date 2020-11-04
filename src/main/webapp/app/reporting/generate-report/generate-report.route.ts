@@ -28,8 +28,8 @@ export class GenerateReportResolvePagingParams implements Resolve<any> {
         const page = route.queryParams['page'] ? route.queryParams['page'] : '1';
         const sort = route.queryParams['sort'] ? route.queryParams['sort'] : 'id,asc';
         const branchId = route.params.id;
-        return forkJoin([this.reportConfigCategoryService.queryNoPagingFilterWithBranch(branchId),
-            this.reportConfigDefinitionService.queryNoPagingFilterWithBranch(branchId)]).pipe(
+        return forkJoin([this.reportConfigCategoryService.queryNoPaging(),
+            this.reportConfigDefinitionService.queryNoPaging()]).pipe(
             map((value) => value),
             mergeMap((value: Observable<[HttpResponse<ReportCategory[]>, HttpResponse<ReportDefinition[]>]>) => {
                 return of({

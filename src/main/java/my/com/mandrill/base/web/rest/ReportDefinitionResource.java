@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -44,13 +45,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
+import my.com.mandrill.base.config.ApplicationProperties;
+import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.domain.TreeStructure;
+import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.repository.search.ReportDefinitionSearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
+import my.com.mandrill.base.service.AppService;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.base.web.rest.util.PaginationUtil;
@@ -72,14 +77,22 @@ public class ReportDefinitionResource {
 
 	private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
 	
+	private final ApplicationProperties applicationProperties;
+	
+	private final AppService appService;
+	
 	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportDefinitionResource(ReportCategoryRepository reportCategoryRepository,
 			ReportDefinitionRepository reportDefinitionRepository,
-			ReportDefinitionSearchRepository reportDefinitionSearchRepository) {
+			ReportDefinitionSearchRepository reportDefinitionSearchRepository,
+			ApplicationProperties applicationProperties,
+			AppService appService) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
+		this.applicationProperties = applicationProperties;
+		this.appService = appService;
 	}
 
 	/**
@@ -174,7 +187,7 @@ public class ReportDefinitionResource {
 		// log.debug("User: {}, REST request to all ReportDefinition without paging",
 		// SecurityUtils.getCurrentUserLogin().orElse(""));
 		List<ReportDefinition> reportDefinition = reportDefinitionRepository.findAll();
-		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
+		reportDefinition.sort(Comparator.comparing(ReportDefinition::getName));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
 	
@@ -216,7 +229,17 @@ public class ReportDefinitionResource {
 	public ResponseEntity<ReportDefinition> getReportDefinition(@PathVariable Long id) {
 		log.debug("User: {}, REST request to get ReportDefinition: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				id);
+
 		ReportDefinition reportDefinition = reportDefinitionRepository.findOne(id);
+		
+		if (reportDefinition != null) {
+			//FIXME: All report standardize generate to a root directory configured in application.yml
+			// The front end should display the path as read only
+			
+			String reportRoot = applicationProperties.getReportDir().getPath();
+			Set<Institution> institutions = appService.getAllInstitutionOfUser(SecurityUtils.getCurrentUserLogin().get());
+			reportDefinition.setFileLocation(reportRoot + "/" + institutions.iterator().next().getId());
+		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
 	}
 
@@ -271,10 +294,10 @@ public class ReportDefinitionResource {
 	public ResponseEntity<String> getReportDefinitionStructuresFilterWithBranch() {
 		log.debug("User: {}, REST request to get Report Definition Structures",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
-		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByIdAsc());
+		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByNameAsc());
 		List<ReportDefinition> children = null;
 		//HQ User branch ID
-		children = reportDefinitionRepository.findAll(orderByIdAsc());
+		children = reportDefinitionRepository.findAll(orderByNameAsc());
 		List<TreeStructure> structures = new ArrayList<>();
 		Long incrementNumber = new Long(1);
 		for (ReportCategory parent : parents) {
@@ -354,5 +377,9 @@ public class ReportDefinitionResource {
 
 	private Sort orderByIdAsc() {
 		return new Sort(Sort.Direction.ASC, "id");
+	}
+	
+	private Sort orderByNameAsc() {
+		return new Sort(Sort.Direction.ASC, "name");
 	}
 }

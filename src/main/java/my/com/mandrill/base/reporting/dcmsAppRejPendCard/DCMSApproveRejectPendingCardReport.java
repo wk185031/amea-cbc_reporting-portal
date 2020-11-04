@@ -187,15 +187,28 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In DCMSApproveRejectPendingCardReport.preProcessing():" + rgm.getFileNamePrefix());
 		
+		String txnStartDate = rgm.getTxnStartDate().atStartOfDay()
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		String txnEndDate = rgm.getTxnEndDate().atTime(LocalTime.MAX)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+		logger.debug(
+				"In DCMSApproveRejectPendingCardReport.preProcessing: fileNamePrefix={}, txnStartDate={}, txnEndDate={}, dcmsSchema={}, dbLink={}, institution={}",
+				rgm.getFileNamePrefix(), txnStartDate, txnEndDate, rgm.getDcmsDbSchema(), rgm.getDbLink(),
+				rgm.getInstitution());
+
 		// replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Name} to actual value
-		rgm.setBodyQuery(rgm.getBodyQuery()
-				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'")
-				.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'")
-				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", rgm.getDcmsDbSchema())
-				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
-		
+		rgm.setBodyQuery(
+				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + txnStartDate + "'")
+						.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + txnEndDate + "'")
+						.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", rgm.getDcmsDbSchema())
+						.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
+						.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
+						.replace("{" + ReportConstants.PARAM_ISSUER_NAME + "}",
+								rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION
+										: ReportConstants.DCMS_CBS_INSTITUTION));
+
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
