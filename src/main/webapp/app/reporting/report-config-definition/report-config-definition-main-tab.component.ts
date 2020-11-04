@@ -79,7 +79,8 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         this.institutionService.query().subscribe((institutions: HttpResponse<Institution[]>) => {
             this.institutions = institutions.body;
         }, (error: HttpErrorResponse) => this.onError(error.message));
-        this.timeAsDate = new Date(this.reportDefinition.scheduleTime * 1000);
+       // this.timeAsDate = new Date(this.reportDefinition.scheduleTime * 1000);
+        this.timeAsDate = new Date(this.reportDefinition.scheduleTime);
         this.time = {hour: this.timeAsDate.getHours(), minute: this.timeAsDate.getMinutes(), second: this.timeAsDate.getSeconds()};
     }
 
@@ -113,7 +114,8 @@ export class ReportConfigDefinitionMainTabComponent implements OnInit {
         }
 
         this.timeAsDate.setHours(this.time.hour, this.time.minute, this.time.second);
-        this.reportDefinition.scheduleTime = this.timeAsDate.getTime() / 1000;
+       // this.reportDefinition.scheduleTime = this.timeAsDate.getTime() / 1000;
+       this.reportDefinition.scheduleTime = this.timeAsDate.getTime()  / 1000;
         this.onValueChange.emit(true);
     }
 

@@ -14,9 +14,12 @@ import org.springframework.data.jpa.repository.*;
 @SuppressWarnings("unused")
 @Repository
 public interface InstitutionRepository extends JpaRepository<Institution, Long> {
-	
+
 	List<Institution> findAllInstitutionByParentId(Long id);
-	
+
 	@Query("select institution from Institution institution where institution.parent is null")
     List<Institution> findAllInstitutionRoot();
+
+    @Query("select institution from Institution institution where institution.type = 'Institution'")
+    List<Institution> findInstitutionWithInstitutionType();
 }

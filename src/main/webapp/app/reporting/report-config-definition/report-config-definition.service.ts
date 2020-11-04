@@ -27,11 +27,17 @@ export class ReportConfigDefinitionService {
             .map((res: EntityResponseType) => this.convertResponse(res));
     }
 
-    update(reportDefinition: ReportDefinition): Observable<EntityResponseType> {
+    /* update(reportDefinition: ReportDefinition): Observable<EntityResponseType> {
         const copy = this.convert(reportDefinition);
         return this.http.put<ReportDefinition>(this.resourceUrl, copy, { observe: 'response' })
             .map((res: EntityResponseType) => this.convertResponse(res));
-    }
+    } */
+
+           update(reportDefinition: ReportDefinition): Observable<EntityResponseType> {
+           const copy = this.convert(reportDefinition);
+           return this.http.put<ReportDefinition>(this.resourceUrl, copy, { observe: 'response' })
+               .map((res: EntityResponseType) =>  this.convertResponse(res));
+       }
 
     find(id: number): Observable<EntityResponseType> {
         return this.http.get<ReportDefinition>(`${this.resourceUrl}/${id}`, { observe: 'response' })
@@ -99,12 +105,14 @@ export class ReportConfigDefinitionService {
         copy.lastModifiedDate = this.dateUtils.toDate(reportDefinition.lastModifiedDate);
         return copy;
     }
+
     /*
     findReportDefinitionStructures(): Observable<HttpResponse<any>> {
         return this.http.get<any>(`${this.resourceReportDefinitionStructures}`, { observe: 'response' })
             .map((res: HttpResponse<any>) => this.convertArrayResponse(res));
     }
-    */
+*/
+
     findReportDefinitionStructuresFilterWithBranch(branchId: number): Observable<HttpResponse<any>> {
         return this.http.get<any>(`${this.resourceReportDefinitionStructures}/${branchId}`, { observe: 'response' })
             .map((res: HttpResponse<any>) => this.convertArrayResponse(res));

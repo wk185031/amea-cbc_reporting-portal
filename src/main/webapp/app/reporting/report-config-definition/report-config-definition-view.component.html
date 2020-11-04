@@ -50,7 +50,8 @@
                     </dd>
                     <dt><span jhiTranslate="baseApp.reportDefinition.scheduleTimeLabel">Schedule Time</span></dt>
                     <dd>
-                        <span>{{reportDefinition.scheduleTime * 1000 | date: 'HH:mm'}}</span>
+                      <!--  <span>{{reportDefinition.scheduleTime * 1000 | date: 'HH:mm'}}</span> -->
+                        <span>{{reportDefinition.scheduleTime | date: 'HH:mm'}}</span>
                     </dd>
                     <dt><span jhiTranslate="baseApp.reportDefinition.institutionLabel">Institution</span></dt>
                     <dd>
