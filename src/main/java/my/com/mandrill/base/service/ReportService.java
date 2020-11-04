@@ -60,6 +60,7 @@ public class ReportService {
 		reportGenerationMgr.setTodayDate(transactionDate);
 		reportGenerationMgr.setInstitution(instShortCode);	
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -98,6 +99,7 @@ public class ReportService {
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {

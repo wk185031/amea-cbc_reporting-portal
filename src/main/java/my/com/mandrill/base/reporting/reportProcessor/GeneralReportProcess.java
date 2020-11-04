@@ -92,10 +92,12 @@ public class GeneralReportProcess {
 			while (m.find()) {
 				String paramName = m.group().substring(1, m.group().length() - 1);
 				if (globalFileFieldsMap.containsKey(paramName)) {
-					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format());
+					String value = globalFileFieldsMap.get(paramName).format();
+					logger.debug("Replace parameter[{}] with value[{}]", paramName, value);
+					m.appendReplacement(sb, value);
 				} else {
 					rgm.errors++;
-					logger.error("No field defined for parameter ", paramName);
+					logger.error("No field defined for parameter: {}", paramName);
 				}
 
 			}

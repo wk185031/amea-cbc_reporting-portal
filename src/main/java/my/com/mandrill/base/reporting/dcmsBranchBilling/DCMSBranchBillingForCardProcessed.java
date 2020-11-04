@@ -112,7 +112,7 @@ public class DCMSBranchBillingForCardProcessed extends PdfReportProcessor {
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		HashMap<String, List<HashMap<String, ReportGenerationFields>>> branchToLineFieldsMap = null;
+		HashMap<String, List<HashMap<String, ReportGenerationFields>>> branchToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
 		List<HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
 		String branchCode = null;
 		String branchName = null;
@@ -166,10 +166,6 @@ public class DCMSBranchBillingForCardProcessed extends PdfReportProcessor {
 							field.setValue("");
 						}
 					}
-					
-					if(branchToLineFieldsMap == null) {
-                    	branchToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-                    }
 					
 					if(str == null) {
                     	str = new StringBuilder();
@@ -232,6 +228,7 @@ public class DCMSBranchBillingForCardProcessed extends PdfReportProcessor {
 				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().atStartOfDay().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
 				.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
 				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
 				.replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 		
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -271,7 +268,7 @@ public class DCMSBranchBillingForCardProcessed extends PdfReportProcessor {
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		HashMap<String, List<HashMap<String, ReportGenerationFields>>> branchToLineFieldsMap = null;
+		HashMap<String, List<HashMap<String, ReportGenerationFields>>> branchToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
 		List<HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
 		String branchCode = null;
 		String branchName = null;
@@ -312,11 +309,7 @@ public class DCMSBranchBillingForCardProcessed extends PdfReportProcessor {
 							field.setValue("");
 						}
 					}
-					
-					if(branchToLineFieldsMap == null) {
-                    	branchToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-                    }
-					
+
 					if(str == null) {
                     	str = new StringBuilder();
                     }

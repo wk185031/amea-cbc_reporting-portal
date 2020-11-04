@@ -13,7 +13,7 @@
     
  	<changeSet id="20200101000000_report_initial" author="kw">
  	
- 		<createTable tableName="report_category" tablespace="auth_reporting_ts">
+ 		<createTable tableName="report_category" tablespace="AUTH_REPORT_DATA_TS">
             <column name="rec_id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -32,7 +32,7 @@
             <column name="last_modified_date" type="timestamp"/>
         </createTable>
         
-        <createTable tableName="report_definition" tablespace="auth_reporting_ts">
+        <createTable tableName="report_definition" tablespace="AUTH_REPORT_DATA_TS">
             <column name="red_id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -92,7 +92,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="institution"/>
                     
-		<createTable tableName="job" tablespace="auth_reporting_ts">
+		<createTable tableName="job" tablespace="AUTH_REPORT_DATA_TS">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -113,7 +113,7 @@
             <column name="table_sync" type="varchar(1000)"/>
         </createTable>
         
-        <createTable tableName="job_history" tablespace="auth_reporting_ts">
+        <createTable tableName="job_history" tablespace="AUTH_REPORT_DATA_TS">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -136,7 +136,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="job"/>
                                  
-        <createTable tableName="task_group" tablespace="auth_reporting_ts">
+        <createTable tableName="task_group" tablespace="AUTH_REPORT_DATA_TS">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -163,7 +163,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="job"/>                                                 
  	
- 		<createTable tableName="task" tablespace="auth_reporting_ts">
+ 		<createTable tableName="task" tablespace="AUTH_REPORT_DATA_TS">
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -197,7 +197,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="task_group"/>
                                  
-        <createTable tableName="TRANSACTION_LOG_CUSTOM" tablespace="auth_reporting_ts">
+        <createTable tableName="TRANSACTION_LOG_CUSTOM" tablespace="AUTH_REPORT_DATA_TS">
             <column name="TRL_ID" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

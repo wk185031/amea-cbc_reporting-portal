@@ -173,7 +173,7 @@ public class ReportGenerationResource {
 	}
 
 	private void generateDailyReport(Long institutionId, String instShortCode) {
-		logger.info("In ReportGenerationResource.generateDailyReport()");
+		logger.info("generateDailyReport: institutionId={}, intShortCode={}", institutionId, instShortCode);
 		LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
@@ -186,6 +186,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setTodayDate(yesterdayDate);
 		reportGenerationMgr.setInstitution(instShortCode);	
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
@@ -223,6 +224,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);		
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -275,6 +277,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setGenerate(true);
 		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator + txnDate.substring(0, 7);

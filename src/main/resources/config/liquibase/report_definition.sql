@@ -4818,7 +4818,7 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_DEO_NAME IS NULL
-      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
+      AND TXN.TRL_MCC_ID=6011
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND {Iss_Name}
       AND {Bank_Code}
@@ -4909,7 +4909,7 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_DEO_NAME IS NULL
-      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
+      AND TXN.TRL_MCC_ID=6011
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND {Iss_Name}
       AND {Txn_Date}
@@ -4985,7 +4985,7 @@ WHERE
       TXN.TRL_TSC_CODE IN (0, 1, 128, 31, 40, 41, 43, 44, 46, 47, 50, 51, 52, 122)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_DEO_NAME IS NULL
-      AND TXNC.TRL_ORIGIN_CHANNEL = ''BANCNET_ATM''
+      AND TXN.TRL_MCC_ID=6011
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND {Iss_Name}
       AND {Txn_Date}
@@ -6772,7 +6772,7 @@ FROM
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = ''CBS''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -6795,7 +6795,7 @@ FROM
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = ''CBS''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -6816,7 +6816,7 @@ FROM
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = ''CBS''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -6830,7 +6830,7 @@ START SELECT
 FROM
       TRANSACTION_LOG TXN
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = ''CBS''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -6864,7 +6864,7 @@ FROM
       TRANSACTION_LOG TXN
       {Join_Criteria}
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = ''0000000010''
@@ -6922,7 +6922,7 @@ FROM
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
@@ -6990,7 +6990,7 @@ FROM
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
@@ -7024,7 +7024,7 @@ FROM
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -7051,7 +7051,7 @@ FROM
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -7086,7 +7086,7 @@ FROM
      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
      JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 1
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -7111,7 +7111,7 @@ FROM
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 1
+      TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -11034,28 +11034,28 @@ ORDER BY
 FROM
   (SELECT
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req
-    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
     ON req.DCR_CRD_ID = crd.CRD_ID
     WHERE crd.CRD_EMB_ID IS NOT NULL
     AND req.DCR_INS_ID = {Iss_Name}
     AND TRUNC(req.DCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS New_Card,
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.support_card_renewal
+    FROM {DCMS_Schema}.support_card_renewal@{DB_LINK_DCMS}
     WHERE CRN_STS_ID = 91
     AND CRN_INS_ID = {Iss_Name}
     AND CRN_CREATED_TS BETWEEN {From_Date} AND {To_Date}
     ) AS Replacement_Card ,
     (SELECT SUM(BCR_NUMBER_OF_CARDS)
-    FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST
+    FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
     WHERE BCR_STS_ID = 70
     AND BCR_INS_ID = {Iss_Name}
     AND TRUNC(BCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS Pre_Generated_Card,
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req
-    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
     ON req.DCR_CRD_ID = crd.CRD_ID
     WHERE req.DCR_REQ_FROM_BATCH = 1
     AND crd.CRD_EMB_ID IS NOT NULL
@@ -11079,16 +11079,16 @@ FROM
 FROM
   (SELECT
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req
-    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
     ON req.DCR_CRD_ID = crd.CRD_ID
     Where crd.crd_pin_offset IS Not Null
     AND req.DCR_INS_ID = {Iss_Name}
     AND TRUNC(req.DCR_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS New_Card,
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req
-    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
     On Req.Dcr_Crd_Id = Crd.Crd_Id
     WHERE req.DCR_REQUEST_TYPE = ''Auto Renewal'' OR req.DCR_REQUEST_TYPE=''Renew'' OR req.DCR_REQUEST_TYPE=''Replace''
     And Crd.Crd_Pin_Offset Is Not Null
@@ -11096,14 +11096,14 @@ FROM
     And Trunc(Req.Dcr_Created_Ts) Between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS Replacement_Card ,
     (SELECT Count(crd_id)
-    From {DCMS_Schema}.Issuance_Card
+    From {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}
     Where Crd_Bcr_Id Like ''B%'' And Crd_Pin_Offset Is Not Null
     AND Crd_Ins_id = {Iss_Name}
     AND TRUNC(crd_CREATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     ) AS Pre_Generated_Card,
     (SELECT COUNT(*)
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST req
-    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD crd
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
     ON req.DCR_CRD_ID = crd.CRD_ID
     WHERE req.DCR_REQ_FROM_BATCH = 1 OR DCR_REQUEST_TYPE=''Bulk upload''
     And Crd.crd_pin_offset Is Not Null
@@ -11121,406 +11121,6 @@ FROM
 	TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"TOTAL ITEM","csvTxtLength":"21","pdfLength":"21","defaultValue":"TOTAL NUMBER OF ITEMS:","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"7","pdfLength":"7","eol":true}]');
 	BODY_QUERY := TO_CLOB('SELECT
 	''ACCOUNT DLINKING'' AS FUNCTIONNAME,
-	SALD.ADL_CREATED_TS  AS ISSUE_DATE,
-	IC.CRD_NUMBER_MASKED,
-	SALD.ADL_CREATED_BY AS MAKER,
-	SALD.ADL_UPDATED_BY AS CHECKER,
-	SALD.ADL_REMARKS AS REMARKS,
-	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
-	MS.STS_NAME AS STATUS
-FROM
-	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING SALD
-	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
-	JOIN {DCMS_Schema}.ISSUANCE_CARD IC ON ICCM.CCM_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON SALD.ADL_STS_ID=MS.STS_ID
-Where
-	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	AND STS_ID IN (88,90,91)
-	AND SALD.ADL_INS_ID = {Iss_Name}
-UNION ALL
-Select
-	''Request For Add On Card'' As FUNCTIONNAME,
-	Rac.Aoc_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked, Rac.Aoc_Created_By As Maker,
-	Rac.Aoc_Updated_By As Checker,
-	Rac.Aoc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Add_On_Card Rac
-	Join {DCMS_Schema}.Issuance_Card Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Rac.Aoc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Rac.Aoc_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''ACCOUNT LINKING'' As FUNCTIONNAME,
-	Acl_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked, Sal.Acl_Created_By As Maker,
-	Sal.Acl_Updated_By As Checker,
-	Sal.Acl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Account_Linking Sal
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping  Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sal.Acl_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sal.Acl_Ins_Id = {Iss_Name}
-Union All
-Select
-	''Card Activation'' As Functionname,
-	Sac.Caa_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sac.Caa_Created_By As Maker,
-	Sac.Caa_Updated_By As Checker,
-	Sac.Caa_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Card_Activation Sac
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sac.Caa_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''CARD RENEWAL'' As Functionname,
-	Scr.Crn_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Scr.Crn_Created_By As Maker,
-	Scr.Crn_Updated_By As Checker,
-	Scr.Crn_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Card_Renewal Scr
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Scr.Crn_Ins_Id = {Iss_Name}
-Union All
-Select
-	''CASH CARD ACTIVATION'' Functionname,
-	Scca.Cc_Caa_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked As Cardno,
-	Scca.Cc_Caa_Created_By As Maker,
-	Scca.Cc_Caa_Updated_By As Checker,
-	Scca.Cc_Caa_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Activation Scca
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Scca.Cc_Caa_Ins_Id = {Iss_Name}
-Union All
-Select
-	''CASH CARD RENEWAL'' Functionname,
-	Sccr.Cc_Crn_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sccr.Cc_Crn_Created_By As Maker,
-	Sccr.Cc_Crn_Updated_By As Checker,
-	Sccr.Cc_Crn_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Renewal Sccr
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sccr.Cc_Crn_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''CASH DEHOTLIST'' Functionname,
-	Sccd.Cc_Dhl_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sccd.Cc_Dhl_Created_By As Maker,
-	Sccd.Cc_Dhl_Updated_By As Checker,
-	Sccd.Cc_Dhl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Dehotlist Sccd
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
-Where
-    To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sccd.Cc_Dhl_Ins_Id = {Iss_Name}
-Union All
-Select
-	''HOTLIST'' Functionname,
-	Scch.Hot_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Scch.Hot_Created_By As Maker,
-	Scch.Hot_Updated_By As Checker,
-	Scch.Hot_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Hotlist Scch
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Scch.Hot_Ins_id = {Iss_Name}
-Union All
-Select
-	''CASH CARD RESET PIN'' Functionname,
-	Sccrp.Cc_Rpc_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sccrp.Cc_Rpc_Created_By As Maker,
-	Sccrp.Cc_Rpc_Updated_By As Checker,
-	Sccrp.Cc_Rpc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter Sccrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sccrp.Cc_Rpc_Ins_id = {Iss_Name}
-UNION ALL
-Select
-	''CASH CARD HOTLIST'' Functionname,
-	Scht.Cc_Hot_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Scht.Cc_Hot_Created_By As Maker,
-	Scht.Cc_Hot_Updated_By As Checker,
-	Scht.Cc_Hot_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Hotlist Scht
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Scht.Cc_Hot_Ins_Id = {Iss_Name}
-Union All
-Select
-	''REPIN'' Functionname,
-	Sdrp.Rep_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sdrp.Rep_Created_By As Maker,
-	Sdrp.Rep_Updated_By As Checker,
-	Sdrp.Rep_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Repin Sdrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
-Where
-    To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Sdrp.Rep_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''RESET PIN COUNTER'' Functionname,
-	Srp.Rpc_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Srp.Rpc_Created_By As Maker,
-	Srp.Rpc_Updated_By As Checker,
-	Srp.Rpc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Reset_Pin_Counter Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Srp.Rpc_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''STOP CARD RENEWAL'' Functionname,
-	Scrn.SRN_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Scrn.SRN_Created_By As Maker,
-	Scrn.SRN_Updated_By As Checker,
-	Scrn.SRN_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_STOP_RENEWAL Scrn
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scrn.SRN_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,90,91)
-	And Scrn.Srn_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Default Account Change'' As Functionnamesal,
-	DAR_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Dac.DAR_Created_By As Maker,
-	Dac.DAR_Updated_By As Checker,
-	Dac.DAR_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Default_Acc_Req_Map Dac
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
-Where
-    To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN(88,89,91)
-	And Dac.Dar_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Transaction Limit Update'' As FunctionName,
-	Stlu.Trm_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Stlu.Trm_Created_By As Maker,
-	Stlu.Trm_Updated_By As Checker,
-	Stlu.Trm_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Txn_Limit_Request_Map Stlu
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN(88,89,91)
-	And Stlu.Trm_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Transaction Limit Update Cash card'' As FunctionName,
-	Scctlu.CC_Trm_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Scctlu.CC_TRM_Created_By As Maker,
-	Scctlu.CC_TRM_Updated_By As Checker,
-	Scctlu.CC_TRM_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map Scctlu
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Scctlu.CC_TRM_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,89,91)
-	And Scctlu.Cc_Trm_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Reset pin Cash card'' As Functionname,
-	Srp.Cc_Rep_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Srp.Cc_Rep_Created_By As Maker,
-	Srp.Cc_Rep_Updated_By As Checker,
-	Srp.Cc_Rep_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Repin Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,89,91)
-	And Srp.Cc_Rep_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Address Update'' As Functionname,
-	Sarm.Aur_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sarm.Aur_Created_By As Maker,
-	Sarm.Aur_Updated_By As Checker,
-	Sarm.Aur_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm
-	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID
-WHERE
-	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,89,91)
-	And Sarm.Aur_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Address Update'' As Functionname,
-	Sarm.Aur_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sarm.Aur_Created_By As Maker,
-	Sarm.Aur_Updated_By As Checker,
-	Sarm.Aur_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm
-	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID
-WHERE
-	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,89,91)
-	And Sarm.Aur_Ins_Id = {Iss_Name}
-UNION ALL
-Select
-	''Dehotlist'' As Functionname,
-	Sdhl.Dhl_Created_Ts As Issue_Date,
-	Ic.Crd_Number_Masked,
-	Sdhl.Dhl_Created_By As Maker,
-	Sdhl.Dhl_Updated_By As Checker,
-	Sdhl.Dhl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Dehotlist Sdhl
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
-Where
-	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88,89,91)
-	And Sdhl.Dhl_Ins_Id = {Iss_Name}');
-	TRAILER_QUERY := null;
-
-	INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES ( 153, 17, 'Approved Rejected Card Records', 'Lists the card records processed that are approved or rejected', 'Approved Rejected Card Records', 'PDF,CSV,', '/tmp/Reporting/reports/DCMSApproveRejectPending/', 'my.com.mandrill.base.reporting.dcmsAppRejPendCard.DCMSApproveRejectPendingCardReport', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Daily', 'mandrill', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id from institution where name = 'ChinaBank (CBC)'));
-
-    HEADER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"RECORDS PENDING APPROVAL","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"RUN DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"RunDate Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SPACE","csvTxtLength":"97","pdfLength":"97","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"Time","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"Time Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"HH:mm:ss","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"Report Id","eol":true,"csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":"<Report Id>"}]');
-	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"CUSTOMER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"FUNCTION/","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"FUNCTION/","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"REMARKS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"REMARKS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"FROM DATA","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"FROM DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"TO DATA","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"TO DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"9","fieldName":"CHECKER ID","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"CHECKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"NAME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":14,"sectionName":"14","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":15,"sectionName":"15","fieldName":"ISSUE_DATE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"16","fieldName":"CRD_NUMBER_MASKED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":17,"sectionName":"17","fieldName":"CLIENTNAME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"FUNCTIONNAME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"19","fieldName":"REMARKS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":20,"sectionName":"20","fieldName":"FROM_DATA","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"21","fieldName":"TO_DATA","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"22","fieldName":"MAKER","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":23,"sectionName":"23","fieldName":"CHECKER","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"24","fieldName":"STATUS","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
-	TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"TOTAL ITEM","csvTxtLength":"21","pdfLength":"21","defaultValue":"TOTAL NUMBER OF ITEMS:","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"7","pdfLength":"7","eol":true}]');
-    BODY_QUERY := TO_CLOB('SELECT
-	''ACCOUNT DLINKING'' AS FUNCTIONNAME,
 	SALD.ADL_CREATED_TS AS ISSUE_DATE,
 	IC.CRD_NUMBER_MASKED,
 	SALD.ADL_CREATED_BY AS MAKER,
@@ -11529,10 +11129,10 @@ Where
 	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
 	MS.STS_NAME AS STATUS
 FROM
-	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING SALD
-	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
-	JOIN {DCMS_Schema}.ISSUANCE_CARD IC ON ICCM.CCM_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON SALD.ADL_STS_ID=MS.STS_ID
+	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING@{DB_LINK_DCMS} SALD
+	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON ICCM.CCM_CLT_ID = IC.CRD_ID
+	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON SALD.ADL_STS_ID=MS.STS_ID
 Where
 	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	AND STS_ID = 89
@@ -11548,9 +11148,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Add_On_Card Rac
-	Join {DCMS_Schema}.Issuance_Card Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Add_On_Card@{DB_LINK_DCMS} Rac
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Rac.Aoc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11566,10 +11166,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Account_Linking Sal
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status  Ms On Sal.Acl_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Account_Linking@{DB_LINK_DCMS} Sal
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sal.Acl_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11585,10 +11185,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Card_Activation Sac
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Card_Activation@{DB_LINK_DCMS} Sac
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11604,10 +11204,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Card_Renewal Scr
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11623,10 +11223,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Activation Scca
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Activation@{DB_LINK_DCMS} Scca
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11642,10 +11242,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Renewal Sccr
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Renewal@{DB_LINK_DCMS} Sccr
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11661,10 +11261,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Dehotlist Sccd
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Dehotlist@{DB_LINK_DCMS} Sccd
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11680,10 +11280,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Hotlist Scch
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Hotlist@{DB_LINK_DCMS} Scch
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11699,10 +11299,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter Sccrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter@{DB_LINK_DCMS} Sccrp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11718,10 +11318,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Hotlist Scht
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Hotlist@{DB_LINK_DCMS} Scht
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11737,10 +11337,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Repin Sdrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Repin@{DB_LINK_DCMS} Sdrp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11756,10 +11356,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Reset_Pin_Counter Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Reset_Pin_Counter@{DB_LINK_DCMS} Srp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11775,10 +11375,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_STOP_RENEWAL Scrn
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_STOP_RENEWAL@{DB_LINK_DCMS} Scrn
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scrn.SRN_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11794,10 +11394,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Default_Acc_Req_Map Dac
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Default_Acc_Req_Map@{DB_LINK_DCMS} Dac
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11813,10 +11413,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map Scctlu
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map@{DB_LINK_DCMS} Scctlu
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Scctlu.CC_TRM_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11832,10 +11432,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Repin Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Cc_Repin@{DB_LINK_DCMS} Srp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11851,9 +11451,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Address_Update_Req_Map Sarm
-	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarm.AUR_STS_ID=MS.STS_ID
+	{DCMS_Schema}.Support_Address_Update_Req_Map@{DB_LINK_DCMS} Sarm
+	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
+	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarm.AUR_STS_ID=MS.STS_ID
 WHERE
 	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11869,9 +11469,9 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Cc_Add_Update_Req_Map Sarcm
-	Join {DCMS_Schema}.ISSUANCE_CARD IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID
+	{DCMS_Schema}.Support_Cc_Add_Update_Req_Map@{DB_LINK_DCMS} Sarcm
+	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID
+	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID
 WHERE
 	To_Date(Sarcm.CC_Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11887,10 +11487,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Dehotlist Sdhl
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Dehotlist@{DB_LINK_DCMS} Sdhl
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11906,10 +11506,10 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	Ms.Sts_Name As Status
 From
-	{DCMS_Schema}.Support_Txn_Limit_Request_Map Stlu
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id
+	{DCMS_Schema}.Support_Txn_Limit_Request_Map@{DB_LINK_DCMS} Stlu
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id
 Where
 	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
@@ -11922,31 +11522,31 @@ Where
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"BRANCH CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"BRANCH NAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"BRANCH NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"ENROLLMENTS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ENROLLMENTS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"PRODUCED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ACTIVATED","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"BRANCH_CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"BRANCH_NAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"ENROLLMENTS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":9,"sectionName":"9","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"10","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	TRAILER_FIELD := TO_CLOB('[]');
 	BODY_QUERY := TO_CLOB('select
-	brn.brn_code as "BRANCH_CODE",
-	brn.brn_name as "BRANCH_NAME",
+	brn.brn_code as BRANCH_CODE,
+	brn.brn_name as BRANCH_NAME,
 	count(case when
 			csh.csh_emb_id is null and
 			csh.csh_pin_offset is null and
 			csh.csh_pin_offset_ts is null and
 			csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "ENROLLMENTS",
+			then 1 end) as ENROLLMENTS,
 	count(case when
 			csh.csh_emb_id is not null and
 			csh.csh_pin_offset is null and
 			csh.csh_pin_offset_ts is null and
 			emb.emb_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "PRODUCED",
+			then 1 end) as PRODUCED,
 	count(case when
 			csh.csh_emb_id is not null and
 			csh.csh_pin_offset is not null and
 			csh.csh_pin_offset_ts is not null and
 			csh.csh_pin_offset_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "ACTIVATED"
+			then 1 end) as ACTIVATED
 from
-	{DCMS_Schema}.issuance_cash_card_request ccr
-	inner join {DCMS_Schema}.issuance_cash_card csh on csh.csh_id = ccr.ccr_csh_id
-	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = ccr.ccr_brn_id
-	left join {DCMS_Schema}.issuance_embossing_file emb on emb.emb_id = csh.csh_emb_id
+	{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
+	inner join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
+	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
+	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
 where
 	ccr.ccr_ins_id = {Iss_Id}
 group by
@@ -11959,31 +11559,31 @@ group by
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"COMPANY CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"COMPANY CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"COMPANY NAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"COMPANY NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"ENROLLMENTS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ENROLLMENTS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"PRODUCED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ACTIVATED","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"COMPANY_CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"COMPANY_NAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"ENROLLMENTS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":9,"sectionName":"9","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"10","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	TRAILER_FIELD := TO_CLOB('[]');
 	BODY_QUERY := TO_CLOB('select
-	ccl.ccl_company_code as "COMPANY_CODE",
-	ccl.ccl_company_name as "COMPANY_NAME",
+	ccl.ccl_company_code as COMPANY_CODE,
+	ccl.ccl_company_name as COMPANY_NAME,
 	count(case when
 			csh.csh_emb_id is null and
 			csh.csh_pin_offset is null and
 			csh.csh_pin_offset_ts is null and
 			csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "ENROLLMENTS",
+			then 1 end) as ENROLLMENTS,
 	count(case when
 			csh.csh_emb_id is not null and
 			csh.csh_pin_offset is null and
 			csh.csh_pin_offset_ts is null and
 			emb.emb_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "PRODUCED",
+			then 1 end) as PRODUCED,
 	count(case when
 			csh.csh_emb_id is not null and
 			csh.csh_pin_offset is not null and
 			csh.csh_pin_offset_ts is not null and
 			csh.csh_pin_offset_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-			then 1 end) as "ACTIVATED"
+			then 1 end) as ACTIVATED
 from
-	{DCMS_Schema}.issuance_cash_card_request ccr
-	inner join {DCMS_Schema}.issuance_cash_card csh on csh_id = ccr.ccr_csh_id
-	inner join {DCMS_Schema}.master_corporate_client ccl on ccl.ccl_id = ccr.ccr_ccl_id
-	left join {DCMS_Schema}.issuance_embossing_file emb on emb.emb_id = csh.csh_emb_id
+	{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
+	inner join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh_id = ccr.ccr_csh_id
+	inner join {DCMS_Schema}.master_corporate_client@{DB_LINK_DCMS} ccl on ccl.ccl_id = ccr.ccr_ccl_id
+	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
 where
 	ccr.ccr_ins_id = {Iss_Id}
 group by
@@ -11998,38 +11598,38 @@ group by
 
 
     BODY_QUERY := TO_CLOB('select
-    tb.branch_code as "BRANCH_CODE",
-    count(tb.account_name)as "TOTAL" from
+    tb.branch_code as BRANCH_CODE,
+    count(tb.account_name)as TOTAL from
     ((SELECT
-    (SELECT CLT_FIRST_NAME || ""|| CLT_MIDDLE_NAME || "" || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
-    "NEW" AS REMARKS,
-    (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
-    (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
-    (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
+    (SELECT CLT_FIRST_NAME || '' ''|| CLT_MIDDLE_NAME || '' '' || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT@{DB_LINK_DCMS} WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
+    ''NEW'' AS REMARKS,
+    (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Name,
+    (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Code,
+    (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
+    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} WHERE DCR_STS_ID = 70)
     union
     (select
-    clt.CLT_FIRST_NAME || "" ||clt.CLT_MIDDLE_NAME || "" || clt.CLT_LAST_NAME as Account_Name,
-    "REPLACEMENT" as Remarks,
-     (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
-     (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
-     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from {DCMS_Schema}.SUPPORT_CARD_RENEWAL ren
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
-     inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
+    clt.CLT_FIRST_NAME || '' '' ||clt.CLT_MIDDLE_NAME || '' '' || clt.CLT_LAST_NAME as Account_Name,
+    ''REPLACEMENT'' as Remarks,
+     (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
+     (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
+     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+     from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} ren
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ccm on CCM.CCM_ID = ren.CRN_CCM_ID
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} clt on CLT.CLT_ID = ccm.CCM_CLT_ID
+     inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = ccm.CCM_CRD_ID
      where ren.CRN_STS_ID = 88)
      union
      (select
-     rclt.CLT_FIRST_NAME || "" ||rclt.CLT_MIDDLE_NAME || ""|| rclt.CLT_LAST_NAME as Account_Name,
-     "PIN REGENERATION" as Remarks,
-     (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
-     (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
-     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from {DCMS_Schema}.SUPPORT_REPIN rpin
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
-     inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
+     rclt.CLT_FIRST_NAME || '' '' ||rclt.CLT_MIDDLE_NAME || '' ''|| rclt.CLT_LAST_NAME as Account_Name,
+     ''PIN REGENERATION'' as Remarks,
+     (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
+     (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
+     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+     from {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS} rpin
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} rccm on rccm.CCM_ID = rpin.REP_CCM_ID
+     inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
+     inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = rccm.CCM_CRD_ID
      where rpin.REP_STS_ID = 88)) tb group by tb.branch_code');
 
      TRAILER_QUERY := null;
@@ -12042,35 +11642,35 @@ group by
 
       BODY_QUERY := TO_CLOB('select * from
       (SELECT
-      (SELECT CLT_FIRST_NAME || "" || CLT_MIDDLE_NAME || "" || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
-      "NEW" AS REMARKS,
-      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Name,
-      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = DCR_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
-      FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST WHERE DCR_STS_ID = 70)
+      (SELECT CLT_FIRST_NAME || '' '' || CLT_MIDDLE_NAME || '' '' || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT@{DB_LINK_DCMS} WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
+      ''NEW'' AS REMARKS,
+      (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
+      FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} WHERE DCR_STS_ID = 70)
       union
       (select
-      clt.CLT_FIRST_NAME || "" ||clt.CLT_MIDDLE_NAME || "" || clt.CLT_LAST_NAME as Account_Name,
-      "REPLACEMENT" as Remarks,
-      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
-      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-      from {DCMS_Schema}.SUPPORT_CARD_RENEWAL ren
-      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING ccm on CCM.CCM_ID = ren.CRN_CCM_ID
-      inner join {DCMS_Schema}.ISSUANCE_CLIENT clt on CLT.CLT_ID = ccm.CCM_CLT_ID
-      inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = ccm.CCM_CRD_ID
+      clt.CLT_FIRST_NAME || '' '' ||clt.CLT_MIDDLE_NAME || '' '' || clt.CLT_LAST_NAME as Account_Name,
+      ''REPLACEMENT'' as Remarks,
+      (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+      from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} ren
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ccm on CCM.CCM_ID = ren.CRN_CCM_ID
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} clt on CLT.CLT_ID = ccm.CCM_CLT_ID
+      inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = ccm.CCM_CRD_ID
       where ren.CRN_STS_ID = 88)
       union
       (select
-      rclt.CLT_FIRST_NAME || "" ||rclt.CLT_MIDDLE_NAME || "" || rclt.CLT_LAST_NAME as Account_Name,
-      "PIN REGENERATION" as Remarks,
-      (select brn_name from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
-      (select brn_code from {DCMS_Schema}.master_branches where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
-      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-      from {DCMS_Schema}.SUPPORT_REPIN rpin
-      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING rccm on rccm.CCM_ID = rpin.REP_CCM_ID
-      inner join {DCMS_Schema}.ISSUANCE_CLIENT rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
-      inner join {DCMS_Schema}.issuance_card crd on crd.CRD_ID = rccm.CCM_CRD_ID
+      rclt.CLT_FIRST_NAME || '' '' ||rclt.CLT_MIDDLE_NAME || '' '' || rclt.CLT_LAST_NAME as Account_Name,
+      ''PIN REGENERATION'' as Remarks,
+      (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
+      (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
+      (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
+      from {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS} rpin
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} rccm on rccm.CCM_ID = rpin.REP_CCM_ID
+      inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
+      inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = rccm.CCM_CRD_ID
       where rpin.REP_STS_ID = 88)');
 
       TRAILER_QUERY := null;
@@ -12088,12 +11688,12 @@ group by
 	prs.prs_name as "PRODUCT NAME",
 	count(cfs.cfs_amount) as "TOTAL COUNT",
 	sum(cfs.cfs_amount)/count(cfs.cfs_amount) as "FEE PER CARD",
-	sum(cfs.cfs_amount) as "TOTAL"
+	sum(cfs.cfs_amount) as TOTAL
 from
-	{DCMS_Schema}.issuance_card crd
-	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = crd.crd_prs_id
-	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = crd.crd_brn_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = crd.crd_prs_id
+	{DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd
+	inner join {DCMS_Schema}.card_card_fees@{DB_LINK_DCMS} cfs on cfs.cfs_prs_id = crd.crd_prs_id
+	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = crd.crd_brn_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = crd.crd_prs_id
 where
 	crd.crd_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and crd.crd_ins_id = {Iss_Id}
@@ -12107,12 +11707,12 @@ select
 	prs.prs_name as "PRODUCT NAME",
 	count(cfs.cfs_amount) as "TOTAL COUNT",
 	sum(cfs.cfs_amount)/count(cfs.cfs_amount) as "FEE PER CARD",
-	sum(cfs.cfs_amount) as "TOTAL"
+	sum(cfs.cfs_amount) as TOTAL
 from
-	{DCMS_Schema}.issuance_cash_card csh
-	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = csh.csh_prs_id
-	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = csh.csh_brn_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = csh.csh_prs_id
+	{DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh
+	inner join {DCMS_Schema}.card_card_fees@{DB_LINK_DCMS} cfs on cfs.cfs_prs_id = csh.csh_prs_id
+	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = csh.csh_brn_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = csh.csh_prs_id
 where
 	csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and csh.csh_ins_id = {Iss_Id}
@@ -12133,10 +11733,10 @@ order by
 	brn.brn_name as branch_name,
 	sum(cfs.cfs_amount) as total
 from
-	{DCMS_Schema}.issuance_card crd
-	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = crd.crd_prs_id
-	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = crd.crd_brn_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = crd.crd_prs_id
+	{DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd
+	inner join {DCMS_Schema}.card_card_fees@{DB_LINK_DCMS} cfs on cfs.cfs_prs_id = crd.crd_prs_id
+	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = crd.crd_brn_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = crd.crd_prs_id
 where
 	crd.crd_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and crd.crd_ins_id = {Iss_Id}
@@ -12148,10 +11748,10 @@ select
 	brn.brn_name as branch_name,
 	sum(cfs.cfs_amount) as total
 from
-	{DCMS_Schema}.issuance_cash_card csh
-	inner join {DCMS_Schema}.card_card_fees cfs on cfs.cfs_prs_id = csh.csh_prs_id
-	inner join {DCMS_Schema}.master_branches brn on brn.brn_id = csh.csh_brn_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = csh.csh_prs_id
+	{DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh
+	inner join {DCMS_Schema}.card_card_fees@{DB_LINK_DCMS} cfs on cfs.cfs_prs_id = csh.csh_prs_id
+	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = csh.csh_brn_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = csh.csh_prs_id
 where
 	csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 	and csh.csh_ins_id = {Iss_Id}
@@ -12176,30 +11776,30 @@ order by
                 report_summary.CLOSED_CARDS as CLOSED_CARDS,
                 (select report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS from dual) AS TOTAL_COUNT from
                 (SELECT
-                        (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
-                        (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
+                        (SELECT BRN_CODE FROM DCMSADM.MASTER_BRANCHES@DCMSUAT WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
+                        (SELECT BRN_NAME FROM DCMSADM.MASTER_BRANCHES@DCMSUAT WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
                         (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
-                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_ACTIVE
+                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_ACTIVE
                           WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
                           AND trunc(CRD_ACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                           )AS ACTIVE_CARDS,
 
                         (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_INACTIVE
                           WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
                           AND trunc(CRD_INACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                          )AS INACTIVE_CARDS,
 
-                        (SELECT COUNT(*) FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL RNWL
-                        INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
-                        INNER JOIN {DCMS_Schema}.ISSUANCE_CARD SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
+                        (SELECT COUNT(*) FROM DCMSADM.SUPPORT_CARD_RENEWAL@DCMSUAT RNWL
+                        INNER JOIN DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING@DCMSUAT CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
+                        INNER JOIN DCMSADM.ISSUANCE_CARD@DCMSUAT SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
                         WHERE SUB_CRD.CRD_BRN_ID = CRD.CRD_BRN_ID AND RNWL.CRN_STS_ID = 1
                          ) AS RENEWED_CARDS,
 
                     (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_INACTIVE
                           WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
                           AND trunc(CRD_INACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
@@ -12207,14 +11807,14 @@ order by
 
 
                                 (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
-                          FROM {DCMS_Schema}.ISSUANCE_CARD CRD_CLOSED
+                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_CLOSED
                           WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 74
                           AND trunc(CRD_CLOSED.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                           ) AS CLOSED_CARDS
 
 
-                    FROM {DCMS_Schema}.ISSUANCE_CARD CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
+                    FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
                     GROUP BY CRD.CRD_BRN_ID
                     ORDER BY BRANCH_CODE) report_summary');
 
@@ -12238,33 +11838,33 @@ order by
                                        report_summary.CLOSED_CARDS as CLOSED_CARDS,
                                        (select report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS from dual) AS TOTAL_COUNT from
                                        (SELECT
-                                               (select prs_code from {DCMS_Schema}.card_program_setup where prs_id = crd.crd_prs_id) AS PRODUCT_CODE,
-                                               (select prs_name from {DCMS_Schema}.card_program_setup where prs_id = crd.crd_prs_id) AS PRODUCT_NAME,
-                                               (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
-                                               (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
+                                               (select prs_code from {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} where prs_id = crd.crd_prs_id) AS PRODUCT_CODE,
+                                               (select prs_name from {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} where prs_id = crd.crd_prs_id) AS PRODUCT_NAME,
+                                               (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
+                                               (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
                                                (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_ACTIVE
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_ACTIVE
                                                  WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
                                                  AND trunc(CRD_ACTIVE.crd_created_ts)
                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                                                  )AS ACTIVE_CARDS,
 
                                                (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
                                                  WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
                                                  AND trunc(CRD_INACTIVE.crd_created_ts)
                                                   between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                                                 )AS INACTIVE_CARDS,
 
                                                (SELECT COUNT(*)
-                            FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL RNWL
-                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
-                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CARD SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
+                            FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} RNWL
+                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
+                                               INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
                                                WHERE SUB_CRD.CRD_BRN_ID = CRD.CRD_BRN_ID AND RNWL.CRN_STS_ID = 1
                                                 ) AS RENEWED_CARDS,
 
                                            (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_INACTIVE
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
                                                  WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
                                                  AND trunc(CRD_INACTIVE.crd_created_ts)
                                                   between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
@@ -12272,14 +11872,14 @@ order by
 
 
                                                        (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD CRD_CLOSED
+                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_CLOSED
                                                  WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 74
                                                  AND trunc(CRD_CLOSED.crd_created_ts)
                                                   between To_Date({From_Date},''dd-MM-yy hh24:mi:ss'') And To_Date({To_Date},''dd-MM-yy hh24:mi:ss'')
                                                  ) AS CLOSED_CARDS
 
 
-                                           FROM {DCMS_Schema}.ISSUANCE_CARD CRD WHERE
+                                           FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD WHERE
                                            CRD.CRD_INS_ID = {Iss_Id}
                                            GROUP BY crd.crd_prs_id, CRD.CRD_BRN_ID
                                            ORDER BY BRANCH_CODE) report_summary');
@@ -12289,4 +11889,5 @@ order by
      INSERT INTO REPORT_DEFINITION (RED_ID, RED_REC_ID, RED_NAME, RED_DESCRIPTION, RED_FILE_NAME_PREFIX, RED_FILE_FORMAT, RED_FILE_LOCATION, RED_PROCESSING_CLASS, RED_HEADER_FIELDS, RED_BODY_FIELDS, RED_TRAILER_FIELDS, RED_BODY_QUERY, RED_TRAILER_QUERY, RED_FREQUENCY, CREATED_BY, CREATED_DATE, RED_BRANCH_FLAG, RED_DAILY_SCHEDULE_TIME, RED_INS_ID) VALUES (162, 17, 'Monthly Cardbase Report', 'Monthly Cardbase Report', 'MONTHLY_CARDBASE_REPORT', 'PDF,CSV,', ' ', 'my.com.mandrill.base.reporting.dcmsReport.MonthlyCardbaseReport', HEADER_FIELD, BODY_FIELD, TRAILER_FIELD, BODY_QUERY, TRAILER_QUERY, 'Monthly', 'cbcadmin', CURRENT_TIMESTAMP, 'master', CURRENT_TIMESTAMP, (select id from institution where name = 'ChinaBank (CBC)'));
 
 END;
+
 /

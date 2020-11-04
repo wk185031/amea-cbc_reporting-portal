@@ -51,6 +51,7 @@ public class Finacle360 extends CsvReportProcessor {
 		// replace {DCMS_Schema}/{Iss_Name}/{Iss_Id} to actual value
 		rgm.setBodyQuery(rgm.getBodyQuery()
 				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
 				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? CBC_BANK_NAME : CBS_BANK_NAME)
 				.replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 		

@@ -50,7 +50,7 @@ export class ReportConfigDefinitionComponent implements OnInit {
     */
 
     loadAllFilterWithBranch(branchId: number) {
-        this.reportConfigDefinitionService.findReportDefinitionStructuresFilterWithBranch(this.branchId).subscribe(
+        this.reportConfigDefinitionService.findReportDefinitionStructures().subscribe(
             (response: HttpResponse<any>) => {
                 this.nodes = response.body;
             },
