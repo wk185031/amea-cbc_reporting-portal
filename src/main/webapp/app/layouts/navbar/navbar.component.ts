@@ -94,7 +94,7 @@ export class NavbarComponent implements OnInit {
         this.appService.queryInstitutionsForUser().subscribe((res: HttpResponse<Institution[]>) => {
             this.institutions = res.body;
             this.allInstitutions = this.institutions;
-            this.changeInstitution(this.institutions[0].id) ;
+            this.changeInstitution(this.institutions[0].id);
         });
 
         // retrieve permissions granted for this user

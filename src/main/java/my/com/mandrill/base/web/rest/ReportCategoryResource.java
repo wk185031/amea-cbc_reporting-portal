@@ -12,7 +12,6 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +41,6 @@ import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.ReportCategory;
-import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.search.ReportCategorySearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;

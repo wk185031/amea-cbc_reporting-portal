@@ -64,7 +64,9 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
-        dblink: ATM5UAT
+        dblink: 
+          authentic: ATM5UAT
+          dcms: DCMSUAT
         schema:
           authentic: ATM5ADM
           dcms: DCMSADM
