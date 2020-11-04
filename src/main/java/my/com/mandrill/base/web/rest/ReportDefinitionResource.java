@@ -71,7 +71,7 @@ public class ReportDefinitionResource {
 	private final ReportDefinitionRepository reportDefinitionRepository;
 
 	private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
-	
+
 	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportDefinitionResource(ReportCategoryRepository reportCategoryRepository,
@@ -159,7 +159,7 @@ public class ReportDefinitionResource {
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition : get all the report definition without paging
 	 *
@@ -177,7 +177,7 @@ public class ReportDefinitionResource {
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition : get all the report definition without paging
 	 *
@@ -200,7 +200,7 @@ public class ReportDefinitionResource {
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition/:id : get the "id" reportDefinition.
 	 *
@@ -217,6 +217,7 @@ public class ReportDefinitionResource {
 		log.debug("User: {}, REST request to get ReportDefinition: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				id);
 		ReportDefinition reportDefinition = reportDefinitionRepository.findOne(id);
+
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
 	}
 
@@ -262,7 +263,7 @@ public class ReportDefinitionResource {
 				"/api/_search/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-	
+
 	//Previous query without branch filter
 	@GetMapping("/reportDefinition-structures")
 	@Timed
@@ -282,7 +283,7 @@ public class ReportDefinitionResource {
 			structure.setId(incrementNumber);
 			incrementNumber++;
 			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
-			
+
 			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
 				continue;
 			}
@@ -298,7 +299,7 @@ public class ReportDefinitionResource {
 		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
 	}
-	
+
 	//New URL for retrieve reports with branch
 	@GetMapping("/reportDefinition-structures/{branchId}")
 	@Timed
@@ -322,7 +323,7 @@ public class ReportDefinitionResource {
 			structure.setId(incrementNumber);
 			incrementNumber++;
 			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
-			
+
 			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
 				continue;
 			}
@@ -338,7 +339,7 @@ public class ReportDefinitionResource {
 		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
 	}
-	
+
 	public List<TreeStructure> buildReportDefinitionTree(List<ReportDefinition> all, Long parentId) {
 		List<ReportDefinition> children = all.stream()
 				.filter(reportDefinition -> reportDefinition.getReportCategory() != null

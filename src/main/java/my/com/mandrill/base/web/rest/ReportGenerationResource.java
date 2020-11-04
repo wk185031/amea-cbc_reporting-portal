@@ -118,6 +118,7 @@ public class ReportGenerationResource {
 							LocalDate lastDayOfMonth = YearMonth
 									.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
 
+
 							for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
 									.filter(jobHistory -> jobHistory.getJob().getId() == job.getId())
 									.collect(Collectors.toList())) {
@@ -133,7 +134,7 @@ public class ReportGenerationResource {
 											currentDate);
 
 									String instShortCode = null;
-									
+
 									List<Institution> institutions = institutionRepository.findAll();
 									for (Institution institution : institutions) {
 										if ("Institution".equals(institution.getType())) {
@@ -142,12 +143,13 @@ public class ReportGenerationResource {
 											} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 												instShortCode = "CBS";
 											}
-										}		
-										
+										}
+
 										generateDailyReport(institution.getId(), instShortCode);
 										if (yesterdayDate.equals(lastDayOfMonth)) {
 											generateMonthlyReport(institution.getId(), instShortCode);
 										}
+
 									}
 									executed = true;
 									jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
@@ -184,7 +186,7 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(yesterdayDate);
 		reportGenerationMgr.setTodayDate(yesterdayDate);
-		reportGenerationMgr.setInstitution(instShortCode);	
+		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
@@ -221,7 +223,7 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
-		reportGenerationMgr.setInstitution(instShortCode);		
+		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
@@ -257,9 +259,9 @@ public class ReportGenerationResource {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
-		
+
 		String instShortCode = null;
-		
+
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
 			if("Institution".equals(institution.getType()) && institution.getId() == institutionId) {

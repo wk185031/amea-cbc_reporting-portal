@@ -79,6 +79,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		rgm.writeLine(line.toString().getBytes());
 	}
 
+
 	@Override
 	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
 		logger.debug("In TxtReportProcessor.writeBodyHeader()");
