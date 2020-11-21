@@ -3728,7 +3728,6 @@ WHERE
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = ''CBC''
       AND CPD.CPD_NAME NOT IN (''CASH CARD'', ''EMV CASH CARD'')
-      AND ABR.ABR_CODE = CRD.CRD_CUSTOM_DATA
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND {Branch_Code}
       AND {Terminal}
@@ -5867,6 +5866,7 @@ END');
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL_ID
       {Join_Criteria}
 WHERE
       TXN.TRL_TSC_CODE = 44
@@ -7177,24 +7177,6 @@ WHERE
 	BODY_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH CODE","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"BRANCH CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":2,"sectionName":"2","fieldName":"BRANCH NAME","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"BRANCH NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":3,"sectionName":"3","fieldName":"TERM NO.","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"TERM NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":4,"sectionName":"4","fieldName":"TERMINAL NAME","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"TERMINAL NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":5,"sectionName":"5","fieldName":"BANCNET MEMBER BANKS","csvTxtLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"BANCNET MEMBER BANKS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"6","fieldName":"SUBTOTAL COUNT","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"SUBTOTAL COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":7,"sectionName":"7","fieldName":"SUBTOTAL INCOME","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"SUBTOTAL INCOME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":8,"sectionName":"8","fieldName":"TOTAL COUNT","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"TOTAL COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":9,"sectionName":"9","fieldName":"TOTAL INCOME","csvTxtLength":"50","fieldType":"String","delimiter":";","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"defaultValue":"TOTAL INCOME"},{"sequence":10,"sectionName":"10","fieldName":"BRANCH CODE","csvTxtLength":"50","fieldType":"String","delimiter":";","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":11,"sectionName":"11","fieldName":"BRANCH NAME","csvTxtLength":"50","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":12,"sectionName":"12","fieldName":"TERMINAL","csvTxtLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":13,"sectionName":"13","fieldName":"LOCATION","csvTxtLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":14,"sectionName":"14","fieldName":"ISSUER BANK MNEM","csvTxtLength":"50","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":15,"sectionName":"15","fieldName":"SUBTOTAL COUNT","csvTxtLength":"50","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":16,"sectionName":"16","fieldName":"SUBTOTAL INCOME","csvTxtLength":"50","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":17,"sectionName":"17","fieldName":"TOTAL COUNT","csvTxtLength":"50","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":18,"sectionName":"18","fieldName":"TOTAL INCOME","csvTxtLength":"50","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"eol":true}]');
 	TRAILER_FIELD := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space1","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":2,"sectionName":"2","fieldName":"Space2","csvTxtLength":"50","fieldType":"String","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":3,"sectionName":"3","fieldName":"Space3","csvTxtLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":4,"sectionName":"4","fieldName":"Space4","csvTxtLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":5,"sectionName":"5","fieldName":"OVER-ALL TOTAL","csvTxtLength":"50","fieldType":"String","delimiter":";","defaultValue":"OVER-ALL TOTAL","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":6,"sectionName":"6","fieldName":"SUBTOTAL COUNT","csvTxtLength":"50","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":7,"sectionName":"7","fieldName":"SUBTOTAL INCOME","csvTxtLength":"50","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":8,"sectionName":"8","fieldName":"TOTAL COUNT","csvTxtLength":"50","fieldType":"Number","delimiter":";","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"fieldFormat":","},{"sequence":9,"sectionName":"9","fieldName":"TOTAL INCOME","csvTxtLength":"50","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null}]');
 	BODY_QUERY := TO_CLOB('SELECT
-      COUNT(TXN.TRL_ID) "SUBTOTAL COUNT",
-      COUNT(TXN.TRL_ID) * 13.00 "SUBTOTAL EXPENSE",
-      COUNT(TXN.TRL_ID) "TOTAL COUNT",
-      COUNT(TXN.TRL_ID) * 13.00 "TOTAL EXPENSE",
-      COUNT(TXN.TRL_ID) * 2.00 "TOTAL INCOME"
-FROM
-      TRANSACTION_LOG TXN
-      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
-      JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
-WHERE
-      TXN.TRL_TSC_CODE = 1
-      AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
-      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
-      AND TXN.TRL_ORIGIN_ICH_NAME = ''Bancnet_Interchange''
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND {Txn_Date}
-SELECT
      ABR.ABR_CODE "BRANCH CODE",
      ABR.ABR_NAME "BRANCH NAME",
      SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
@@ -8904,6 +8886,7 @@ START SELECT
       SUM(9.00 * COUNT(TXN.TRL_ID)) AS "INSTAPAY INCOME"
 FROM
       TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID 
 WHERE
       TXN.TRL_TSC_CODE = 46
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
@@ -8999,7 +8982,8 @@ END RECEIVING');
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
-      TRANSACTION_LOG TXN
+      TRANSACTION_LOG TXN 
+      JOIN TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID 
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
 WHERE
@@ -9027,7 +9011,8 @@ SELECT
       TXN.TRL_ID "TRAN COUNT",
       TXN.TRL_AMT_TXN "AMOUNT"
 FROM
-      TRANSACTION_LOG TXN
+      TRANSACTION_LOG TXN 
+      JOIN TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID 
 WHERE
       TXN.TRL_TSC_CODE = 47
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
@@ -10032,13 +10017,13 @@ END THIRD PAGE');
       TXN.TRL_DEST_STAN "SEQ NUMBER",
       SUBSTR(TXN.TRL_RRN, 7, 6) "TRACE NUMBER",
       CASE WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",
-      CMC.CMC_TXN_REF_NO "TRAN REF NO",
+      CMC.CMV_TXN_REF_NO "TRAN REF NO",
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
       TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
       TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
-      CMC.CMC_RECV_MOBILE"TO MOBILE NO",
+      CMC.CMV_RECV_MOBILE"TO MOBILE NO",
       TXN.TRL_AMT_TXN "AMOUNT",
       NVL(TXN.TRL_ISS_CHARGE_AMT, 0) "TRAN FEE",
       ''00 - Approved'' "COMMENT"
@@ -10050,7 +10035,7 @@ FROM
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      LEFT JOIN CBC_MOVING_CASH CMC ON TXN.TRL_RRN = CMC.CMC_TXN_REF_NO
+      LEFT JOIN CBC_MOVING_CASH CMC ON TXN.TRL_RRN = CMC.CMV_TXN_REF_NO
 WHERE
       TXN.TRL_TSC_CODE = 143
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
@@ -10094,7 +10079,7 @@ FROM
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      LEFT JOIN CBC_MOVING_CASH CMC ON TXN.TRL_RRN = CMC.CMC_TXN_REF_NO
+      LEFT JOIN CBC_MOVING_CASH CMC ON TXN.TRL_RRN = CMC.CMV_TXN_REF_NO
 WHERE
       TXN.TRL_TSC_CODE = 143
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
@@ -10286,12 +10271,12 @@ END');
 	'''' AS "JOINT ACCOUNT HOLDER TYPE",
 	'''' AS "JOINT ACC OPERATION FLAG"
 from
-	{DCMS_Schema}.issuance_debit_card_request dcr
-	inner join {DCMS_Schema}.issuance_card crd on crd.crd_id = dcr.dcr_crd_id
-	inner join {DCMS_Schema}.issuance_client clt on clt.clt_id = dcr.dcr_clt_id
-	inner join {DCMS_Schema}.issuance_bank_account bac on bac.bac_clt_id = clt.clt_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = dcr.dcr_prs_id
-	inner join {DCMS_Schema}.master_status sts on sts_id = dcr.dcr_sts_id
+	{DCMS_Schema}.issuance_debit_card_request@{DB_LINK_DCMS} dcr
+	inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.crd_id = dcr.dcr_crd_id
+	inner join {DCMS_Schema}.issuance_client@{DB_LINK_DCMS} clt on clt.clt_id = dcr.dcr_clt_id
+	inner join {DCMS_Schema}.issuance_bank_account@{DB_LINK_DCMS} bac on bac.bac_clt_id = clt.clt_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = dcr.dcr_prs_id
+	inner join {DCMS_Schema}.master_status sts@{DB_LINK_DCMS} on sts_id = dcr.dcr_sts_id
 where dcr.dcr_ins_id = {Iss_Id}
 union all
 select
@@ -10309,12 +10294,12 @@ select
 	'''' AS "JOINT ACCOUNT HOLDER TYPE",
 	'''' AS "JOINT ACC OPERATION FLAG"
 from
-	{DCMS_Schema}.issuance_cash_card_request ccr
-	inner join {DCMS_Schema}.issuance_cash_card csh on csh.csh_id = ccr.ccr_csh_id
-	inner join {DCMS_Schema}.issuance_client clt on clt.clt_id = ccr.ccr_clt_id
-	inner join {DCMS_Schema}.issuance_bank_account bac on bac.bac_clt_id = clt.clt_id
-	inner join {DCMS_Schema}.card_program_setup prs on prs.prs_id = ccr.ccr_prs_id
-	inner join {DCMS_Schema}.master_status sts on sts_id = ccr.ccr_sts_id
+	{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
+	inner join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
+	inner join {DCMS_Schema}.issuance_client@{DB_LINK_DCMS} clt on clt.clt_id = ccr.ccr_clt_id
+	inner join {DCMS_Schema}.issuance_bank_account@{DB_LINK_DCMS} bac on bac.bac_clt_id = clt.clt_id
+	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = ccr.ccr_prs_id
+	inner join {DCMS_Schema}.master_status@{DB_LINK_DCMS} sts on sts_id = ccr.ccr_sts_id
 	where ccr.ccr_ins_id = {Iss_Id}) tb
 order by
 	tb.cif, tb."ATM CARD NUMBER"');

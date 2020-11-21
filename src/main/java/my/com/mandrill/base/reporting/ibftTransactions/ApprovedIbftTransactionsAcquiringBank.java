@@ -602,8 +602,13 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 				logger.error("Error trying to execute the body query", e);
 			} finally {
 				try {
-					ps.close();
-					rs.close();
+					if (ps != null) {
+						ps.close();
+					}
+					if (rs != null) {
+						rs.close();
+					}
+					
 				} catch (SQLException e) {
 					rgm.errors++;
 					logger.error("Error closing DB resources", e);

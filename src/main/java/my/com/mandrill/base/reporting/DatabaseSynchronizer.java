@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,7 +52,6 @@ import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
 
-import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.Task;
@@ -73,6 +71,7 @@ import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.web.rest.JobHistoryResource;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
+import my.com.mandrill.mapper.ChannelMapper;
 
 /**
  * REST controller for managing ReportGeneration.
@@ -87,7 +86,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private static final String BILLERCODE_TAG = "BILLERCODE";
 	private static final String BILL_PAYMENT_TSC_CODE = "50";
-	private static final String ORIGIN_CHANNEL = "ORIG_CHAN";
+	private static final String ORIGIN_CHANNEL = "A026";
 	private static final String BANCNET_ONLINE_ACQ_ID = "9990";
 	private static final String BANCNET_ONLINE_CHANNEL_LABEL = "BANCNET_ONLINE";
 
@@ -104,8 +103,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
 
-	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?)";
-	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID from transaction_log order by TRL_SYSTEM_TIMESTAMP";
+	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?)";
+	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME from transaction_log order by TRL_SYSTEM_TIMESTAMP";
 	private static final String SQL_SELECT_BIN = "select CBI_BIN from CBC_BIN where CBI_BIN like ?";
 	private static final String SQL_TRUNCATE_TXN_LOG_CUSTOM = "TRUNCATE TABLE TRANSACTION_LOG_CUSTOM";
 	private static final int MAX_ROW = 50;
@@ -418,13 +417,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			while (rs.next()) {
 				TxnLogCustom txnCustom = fromResultSet(rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
-						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"));
+						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"), rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"));
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
 				stmt_insert.setString(3, txnCustom.getCardBin());
 				stmt_insert.setString(4, txnCustom.getOriginChannel());
-
+				stmt_insert.setString(5, txnCustom.getCardBranch());
+				stmt_insert.setString(6, txnCustom.getCardProductType());
+				
 				stmt_insert.executeUpdate();
 
 				if (stmt_insert != null) {
@@ -512,14 +513,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private TxnLogCustom fromResultSet(Long id, String tscCode, String encryptedPan, String acqInstId,
-			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId) throws Exception {
+			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId, String originInterchange, String issuerName) throws Exception {
 
 		log.debug(
-				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}",
-				id, tscCode, encryptedPan, acqInstId, encryptionKeyId, panEncryptionKeyId);
+				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}",
+				id, tscCode, encryptedPan, acqInstId, encryptionKeyId, panEncryptionKeyId, issuerName);
 
 		try {
-
 			SecurePANField pan = SecurePANField.fromDatabase(encryptedPan, panEncryptionKeyId);
 			Map<String, String> customDataMap = retrieveCustomData(encryptedCustomData, encryptionKeyId);
 
@@ -534,15 +534,24 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 			if (encryptedPan != null) {
 				o.setCardBin(findBin(pan));
-			}
 
-			o.setOriginChannel(determineOriginChannel(customDataMap, acqInstId));
+				if (isOnUs(issuerName)) {
+					o.setCardBranch(pan.getClear().substring(6,8));
+					o.setCardProductType(pan.getClear().substring(8,12));
+					log.debug("######################### pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(), o.getCardProductType());
+				}
+			}
+			o.setOriginChannel(determineOriginChannel(customDataMap, acqInstId, originInterchange));
 
 			return o;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 
+	}
+	
+	private boolean isOnUs(String issuerName) {
+		return "CBC".equals(issuerName) || "CBS".equals(issuerName);
 	}
 
 	private String findBin(SecurePANField pan) throws Exception {
@@ -610,18 +619,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 	}
 
-	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId) {
+	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId, String originInterchange) {
 		String originChannel = customDataMap.get(ORIGIN_CHANNEL);
 
-		if (originChannel != null) {
-			return originChannel;
-		}
+		String mappedChannel = ChannelMapper.fromAuth(originChannel, originInterchange, acqInstId);
+		
+		log.debug("originChannel = {}, mappedChannel = {}", originChannel, mappedChannel);
 
-		if (acqInstId != null && StringUtils.removeFirst(acqInstId, "0").equals(BANCNET_ONLINE_ACQ_ID)) {
-			return BANCNET_ONLINE_CHANNEL_LABEL;
-		}
-
-		return null;
+		return mappedChannel;
 	}
 
 	private Map<String, String> retrieveCustomData(String customData, int encryptionKeyId) {
@@ -633,6 +638,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		SecureString secureStr = SecureString.fromDatabase(customData, encryptionKeyId);
+		log.debug("Custom data clear text: {}", secureStr.getClear());
 
 		String clearXml = "<Root>" + StringUtils.defaultString(secureStr.getClear()) + "</Root>";
 		InputStream in = null;

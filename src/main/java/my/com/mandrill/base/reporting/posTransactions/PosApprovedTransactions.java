@@ -253,36 +253,41 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 	}
 
 	private String extractCommission(String customData) {
-		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-		Matcher matcher = pattern.matcher(customData);
-		Map<String, String> map = new HashMap<>();
+		if (customData != null) {
+			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
+			Matcher matcher = pattern.matcher(customData);
+			Map<String, String> map = new HashMap<>();
 
-		while (matcher.find()) {
-			String xmlElem = matcher.group();
-			String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-			String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-			map.put(key, value);
-			if (map.get(ReportConstants.COMMISSION) != null) {
-				return map.get(ReportConstants.COMMISSION);
+			while (matcher.find()) {
+				String xmlElem = matcher.group();
+				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
+				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
+				map.put(key, value);
+				if (map.get(ReportConstants.COMMISSION) != null) {
+					return map.get(ReportConstants.COMMISSION);
+				}
 			}
 		}
 		return "";
 	}
 
 	private String extractDepositoryBank(String customData) {
-		Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-		Matcher matcher = pattern.matcher(customData);
-		Map<String, String> map = new HashMap<>();
+		if (customData != null) {
+			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
+			Matcher matcher = pattern.matcher(customData);
+			Map<String, String> map = new HashMap<>();
 
-		while (matcher.find()) {
-			String xmlElem = matcher.group();
-			String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-			String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-			map.put(key, value);
-			if (map.get(ReportConstants.DEPOSITORY_BANK) != null) {
-				return map.get(ReportConstants.DEPOSITORY_BANK);
+			while (matcher.find()) {
+				String xmlElem = matcher.group();
+				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
+				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
+				map.put(key, value);
+				if (map.get(ReportConstants.DEPOSITORY_BANK) != null) {
+					return map.get(ReportConstants.DEPOSITORY_BANK);
+				}
 			}
 		}
+		
 		return "";
 	}
 }

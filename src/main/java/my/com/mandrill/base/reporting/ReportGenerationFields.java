@@ -632,6 +632,9 @@ public class ReportGenerationFields {
 	}
 
 	public String formatPdfBodyValue(String tempValue) {
+		if (tempValue == null) {
+			return "";
+		}
 		if(tempValue.length() > pdfLength) {
 			return tempValue.substring(0, pdfLength);
 		}
@@ -833,7 +836,7 @@ public class ReportGenerationFields {
 
 	public String formatLeftJustifiedTxtValue(String tempValue) {
 		if (padFieldLength > 0) {
-			if (tempValue.trim().length() == 0) {
+			if (tempValue == null || tempValue.trim().length() == 0) {
 				tempValue = " ";
 			}
 

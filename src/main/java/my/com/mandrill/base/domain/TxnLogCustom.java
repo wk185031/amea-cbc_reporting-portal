@@ -22,9 +22,6 @@ import io.swagger.annotations.ApiModel;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "transaction_log_custom")
 public class TxnLogCustom {
-
-	private static final String BILL_PAYMENT_TSC_CODE = "50";
-	
 	
 	@Id
 	@Column(name = "trl_id")
@@ -44,6 +41,12 @@ public class TxnLogCustom {
 	@Size(max = 20)
 	@Column(name = "trl_origin_channel", length = 20)
 	private String originChannel;
+	
+	@Column(name = "trl_card_branch", length = 10)
+	private String cardBranch;
+	
+	@Column(name = "trl_card_product_type", length = 10)
+	private String cardProductType;
 
 	public Long getTrlId() {
 		return trlId;
@@ -76,4 +79,21 @@ public class TxnLogCustom {
 	public void setOriginChannel(String originChannel) {
 		this.originChannel = originChannel;
 	}
+
+	public String getCardBranch() {
+		return cardBranch;
+	}
+
+	public void setCardBranch(String cardBranch) {
+		this.cardBranch = cardBranch;
+	}
+
+	public String getCardProductType() {
+		return cardProductType;
+	}
+
+	public void setCardProductType(String cardProductType) {
+		this.cardProductType = cardProductType;
+	}
+	
 }

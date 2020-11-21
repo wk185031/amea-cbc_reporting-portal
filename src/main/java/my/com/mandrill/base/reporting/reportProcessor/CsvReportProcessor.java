@@ -131,6 +131,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
 							+ ReportConstants.CSV_FORMAT);
 					execute(rgm, file);
+					logger.debug("Write file to : {}", file.getAbsolutePath());
 				} else {
 					throw new Exception("Path is not configured.");
 				}
@@ -316,23 +317,26 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							}
 						}
 					}
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
-						TreeMap<String, String> terminalMap = new TreeMap<>();
-						terminalMap.put(terminal, location);
-						branchNameMap.put(branchName, terminalMap);
-						criteriaMap.put(branchCode, branchNameMap);
-					} else {
-						Map<String, TreeMap<String, String>> branchNameMap = criteriaMap.get(branchCode);
-						if (branchNameMap.get(branchName) == null) {
+					
+					if (branchCode != null) {
+						if (criteriaMap.get(branchCode) == null) {
+							Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
 							TreeMap<String, String> terminalMap = new TreeMap<>();
 							terminalMap.put(terminal, location);
 							branchNameMap.put(branchName, terminalMap);
+							criteriaMap.put(branchCode, branchNameMap);
 						} else {
-							TreeMap<String, String> terminalMap = branchNameMap.get(branchName);
-							terminalMap.put(terminal, location);
+							Map<String, TreeMap<String, String>> branchNameMap = criteriaMap.get(branchCode);
+							if (branchNameMap.get(branchName) == null) {
+								TreeMap<String, String> terminalMap = new TreeMap<>();
+								terminalMap.put(terminal, location);
+								branchNameMap.put(branchName, terminalMap);
+							} else {
+								TreeMap<String, String> terminalMap = branchNameMap.get(branchName);
+								terminalMap.put(terminal, location);
+							}
 						}
-					}
+					}					
 				}
 			} catch (Exception e) {
 				rgm.errors++;
