@@ -44,11 +44,11 @@ public class JobHistory implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-	
+
 	@ManyToOne(optional = false)
     @NotNull
     private Job job;
-	
+
 	@NotNull
     @Size(max = 100)
     @Column(name = "status", length = 100, nullable = false)
@@ -57,7 +57,7 @@ public class JobHistory implements Serializable {
 	@NotNull
     @Column(name = "created_date", nullable = false)
     private Instant createdDate;
-    
+
     @NotNull
     @Size(max = 100)
     @Column(name = "created_by", length = 100, nullable = false)
@@ -72,11 +72,11 @@ public class JobHistory implements Serializable {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
     public Job getJob() {
 		return job;
 	}
-    
+
     public JobHistory job(Job job) {
         this.job = job;
         return this;
@@ -98,7 +98,7 @@ public class JobHistory implements Serializable {
     public void setStatus(String status) {
         this.status = status;
     }
-    
+
 	public String getCreatedBy() {
         return createdBy;
     }

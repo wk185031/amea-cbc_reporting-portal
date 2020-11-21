@@ -172,7 +172,7 @@ public class ReportDefinitionResource {
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition : get all the report definition without paging
 	 *
@@ -190,7 +190,7 @@ public class ReportDefinitionResource {
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getName));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition : get all the report definition without paging
 	 *
@@ -213,7 +213,7 @@ public class ReportDefinitionResource {
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
-	
+
 	/**
 	 * GET /reportDefinition/:id : get the "id" reportDefinition.
 	 *
@@ -231,7 +231,7 @@ public class ReportDefinitionResource {
 				id);
 
 		ReportDefinition reportDefinition = reportDefinitionRepository.findOne(id);
-		
+
 		if (reportDefinition != null) {
 			//FIXME: All report standardize generate to a root directory configured in application.yml
 			// The front end should display the path as read only
@@ -240,6 +240,7 @@ public class ReportDefinitionResource {
 			Set<Institution> institutions = appService.getAllInstitutionOfUser(SecurityUtils.getCurrentUserLogin().get());
 			reportDefinition.setFileLocation(reportRoot + "/" + institutions.iterator().next().getId());
 		}
+
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
 	}
 
@@ -285,7 +286,7 @@ public class ReportDefinitionResource {
 				"/api/_search/reportDefinition");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
-	
+
 	//Previous query without branch filter
 	@GetMapping("/reportDefinition-structures")
 	@Timed
@@ -305,7 +306,7 @@ public class ReportDefinitionResource {
 			structure.setId(incrementNumber);
 			incrementNumber++;
 			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
-			
+
 			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
 				continue;
 			}
@@ -321,7 +322,7 @@ public class ReportDefinitionResource {
 		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
 	}
-	
+
 	//New URL for retrieve reports with branch
 	@GetMapping("/reportDefinition-structures/{branchId}")
 	@Timed
@@ -345,7 +346,7 @@ public class ReportDefinitionResource {
 			structure.setId(incrementNumber);
 			incrementNumber++;
 			structure.setChildren(buildReportDefinitionTree(children, parent.getId()));
-			
+
 			if (structure.getChildren().isEmpty() || structure.getChildren() == null) {
 				continue;
 			}
@@ -361,7 +362,7 @@ public class ReportDefinitionResource {
 		}
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(jsonStructures.toString()));
 	}
-	
+
 	public List<TreeStructure> buildReportDefinitionTree(List<ReportDefinition> all, Long parentId) {
 		List<ReportDefinition> children = all.stream()
 				.filter(reportDefinition -> reportDefinition.getReportCategory() != null
