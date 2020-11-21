@@ -9,5 +9,4 @@
 	<include file="config/liquibase/changelog/20200221000000_auth_table.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20200101000000_report_initial_dml.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201121000001_update_TxnLogCustom.xml" relativeToChangelogFile="false"/>
-	
 </databaseChangeLog>
