@@ -61,6 +61,7 @@ import my.com.mandrill.base.reporting.security.SecurePANField;
 import my.com.mandrill.base.reporting.security.SecureString;
 import my.com.mandrill.base.reporting.security.StandardEncryptionService;
 import my.com.mandrill.base.repository.InstitutionRepository;
+import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.TaskGroupRepository;
 import my.com.mandrill.base.repository.TaskRepository;
@@ -68,7 +69,6 @@ import my.com.mandrill.base.repository.search.JobSearchRepository;
 import my.com.mandrill.base.repository.search.TaskGroupSearchRepository;
 import my.com.mandrill.base.repository.search.TaskSearchRepository;
 import my.com.mandrill.base.service.ReportService;
-import my.com.mandrill.base.web.rest.JobHistoryResource;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.mapper.ChannelMapper;
@@ -98,7 +98,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final TaskGroupSearchRepository taskGroupSearchRepository;
 	private final TaskRepository taskRepository;
 	private final TaskSearchRepository taskSearchRepository;
-	private final JobHistoryResource jobHistoryResource;
+	private final JobHistoryRepository jobHistoryRepo;
 	private final StandardEncryptionService encryptionService;
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
@@ -114,7 +114,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
-			JobHistoryResource jobHistoryResource, StandardEncryptionService encryptionService, Environment env,
+			JobHistoryRepository jobHistoryRepo, StandardEncryptionService encryptionService, Environment env,
 			ReportService reportService, InstitutionRepository institutionRepository) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
@@ -122,7 +122,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.taskSearchRepository = taskSearchRepository;
 		this.taskGroupRepository = taskGroupRepository;
 		this.taskGroupSearchRepository = taskGroupSearchRepository;
-		this.jobHistoryResource = jobHistoryResource;
+		this.jobHistoryRepo = jobHistoryRepo;
 		this.encryptionService = encryptionService;
 		this.env = env;
 		this.reportService = reportService;
@@ -317,8 +317,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory1.setJob(job);
 		jobHistory1.setStatus(ReportConstants.STATUS_IN_PROGRESS);
 		jobHistory1.setCreatedDate(Instant.now());
-		jobHistory1.setCreatedBy(user);
-		jobHistoryResource.createJobHistory(jobHistory1);
+		jobHistory1.setCreatedBy(user);	
+		jobHistoryRepo.save(jobHistory1);
 
 		if (tables != null) {
 			stmt.executeQuery("TRUNCATE TABLE TRANSACTION_LOG_CUSTOM");
@@ -378,7 +378,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory2.setStatus(ReportConstants.STATUS_COMPLETED);
 		jobHistory2.setCreatedDate(Instant.now());
 		jobHistory2.setCreatedBy(user);
-		jobHistoryResource.createJobHistory(jobHistory2);
+		jobHistoryRepo.save(jobHistory2);
 
 //		log.debug("Database synchronizer done. Start generate report tasks.");
 //		LocalDate transactionDate = LocalDate.now().minusDays(1L);
@@ -536,9 +536,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				o.setCardBin(findBin(pan));
 
 				if (isOnUs(issuerName)) {
-					o.setCardBranch(pan.getClear().substring(6,8));
-					o.setCardProductType(pan.getClear().substring(8,12));
-					log.debug("######################### pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(), o.getCardProductType());
+					o.setCardProductType(pan.getClear().substring(6,8));
+					o.setCardBranch(pan.getClear().substring(8,12));
+					log.trace("Card data: pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(), o.getCardProductType());
 				}
 			}
 			o.setOriginChannel(determineOriginChannel(customDataMap, acqInstId, originInterchange));
@@ -638,7 +638,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		SecureString secureStr = SecureString.fromDatabase(customData, encryptionKeyId);
-		log.debug("Custom data clear text: {}", secureStr.getClear());
+		log.trace("Custom data clear text: {}", secureStr.getClear());
 
 		String clearXml = "<Root>" + StringUtils.defaultString(secureStr.getClear()) + "</Root>";
 		InputStream in = null;
