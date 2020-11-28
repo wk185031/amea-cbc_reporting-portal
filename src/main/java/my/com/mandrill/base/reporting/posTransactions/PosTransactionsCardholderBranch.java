@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.posTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,10 +19,13 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.domain.Amount;
+import my.com.mandrill.base.domain.builder.AmountBuilder;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -32,8 +36,12 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 	private final Logger logger = LoggerFactory.getLogger(PosTransactionsCardholderBranch.class);
 	private int pagination = 0;
 	private int txnCount = 0;
-	private double total = 0.00;
+	private double totalAmount = 0.00;
 	private double totalCommission = 0.00;
+	private static final String DEFAULT_SEPARATOR = ",";
+	private static final String LINE_ITEM_PURCHASE = "PURCHASES";
+	private static final String LINE_ITEM_REVERSAL = "REVERSALS";
+	private static final String LINE_ITEM_NET = "NET";
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -51,17 +59,28 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 					branchName = branchNameMap.getKey();
 					pagination++;
 					writeHeader(rgm, pagination, branchCode, branchName);
+					writeBodyHeader(rgm);
 					for (SortedMap.Entry<String, TreeSet<String>> merchantMap : branchNameMap.getValue().entrySet()) {
 						merchantName = merchantMap.getKey();
 						for (String customData : merchantMap.getValue()) {
 							txnCount = 0;
-							total = 0.00;
+							totalAmount = 0.00;
 							totalCommission = 0.00;
 							preProcessing(rgm, branchCode, merchantName);
-							writeBodyHeader(rgm);
+							
 							executeBodyQuery(rgm, customData);
-							executeTrailerQuery(rgm, customData);
-							writeMerchantTotal(rgm, merchantName, txnCount, total, totalCommission);
+							
+							Map<String, LineItem> summaryItemMap = new HashMap<String, PosTransactionsCardholderBranch.LineItem>();
+							summaryItemMap.put(LINE_ITEM_PURCHASE, new LineItem(LINE_ITEM_PURCHASE));
+							summaryItemMap.put(LINE_ITEM_REVERSAL, new LineItem(LINE_ITEM_REVERSAL));
+							summaryItemMap.put(LINE_ITEM_NET, new LineItem(LINE_ITEM_NET));
+							
+							executeTrailerQuery(rgm, customData, summaryItemMap);
+							writeLineItem(rgm, merchantName, summaryItemMap.get(LINE_ITEM_PURCHASE));
+							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_REVERSAL));
+							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_NET));
+							rgm.writeLine(getEol().getBytes());
+							//writeMerchantTotal(rgm, merchantName, txnCount, totalAmount, totalCommission);
 						}
 					}
 				}
@@ -136,8 +155,11 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 						Map<String, Map<String, TreeSet<String>>> branchNameMap = new HashMap<>();
 						Map<String, TreeSet<String>> merchantMap = new HashMap<>();
 						TreeSet<String> customDataList = new TreeSet<>();
-						customDataList.add(customData);
+						if (customData != null) {
+							customDataList.add(customData);
+						}
 						merchantMap.put(merchantName, customDataList);
+
 						branchNameMap.put(branchName, merchantMap);
 						criteriaMap.put(branchCode, branchNameMap);
 					} else {
@@ -145,19 +167,24 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 						if (branchNameMap.get(branchName) == null) {
 							Map<String, TreeSet<String>> merchantMap = new HashMap<>();
 							TreeSet<String> customDataList = new TreeSet<>();
-							customDataList.add(customData);
-							merchantMap.put(merchantName, customDataList);
+							if (customData != null) {
+								customDataList.add(customData);
+							}
+								merchantMap.put(merchantName, customDataList);	
 							branchNameMap.put(branchName, merchantMap);
 						} else {
 							Map<String, TreeSet<String>> merchantMap = branchNameMap.get(branchName);
-							if (merchantMap.get(merchantName) == null) {
-								TreeSet<String> customDataList = new TreeSet<>();
-								customDataList.add(customData);
-								merchantMap.put(merchantName, customDataList);
-							} else {
-								Set<String> customDataList = merchantMap.get(merchantName);
-								customDataList.add(customData);
+							if (customData != null) {
+								if (merchantMap.get(merchantName) == null) {
+									TreeSet<String> customDataList = new TreeSet<>();
+									customDataList.add(customData);
+									merchantMap.put(merchantName, customDataList);
+								} else {
+									Set<String> customDataList = merchantMap.get(merchantName);
+									customDataList.add(customData);
+								}
 							}
+							
 						}
 					}
 				}
@@ -202,15 +229,38 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 			getGlobalFileFieldsMap().put(merchant.getFieldName(), merchant);
 		}
 	}
+	
+	private void writeLineItem(ReportGenerationMgr rgm, String merchantName, LineItem item) throws IOException {
+		StringBuilder line = new StringBuilder();
+		DecimalFormat formatter = new DecimalFormat("#,##0.00");
+		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR);
+		if (merchantName != null) {
+			line.append(merchantName);
+		}
+
+		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(item.getName())
+				.append(DEFAULT_SEPARATOR).append(String.format("%,d", item.getCount())).append(DEFAULT_SEPARATOR);
+		
+		if (LINE_ITEM_REVERSAL.equals(item.getName())) {
+			line.append("(" + formatter.format(item.getTxnAmount().getValue()) +")").append(DEFAULT_SEPARATOR)
+			.append("(" + formatter.format(item.getCommission().getValue()) +")").append(DEFAULT_SEPARATOR);
+		} else {
+			line.append(StringUtils.wrap(formatter.format(item.getTxnAmount().getValue()), "\"")).append(DEFAULT_SEPARATOR)
+			.append(StringUtils.wrap(formatter.format(item.getCommission().getValue()), "\"")).append(DEFAULT_SEPARATOR);
+		}
+					
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
 
 	private void writeMerchantTotal(ReportGenerationMgr rgm, String merchantName, int txnCount, double total,
 			double totalCommission) throws IOException {
 		logger.debug("In PosTransactionsCardholderBranch.writeMerchantTotal()");
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		StringBuilder line = new StringBuilder();
-		line.append(";").append(";").append(";").append(";").append(";").append("NET : ").append(";")
-				.append(String.format("%,d", txnCount)).append(";").append(formatter.format(total)).append(";")
-				.append(formatter.format(totalCommission)).append(";");
+		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append("NET : ").append(DEFAULT_SEPARATOR)
+				.append(String.format("%,d", txnCount)).append(DEFAULT_SEPARATOR).append(formatter.format(total)).append(DEFAULT_SEPARATOR)
+				.append(formatter.format(totalCommission)).append(DEFAULT_SEPARATOR);
 		line.append(getEol());
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -241,8 +291,10 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
-		double txnAmt = 0.00;
-		double commission = 0.00;
+		Amount txnAmount = null;
+		
+		String qualifier = fieldsMap.get(ReportConstants.TXN_QUALIFIER).getValue();
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
@@ -250,25 +302,22 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.AMOUNT:
-				DecimalFormat format = new DecimalFormat(field.getFieldFormat());
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					line.append(format.format(txnAmt));
-				} else {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					line.append(format.format(txnAmt));
+				txnAmount = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				
+				String formattedAmount = txnAmount.format(field.getFieldFormat());
+				if ("R".equals(qualifier)) {
+					formattedAmount = "(" + formattedAmount + ")";
 				}
+				line.append(StringUtils.wrap(formattedAmount, "\""));
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.POS_COMMISSION:
-				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					commission = Double.parseDouble(extractCommission(customData));
-					commission = txnAmt * commission / 100;
-					line.append(formatter.format(commission));
-				} else {
-					line.append(formatter.format(commission));
+				BigDecimal commission = txnAmount.calculateFee(extractCommission(customData));
+				String formattedCommission = new DecimalFormat(field.getFieldFormat()).format(commission);
+				if ("R".equals(qualifier)) {
+					formattedCommission = "(" + formattedCommission + ")";
 				}
+				line.append(StringUtils.wrap(formattedCommission, "\""));
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -282,95 +331,53 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 	}
 
 	private void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String customData)
+			String customData, Map<String, LineItem> summaryItemMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In PosTransactionsCardholderBranch.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
-		StringBuilder line = new StringBuilder();
-		double txnAmt = 0.00;
-		double revTxnAmt = 0.00;
-		double commission = 0.00;
-		double revCommission = 0.00;
+		Amount txnAmt = null;
+		Amount revTxnAmt = null;
+		BigDecimal commission = BigDecimal.ZERO;
+		BigDecimal revCommission = BigDecimal.ZERO;
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRAN_COUNT:
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap));
-				}
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap))));
-				line.append(field.getDelimiter());
+				int count = Integer.parseInt(getFieldValue(field, fieldsMap));
+				summaryItemMap.get(LINE_ITEM_PURCHASE).setCount(summaryItemMap.get(LINE_ITEM_PURCHASE).getCount() + count);
+				summaryItemMap.get(LINE_ITEM_NET).setCount(summaryItemMap.get(LINE_ITEM_NET).getCount() + count);
 				break;
 			case ReportConstants.REV_TRAN_COUNT:
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap));
-				}
-				line.append(String.format("%,d", Integer.parseInt(getFieldValue(field, fieldsMap))));
-				line.append(field.getDelimiter());
+				int revCount = Integer.parseInt(getFieldValue(field, fieldsMap));
+				summaryItemMap.get(LINE_ITEM_REVERSAL).setCount(summaryItemMap.get(LINE_ITEM_REVERSAL).getCount() + revCount);
+				summaryItemMap.get(LINE_ITEM_NET).setCount(summaryItemMap.get(LINE_ITEM_NET).getCount() + revCount);
 				break;
 			case ReportConstants.AMOUNT:
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				line.append(getFieldValue(field, fieldsMap));
-				line.append(field.getDelimiter());
+				txnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				summaryItemMap.get(LINE_ITEM_PURCHASE).getTxnAmount().add(txnAmt);
+				summaryItemMap.get(LINE_ITEM_NET).getTxnAmount().add(txnAmt);
 				break;
 			case ReportConstants.REV_AMOUNT:
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					revTxnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					revTxnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				line.append("(" + getFieldValue(field, fieldsMap) + ")");
-				line.append(field.getDelimiter());
+				revTxnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				summaryItemMap.get(LINE_ITEM_REVERSAL).getTxnAmount().add(revTxnAmt);
+				summaryItemMap.get(LINE_ITEM_NET).getTxnAmount().subtract(revTxnAmt);
 				break;
 			case ReportConstants.POS_COMMISSION:
-				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					commission = Double.parseDouble(extractCommission(customData));
-					commission = txnAmt * commission / 100;
-					totalCommission += commission;
-					line.append(formatter.format(commission));
-				} else {
-					totalCommission += commission;
-					line.append(formatter.format(commission));
-				}
-				line.append(field.getDelimiter());
-				line.append(getEol());
+				commission = txnAmt.calculateFee(extractCommission(customData));
+				summaryItemMap.get(LINE_ITEM_PURCHASE).getCommission().add(new Amount(commission));
+				summaryItemMap.get(LINE_ITEM_NET).getCommission().add(new Amount(commission));
 				break;
 			case ReportConstants.POS_REV_COMMISSION:
-				DecimalFormat revFormatter = new DecimalFormat(field.getFieldFormat());
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					revCommission = Double.parseDouble(extractCommission(customData));
-					revCommission = revTxnAmt * revCommission / 100;
-					totalCommission += revCommission;
-					line.append("(" + revFormatter.format(revCommission) + ")");
-				} else {
-					totalCommission += revCommission;
-					line.append("(" + revFormatter.format(revCommission) + ")");
-				}
-				line.append(field.getDelimiter());
+				revCommission = revTxnAmt.calculateFee(extractCommission(customData));
+				summaryItemMap.get(LINE_ITEM_REVERSAL).getCommission().add(new Amount(revCommission));
+				summaryItemMap.get(LINE_ITEM_NET).getCommission().subtract(new Amount(revCommission));
 				break;
 			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				line.append(field.getDelimiter());
 				break;
 			}
 		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void executeTrailerQuery(ReportGenerationMgr rgm, String customData) {
+	private void executeTrailerQuery(ReportGenerationMgr rgm, String customData, Map<String, LineItem> summaryItemMap) {
 		logger.debug("In PosTransactionsCardholderBranch.executeTrailerQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -413,7 +420,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 							field.setValue("");
 						}
 					}
-					writeTrailer(rgm, lineFieldsMap, customData);
+					writeTrailer(rgm, lineFieldsMap, customData, summaryItemMap);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -445,5 +452,39 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 			}
 		}
 		return "";
+	}
+	
+	class LineItem {
+		private final String name;
+		private int count = 0;
+		private Amount txnAmount = new Amount(BigDecimal.ZERO);
+		private Amount commission = new Amount(BigDecimal.ZERO);
+		
+		public LineItem(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getCount() {
+			return count;
+		}
+		public void setCount(int count) {
+			this.count = count;
+		}
+		public Amount getTxnAmount() {
+			return txnAmount;
+		}
+		public void setTxnAmount(Amount txnAmount) {
+			this.txnAmount = txnAmount;
+		}
+		public Amount getCommission() {
+			return commission;
+		}
+		public void setCommission(Amount commission) {
+			this.commission = commission;
+		}
 	}
 }
