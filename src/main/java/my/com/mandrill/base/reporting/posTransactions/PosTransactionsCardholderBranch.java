@@ -302,7 +302,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.AMOUNT:
-				txnAmount = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				txnAmount = new AmountBuilder(getFieldValue(field, fieldsMap)).build();
 				
 				String formattedAmount = txnAmount.format(field.getFieldFormat());
 				if ("R".equals(qualifier)) {
@@ -352,12 +352,12 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 				summaryItemMap.get(LINE_ITEM_NET).setCount(summaryItemMap.get(LINE_ITEM_NET).getCount() + revCount);
 				break;
 			case ReportConstants.AMOUNT:
-				txnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				txnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).build();
 				summaryItemMap.get(LINE_ITEM_PURCHASE).getTxnAmount().add(txnAmt);
 				summaryItemMap.get(LINE_ITEM_NET).getTxnAmount().add(txnAmt);
 				break;
 			case ReportConstants.REV_AMOUNT:
-				revTxnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).buildFromRaw();
+				revTxnAmt = new AmountBuilder(getFieldValue(field, fieldsMap)).build();
 				summaryItemMap.get(LINE_ITEM_REVERSAL).getTxnAmount().add(revTxnAmt);
 				summaryItemMap.get(LINE_ITEM_NET).getTxnAmount().subtract(revTxnAmt);
 				break;

@@ -47,6 +47,12 @@ public class TxnLogCustom {
 	
 	@Column(name = "trl_card_product_type", length = 10)
 	private String cardProductType;
+	
+	@Column(name = "trl_is_corporate_card")
+	private boolean corporateCard;
+	
+	@Column(name = "trl_is_inter_entity")
+	private boolean interEntity;
 
 	public Long getTrlId() {
 		return trlId;
@@ -95,5 +101,20 @@ public class TxnLogCustom {
 	public void setCardProductType(String cardProductType) {
 		this.cardProductType = cardProductType;
 	}
-	
+
+	public boolean isCorporateCard() {
+		return corporateCard;
+	}
+
+	public void setCorporateCard(boolean corporateCard) {
+		this.corporateCard = corporateCard;
+	}
+
+	public boolean isInterEntity() {
+		return interEntity;
+	}
+
+	public void setInterEntity(boolean interEntity) {
+		this.interEntity = interEntity;
+	}
 }

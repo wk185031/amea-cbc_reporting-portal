@@ -45,6 +45,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		this.fixTrailerQuery = fixTrailerQuery;
 	}
 
+	@Deprecated
 	public void run(String url, String username, String password) {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;

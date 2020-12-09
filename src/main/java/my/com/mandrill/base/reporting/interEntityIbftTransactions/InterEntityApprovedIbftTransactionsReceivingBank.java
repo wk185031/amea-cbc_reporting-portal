@@ -234,7 +234,7 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 			case 25:
 			case 26:
 			case 27:
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				line.append(field.getDelimiter());
 				break;
 			case 28:
@@ -248,7 +248,7 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 			case 33:
 			case 34:
 			case 35:
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -275,11 +275,11 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 				break;
 			default:
 				if (field.isEol()) {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 				}
 				break;

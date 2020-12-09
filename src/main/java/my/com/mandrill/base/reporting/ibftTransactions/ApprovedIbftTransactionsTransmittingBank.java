@@ -212,14 +212,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 		if (filterType.equalsIgnoreCase("retail")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					"TXNC.IS_CORPORATE_CARD = 0");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
 		if (filterType.equalsIgnoreCase("corporate")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					"TXNC.IS_CORPORATE_CARD = 1");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
@@ -227,7 +227,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 			if (queryType.equalsIgnoreCase("body")) {
 				ReportGenerationFields corporateCount = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_COUNT, ReportGenerationFields.TYPE_STRING,
-						"CASE WHEN TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TXN.TRL_ID END AS \"CORPORATE COUNT\"");
+						"TXN.TRL_ID AS \"CORPORATE COUNT\"");
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
 						"125.00 * COUNT(\"CORPORATE COUNT\") AS \"CORP. INCOME\"");
@@ -478,7 +478,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 			case 34:
 			case 35:
 			case 36:
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -505,20 +505,20 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 			case 61:
 				switch (field.getFieldName()) {
 				case ReportConstants.AMOUNT:
-					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " DR");
 					break;
 				case ReportConstants.ISSUER_EXPENSE:
 					line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
 					break;
 				default:
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					break;
 				}
 				line.append(field.getDelimiter());
 				break;
 			case 62:
 				if (filterType.equalsIgnoreCase("corporate")) {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -548,11 +548,11 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 				break;
 			default:
 				if (field.isEol()) {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 				}
 				break;

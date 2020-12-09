@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -87,8 +88,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String BILLERCODE_TAG = "BILLERCODE";
 	private static final String BILL_PAYMENT_TSC_CODE = "50";
 	private static final String ORIGIN_CHANNEL = "A026";
-	private static final String BANCNET_ONLINE_ACQ_ID = "9990";
-	private static final String BANCNET_ONLINE_CHANNEL_LABEL = "BANCNET_ONLINE";
 
 	private Map<String, String> matchingBinCache = new HashMap<String, String>();
 
@@ -103,8 +102,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
 
-	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?)";
-	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME from transaction_log order by TRL_SYSTEM_TIMESTAMP";
+	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?)";
+	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME from transaction_log order by TRL_SYSTEM_TIMESTAMP";
+	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_BIN = "select CBI_BIN from CBC_BIN where CBI_BIN like ?";
 	private static final String SQL_TRUNCATE_TXN_LOG_CUSTOM = "TRUNCATE TABLE TRANSACTION_LOG_CUSTOM";
 	private static final int MAX_ROW = 50;
@@ -317,7 +317,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory1.setJob(job);
 		jobHistory1.setStatus(ReportConstants.STATUS_IN_PROGRESS);
 		jobHistory1.setCreatedDate(Instant.now());
-		jobHistory1.setCreatedBy(user);	
+		jobHistory1.setCreatedBy(user);
 		jobHistoryRepo.save(jobHistory1);
 
 		if (tables != null) {
@@ -337,12 +337,12 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						}
 					}
 
-					String schemaTable = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) +"." + table;
-					
+					String schemaTable = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table;
+
 					log.debug("Inserting latest data into table " + table);
 					try {
-						rs = stmt.executeQuery(
-								"INSERT INTO " + table + " SELECT * FROM " + schemaTable + "@" + env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
+						rs = stmt.executeQuery("INSERT INTO " + table + " SELECT * FROM " + schemaTable + "@"
+								+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 					} finally {
 						if (rs != null) {
 							rs.close();
@@ -414,10 +414,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			stmt.setFetchSize(MAX_ROW);
 			rs = stmt.executeQuery();
 
+			StringTokenizer corporateCardRange = getCorporateCard(conn);
+
 			while (rs.next()) {
 				TxnLogCustom txnCustom = fromResultSet(rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
-						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"), rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"));
+						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
+						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
+						corporateCardRange);
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
@@ -425,7 +429,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt_insert.setString(4, txnCustom.getOriginChannel());
 				stmt_insert.setString(5, txnCustom.getCardBranch());
 				stmt_insert.setString(6, txnCustom.getCardProductType());
-				
+
+				stmt_insert.setBoolean(7, txnCustom.isCorporateCard());
+				stmt_insert.setBoolean(8, txnCustom.isInterEntity());
+
 				stmt_insert.executeUpdate();
 
 				if (stmt_insert != null) {
@@ -513,14 +520,17 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private TxnLogCustom fromResultSet(Long id, String tscCode, String encryptedPan, String acqInstId,
-			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId, String originInterchange, String issuerName) throws Exception {
+			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId, String originInterchange,
+			String issuerName, String deoName, StringTokenizer corporatePanRange) throws Exception {
 
 		log.debug(
-				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}",
-				id, tscCode, encryptedPan, acqInstId, encryptionKeyId, panEncryptionKeyId, issuerName);
+				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
+				id, tscCode, encryptedPan, acqInstId, encryptionKeyId, panEncryptionKeyId, issuerName, deoName,
+				corporatePanRange == null ? "" : corporatePanRange.toString());
 
 		try {
 			SecurePANField pan = SecurePANField.fromDatabase(encryptedPan, panEncryptionKeyId);
+			String clearPan = pan.getClear();
 			Map<String, String> customDataMap = retrieveCustomData(encryptedCustomData, encryptionKeyId);
 
 			TxnLogCustom o = new TxnLogCustom();
@@ -532,16 +542,23 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				o.setBillerCode(null);
 			}
 
+			o.setOriginChannel(determineOriginChannel(customDataMap, acqInstId, originInterchange));
+			o.setInterEntity(isInterEntity(tscCode, acqInstId, issuerName, deoName));
+
 			if (encryptedPan != null) {
 				o.setCardBin(findBin(pan));
 
 				if (isOnUs(issuerName)) {
-					o.setCardProductType(pan.getClear().substring(6,8));
-					o.setCardBranch(pan.getClear().substring(8,12));
-					log.trace("Card data: pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(), o.getCardProductType());
+					o.setCardProductType(pan.getClear().substring(6, 8));
+					o.setCardBranch(pan.getClear().substring(8, 12));
+					log.trace("Card data: pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(),
+							o.getCardProductType());
+
+					if ("EBK".contentEquals(o.getOriginChannel())) {
+						o.setCorporateCard(isCorporateCard(clearPan, corporatePanRange));
+					}
 				}
 			}
-			o.setOriginChannel(determineOriginChannel(customDataMap, acqInstId, originInterchange));
 
 			return o;
 		} catch (SQLException e) {
@@ -549,7 +566,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 	}
-	
+
 	private boolean isOnUs(String issuerName) {
 		return "CBC".equals(issuerName) || "CBS".equals(issuerName);
 	}
@@ -619,11 +636,12 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 	}
 
-	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId, String originInterchange) {
+	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId,
+			String originInterchange) {
 		String originChannel = customDataMap.get(ORIGIN_CHANNEL);
 
 		String mappedChannel = ChannelMapper.fromAuth(originChannel, originInterchange, acqInstId);
-		
+
 		log.debug("originChannel = {}, mappedChannel = {}", originChannel, mappedChannel);
 
 		return mappedChannel;
@@ -675,6 +693,87 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 		}
 
+	}
+
+	private StringTokenizer getCorporateCard(Connection conn) {
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		
+		String schema = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC);
+		String dblink = env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		String sql = SQL_SELECT_PROPERTY_CORPORATE_CARD.replace("{DB_SCHEMA}", schema);
+		sql = sql.replace("{DB_LINK}", dblink);
+		log.debug("SQL to fetch corporate card: {}", sql);
+		
+		try {
+			stmt = conn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				String corporateCardRange = rs.getString("PTY_VALUE");
+				if (corporateCardRange != null && !corporateCardRange.trim().isEmpty()) {
+					return new StringTokenizer(corporateCardRange, ";");
+				}
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process transaction log", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+				}
+			}
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+				}
+
+			}
+		}
+
+		return null;
+	}
+
+	private boolean isCorporateCard(String clearPan, StringTokenizer corporatePanRange) {
+		if (corporatePanRange == null) {
+			return false;
+		}
+		while (corporatePanRange.hasMoreElements()) {
+			if (clearPan.equals(corporatePanRange.nextElement())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isInterEntity(String tscCode, String acqInsId, String issuerName, String deoName) {
+		if ("42".equals(tscCode) || "45".equals(tscCode) || "48".equals(tscCode) || "49".equals(tscCode)) {
+			return true;
+		}
+
+		if ("CBC".equals(issuerName) && "CBS".equals(deoName)) {
+			return true;
+		}
+
+		if ("CBS".equals(issuerName) && "CBC".equals(deoName)) {
+			return true;
+		}
+
+		String acquiringInstId = StringUtils.removeStart(acqInsId, "0");
+		if ("10".equals(acquiringInstId) && "CBS".equals(issuerName)) {
+			return true;
+		}
+
+		if ("112".equals(acquiringInstId) && "CBC".equals(issuerName)) {
+			return true;
+		}
+
+		return false;
 	}
 
 }

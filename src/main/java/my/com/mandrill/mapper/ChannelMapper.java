@@ -12,8 +12,7 @@ public class ChannelMapper {
 			
 			if (BANCNET_ATM_CHANNEL.equals(originChannel)) {
 				return "ATM";
-			}
-			
+			}			
 			return originChannel;
 		}
 		

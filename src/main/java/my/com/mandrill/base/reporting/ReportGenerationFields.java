@@ -243,6 +243,13 @@ public class ReportGenerationFields {
 	public String getValue() {
 		return value;
 	}
+	
+	public String getValueWithDefault() {
+		if (value == null) {
+			return getDefaultValue();
+		}
+		return value;
+	}
 
 	public void setValue(String value) {
 		this.value = value;

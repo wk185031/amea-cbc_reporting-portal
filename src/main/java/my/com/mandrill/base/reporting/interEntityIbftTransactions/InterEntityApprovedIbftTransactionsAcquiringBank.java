@@ -606,7 +606,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 				logger.error("Error trying to execute the body query", e);
 			} finally {
 				try {
-					ps.close();
+					if (ps != null) {
+						ps.close();
+					}
+					
+					if (rs != null) {
+						rs.close();
+					}
 					rs.close();
 				} catch (SQLException e) {
 					rgm.errors++;

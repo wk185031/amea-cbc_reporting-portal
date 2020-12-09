@@ -249,9 +249,9 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 54:
 			case 55:
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
-					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " DR");
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				}
 				line.append(field.getDelimiter());
 				break;
@@ -291,7 +291,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 						line.append(location);
 					} else {
-						line.append(getFieldValue(rgm, field, fieldsMap));
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					}
 				} else {
 					line.append("");
@@ -447,14 +447,14 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 11:
 			case 12:
 				if (field.isEol()) {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AMOUNT)) {
-						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " DR");
 					} else {
-						line.append(getFieldValue(rgm, field, fieldsMap));
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					}
 					line.append(field.getDelimiter());
 				}
@@ -482,16 +482,16 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			case 16:
 			case 17:
 				if (field.isEol()) {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_AMOUNT)) {
-						line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " DR");
 					} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.ISSUER_EXPENSE)) {
 						line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
 					} else {
-						line.append(getFieldValue(rgm, field, fieldsMap));
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					}
 					line.append(field.getDelimiter());
 				}
@@ -500,7 +500,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				if (filterType.equalsIgnoreCase("retail")) {
 					line.append(getEol());
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				}
@@ -567,8 +567,13 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
 				try {
-					ps.close();
-					rs.close();
+					if (ps != null) {
+						ps.close();
+					}
+					if (rs != null) {
+						rs.close();
+					}
+					
 				} catch (SQLException e) {
 					rgm.errors++;
 					logger.error("Error closing DB resources", e);

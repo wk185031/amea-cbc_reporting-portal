@@ -204,13 +204,13 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 				rgm.setBodyQuery(getIssuingBodyQuery());
 				fieldsMap.get(field.getFieldName())
 						.setValue(executeQuery(rgm, ReportConstants.TRANSMITTING_COUNT, null));
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				transmittingCount += Integer.parseInt(getFieldValue(field, fieldsMap));
 				break;
 			case ReportConstants.TRANSMITTING_TOTAL:
 				fieldsMap.get(field.getFieldName())
 						.setValue(executeQuery(rgm, null, ReportConstants.TRANSMITTING_TOTAL));
-				line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " DR");
 
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					transmittingTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
@@ -234,7 +234,7 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 				break;
 			case ReportConstants.RECEIVING_TOTAL:
 				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, null, ReportConstants.RECEIVING_TOTAL));
-				line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"" + " CR");
 
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					receivingTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
@@ -245,13 +245,13 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 				break;
 			case ReportConstants.NET_SETTLEMENT:
 				if (receivingTotal > transmittingTotal) {
-					line.append(formatter.format(receivingTotal - transmittingTotal) + " CR");
+					line.append("\"" + formatter.format(receivingTotal - transmittingTotal) + "\"" + " CR");
 				} else {
-					line.append(formatter.format(transmittingTotal - receivingTotal) + " DR");
+					line.append("\"" + formatter.format(transmittingTotal - receivingTotal) + "\"" + " DR");
 				}
 				break;
 			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				break;
 			}
 			line.append(field.getDelimiter());

@@ -680,11 +680,11 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if(field.isEol()) {
-				line.append(getFieldValue(rgm, field, null));
+				line.append("\"" + getFieldValue(rgm, field, null) + "\"");
 				line.append(field.getDelimiter());
 				line.append(getEol());				
 			} else {
-				line.append(getFieldValue(rgm, field, null));
+				line.append("\"" + getFieldValue(rgm, field, null) + "\"");
 				line.append(field.getDelimiter());
 			}			
 		}
@@ -699,8 +699,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
-
-			line.append(getFieldValue(rgm, field, fieldsMap));
+			
+			line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
 			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
@@ -728,7 +728,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				if (!voidCode.equals("0")) {
 					line.append("");
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				}
 				line.append(field.getDelimiter());
 				break;
@@ -744,7 +744,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				line.append(field.getDelimiter());
 				break;
 			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				line.append(field.getDelimiter());
 				break;
 			}
@@ -763,12 +763,12 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				if (field.getFieldName().contains(ReportConstants.LINE)) {
 					line.append(getEol());
 				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				}
 			} else {
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 				line.append(field.getDelimiter());
 			}
 		}

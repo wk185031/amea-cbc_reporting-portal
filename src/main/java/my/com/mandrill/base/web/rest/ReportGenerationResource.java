@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.codahale.metrics.annotation.Timed;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +42,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.codahale.metrics.annotation.Timed;
+
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.GeneratedReportDTO;
 import my.com.mandrill.base.domain.Institution;
@@ -51,6 +51,8 @@ import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.processor.IReportProcessor;
+import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.repository.InstitutionRepository;
@@ -73,6 +75,7 @@ public class ReportGenerationResource {
 	private final JobRepository jobRepository;
 	private final JobHistoryRepository jobHistoryRepository;
 	private final InstitutionRepository institutionRepository;
+	private final ReportProcessorLocator reportProcessLocator;
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
@@ -80,16 +83,18 @@ public class ReportGenerationResource {
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
-			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository, Environment env) {
+			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository,
+			ReportProcessorLocator reportProcessLocator, Environment env) {
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.jobRepository = jobRepository;
 		this.jobHistoryRepository = jobHistoryRepository;
 		this.institutionRepository = institutionRepository;
+		this.reportProcessLocator = reportProcessLocator;
 		this.env = env;
 	}
 
-	//@Scheduled(cron = "0 13 6 * * *")
+	// @Scheduled(cron = "0 13 6 * * *")
 	public void initialise() {
 		executed = false;
 		if (scheduleTimer != null) {
@@ -118,7 +123,6 @@ public class ReportGenerationResource {
 							LocalDate lastDayOfMonth = YearMonth
 									.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
 
-
 							for (JobHistory jobHistoryList : jobHistoryRepository.findAll().stream()
 									.filter(jobHistory -> jobHistory.getJob().getId() == job.getId())
 									.collect(Collectors.toList())) {
@@ -138,7 +142,7 @@ public class ReportGenerationResource {
 									List<Institution> institutions = institutionRepository.findAll();
 									for (Institution institution : institutions) {
 										if ("Institution".equals(institution.getType())) {
-											if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+											if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
 												instShortCode = "CBC";
 											} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 												instShortCode = "CBS";
@@ -205,8 +209,9 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+
+				runReport(reportGenerationMgr);
+				
 			}
 		}
 	}
@@ -243,20 +248,22 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				
+				runReport(reportGenerationMgr);
+
 			}
 		}
 	}
 
 	@GetMapping("/reportGeneration/{branchId}/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long branchId, @PathVariable Long institutionId,
-			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @PathVariable String txnDate)
-			throws ParseException {
+	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long branchId,
+			@PathVariable Long institutionId, @PathVariable Long reportCategoryId, @PathVariable Long reportId,
+			@PathVariable String txnDate) throws ParseException {
 		logger.debug(
 				"User: {}, Rest to generate Report Branch ID: {}, Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
-				SecurityUtils.getCurrentUserLogin().orElse(""), branchId, institutionId, reportCategoryId, reportId, txnDate);
+				SecurityUtils.getCurrentUserLogin().orElse(""), branchId, institutionId, reportCategoryId, reportId,
+				txnDate);
 		ReportDefinition reportDefinition = null;
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
@@ -266,8 +273,8 @@ public class ReportGenerationResource {
 
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
-			if("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
-				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+			if ("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
+				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
 					instShortCode = "CBC";
 				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 					instShortCode = "CBS";
@@ -303,9 +310,7 @@ public class ReportGenerationResource {
 								+ File.separator + reportDefinitionList.getReportCategory().getName() + File.separator);
 						reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
 						reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
-						reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-								env.getProperty(ReportConstants.DB_USERNAME),
-								env.getProperty(ReportConstants.DB_PASSWORD));
+						runReport(reportGenerationMgr);
 					}
 
 					if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -313,9 +318,7 @@ public class ReportGenerationResource {
 								+ reportDefinitionList.getReportCategory().getName() + File.separator);
 						reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
 						reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
-						reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-								env.getProperty(ReportConstants.DB_USERNAME),
-								env.getProperty(ReportConstants.DB_PASSWORD));
+						runReport(reportGenerationMgr);
 					}
 				}
 			}
@@ -337,8 +340,7 @@ public class ReportGenerationResource {
 						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
 				reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				runReport(reportGenerationMgr);
 			}
 
 			if (reportDefinition.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -346,8 +348,7 @@ public class ReportGenerationResource {
 						+ reportDefinition.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
 				reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				runReport(reportGenerationMgr);
 			}
 
 		}
@@ -358,9 +359,10 @@ public class ReportGenerationResource {
 	@GetMapping("/report-get-generated/{branchId}/{institutionId}/{reportDate}/{reportCategoryId}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long branchId, @PathVariable Long institutionId,
-			@PathVariable String reportDate, @PathVariable Long reportCategoryId) {
-		logger.debug("User: {}, REST request to get generated report by institution and report category, Branch ID : {} ",
+	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long branchId,
+			@PathVariable Long institutionId, @PathVariable String reportDate, @PathVariable Long reportCategoryId) {
+		logger.debug(
+				"User: {}, REST request to get generated report by institution and report category, Branch ID : {} ",
 				SecurityUtils.getCurrentUserLogin(), branchId);
 
 		GeneratedReportDTO result = null;
@@ -446,9 +448,10 @@ public class ReportGenerationResource {
 	@GetMapping("/download-report/{branchId}/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<Resource> downloadReport(@PathVariable Long branchId, @PathVariable Long institutionId, @PathVariable String reportDate,
-			@PathVariable Long reportCategoryId, @PathVariable String reportName) {
-		logger.debug("User: {}, REST request to download report, Branch ID : {}", SecurityUtils.getCurrentUserLogin(), branchId);
+	public ResponseEntity<Resource> downloadReport(@PathVariable Long branchId, @PathVariable Long institutionId,
+			@PathVariable String reportDate, @PathVariable Long reportCategoryId, @PathVariable String reportName) {
+		logger.debug("User: {}, REST request to download report, Branch ID : {}", SecurityUtils.getCurrentUserLogin(),
+				branchId);
 
 		Resource resource = null;
 		Path outputPath = null;
@@ -584,5 +587,17 @@ public class ReportGenerationResource {
 
 	private Sort orderByIdAsc() {
 		return new Sort(Sort.Direction.ASC, "id");
+	}
+	
+	private void runReport(ReportGenerationMgr reportGenerationMgr) {
+//		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
+//
+//		if (reportProcessor != null) {
+//			logger.debug("runReport with processor: {}", reportProcessor);
+//			reportProcessor.process(reportGenerationMgr);
+//		} else {
+			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+//		}
 	}
 }
