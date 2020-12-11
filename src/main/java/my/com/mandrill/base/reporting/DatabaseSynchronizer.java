@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +54,7 @@ import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
 
+import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.Task;
@@ -380,22 +382,22 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		jobHistory2.setCreatedBy(user);
 		jobHistoryRepo.save(jobHistory2);
 
-//		log.debug("Database synchronizer done. Start generate report tasks.");
-//		LocalDate transactionDate = LocalDate.now().minusDays(1L);
-//		
-//		String instShortCode = null;
-//		
-//		List<Institution> institutions = institutionRepository.findAll();
-//		for (Institution institution : institutions) {
-//			if ("Institution".equals(institution.getType())) {
-//				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-//					instShortCode = "CBC";
-//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-//					instShortCode = "CBS";
-//				}
-//				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
-//			}		
-//		}
+		log.debug("Database synchronizer done. Start generate report tasks.");
+		LocalDate transactionDate = LocalDate.now().minusDays(1L);
+		
+		String instShortCode = null;
+		
+		List<Institution> institutions = institutionRepository.findAll();
+		for (Institution institution : institutions) {
+			if ("Institution".equals(institution.getType())) {
+				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+					instShortCode = "CBC";
+				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+					instShortCode = "CBS";
+				}
+				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+			}		
+		}
 	}
 
 	private void postProcessData() {
