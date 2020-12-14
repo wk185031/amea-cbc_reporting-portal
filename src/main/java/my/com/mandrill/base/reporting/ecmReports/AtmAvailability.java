@@ -3,14 +3,14 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,6 +30,7 @@ public class AtmAvailability extends CsvReportProcessor {
 	private int terminalCount = 0;
 	double availablePercentage = 0.00;
 	double totalPercentage = 0.00;
+	int totalMeetStandard = 0;
 
 	public String getTerminal() {
 		return terminal;
@@ -52,15 +53,27 @@ public class AtmAvailability extends CsvReportProcessor {
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			addReportPreProcessingFieldsToGlobalMap(rgm);
+			preProcess(rgm);
 			writeHeader(rgm);
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			StringBuilder line = new StringBuilder();
-			line.append(";").append(";").append(";").append(";").append(formatter.format(totalPercentage) + "%");
+			line.append(ReportConstants.SEPARATOR).append(ReportConstants.SEPARATOR).append(ReportConstants.SEPARATOR)
+					.append(ReportConstants.SEPARATOR).append(formatter.format(totalPercentage) + "%")
+					.append(ReportConstants.SEPARATOR).append(ReportConstants.SEPARATOR).append(totalMeetStandard);
 			line.append(getEol());
-			line.append(";").append(";").append(";").append("ATM Average Performance").append(";")
-					.append(formatter.format(totalPercentage / terminalCount) + "%").append(";");
+
+			double averagePercentage = totalPercentage / terminalCount;
+			String passedNotPassed = averagePercentage > 95 ? "PASSED" : "NOT PASSED";
+			double percentageMeetStandard = new BigDecimal(totalMeetStandard)
+					.divide(new BigDecimal(terminalCount), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+					.doubleValue();
+
+			line.append(ReportConstants.SEPARATOR).append(ReportConstants.SEPARATOR).append(ReportConstants.SEPARATOR)
+					.append("ATM Average Performance").append(ReportConstants.SEPARATOR)
+					.append(formatter.format(averagePercentage) + "%").append(ReportConstants.SEPARATOR)
+					.append(passedNotPassed).append(ReportConstants.SEPARATOR).append("ATMs Meeting Std")
+					.append(ReportConstants.SEPARATOR).append(formatter.format(percentageMeetStandard) + "%");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
@@ -81,6 +94,13 @@ public class AtmAvailability extends CsvReportProcessor {
 		}
 	}
 
+	private void preProcess(ReportGenerationMgr rgm) {
+		long totalDay = ChronoUnit.DAYS.between(rgm.getTxnEndDate(), rgm.getTxnStartDate());
+		rgm.setBodyQuery(
+				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_TOTAL_DAY + "}", String.valueOf(totalDay + 1L)));
+		addReportPreProcessingFieldsToGlobalMap(rgm);
+	}
+
 	@Override
 	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In AtmAvailability.addPreProcessingFieldsToGlobalMap()");
@@ -91,9 +111,9 @@ public class AtmAvailability extends CsvReportProcessor {
 					.concat(" ").concat(ReportConstants.END_TIME);
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
-					"ASH.ASH_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ASH.ASH_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
+					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+							+ ReportConstants.FORMAT_TXN_DATE + "')");
 			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
 					ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
 			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
@@ -144,33 +164,33 @@ public class AtmAvailability extends CsvReportProcessor {
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.AVAILABLE:
-				DecimalFormat availableFormatter = new DecimalFormat("#,##0.00");
-				setCriteriaQuery(
-						"SELECT ASH.ASH_TIMESTAMP FROM ATM_STATIONS AST JOIN ATM_STATUS_HISTORY ASH ON AST.AST_ID = ASH.ASH_AST_ID WHERE ASH.ASH_COMM_STATUS = 'Up' AND ASH.ASH_SERVICE_STATE_REASON IN ('Comms Event', 'In supervisor mode', 'Power fail', 'Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty', 'Cash dispenser faulty', 'Cash availability status change', 'Operator request') AND SUBSTR(AST.AST_TERMINAL_ID, -4) = '"
-								+ getTerminal() + "'");
-				ZonedDateTime availableOutageHour = ZonedDateTime
-						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
-				double available = ((targetHour - availableOutageHour.getHour()) / targetHour) * 100;
-				line.append(availableFormatter.format(available) + "%");
-				setAvailablePercentage(available);
-				totalPercentage += available;
+//				DecimalFormat availableFormatter = new DecimalFormat("#,##0.00");
+//				setCriteriaQuery(
+//						"SELECT ASH.ASH_TIMESTAMP FROM ATM_STATIONS AST JOIN ATM_STATUS_HISTORY ASH ON AST.AST_ID = ASH.ASH_AST_ID WHERE ASH.ASH_COMM_STATUS = 'Up' AND ASH.ASH_SERVICE_STATE_REASON IN ('Comms Event', 'In supervisor mode', 'Power fail', 'Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty', 'Cash dispenser faulty', 'Cash availability status change', 'Operator request') AND SUBSTR(AST.AST_TERMINAL_ID, -4) = '"
+//								+ getTerminal() + "'");
+//				ZonedDateTime availableOutageHour = ZonedDateTime
+//						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
+//				double available = ((targetHour - availableOutageHour.getHour()) / targetHour) * 100;
+//				line.append(availableFormatter.format(available) + "%");
+//				setAvailablePercentage(available);
+				String value = getFieldValue(rgm, field, fieldsMap);
+				line.append(value);
+				totalPercentage += Double.valueOf(value);
 				break;
-			case ReportConstants.UNAVAILABLE:
-				DecimalFormat unavailableFormatter = new DecimalFormat("#,##0.00");
-				setCriteriaQuery(
-						"SELECT ASH.ASH_TIMESTAMP FROM ATM_STATIONS AST JOIN ATM_STATUS_HISTORY ASH ON AST.AST_ID = ASH.ASH_AST_ID WHERE ASH.ASH_COMM_STATUS = 'Down' AND ASH.ASH_SERVICE_STATE_REASON IN ('Comms Event', 'In supervisor mode', 'Power fail', 'Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty', 'Cash dispenser faulty', 'Cash availability status change', 'Operator request') AND SUBSTR(AST.AST_TERMINAL_ID, -4) = '"
-								+ getTerminal() + "'");
-				ZonedDateTime unavailableOutageHour = ZonedDateTime
-						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
-				double unavailable = ((targetHour - unavailableOutageHour.getHour()) / targetHour) * 100;
-				line.append(unavailableFormatter.format(unavailable) + "%");
-				break;
+//			case ReportConstants.UNAVAILABLE:
+//				DecimalFormat unavailableFormatter = new DecimalFormat("#,##0.00");
+//				setCriteriaQuery(
+//						"SELECT ASH.ASH_TIMESTAMP FROM ATM_STATIONS AST JOIN ATM_STATUS_HISTORY ASH ON AST.AST_ID = ASH.ASH_AST_ID WHERE ASH.ASH_COMM_STATUS = 'Down' AND ASH.ASH_SERVICE_STATE_REASON IN ('Comms Event', 'In supervisor mode', 'Power fail', 'Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty', 'Cash dispenser faulty', 'Cash availability status change', 'Operator request') AND SUBSTR(AST.AST_TERMINAL_ID, -4) = '"
+//								+ getTerminal() + "'");
+//				ZonedDateTime unavailableOutageHour = ZonedDateTime
+//						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
+//				double unavailable = ((targetHour - unavailableOutageHour.getHour()) / targetHour) * 100;
+//				line.append(unavailableFormatter.format(unavailable) + "%");
+//				break;
 			case ReportConstants.STANDARD:
-				if (getAvailablePercentage() > 95) {
-					line.append("1");
-				} else {
-					line.append("0");
-				}
+				String standardValue = getFieldValue(rgm, field, fieldsMap);
+				line.append(standardValue);
+				totalMeetStandard += "1".equals(standardValue) ? 1 : 0;
 				break;
 			default:
 				line.append(getFieldValue(rgm, field, fieldsMap));

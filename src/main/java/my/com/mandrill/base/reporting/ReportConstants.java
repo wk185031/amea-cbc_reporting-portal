@@ -77,6 +77,7 @@ public final class ReportConstants {
 	public static final String PARAM_TO_DATE = "To_Date";
 	public static final String PARAM_DCMS_DB_SCHEMA = "DCMS_Schema";
 	public static final String PARAM_DB_LINK_DCMS = "DB_LINK_DCMS";
+	public static final String PARAM_TOTAL_DAY = "Total_Day";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -278,4 +279,5 @@ public final class ReportConstants {
 	// Constants
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
+	public static final String SEPARATOR = ",";
 }

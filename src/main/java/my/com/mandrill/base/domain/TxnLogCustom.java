@@ -1,8 +1,5 @@
 package my.com.mandrill.base.domain;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;

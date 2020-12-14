@@ -14,6 +14,8 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +57,7 @@ import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
 
+import my.com.mandrill.base.domain.AtmDowntime;
 import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
@@ -109,6 +113,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_BIN = "select CBI_BIN from CBC_BIN where CBI_BIN like ?";
 	private static final String SQL_TRUNCATE_TXN_LOG_CUSTOM = "TRUNCATE TABLE TRANSACTION_LOG_CUSTOM";
+	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS from {DB_SCHEMA}.ATM_STATUS_HISTORY@{DB_LINK} order by ASH_AST_ID, ASH_TIMESTAMP";
+	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?)";
 	private static final int MAX_ROW = 50;
 
 	private final Environment env;
@@ -324,6 +330,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		if (tables != null) {
 			stmt.executeQuery("TRUNCATE TABLE TRANSACTION_LOG_CUSTOM");
+			stmt.executeQuery("TRUNCATE TABLE ATM_DOWNTIME");
 
 			for (String table : tables) {
 				try {
@@ -358,6 +365,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 			postProcessData();
+			postProcessAtmDowntime();
 
 		} else {
 			log.info("There is no table to sync");
@@ -384,19 +392,175 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
 		LocalDate transactionDate = LocalDate.now().minusDays(1L);
-		
+
 		String instShortCode = null;
-		
+
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
 			if ("Institution".equals(institution.getType())) {
-				if(institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
 					instShortCode = "CBC";
 				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 					instShortCode = "CBS";
 				}
 				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
-			}		
+			}
+		}
+	}
+
+	private void postProcessAtmDowntime() {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		PreparedStatement stmt_insert = null;
+		ResultSet rs = null;
+		
+		String schema = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC);
+		String dblink = env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		String sql = SQL_SELECT_ATM_STATUS_HISTORY.replace("{DB_SCHEMA}", schema);
+		sql = sql.replace("{DB_LINK}", dblink);
+
+		try {
+			conn = DriverManager.getConnection(env.getProperty(ReportConstants.DB_URL),
+					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setFetchSize(MAX_ROW);
+			rs = stmt.executeQuery();
+
+			AtmDowntime lastDowntime = null;
+
+			while (rs.next()) {
+				String operationStatus = rs.getString("ASH_OPERATION_STATUS");
+				String commStatus = rs.getString("ASH_COMM_STATUS");
+				long astId = rs.getLong("ASH_AST_ID");
+				Timestamp statusTimestamp = rs.getTimestamp("ASH_TIMESTAMP");
+				java.sql.Date statusDate = new java.sql.Date(DateUtils.truncate(new Date(statusTimestamp.getTime()), Calendar.DATE).getTime());
+				
+				log.debug("postProcessAtmDowntime: astId={}, statusTimestamp={}, operationSttus={}, commStatus={}", astId, statusTimestamp, operationStatus, commStatus);
+
+				if ("Out of service".equals(operationStatus) || "Down".equals(commStatus)) {	
+					if (lastDowntime != null && lastDowntime.isRepeatedEntry(astId, statusDate, true)) {
+						log.debug("Entering criteria 1.1");
+						//Do nothing, continue search for next up entry
+					} else {
+						if (lastDowntime != null && astId != lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null) {
+							log.debug("Entering criteria 1.2");
+							// Previous entry is from different ATM, close the entry
+							AtmDowntime tempLastDowntime = lastDowntime.clone();
+							tempLastDowntime.setEndTimestamp(Timestamp.valueOf(LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+							insertAtmDownTime(tempLastDowntime);
+							
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null);
+						} else if (lastDowntime != null && astId == lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null) {
+							log.debug("Entering criteria 1.3");
+							// Previous entry is from same ATM but different day, close the entry
+							AtmDowntime tempLastDowntime = lastDowntime.clone();
+							tempLastDowntime.setEndTimestamp(Timestamp.valueOf(LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+							insertAtmDownTime(tempLastDowntime);
+							
+							// Since ATM not up from yesterday, downtime will start at 00:00
+							lastDowntime = new AtmDowntime(astId, statusDate, Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null);
+						} else {
+							log.debug("Entering criteria 1.4");
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null);
+						}
+												
+					}
+
+				} else if ("In service".equals(operationStatus)) {
+					if (lastDowntime != null && lastDowntime.isRepeatedEntry(astId, statusDate, false)) {
+						log.debug("Entering criteria 2.1");
+						//Do nothing
+					} else {
+						if (lastDowntime == null) {
+							log.debug("Entering criteria 2.2");
+							AtmDowntime tempLastDowntime = new AtmDowntime(astId, statusDate, Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), statusTimestamp);
+							insertAtmDownTime(tempLastDowntime);
+							lastDowntime = tempLastDowntime;
+						} else if (astId == lastDowntime.getAstId() && statusDate.equals(lastDowntime.getStatusDate()) && lastDowntime.getEndTimestamp() == null) {
+							log.debug("Entering criteria 2.3");
+							AtmDowntime tempLastDowntime = lastDowntime.clone();
+							tempLastDowntime.setEndTimestamp(statusTimestamp);
+							insertAtmDownTime(tempLastDowntime);
+							lastDowntime = tempLastDowntime;
+						} else {
+							if (lastDowntime.getAstId() != astId || !lastDowntime.getStatusDate().equals(statusDate)) {
+								log.debug("Entering criteria 2.4");
+								//Close previous open entry
+								AtmDowntime tempLastDowntime = lastDowntime.clone();
+								tempLastDowntime.setEndTimestamp(Timestamp.valueOf(LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+								insertAtmDownTime(tempLastDowntime);
+							}
+							log.debug("Entering criteria 2.5");							
+							AtmDowntime newLastDowntime = new AtmDowntime(astId, statusDate, Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), statusTimestamp);
+							insertAtmDownTime(newLastDowntime);	
+							lastDowntime = newLastDowntime;
+						}
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process transaction log", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+				}
+			}
+			if (stmt_insert != null) {
+				try {
+					stmt_insert.close();
+				} catch (Exception e) {
+				}
+			}
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+
+	}
+
+	private void insertAtmDownTime(AtmDowntime atmDowntime) {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+
+		try {
+			conn = DriverManager.getConnection(env.getProperty(ReportConstants.DB_URL),
+					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+			
+			stmt = conn.prepareStatement(SQL_INSERT_ATM_DOWNTIME);
+			stmt.setLong(1, atmDowntime.getAstId());
+			stmt.setDate(2, atmDowntime.getStatusDate());
+			stmt.setTimestamp(3, atmDowntime.getStartTimestamp());
+			stmt.setTimestamp(4, atmDowntime.getEndTimestamp());
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process insertAtmDownTime", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+				}
+			}
 		}
 	}
 
@@ -701,13 +865,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+
 		String schema = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC);
 		String dblink = env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
 		String sql = SQL_SELECT_PROPERTY_CORPORATE_CARD.replace("{DB_SCHEMA}", schema);
 		sql = sql.replace("{DB_LINK}", dblink);
 		log.debug("SQL to fetch corporate card: {}", sql);
-		
+
 		try {
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
