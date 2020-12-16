@@ -94,6 +94,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String BILLERCODE_TAG = "BILLERCODE";
 	private static final String BILL_PAYMENT_TSC_CODE = "50";
 	private static final String ORIGIN_CHANNEL = "A026";
+	private static final String ORIGIN_CHANNEL_OLD = "ORIG_CHAN";
 
 	private Map<String, String> matchingBinCache = new HashMap<String, String>();
 
@@ -725,7 +726,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					log.trace("Card data: pan={}, cardBranch={}, cardProductType={}", pan.getClear(), o.getCardBranch(),
 							o.getCardProductType());
 
-					if ("EBK".contentEquals(o.getOriginChannel())) {
+					if ("EBK".equals(o.getOriginChannel())) {
 						o.setCorporateCard(isCorporateCard(clearPan, corporatePanRange));
 					}
 				}
@@ -810,6 +811,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId,
 			String originInterchange) {
 		String originChannel = customDataMap.get(ORIGIN_CHANNEL);
+
+		if (originChannel == null || originChannel.trim().isEmpty()) {
+			originChannel = customDataMap.get(ORIGIN_CHANNEL_OLD);
+		}
 
 		String mappedChannel = ChannelMapper.fromAuth(originChannel, originInterchange, acqInstId);
 

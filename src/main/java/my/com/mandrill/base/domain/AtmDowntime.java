@@ -54,8 +54,6 @@ public class AtmDowntime {
 	
 	public boolean isRepeatedEntry(Long astId, Date businessDate, boolean isDown) {
 		if (isDown) {
-			boolean test = this.statusDate.equals(businessDate);
-			
 			return this.astId.equals(astId) && this.statusDate.equals(businessDate) && this.endTimestamp == null;
 		} else { 
 			return this.astId.equals(astId) && this.statusDate.equals(businessDate) && this.endTimestamp != null;
