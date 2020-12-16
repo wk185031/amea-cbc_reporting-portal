@@ -89,7 +89,7 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
     @NotNull
     @JoinTable(name = "user_extra_branches",
                joinColumns = @JoinColumn(name="user_extra_id", referencedColumnName="id"),
-               inverseJoinColumns = @JoinColumn(name="branch_id", referencedColumnName="abr_id"))
+               inverseJoinColumns = @JoinColumn(name="branch_id", referencedColumnName="brc_code"))
     private Set<Branch> branches = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove

@@ -178,11 +178,11 @@ public class ReportCategoryResource {
 		log.debug("User: {}, REST request to all Report Categories without paging",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
 		List<ReportCategory> reportCategory = null;
-		if (branchId.toString().equals(MASTER_BRANCH_ID)) {
+		//if (branchId.toString().equals(MASTER_BRANCH_ID)) {
 			reportCategory = reportCategoryRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
-		} else {
-			reportCategory= reportCategoryRepository.findAllReportCategoryWithBranch(new Sort(Sort.Direction.ASC, "name"));
-		}
+		//} else {
+		//	reportCategory= reportCategoryRepository.findAllReportCategoryWithBranch(new Sort(Sort.Direction.ASC, "name"));
+		//}
 		return new ResponseEntity<>(reportCategory, HttpStatus.OK);
 	}
 

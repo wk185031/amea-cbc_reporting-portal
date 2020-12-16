@@ -6,5 +6,5 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 /**
  * Spring Data Elasticsearch repository for the RoleExtra entity.
  */
-public interface BranchSearchRepository extends ElasticsearchRepository<Branch, Long> {
+public interface BranchSearchRepository extends ElasticsearchRepository<Branch, String> {
 }

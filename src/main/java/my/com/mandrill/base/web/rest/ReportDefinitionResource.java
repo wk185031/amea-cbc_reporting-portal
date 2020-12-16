@@ -205,11 +205,11 @@ public class ReportDefinitionResource {
 		// log.debug("User: {}, REST request to all ReportDefinition without paging",
 		// SecurityUtils.getCurrentUserLogin().orElse(""));
 		List<ReportDefinition> reportDefinition = null;
-		if (branchId.toString().equals(MASTER_BRANCH_ID)) {
+		//if (branchId.toString().equals(MASTER_BRANCH_ID)) {
 			reportDefinition = reportDefinitionRepository.findAll(new Sort(Sort.Direction.ASC, "name"));
-		} else {
-			reportDefinition= reportDefinitionRepository.findAllReportDefinitionWithBranch(new Sort(Sort.Direction.ASC, "name"));
-		}
+		//} else {
+		//	reportDefinition= reportDefinitionRepository.findAllReportDefinitionWithBranch(new Sort(Sort.Direction.ASC, "name"));
+		//}
 		reportDefinition.sort(Comparator.comparing(ReportDefinition::getId));
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}

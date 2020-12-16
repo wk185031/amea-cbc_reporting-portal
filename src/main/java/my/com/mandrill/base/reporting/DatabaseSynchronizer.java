@@ -330,7 +330,12 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		if (tables != null) {
 			stmt.executeQuery("TRUNCATE TABLE TRANSACTION_LOG_CUSTOM");
-			stmt.executeQuery("TRUNCATE TABLE ATM_DOWNTIME");
+			try {
+				stmt.executeQuery("TRUNCATE TABLE ATM_DOWNTIME");
+			} catch (Exception e) {
+				log.error("Failed to truncate table ATM_DOWNTIME", e);
+			}
+			
 
 			for (String table : tables) {
 				try {

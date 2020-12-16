@@ -1,29 +1,6 @@
 package my.com.mandrill.base.service;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.jpeg.JpegDirectory;
-import io.undertow.util.AttachmentList;
-import javafx.application.Application;
-import my.com.mandrill.base.config.ApplicationProperties;
-import my.com.mandrill.base.domain.Attachment;
-import my.com.mandrill.base.domain.AttachmentGroup;
-import my.com.mandrill.base.domain.Institution;
-import my.com.mandrill.base.repository.AttachmentGroupRepository;
-import my.com.mandrill.base.repository.AttachmentRepository;
-import my.com.mandrill.base.repository.search.AttachmentGroupSearchRepository;
-import my.com.mandrill.base.repository.search.AttachmentSearchRepository;
-import my.com.mandrill.base.web.rest.AccountResource;
-import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
-import my.com.mandrill.base.web.rest.util.HeaderUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -34,6 +11,28 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+
+import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.jpeg.JpegDirectory;
+
+import my.com.mandrill.base.config.ApplicationProperties;
+import my.com.mandrill.base.domain.Attachment;
+import my.com.mandrill.base.domain.AttachmentGroup;
+import my.com.mandrill.base.repository.AttachmentGroupRepository;
+import my.com.mandrill.base.repository.AttachmentRepository;
+import my.com.mandrill.base.repository.search.AttachmentGroupSearchRepository;
+import my.com.mandrill.base.repository.search.AttachmentSearchRepository;
+import my.com.mandrill.base.web.rest.AccountResource;
+import my.com.mandrill.base.web.rest.util.HeaderUtil;
 
 @Service
 public class AttachmentService {

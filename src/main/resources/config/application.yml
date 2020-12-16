@@ -53,10 +53,10 @@ spring:
         serialization.write_dates_as_timestamps: false
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        #url: jdbc:oracle:thin:@172.20.188.31:1521/ATM5SIT
         url: jdbc:oracle:thin:@192.168.222.101:1521/ORCLCDB.localdomain
+        #username: ARPTUAT
+        #password: ARPTUAT
         username: ATM5RPT
-        #password: Auth5Reports-SIT219
         password: ATM5RPT
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:

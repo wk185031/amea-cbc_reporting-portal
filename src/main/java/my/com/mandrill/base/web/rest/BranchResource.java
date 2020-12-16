@@ -5,7 +5,6 @@ import static my.com.mandrill.base.service.AppPermissionService.DOT;
 import static my.com.mandrill.base.service.AppPermissionService.OPER;
 import static my.com.mandrill.base.service.AppPermissionService.READ;
 import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_BRANCH;
-import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_USER_ROLE;
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.util.ArrayList;
@@ -30,7 +29,6 @@ import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.Branch;
-import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.repository.BranchRepository;
 import my.com.mandrill.base.repository.search.BranchSearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
@@ -80,7 +78,7 @@ public class BranchResource {
      */
     @GetMapping("/branches/{id}")
     @Timed
-    public ResponseEntity<Branch> getBranch(@PathVariable Long id) {
+    public ResponseEntity<Branch> getBranch(@PathVariable String id) {
         log.debug("REST request to get Branch : {}", id);
         Branch branch = branchRepository.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(branch));

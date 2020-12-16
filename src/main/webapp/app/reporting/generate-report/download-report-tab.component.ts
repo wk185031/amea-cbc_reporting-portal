@@ -52,13 +52,13 @@ export class DownloadReportTabComponent implements OnInit {
         this.downloadReportDate = this.reportDate;
 
         if (this.reportType === 'monthly') {
-            this.generateReportService.getReport(this.branchId, this.institutionId, this.reportMonth + '-00', this.category.id).subscribe((data: any) => {
+            this.generateReportService.getReport(this.institutionId, this.reportMonth + '-00', this.category.id).subscribe((data: any) => {
                 this.generatedReportDTO = data;
             }, (error) => {
                 this.onError(error.message);
             });
         } else {
-            this.generateReportService.getReport(this.branchId, this.institutionId, this.reportDate, this.category.id).subscribe((data: any) => {
+            this.generateReportService.getReport(this.institutionId, this.reportDate, this.category.id).subscribe((data: any) => {
                 this.generatedReportDTO = data;
             }, (error) => {
                 this.onError(error.message);

@@ -13,6 +13,17 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
+management:
+    security:
+        roles: ADMIN
+    context-path: /management
+    info:
+        git:
+            mode: full
+    health:
+        mail:
+            enabled: false # When using the MailService, configure an SMTP server and set this to true
+
 logging:
   level:
     ROOT: DEBUG
@@ -21,15 +32,15 @@ logging:
   pattern:
     console: "%d %-5level %logger : %msg%n"
     file: "%d %-5level [%thread] %logger : %msg%n"
-  file: /authentic/apache-tomcat-8.5.33/logs/report-portal.log
+  file: /tomcat/logs/report-portal.log
 
 spring:
     application:
       name: reporting-portal
 
     profiles:
-        active: dev
-        include: swagger, no-liquibase
+        active: kl
+        #include: swagger, no-liquibase
     main:
       #banner-mode: off
     devtools:
@@ -41,9 +52,9 @@ spring:
         serialization.indent_output: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:oracle:thin:@172.20.188.31:1521/DEVT
-        username: ATM5RPT
-        password: Auth5Reports-SIT219
+        url: jdbc:oracle:thin:@localhost:1521/ORCLCDB.localdomain
+        username: ARPTUAT
+        password: ARPTUAT
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
@@ -51,8 +62,12 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
-        dblink: ATM5SIT
-        dcmsschema: DCMSADM
+        dblink: 
+          authentic: ATM5UAT
+          dcms: DCMSUAT
+        schema:
+          authentic: ATM5ADM
+          dcms: DCMSADM
     jpa:
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle
@@ -72,18 +87,18 @@ spring:
                     logs: build/elasticsearch/log
                     data: build/elasticsearch/data
     mail:
-        host: smtppro04.mschosting.com
-        port: 465
-        username: ci@mandrill.com.my
-        password: icp45$wd
-        protocol: smtps
-        debug: true
-        properties.mail.smtp:
-            starttls.enable: true
-            starttls.required: true
-            ssl.enable: true
-        properties.mail.smtps:
-            auth: true
+        host: localhost
+        port: 9025
+        #username: admin
+        #password: xxxxx
+        protocol: smtp
+        #debug: true
+        #properties.mail.smtp:
+        #    starttls.enable: true
+        #    starttls.required: true
+        #    ssl.enable: true
+        #properties.mail.smtps:
+        #    auth: true
     messages:
         cache-seconds: 1
     thymeleaf:
@@ -112,6 +127,9 @@ liquibase:
 server:
     port: 8080
 
+info:
+    project:
+        version: #project.version#
 # ===================================================================
 # JHipster specific properties
 #
@@ -177,6 +195,6 @@ application:
     selfRegistration: true
     languageSelection: true
     imageAttachmentBasePath:
-        path : /tmp
+        path : /reporting-portal/resources
     reportDir:
-        path: /tmp
+        path: /reporting-portal/reports
