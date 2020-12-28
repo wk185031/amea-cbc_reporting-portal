@@ -199,6 +199,6 @@ application:
     selfRegistration: true
     languageSelection: true
     imageAttachmentBasePath:
-        path : /tmp
+        path : D:/MyTemp/cbc/reporting/resources
     reportDir:
-        path: c:/MyTemp
+        path: D:/MyTemp/cbc/reporting/out

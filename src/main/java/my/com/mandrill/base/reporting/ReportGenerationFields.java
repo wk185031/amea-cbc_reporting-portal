@@ -7,8 +7,16 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import my.com.mandrill.base.reporting.security.SecurePANField;
+
 public class ReportGenerationFields {
 
+	private final Logger logger = LoggerFactory.getLogger(ReportGenerationFields.class);
+	
 	public static final String TYPE_NUMBER = "Number";
 	public static final String TYPE_DECIMAL = "Decimal";
 	public static final String TYPE_DATE = "Date";
@@ -69,6 +77,8 @@ public class ReportGenerationFields {
 	private String institution;
 	private String dcmsDbSchema;
 	private String dblink;
+	private boolean group = false;
+	private boolean sumAmount = false;
 
 	public ReportGenerationFields() {
 		super();
@@ -447,6 +457,22 @@ public class ReportGenerationFields {
 		this.dblink = dblink;
 	}
 
+	public boolean isGroup() {
+		return group;
+	}
+
+	public void setGroup(boolean group) {
+		this.group = group;
+	}
+
+	public boolean isSumAmount() {
+		return sumAmount;
+	}
+
+	public void setSumAmount(boolean sumAmount) {
+		this.sumAmount = sumAmount;
+	}
+
 	public String format() {
 		String tempValue = null;
 		switch (fieldType) {
@@ -503,8 +529,12 @@ public class ReportGenerationFields {
 				tempValue = String.format("%,d", Integer.parseInt(value));
 			}
 			break;
-		case ReportGenerationFields.TYPE_STRING:
-			tempValue = value;
+		case ReportGenerationFields.TYPE_STRING:			
+			if (isDecrypt() && decryptionKey != null && NumberUtils.isParsable(decryptionKey)) {
+				tempValue = SecurePANField.fromDatabase(value, Integer.parseInt(decryptionKey)).getClear();
+			} else {
+				tempValue = value;
+			}
 			break;
 		default:
 			tempValue = "";
@@ -955,6 +985,8 @@ public class ReportGenerationFields {
 		field.setDecryptionKey(decryptionKey);
 		field.setTagValue(tagValue);
 		field.setSource(source);
+		field.setGroup(group);
+		field.setSumAmount(sumAmount);
 		return field;
 	}
 }

@@ -10,6 +10,8 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 
 public interface IFileWriter {
 
+	public void writeLine(FileOutputStream out, String line) throws IOException;
+	
 	public void writeLine(FileOutputStream out, List<ReportGenerationFields> fields,
 			Map<String, ReportGenerationFields> data) throws IOException;
 	

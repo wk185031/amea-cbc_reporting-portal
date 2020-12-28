@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiModel;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "transaction_log_custom")
 public class TxnLogCustom {
-	
+
 	@Id
 	@Column(name = "trl_id")
 	private Long trlId;
@@ -38,18 +38,21 @@ public class TxnLogCustom {
 	@Size(max = 20)
 	@Column(name = "trl_origin_channel", length = 20)
 	private String originChannel;
-	
+
 	@Column(name = "trl_card_branch", length = 10)
 	private String cardBranch;
-	
+
 	@Column(name = "trl_card_product_type", length = 10)
 	private String cardProductType;
-	
+
 	@Column(name = "trl_is_corporate_card")
 	private boolean corporateCard;
-	
+
 	@Column(name = "trl_is_inter_entity")
 	private boolean interEntity;
+
+	@Column(name = "trl_is_cardless")
+	private boolean cardless;
 
 	public Long getTrlId() {
 		return trlId;
@@ -114,4 +117,13 @@ public class TxnLogCustom {
 	public void setInterEntity(boolean interEntity) {
 		this.interEntity = interEntity;
 	}
+
+	public boolean isCardless() {
+		return cardless;
+	}
+
+	public void setCardless(boolean cardless) {
+		this.cardless = cardless;
+	}
+
 }

@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,17 +19,30 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 public class CsvWriter implements IFileWriter {
 
 	private final Logger logger = LoggerFactory.getLogger(CsvWriter.class);
-	protected static final String EOL = System.lineSeparator();
+	public static final String DEFAULT_DELIMITER = ",";
+	public static final String EOL = System.lineSeparator();
 
+
+	@Override
+	public void writeLine(FileOutputStream out, String line) throws IOException {
+		StringBuilder lineBuilder = new StringBuilder(line);
+		out.write(lineBuilder.toString().getBytes());
+	}
+	
 	@Override
 	public void writeLine(FileOutputStream out, List<ReportGenerationFields> fields,
 			Map<String, ReportGenerationFields> dataMap) throws IOException {
 		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
+
+		for (ReportGenerationFields field : fields) {			
+			if (field.isGroup()) {
+				//skip grouping body field
+				continue;
+			}
 			if (field.getDefaultValue() != null && !field.getDefaultValue().isEmpty()) {
 				line.append(field.getDefaultValue());
 			} else if (field.getValue() != null && !field.getValue().isEmpty()) {
-				line.append(field.getValue());
+				line.append(field.format());
 			} else if (dataMap != null && dataMap.containsKey(field.getFieldName())) {
 				field.setValue(dataMap.get(field.getFieldName()).getValue());
 				line.append(field.format());
@@ -40,18 +54,17 @@ public class CsvWriter implements IFileWriter {
 				line.append(EOL);
 			}
 		}
-		line.append(EOL);
-
 		out.write(line.toString().getBytes());
 	}
 
 	@Override
 	public void writeBodyLine(FileOutputStream out, List<ReportGenerationFields> fields, ResultSet rs) throws Exception {
+		Map<String, ReportGenerationFields> groupingMap = new HashMap<>();
+		
 		while(rs.next()) {
 			Object result = null;
-			
+
 			for (ReportGenerationFields field : fields) {
-				result = rs.getObject(field.getFileName());
 				if (result != null) {
 					if (result instanceof Date) {
 						field.setValue(Long.toString(((Date) result).getTime()));
@@ -67,11 +80,8 @@ public class CsvWriter implements IFileWriter {
 					field.setValue("");
 				}
 				
-//				if (field.isDecrypt()) {
-//					decryptValue(field, );
-//				}
 			}	
-			writeLine(out, fields, null);
+			writeLine(out, fields, groupingMap);
 		}	
 	}
 	

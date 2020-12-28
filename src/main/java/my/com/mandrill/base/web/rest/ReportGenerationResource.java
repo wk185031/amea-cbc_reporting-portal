@@ -51,6 +51,7 @@ import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.processor.IReportProcessor;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -589,14 +590,14 @@ public class ReportGenerationResource {
 	}
 	
 	private void runReport(ReportGenerationMgr reportGenerationMgr) {
-//		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
-//
-//		if (reportProcessor != null) {
-//			logger.debug("runReport with processor: {}", reportProcessor);
-//			reportProcessor.process(reportGenerationMgr);
-//		} else {
+		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
+
+		if (reportProcessor != null) {
+			logger.debug("runReport with processor: {}", reportProcessor);
+			reportProcessor.process(reportGenerationMgr);
+		} else {
 			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
 					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
-//		}
+		}
 	}
 }

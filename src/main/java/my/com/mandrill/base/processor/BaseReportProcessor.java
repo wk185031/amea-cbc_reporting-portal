@@ -1,11 +1,13 @@
 package my.com.mandrill.base.processor;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -14,36 +16,145 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.sql.DataSource;
 
 import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import my.com.mandrill.base.reporting.Column;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
+import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
+import my.com.mandrill.base.writer.CsvWriter;
 
 public abstract class BaseReportProcessor implements IReportProcessor {
 
-	protected Map<String, ReportGenerationFields> initPredefinedDataMap() {
+	private final Logger logger = LoggerFactory.getLogger(BaseReportProcessor.class);
+	private static final String ENCRYPTION_KEY_SUFFIX = "_ENCKEY";
+
+	@Autowired
+	private CsvWriter csvWriter;
+
+	@Autowired
+	private DataSource datasource;
+
+	@Override
+	public void process(ReportGenerationMgr rgm) {
+		FileOutputStream out = null;
+		File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+				(rgm.isGenerate() ? rgm.getFileDate() : rgm.getYesterdayDate()));
+
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		try {
+			ReportContext currentContext = new ReportContext();
+			currentContext.setPredefinedDataMap(initPredefinedDataMap(rgm));
+			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedDataMap()));
+
+			logger.debug("Execute query: {}", currentContext.getQuery());
+			ps = datasource.getConnection().prepareStatement(currentContext.getQuery());
+			rs = ps.executeQuery();
+
+			out = new FileOutputStream(outputFile);
+
+			writeReportHeader(out, rgm.getHeaderFields(), currentContext.getPredefinedDataMap());
+
+			while (rs.next()) {
+				List<ReportGenerationFields> bodyFields = mapResultsetToField(extractBodyFields(rgm.getBodyFields()),
+						rs);
+
+				preProcessBodyHeader(currentContext, bodyFields, out);
+				writeBodyHeader(currentContext, extractBodyHeaderFields(rgm.getBodyFields()), out);
+
+				preProcessBodyData(currentContext, bodyFields, out);
+				writeBodyData(currentContext, bodyFields, out);
+			}
+
+			// Write trailer for last group
+			writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), out);
+			logger.debug("Report generation complete. Total records={}", currentContext.getTotalRecord());
+		} catch (Exception e) {
+			logger.debug("Failed to process file: {}", outputFile.getAbsolutePath(), e);
+			if (outputFile != null && outputFile.exists()) {
+				try {
+					outputFile.delete();
+				} catch (Exception e1) {
+					logger.warn("Failed to delete failed report.", e1);
+				}
+			}
+			throw new ReportGenerationException(outputFile.getName(), e);
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					logger.warn("Failed to close FileOutputStream.");
+				}
+			}
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (Exception e2) {
+					logger.warn("Failed to close preparedStatement.");
+				}
+
+			}
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e3) {
+					logger.warn("Failed to close resultSet.");
+				}
+
+			}
+		}
+	}
+
+	protected Map<String, ReportGenerationFields> initPredefinedDataMap(ReportGenerationMgr rgm) {
 		Map<String, ReportGenerationFields> predefinedDataMap = new HashMap<>();
-		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
+
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
-		
+		ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
+
 		predefinedDataMap.put(todaysDateValue.getFieldName(), todaysDateValue);
 		predefinedDataMap.put(runDateValue.getFieldName(), runDateValue);
 		predefinedDataMap.put(timeValue.getFieldName(), timeValue);
-		
+		predefinedDataMap.put(asOfDateValue.getFieldName(), asOfDateValue);
+
+		initQueryPlaceholder(rgm, predefinedDataMap);
+
 		return predefinedDataMap;
 	}
-	
+
+	protected void initQueryPlaceholder(ReportGenerationMgr rgm,
+			Map<String, ReportGenerationFields> predefinedDataMap) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
+		String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+
+		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+				ReportGenerationFields.TYPE_STRING,
+				"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+						+ "') AND TXN.TRL_SYSTEM_TIMESTAMP <= TO_DATE('" + txnEnd + "','"
+						+ ReportConstants.FORMAT_TXN_DATE + "')");
+		predefinedDataMap.put(txnDate.getFieldName(), txnDate);
+	}
+
 	protected List<ReportGenerationFields> parseFieldConfig(String jsonConfig) throws Exception {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<ReportGenerationFields> fields = null;
@@ -58,7 +169,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		}
 		return fields;
 	}
-	
+
 	protected String parseBodyQuery(String bodyQuery, Map<String, ReportGenerationFields> predefinedDataMap) {
 		if (bodyQuery != null && !bodyQuery.trim().isEmpty()) {
 			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]");
@@ -76,17 +187,162 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		}
 		return bodyQuery;
 	}
-	
+
+	protected List<ReportGenerationFields> extractBodyHeaderFields(String bodyFieldConfig)
+			throws JSONException, JsonParseException, JsonMappingException, IOException {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<ReportGenerationFields> bodyHeaderFields = null;
+		if (bodyFieldConfig != null) {
+			bodyHeaderFields = objectMapper.readValue(bodyFieldConfig.getBytes(),
+					new TypeReference<List<ReportGenerationFields>>() {
+					});
+			bodyHeaderFields = bodyHeaderFields.stream()
+					.filter((reportGenerationField) -> reportGenerationField.isBodyHeader() == true)
+					.collect(Collectors.toList());
+			if (bodyHeaderFields.size() > 0) {
+				bodyHeaderFields.get(bodyHeaderFields.size() - 1).setEndOfSection(true);
+			}
+		}
+		return bodyHeaderFields;
+	}
+
+	protected List<ReportGenerationFields> extractBodyFields(String bodyFieldConfig)
+			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<ReportGenerationFields> bodyFields = null;
+		if (bodyFieldConfig != null) {
+			bodyFields = objectMapper.readValue(bodyFieldConfig, new TypeReference<List<ReportGenerationFields>>() {
+			});
+			bodyFields = bodyFields.stream()
+					.filter((reportGenerationField) -> reportGenerationField.isBodyHeader() == false)
+					.collect(Collectors.toList());
+			if (bodyFields.size() > 0) {
+				bodyFields.get(bodyFields.size() - 1).setEndOfSection(true);
+			}
+		}
+		return bodyFields;
+	}
+
 	protected File createEmptyReportFile(String reportPathStr, String fileNamePrefix, LocalDate txnDate) {
 		String txnDateStr = txnDate.format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 		String filename = fileNamePrefix + "_" + txnDateStr + ReportConstants.CSV_FORMAT;
-				
+
 		File reportPath = new File(reportPathStr);
 		if (!reportPath.exists()) {
 			reportPath.mkdirs();
 		}
-		
+
 		Path filePath = Paths.get(reportPath.getAbsolutePath(), filename);
 		return filePath.toFile();
+	}
+
+	protected void writeReportHeader(FileOutputStream out, String headerFieldConfig,
+			Map<String, ReportGenerationFields> predefinedDataMap) throws Exception {
+		csvWriter.writeLine(out, parseFieldConfig(headerFieldConfig), predefinedDataMap);
+		csvWriter.writeLine(out, CsvWriter.EOL);
+	}
+
+	abstract protected void preProcessBodyHeader(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception;
+
+	protected void writeBodyHeader(ReportContext context, List<ReportGenerationFields> bodyHeaderFields,
+			FileOutputStream out) throws Exception {
+		if (context.isWriteBodyHeader()) {
+			csvWriter.writeLine(out, bodyHeaderFields, null);
+			context.setWriteBodyHeader(false);
+		}
+	}
+
+	abstract protected void preProcessBodyData(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception;
+
+	protected void writeBodyData(ReportContext context, List<ReportGenerationFields> bodyFields, FileOutputStream out)
+			throws Exception {
+
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : bodyFields) {
+			if (field.isGroup()) {
+				handleGroupFieldInBody(context, field, line);
+			} else {
+				String fieldValue = getFormattedFieldValue(field, context);
+				if (ReportGenerationFields.TYPE_NUMBER.equals(field.getFieldType())
+						|| ReportGenerationFields.TYPE_DECIMAL.equals(field.getFieldType())) {
+					line.append("\"" + fieldValue + "\"");
+					addToSumField(context, field);
+				} else {
+					line.append(fieldValue);
+				}
+				line.append(field.getDelimiter());
+
+				if (field.isEol()) {
+					line.append(CsvWriter.EOL);
+				}
+			}		
+		}
+
+		csvWriter.writeLine(out, line.toString());
+		context.setTotalRecord(context.getTotalRecord() + 1);
+	}
+
+	protected void addToSumField(ReportContext context, ReportGenerationFields field) {
+		if (field.isSumAmount() && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+			if (context.getSubTotal().containsKey(field.getFieldName())) {
+				context.getSubTotal().put(field.getFieldName(),
+						context.getSubTotal().get(field.getFieldName()).add(new BigDecimal(field.getValue())));
+			} else {
+				context.getSubTotal().put(field.getFieldName(), new BigDecimal(field.getValue()));
+			}
+		}
+	}
+	
+	protected void handleGroupFieldInBody(ReportContext context, ReportGenerationFields field, StringBuilder bodyLine) {
+		bodyLine.append(field.getValue()).append(CsvWriter.EOL);
+	}
+
+	abstract protected void writeBodyTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception;
+
+	protected String getFormattedFieldValue(ReportGenerationFields field, ReportContext context) {
+		if (field.getDefaultValue() != null && !field.getDefaultValue().isEmpty()) {
+			return field.getDefaultValue();
+		} else if (field.getValue() != null && !field.getValue().isEmpty()) {
+			return field.format();
+		} else if (context.getPredefinedDataMap() != null
+				&& context.getPredefinedDataMap().containsKey(field.getFieldName())) {
+			field.setValue(context.getPredefinedDataMap().get(field.getFieldName()).getValue());
+			return field.format();
+		}
+		return field.getValue();
+	}
+
+	protected List<ReportGenerationFields> mapResultsetToField(List<ReportGenerationFields> bodyFields, ResultSet rs)
+			throws Exception {
+		for (ReportGenerationFields f : bodyFields) {
+			if (f.getFieldName() == null) {
+				continue;
+			}
+			Object result = rs.getObject(f.getFieldName());
+			if (result != null) {
+				if (result instanceof Date) {
+					f.setValue(Long.toString(((Date) result).getTime()));
+				} else if (result instanceof oracle.sql.TIMESTAMP) {
+					f.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+				} else if (result instanceof oracle.sql.DATE) {
+					f.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+				} else {
+					f.setValue(result.toString());
+				}
+			} else {
+				f.setValue("");
+			}
+
+			if (f.isDecrypt()) {
+				String decryptionKey = f.getFieldName() + ENCRYPTION_KEY_SUFFIX;
+				Object decryptionKeyValue = rs.getObject(decryptionKey);
+				f.setDecryptionKey(decryptionKeyValue == null ? null : decryptionKeyValue.toString());
+			}
+		}
+		return bodyFields;
 	}
 }

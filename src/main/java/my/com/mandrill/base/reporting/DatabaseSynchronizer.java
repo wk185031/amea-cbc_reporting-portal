@@ -109,9 +109,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
 
-	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?)";
+	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?)";
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME from transaction_log order by TRL_SYSTEM_TIMESTAMP";
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
+	private static final String SQL_SELECT_ISSUER_CUSTOM_DATA = "select ISS_CUSTOM_DATA from {DB_SCHEMA}.ISSUER@{DB_LINK} where ISS_STATUS='ACTIVE'";
 	private static final String SQL_SELECT_BIN = "select CBI_BIN from CBC_BIN where CBI_BIN like ?";
 	private static final String SQL_TRUNCATE_TXN_LOG_CUSTOM = "TRUNCATE TABLE TRANSACTION_LOG_CUSTOM";
 	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS from {DB_SCHEMA}.ATM_STATUS_HISTORY@{DB_LINK} order by ASH_AST_ID, ASH_TIMESTAMP";
@@ -587,13 +588,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			rs = stmt.executeQuery();
 
 			StringTokenizer corporateCardRange = getCorporateCard(conn);
+			List<String> atmDummyCards = getAtmDummyCard(conn);
 
 			while (rs.next()) {
 				TxnLogCustom txnCustom = fromResultSet(rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
-						corporateCardRange);
+						corporateCardRange, atmDummyCards);
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
@@ -601,9 +603,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt_insert.setString(4, txnCustom.getOriginChannel());
 				stmt_insert.setString(5, txnCustom.getCardBranch());
 				stmt_insert.setString(6, txnCustom.getCardProductType());
-
 				stmt_insert.setBoolean(7, txnCustom.isCorporateCard());
 				stmt_insert.setBoolean(8, txnCustom.isInterEntity());
+				stmt_insert.setBoolean(9, txnCustom.isCardless());
 
 				stmt_insert.executeUpdate();
 
@@ -693,7 +695,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private TxnLogCustom fromResultSet(Long id, String tscCode, String encryptedPan, String acqInstId,
 			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId, String originInterchange,
-			String issuerName, String deoName, StringTokenizer corporatePanRange) throws Exception {
+			String issuerName, String deoName, StringTokenizer corporatePanRange, List<String> atmDummyCards) throws Exception {
 
 		log.debug(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
@@ -729,6 +731,16 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					if ("EBK".equals(o.getOriginChannel())) {
 						o.setCorporateCard(isCorporateCard(clearPan, corporatePanRange));
 					}
+				}
+			}
+			
+			if ("MBK".equals(o.getOriginChannel()) || "EBK".equals(o.getOriginChannel())) {
+				o.setCardless(true);
+			} else {
+				if (atmDummyCards.contains(clearPan)) {
+					o.setCardless(true);
+				} else {
+					o.setCardless(false);
 				}
 			}
 
@@ -831,10 +843,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			return map;
 		}
 
-		SecureString secureStr = SecureString.fromDatabase(customData, encryptionKeyId);
-		log.trace("Custom data clear text: {}", secureStr.getClear());
+		String dataXml = customData;
+		if (encryptionKeyId != -1) {
+			SecureString secureStr = SecureString.fromDatabase(customData, encryptionKeyId);
+			dataXml = secureStr.getClear();
+		}
+		
+		log.trace("Custom data clear text: {}", dataXml);
 
-		String clearXml = "<Root>" + StringUtils.defaultString(secureStr.getClear()) + "</Root>";
+		String clearXml = "<Root>" + StringUtils.defaultString(dataXml) + "</Root>";
 		InputStream in = null;
 
 		try {
@@ -913,6 +930,53 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		return null;
+	}
+	
+	private List<String> getAtmDummyCard(Connection conn) {
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<String> dummyCards = new ArrayList<String>();
+
+		String schema = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC);
+		String dblink = env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		String sql = SQL_SELECT_ISSUER_CUSTOM_DATA.replace("{DB_SCHEMA}", schema);
+		sql = sql.replace("{DB_LINK}", dblink);
+		log.debug("SQL to fetch issuer custom data: {}", sql);
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				String customData = rs.getString("ISS_CUSTOM_DATA");
+				Map<String, String> dataMap = retrieveCustomData(customData, -1);
+				
+				if (dataMap.containsKey("ATM_DUMMY_CARD")) {
+					dummyCards.add(dataMap.get("ATM_DUMMY_CARD"));
+				}
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process transaction log", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+				}
+			}
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+				}
+
+			}
+		}
+
+		return dummyCards;
 	}
 
 	private boolean isCorporateCard(String clearPan, StringTokenizer corporatePanRange) {
