@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.processor.IReportProcessor;
+import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
@@ -31,6 +33,9 @@ public class ReportService {
 
 	@Autowired
 	private ReportDefinitionRepository reportDefinitionRepository;
+	
+	@Autowired
+	private ReportProcessorLocator reportProcessLocator;
 
 	
 	public void generateAllReports(LocalDate transactionDate, Long institutionId, String instShortCode) {
@@ -58,6 +63,8 @@ public class ReportService {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
+		reportGenerationMgr.setTxnStartDate(transactionDate);
+		reportGenerationMgr.setTxnEndDate(transactionDate);
 		reportGenerationMgr.setInstitution(instShortCode);	
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
@@ -78,8 +85,7 @@ public class ReportService {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				runReport(reportGenerationMgr);
 			}
 		}
 	}
@@ -97,6 +103,8 @@ public class ReportService {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
 		reportGenerationMgr.setTodayDate(lastDayOfMonth);
+		reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
+		reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
@@ -117,9 +125,20 @@ public class ReportService {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-				reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-						env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+				runReport(reportGenerationMgr);
 			}
+		}
+	}
+	
+	private void runReport(ReportGenerationMgr reportGenerationMgr) {
+		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
+
+		if (reportProcessor != null) {
+			log.debug("runReport with processor: {}", reportProcessor);
+			reportProcessor.process(reportGenerationMgr);
+		} else {
+			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
+					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 		}
 	}
 }

@@ -129,8 +129,8 @@ public class AtmAvailability extends CsvReportProcessor {
 					.concat(ReportConstants.END_TIME);
 			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 					ReportGenerationFields.TYPE_STRING,
-					"ASH.ASH_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ASH.ASH_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
 							+ "')");
 			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
 					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());

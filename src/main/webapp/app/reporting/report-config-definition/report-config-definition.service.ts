@@ -54,11 +54,11 @@ export class ReportConfigDefinitionService {
         return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response' });
     }
 
-    search(req?: any): Observable<HttpResponse<ReportDefinition[]>> {
-        const options = createRequestOption(req);
-        return this.http.get<ReportDefinition[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
-            .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayResponse(res));
-    }
+//    search(req?: any): Observable<HttpResponse<ReportDefinition[]>> {
+//        const options = createRequestOption(req);
+//        return this.http.get<ReportDefinition[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
+//            .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayResponse(res));
+//    }
 
     findParent(id: number): Observable<HttpResponse<ReportDefinition[]>> {
         const options = createRequestOption(id);

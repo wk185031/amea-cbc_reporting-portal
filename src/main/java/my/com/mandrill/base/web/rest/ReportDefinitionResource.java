@@ -75,7 +75,7 @@ public class ReportDefinitionResource {
 
 	private final ReportDefinitionRepository reportDefinitionRepository;
 
-	private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
+	//private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
 	
 	private final ApplicationProperties applicationProperties;
 	
@@ -85,12 +85,12 @@ public class ReportDefinitionResource {
 
 	public ReportDefinitionResource(ReportCategoryRepository reportCategoryRepository,
 			ReportDefinitionRepository reportDefinitionRepository,
-			ReportDefinitionSearchRepository reportDefinitionSearchRepository,
+			//ReportDefinitionSearchRepository reportDefinitionSearchRepository,
 			ApplicationProperties applicationProperties,
 			AppService appService) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
-		this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
+		//this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
 		this.applicationProperties = applicationProperties;
 		this.appService = appService;
 	}
@@ -118,7 +118,7 @@ public class ReportDefinitionResource {
 			throw new BadRequestAlertException("A new report cannot already have an ID", ENTITY_NAME, "idexists");
 		}
 		ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
-		reportDefinitionSearchRepository.save(result);
+		//reportDefinitionSearchRepository.save(result);
 		return ResponseEntity.created(new URI("/api/reportDefinition/" + result.getId()))
 				.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 	}
@@ -147,7 +147,7 @@ public class ReportDefinitionResource {
 			return createReportDefinition(reportDefinition);
 		}
 		ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
-		reportDefinitionSearchRepository.save(result);
+		//reportDefinitionSearchRepository.save(result);
 		return ResponseEntity.ok()
 				.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportDefinition.getId().toString()))
 				.body(result);
@@ -259,33 +259,33 @@ public class ReportDefinitionResource {
 		log.debug("User: {}, REST request to delete ReportDefinition: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), id);
 		reportDefinitionRepository.delete(id);
-		reportDefinitionSearchRepository.delete(id);
+		//reportDefinitionSearchRepository.delete(id);
 		return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
 	}
 
-	/**
-	 * SEARCH /_search/reportDefinition?query=:query : search for the report
-	 * definition corresponding to the query.
-	 *
-	 * @param query
-	 *            the query of the report definition search
-	 * @param pageable
-	 *            the pagination information
-	 * @return the result of the search
-	 */
-	@GetMapping("/_search/reportDefinition")
-	@Timed
-	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
-			+ "')")
-	public ResponseEntity<List<ReportDefinition>> searchReportDefinition(@RequestParam String query,
-			Pageable pageable) {
-		log.debug("User: {}, REST request to search for a page of ReportDefinition for query: {}",
-				SecurityUtils.getCurrentUserLogin().orElse(""), query);
-		Page<ReportDefinition> page = reportDefinitionSearchRepository.search(queryStringQuery(query), pageable);
-		HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page,
-				"/api/_search/reportDefinition");
-		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
-	}
+//	/**
+//	 * SEARCH /_search/reportDefinition?query=:query : search for the report
+//	 * definition corresponding to the query.
+//	 *
+//	 * @param query
+//	 *            the query of the report definition search
+//	 * @param pageable
+//	 *            the pagination information
+//	 * @return the result of the search
+//	 */
+//	@GetMapping("/_search/reportDefinition")
+//	@Timed
+//	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
+//			+ "')")
+//	public ResponseEntity<List<ReportDefinition>> searchReportDefinition(@RequestParam String query,
+//			Pageable pageable) {
+//		log.debug("User: {}, REST request to search for a page of ReportDefinition for query: {}",
+//				SecurityUtils.getCurrentUserLogin().orElse(""), query);
+//		Page<ReportDefinition> page = reportDefinitionSearchRepository.search(queryStringQuery(query), pageable);
+//		HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page,
+//				"/api/_search/reportDefinition");
+//		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+//	}
 
 	//Previous query without branch filter
 	@GetMapping("/reportDefinition-structures")

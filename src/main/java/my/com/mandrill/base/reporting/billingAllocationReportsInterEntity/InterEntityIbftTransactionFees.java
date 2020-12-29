@@ -129,7 +129,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 							receivingIncome = 0.00;
 							ReportGenerationFields branchCode = new ReportGenerationFields(
 									ReportConstants.PARAM_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
-									"ABR.ABR_CODE = '" + branchCodes + "'");
+									"BRC.BRC_CODE = '" + branchCodes + "'");
 							getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 							setAcquiringBranchCode(branchCodeMap.getKey());
 							rgm.setBodyQuery(getAcquiringBodyQuery());
@@ -227,7 +227,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 		logger.debug("In InterEntityIbftTransactionFees.preProcessing()");
 		if (indicator.equalsIgnoreCase("acquiring")) {
 			rgm.setBodyQuery(getAcquiringBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("ABR.ABR_NAME \"BRANCH NAME\",", "ABR.ABR_NAME \"BRANCH NAME\"")
+					.replace("BRC.BRC_NAME \"BRANCH NAME\",", "BRC.BRC_NAME \"BRANCH NAME\"")
 					.replace("0 \"TRANSMITTING COUNT\",", "").replace("0 \"TRANSMITTING EXPENSE\",", "")
 					.replace("COUNT(TXN.TRL_ID) \"ACQUIRER COUNT\",", "")
 					.replace("COUNT(TXN.TRL_ID) * 5.00 \"ACQUIRER INCOME\",", "").replace("0 \"RECEIVING COUNT\",", "")
@@ -240,7 +240,8 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 					.replace("0 \"ACQUIRER COUNT\",", "").replace("0 \"ACQUIRER INCOME\",", "")
 					.replace("0 \"RECEIVING COUNT\",", "").replace("0 \"RECEIVING INCOME\"", ""));
 		} else {
-			rgm.setBodyQuery(getReceivingBodyQuery().replace("0 \"TRANSMITTING COUNT\",", "")
+			rgm.setBodyQuery(getReceivingBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("BRC.BRC_NAME \"BRANCH NAME\",", "BRC.BRC_NAME \"BRANCH NAME\"").replace("0 \"TRANSMITTING COUNT\",", "")
 					.replace("0 \"TRANSMITTING EXPENSE\",", "").replace("0 \"ACQUIRER COUNT\",", "")
 					.replace("0 \"ACQUIRER INCOME\",", "").replace("COUNT(TXN.TRL_ID) \"RECEIVING COUNT\",", "")
 					.replace("COUNT(TXN.TRL_ID) * 5.00 \"RECEIVING INCOME\"", ""));

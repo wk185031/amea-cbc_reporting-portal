@@ -77,7 +77,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
 		try {
 			connection = DriverManager.getConnection(url, username, password);
-			connection.setAutoCommit(false);
+			connection.setAutoCommit(false);			
 		} catch (Exception e) {
 			errors++;
 			logger.error("Error in establishing database connection: ", e);

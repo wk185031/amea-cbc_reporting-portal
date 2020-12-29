@@ -14,6 +14,7 @@
 	<include file="config/liquibase/changelog/20201211000001_auth_table.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201211000002_atm_downtime.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201211000003_update_TxnLogCustom_carded.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20201211000004_alter_userExtraBranches.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201212000001_update_report_definition.xml" relativeToChangelogFile="false"/>
-
+	<include file="config/liquibase/changelog/20201229000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

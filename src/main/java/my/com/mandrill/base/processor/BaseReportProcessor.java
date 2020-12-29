@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
@@ -53,6 +54,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
 				(rgm.isGenerate() ? rgm.getFileDate() : rgm.getYesterdayDate()));
 
+		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		try {
@@ -61,7 +63,8 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedDataMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());
-			ps = datasource.getConnection().prepareStatement(currentContext.getQuery());
+			conn = datasource.getConnection();
+			ps = conn.prepareStatement(currentContext.getQuery());
 			rs = ps.executeQuery();
 
 			out = new FileOutputStream(outputFile);
@@ -115,6 +118,14 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 					logger.warn("Failed to close resultSet.");
 				}
 
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e4) {
+					logger.warn("Failed to close connection.");
+				}
 			}
 		}
 	}
@@ -278,7 +289,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 				if (field.isEol()) {
 					line.append(CsvWriter.EOL);
 				}
-			}		
+			}
 		}
 
 		csvWriter.writeLine(out, line.toString());
@@ -295,7 +306,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			}
 		}
 	}
-	
+
 	protected void handleGroupFieldInBody(ReportContext context, ReportGenerationFields field, StringBuilder bodyLine) {
 		bodyLine.append(field.getValue()).append(CsvWriter.EOL);
 	}

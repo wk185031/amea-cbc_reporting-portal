@@ -212,14 +212,14 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 		if (filterType.equalsIgnoreCase("retail")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXNC.IS_CORPORATE_CARD = 0");
+					"TXNC.TRL_IS_CORPORATE_CARD = 0");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
 		if (filterType.equalsIgnoreCase("corporate")) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXNC.IS_CORPORATE_CARD = 1");
+					"TXNC.TRL_IS_CORPORATE_CARD = 1");
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 		}
 
