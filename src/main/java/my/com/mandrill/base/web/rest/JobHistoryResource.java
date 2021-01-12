@@ -157,14 +157,10 @@ public class JobHistoryResource {
 
     @GetMapping("/_searchlatest/job-history")
     @Timed
-    //public List<JobHistory> getLatestJobHistorys (@RequestParam String query) {
     public JobHistory getLatestJobHistorys(@RequestParam String query) {
         log.debug("REST request to search JobHistorys for query {}", query);
 
-        Optional<JobHistory> optHistory = StreamSupport.stream(jobHistorySearchRepository.search(queryStringQuery(query)).spliterator(),
-            false).sorted(Comparator.comparing(JobHistory::getCreatedDate).reversed()).findFirst();
-
-        return optHistory.get();
+        return jobHistoryRepository.findFirstByStatusOrderByCreatedDateDesc("COMPLETED");
     }
 
 }

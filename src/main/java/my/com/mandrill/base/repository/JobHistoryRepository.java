@@ -12,4 +12,6 @@ import my.com.mandrill.base.domain.JobHistory;
 @SuppressWarnings("unused")
 @Repository
 public interface JobHistoryRepository extends JpaRepository<JobHistory, Long> {
+	
+	public JobHistory findFirstByStatusOrderByCreatedDateDesc(String status);
 }

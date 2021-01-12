@@ -1,7 +1,6 @@
 package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
-import java.sql.Blob;
 import java.time.Instant;
 import java.util.Objects;
 

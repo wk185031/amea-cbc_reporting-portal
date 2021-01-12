@@ -1,460 +1,212 @@
 package my.com.mandrill.base.reporting.cashCardReports;
 
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.sql.Date;
+import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.json.JSONException;
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.processor.BaseReportProcessor;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
-import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
+import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
+import my.com.mandrill.base.writer.CsvWriter;
 
-public class CashCardDailyTransactionSummary extends PdfReportProcessor {
+@Component
+public class CashCardDailyTransactionSummary extends BaseReportProcessor {
+
 	private final Logger logger = LoggerFactory.getLogger(CashCardDailyTransactionSummary.class);
-	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-	private float totalHeight = PDRectangle.A4.getHeight();
-	private int pagination = 0;
+
+	@Autowired
+	private CsvWriter csvWriter;
+
+	@Autowired
+	private DataSource datasource;
+
+	private static final String PARAM_CURRENT_MONTH_DATE = "{current_month_year}";
+
+	private static final String SQL_SUM_AMOUNT = "select sum(ACN.ACN_BALANCE_1) \"TOTAL BALANCE\", sum(case when CTR.CTR_DEBIT_CREDIT = 'DEBIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL DEBIT\", sum(case when CTR.CTR_DEBIT_CREDIT = 'CREDIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL CREDIT\" from TRANSACTION_LOG txn left join TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID left join CARD CRD on TXN.TRL_PAN=CRD.CRD_PAN  left join BRANCH BRC on TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE left join CARD_ACCOUNT CAT on CRD.CRD_ID=CAT.CAT_CRD_ID left join ACCOUNT ACN on CAT.CAT_ACN_ID=ACN.ACN_ID left join CARD_PRODUCT CPD on CRD.CRD_CPD_ID=CPD.CPD_ID left join CBC_TRAN_CODE CTR on TXN.TRL_TSC_CODE=CTR.CTR_CODE and TXNC.TRL_ORIGIN_CHANNEL=CTR.CTR_CHANNEL where CPD.CPD_CODE in ('81', '83') ";
+
+	protected void writeReportHeader(FileOutputStream out, String headerFieldConfig,
+			Map<String, ReportGenerationFields> predefinedDataMap) throws Exception {
+		List<ReportGenerationFields> headerFields = parseFieldConfig(headerFieldConfig);
+
+		for (ReportGenerationFields f : headerFields) {
+			if (f.getDefaultValue().contains(PARAM_CURRENT_MONTH_DATE)) {
+				f.setDefaultValue(f.getDefaultValue().replace(PARAM_CURRENT_MONTH_DATE,
+						LocalDate.now().format(DateTimeFormatter.ofPattern("MMM yyyy"))));
+			}
+		}
+
+		csvWriter.writeLine(out, headerFields, predefinedDataMap);
+		csvWriter.writeLine(out, CsvWriter.EOL);
+	}
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
-		logger.debug("In CashCardDailyTransactionSummary.processPdfRecord()");
-		PDDocument doc = null;
-		PDPage page = null;
-		PDPageContentStream contentStream = null;
-		pagination = 0;
+	protected void preProcessBodyHeader(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception {
+		ReportGenerationFields branchCode = bodyFields.stream()
+				.filter(field -> getBranchCodeFieldName().equals(field.getFieldName())).findAny().orElse(null);
+		ReportGenerationFields branchName = bodyFields.stream()
+				.filter(field -> getBranchNameFieldName().equals(field.getFieldName())).findAny().orElse(null);
+		ReportGenerationFields transactionGroup = bodyFields.stream()
+				.filter(field -> getTransactionGroupFieldName().equals(field.getFieldName())).findAny().orElse(null);
+
+		if (context.getCurrentBranch() == null || !context.getCurrentBranch().equals(branchCode.getValue())) {
+			String branchCodeLine = branchCode.getFieldName() + ":" + CsvWriter.DEFAULT_DELIMITER
+					+ branchCode.getValue();
+			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(out, branchCodeLine);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+
+			String branchNameLine = branchName.getFieldName() + ":" + CsvWriter.DEFAULT_DELIMITER
+					+ branchName.getValue();
+			csvWriter.writeLine(out, branchNameLine);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+
+			context.setCurrentBranch(branchCode.getValue());
+			context.getCurrentGroupMap().remove(getTransactionGroupFieldName());
+		}
+
+		if (!context.getCurrentGroupMap().containsKey(getTransactionGroupFieldName()) || !context.getCurrentGroupMap()
+				.get(getTransactionGroupFieldName()).equals(transactionGroup.getValue())) {
+			context.getCurrentGroupMap().put(getTransactionGroupFieldName(), transactionGroup.getValue());
+			String transactionGroupLine = CsvWriter.DEFAULT_DELIMITER + transactionGroup.getValue();
+			csvWriter.writeLine(out, transactionGroupLine);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+
+			DecimalFormat df = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT);
+
+			List<BigDecimal> balanceSummary = getBalanceSummary(SQL_SUM_AMOUNT, branchCode.getValue(), false);
+			csvWriter.writeLine(out, ("PREVIOUS MONTH AP BALANCE:" + CsvWriter.DEFAULT_DELIMITER
+					+ df.format(balanceSummary.get(0).doubleValue())));
+			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(out,
+					("MTD AP BALANCE:" + CsvWriter.DEFAULT_DELIMITER + df.format(balanceSummary.get(1).doubleValue())));
+			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+		}
+	}
+
+	@Override
+	protected void handleGroupFieldInBody(ReportContext context, ReportGenerationFields field, StringBuilder bodyLine) {
+		// Do nothing. Skip writing group column
+	}
+
+	private String getBranchCodeFieldName() {
+		return "BRANCH CODE";
+	}
+
+	private String getBranchNameFieldName() {
+		return "BRANCH NAME";
+	}
+
+	private String getTransactionGroupFieldName() {
+		return "TRANSACTION GROUP";
+	}
+
+	@Override
+	protected void preProcessBodyData(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void writeBodyTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * Retrieve balance for current and previous month for Cash Card
+	 * 
+	 * @param sql
+	 * @param branchCode
+	 * @param isCorporate
+	 * @return A list contains 2 elements - First element: Balance for previous
+	 *         month - Second element: Current balance
+	 */
+	private List<BigDecimal> getBalanceSummary(String sql, String branchCode, boolean isCorporate) {
+		List<BigDecimal> balanceSummary = new ArrayList<>();
+
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+
+		sql += " and TXNC.TRL_IS_CORPORATE_CARD = " + (isCorporate ? "1" : "0");
+		sql += " and BRC.BRC_CODE = '" + branchCode + "'";
 
 		try {
-			doc = new PDDocument();
-			page = new PDPage();
-			doc.addPage(page);
-			contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.COURIER;
-			float fontSize = 6;
-			float leading = 1.5f * fontSize;
-			PDRectangle pageSize = page.getMediaBox();
-			float margin = 30;
-			float width = pageSize.getWidth() - 2 * margin;
-			float startX = pageSize.getLowerLeftX() + margin;
-			float startY = pageSize.getUpperRightY() - margin;
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
+			conn = datasource.getConnection();
+			ps = conn.prepareStatement(sql);
+			rs = ps.executeQuery();
 
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize);
+			rs.next();
 
-			contentStream.endText();
-			contentStream.close();
+			BigDecimal currentBalance = rs.getBigDecimal("TOTAL BALANCE");
+			BigDecimal totalDebit = rs.getBigDecimal("TOTAL DEBIT");
+			BigDecimal totalCredit = rs.getBigDecimal("TOTAL CREDIT");
 
-			saveFile(rgm, doc);
+			if (currentBalance == null) {
+				currentBalance = BigDecimal.ZERO;
+			}
+			if (totalDebit == null) {
+				totalDebit = BigDecimal.ZERO;
+			}
+			if (totalCredit == null) {
+				totalCredit = BigDecimal.ZERO;
+			}
+
+			BigDecimal previousMonthBalance = currentBalance.subtract(totalDebit).add(totalCredit);
+			balanceSummary.add(previousMonthBalance);
+			balanceSummary.add(currentBalance);
+
+			return balanceSummary;
 		} catch (Exception e) {
-			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			logger.error("Failed to get balance summary", e);
+			throw new RuntimeException(e);
 		} finally {
-			if (doc != null) {
-				try {
-					doc.close();
-					rgm.exit();
-				} catch (IOException e) {
-					rgm.errors++;
-					logger.error("Error in closing PDF file", e);
-				}
-			}
-		}
-	}
 
-	@Override
-	protected void execute(ReportGenerationMgr rgm, File file) {
-		try {
-			rgm.fileOutputStream = new FileOutputStream(file);
-			addReportPreProcessingFieldsToGlobalMap(rgm);
-			executeBodyQuery(rgm);
-			executeTrailerQuery(rgm);
-			writeTrailer(rgm, null);
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
-			rgm.errors++;
-			logger.error("Error in generating CSV file", e);
-		} finally {
-			try {
-				if (rgm.fileOutputStream != null) {
-					rgm.fileOutputStream.close();
-					rgm.exit();
-				}
-			} catch (IOException e) {
-				rgm.errors++;
-				logger.error("Error in closing fileOutputStream", e);
-			}
-		}
-	}
-
-	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
-			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
-		logger.debug("In CashCardDailyTransactionSummary.executePdfBodyQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getBodyQuery(rgm);
-		HashSet<String> branchSet = null;
-		// 1. initialize collection to use to sort the query data by card type
-		HashMap<String, List<HashMap<String, ReportGenerationFields>>> productToLineFieldsMap = null;
-		List<HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
-		String branchCode = null;
-		String branchName = null;
-		String productName = null;
-		String previousMonthBalance = null;
-		String APBalance = null;
-		int activeAccount = 0;
-
-		StringBuilder str = null;
-		logger.info("Query for body line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream.endText();
-						contentStream.close();
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-					}
-
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-
-					if (branchSet == null) {
-						branchSet = new HashSet<String>();
-					}
-
-					if (str == null) {
-						str = new StringBuilder();
-					}
-
-					str.append(lineFieldsMap.get("BRANCH CODE").getValue());
-					str.append(",");
-					str.append(lineFieldsMap.get("BRANCH NAME").getValue());
-					branchSet.add(str.toString());
-
-					// clear StringBuilder to reuse
-					str.setLength(0);
-
-					str.append(lineFieldsMap.get("BRANCH CODE").getValue());
-
-//                    branchCode = lineFieldsMap.get(ReportConstants.BRANCH_CODE).getValue();
-//                    branchName = lineFieldsMap.get(ReportConstants.BRANCH_NAME).getValue();
-//
-//                    str.append(branchCode);
-//                    str.append(",");
-//                    str.append(branchName);
-//
-					productName = lineFieldsMap.get(ReportConstants.CARD_PRODUCT).getValue();
-//                    previousMonthBalance = lineFieldsMap.get(ReportConstants.BALANCE).getValue();
-//                    APBalance = lineFieldsMap.get(ReportConstants.TOTAL).getValue();
-//                    activeAccount = Integer.parseInt(lineFieldsMap.get(ReportConstants.STATUS_ACTIVE).getValue());
-
-					str.append(productName);
-					str.append(",");
-					str.append(previousMonthBalance);
-//                    str.append(",");
-//                    str.append(APBalance);
-//                    str.append(",");
-//                    str.append(activeAccount);
-
-					// add list of lineFieldsMap into product map
-					if (productToLineFieldsMap == null) {
-						productToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-					}
-
-					if (productToLineFieldsMap.containsKey(str.toString())) {
-						productToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
-					} else {
-						lineFieldsMapList = new ArrayList<>();
-						lineFieldsMapList.add(lineFieldsMap);
-						productToLineFieldsMap.put(str.toString(), lineFieldsMapList);
-					}
-
-					for (String branch : branchSet) {
-						preProcessingHeader(rgm, branch.split(",")[0], branch.split(",")[1]);
-						writePdfHeader(rgm, contentStream, leading, pagination);
-						for (Map.Entry<String, List<HashMap<String, ReportGenerationFields>>> branchMap : productToLineFieldsMap
-								.entrySet()) {
-//                            if(branchMap.getKey().split(",")[0].equals(branch.split(",")[0])){
-							preProcessingBodyHeader(rgm, productName, previousMonthBalance, APBalance, activeAccount);
-							writePdfBodyHeader(rgm, contentStream, leading);
-							for (HashMap<String, ReportGenerationFields> m : branchMap.getValue()) {
-								writePdfBody(rgm, m, contentStream, leading);
-								pageHeight++;
-							}
-						}
-					}
-
-//                    preProcessingHeader(rgm, branchCode, branchName);
-//                    writePdfHeader(rgm, contentStream, leading, pagination);
-//
-//                    preProcessingBodyHeader(rgm, productName, previousMonthBalance, APBalance, activeAccount);
-//                    writePdfBodyHeader(rgm, contentStream, leading);
-//
-//                    writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-//                    pageHeight++;
-
-					str.setLength(0);
-				}
-
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
-			} finally {
+			if (ps != null) {
 				try {
 					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
+				} catch (Exception e2) {
+					logger.warn("Failed to close preparedStatement.");
 				}
+
 			}
-		}
-		return contentStream;
-	}
-
-	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In CashCardDailyTransactionSummary.executeBodyQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getBodyQuery(rgm);
-		// 1. initialize collection to use to sort the query data by card type
-		HashMap<String, List<HashMap<String, ReportGenerationFields>>> productToLineFieldsMap = null;
-		HashMap<String, List<HashMap<String, ReportGenerationFields>>> programToLineFieldsMap = null;
-		List<HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
-		HashSet<String> branchSet = null;
-		String branchCode = null;
-		String branchName = null;
-		String productName = null;
-		String previousMonthBalance = null;
-		String APBalance = null;
-		int activeAccount = 0;
-
-		StringBuilder str = null;
-
-		logger.info("Query for body line export: {}", query);
-
-		if (query != null && !query.isEmpty()) {
-			try {
-				ps = rgm.connection.prepareStatement(query);
-				rs = ps.executeQuery();
-				fieldsMap = rgm.getQueryResultStructure(rs);
-
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
-							}
-						} else {
-							field.setValue("");
-						}
-					}
-
-					if (branchSet == null) {
-						branchSet = new HashSet<String>();
-					}
-
-					if (str == null) {
-						str = new StringBuilder();
-					}
-
-					str.append(lineFieldsMap.get("BRANCH CODE").getValue());
-					str.append(",");
-					str.append(lineFieldsMap.get("BRANCH NAME").getValue());
-					branchSet.add(str.toString());
-
-					str.setLength(0);
-
-					str.append(lineFieldsMap.get("BRANCH CODE").getValue());
-//                    branchCode = lineFieldsMap.get(ReportConstants.BRANCH_CODE).getValue();
-//                    branchName = lineFieldsMap.get(ReportConstants.BRANCH_NAME).getValue();
-//                    str.append(branchCode);
-//                    str.append(",");
-//                    str.append(branchName);
-
-//                    previousMonthBalance = lineFieldsMap.get(ReportConstants.BALANCE).getValue();
-					productName = lineFieldsMap.get(ReportConstants.CARD_PRODUCT).getValue();
-//                    APBalance = lineFieldsMap.get(ReportConstants.TOTAL).getValue();
-//                    activeAccount = Integer.parseInt(lineFieldsMap.get(ReportConstants.STATUS_ACTIVE).getValue());
-
-					str.append(productName);
-					str.append(",");
-					str.append(previousMonthBalance);
-
-					// add list of lineFieldsMap into product map
-					if (productToLineFieldsMap == null) {
-						productToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-					}
-
-					if (productToLineFieldsMap.containsKey(str.toString())) {
-						productToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
-					} else {
-						lineFieldsMapList = new ArrayList<>();
-						lineFieldsMapList.add(lineFieldsMap);
-						productToLineFieldsMap.put(str.toString(), lineFieldsMapList);
-					}
-
-					for (String branch : branchSet) {
-						preProcessingHeader(rgm, branch.split(",")[0], branch.split(",")[1]);
-						writeHeader(rgm);
-						for (Map.Entry<String, List<HashMap<String, ReportGenerationFields>>> branchMap : productToLineFieldsMap
-								.entrySet()) {
-//                            if(branchMap.getKey().split(",")[0].equals(branch.split(",")[0])){
-							preProcessingBodyHeader(rgm, productName, previousMonthBalance, APBalance, activeAccount);
-							writeBodyHeader(rgm);
-//                                writeBody(rgm, lineFieldsMap);
-							for (HashMap<String, ReportGenerationFields> m : branchMap.getValue()) {
-								writeBody(rgm, m);
-							}
-//                            }
-						}
-					}
-
-//                    preProcessingHeader(rgm, branchCode, branchName);
-//                    writeHeader(rgm);
-
-//                    preProcessingBodyHeader(rgm, productName, previousMonthBalance, APBalance, activeAccount);
-//                    writeBodyHeader(rgm);
-
-//                    writeBody(rgm, lineFieldsMap);
-
-					str.setLength(0);
-
-				}
-
-			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
-			} finally {
+			if (rs != null) {
 				try {
-					ps.close();
 					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
+				} catch (Exception e3) {
+					logger.warn("Failed to close resultSet.");
+				}
+
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e4) {
+					logger.warn("Failed to close connection.");
 				}
 			}
 		}
 	}
 
-	private void preProcessingHeader(ReportGenerationMgr rgm, String brcCode, String brcName)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardDailyTransactionSummary.preProcessingHeader()");
-
-		ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.BRANCH_CODE,
-				ReportGenerationFields.TYPE_STRING, "BRANCH CODE:" + brcCode);
-		ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.BRANCH_NAME,
-				ReportGenerationFields.TYPE_STRING, "BRANCH NAME:" + brcName);
-//        ReportGenerationFields dateMonth = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-//            ReportGenerationFields.TYPE_STRING, "For the month of" + month + "- Per Branch /  Bankwide" + rgm.getFileDate().format(DateTimeFormatter.ofPattern("MMyyyy")));
-		getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-		getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
-//        getGlobalFileFieldsMap().put(dateMonth.getFieldName(), dateMonth);
-
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
-
-	private void preProcessingBodyHeader(ReportGenerationMgr rgm, String prodName, String prevMthBal, String APBal,
-			int activeAcc) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardDailyTransactionSummary.preProcessingHeader()");
-
-		ReportGenerationFields cardProductName = new ReportGenerationFields(ReportConstants.CARD_PRODUCT,
-				ReportGenerationFields.TYPE_STRING, prodName);
-		ReportGenerationFields previousMonthBalance = new ReportGenerationFields(ReportConstants.BALANCE,
-				ReportGenerationFields.TYPE_STRING, "PREVIOUS MONTH AP BALANCE: " + prevMthBal);
-		ReportGenerationFields APBalance = new ReportGenerationFields(ReportConstants.TOTAL,
-				ReportGenerationFields.TYPE_STRING, "MTD AP BALANCE: " + APBal);
-		ReportGenerationFields activeAccount = new ReportGenerationFields(ReportConstants.STATUS_ACTIVE,
-				ReportGenerationFields.TYPE_STRING, "NUMBER OF ACTIVE ACCOUNT: " + activeAcc);
-//        ReportGenerationFields activeAccount = new ReportGenerationFields("TOTAL_ACTIVE",
-//            ReportGenerationFields.TYPE_STRING, "NUMBER OF ACTIVE ACCOUNTS : " + activeAcc);
-
-		getGlobalFileFieldsMap().put(cardProductName.getFieldName(), cardProductName);
-		getGlobalFileFieldsMap().put(previousMonthBalance.getFieldName(), previousMonthBalance);
-		getGlobalFileFieldsMap().put(APBalance.getFieldName(), APBalance);
-		getGlobalFileFieldsMap().put(activeAccount.getFieldName(), activeAccount);
-
-		addReportPreProcessingFieldsToGlobalMap(rgm);
-	}
 }

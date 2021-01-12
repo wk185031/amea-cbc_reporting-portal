@@ -17,4 +17,5 @@
 	<include file="config/liquibase/changelog/20201211000004_alter_userExtraBranches.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201212000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201229000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20210110000001_add_card_custom.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

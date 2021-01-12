@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.cashCardReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,12 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 public class CashCardBalance extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(CashCardBalance.class);
+
+	private final PDFont DEFAULT_FONT = PDType1Font.COURIER;
+	private final PDRectangle DEFAULT_PAGE_LAYOUT = PDRectangle.A4;
+	private final float DEFAULT_FONT_SIZE = 6;
+	private final float DEFAULT_MARGIN = 30;
+
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -40,46 +47,42 @@ public class CashCardBalance extends PdfReportProcessor {
 	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardBalance.processPdfRecord()");
-		PDDocument doc = null;
-		PDPage page = null;
+		PDDocument doc = new PDDocument();
 		PDPageContentStream contentStream = null;
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		String cardProduct = null;
 		String branchCode = null;
 		String branchName = null;
-		pagination = 1;
+
 		try {
-			doc = new PDDocument();
-			page = new PDPage();
-			doc.addPage(page);
-			contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.COURIER;
-			float fontSize = 6;
-			float leading = 1.5f * fontSize;
-			PDRectangle pageSize = page.getMediaBox();
-			float margin = 30;
-			float width = pageSize.getWidth() - 2 * margin;
-			float startX = pageSize.getLowerLeftX() + margin;
-			float startY = pageSize.getUpperRightY() - margin;
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
-
+			float leading = 1.5f * DEFAULT_FONT_SIZE;
 			preProcessing(rgm);
-			writePdfHeader(rgm, contentStream, leading, pagination);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 4;
-			contentStream.newLineAtOffset(0, -leading);
+			contentStream = newPage(rgm, doc, contentStream);
 
+			int productCount = 0;
+			int branchCount = 0;
 			for (SortedMap.Entry<String, TreeMap<String, String>> cardProductMap : filterByCardProduct(rgm)
 					.entrySet()) {
 				overallTotal = 0.00;
 				cardProduct = cardProductMap.getKey();
-				contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
-				contentStream.newLineAtOffset(0, -leading);
-				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 2;
+				branchCount = 0;
+
+				if (productCount > 0) {
+					contentStream = newPage(rgm, doc, contentStream);
+					contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
+					contentStream.newLineAtOffset(0, -leading);
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
+					contentStream.newLineAtOffset(0, -leading);
+					contentStream.newLineAtOffset(0, -leading);
+				}
+
 				for (SortedMap.Entry<String, String> branchCodeMap : cardProductMap.getValue().entrySet()) {
+					if (branchCount > 0) {
+						contentStream = newPage(rgm, doc, contentStream);
+					}
 					balanceTotal = 0.00;
 					branchCode = branchCodeMap.getKey();
 					branchName = branchCodeMap.getValue();
@@ -90,25 +93,27 @@ public class CashCardBalance extends PdfReportProcessor {
 					writePdfBodyHeader(rgm, contentStream, leading);
 					pageHeight += 2;
 					preProcessing(rgm, cardProduct, branchCode);
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize);
-					contentStream.showText(String.format("%1$126s", "TOTAL: ")
-							+ String.format("%1$28s", formatter.format(balanceTotal)));
+					contentStream = executePdfBodyQuery(rgm, doc, contentStream, leading);
+					contentStream.showText(String.format("%1$125s", "TOTAL: ")
+							+ String.format("%1$29s", formatter.format(balanceTotal)));
 					overallTotal += balanceTotal;
 					pageHeight += 1;
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 1;
+					branchCount++;
 				}
 				contentStream.showText(String.format("%1$154s", "________________"));
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 1;
-				contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct + " OVER-ALL TOTAL: "
-						+ String.format("%1$84s", "GRAND TOTAL: ")
-						+ String.format("%1$28s", formatter.format(overallTotal)));
+				contentStream.showText(String.format("%-118s",
+						(ReportConstants.CARD_PRODUCT + " - " + cardProduct + " OVER-ALL TOTAL: "))
+						+ String.format("%-15s", "GRAND TOTAL: ")
+						+ String.format("%1$21s", formatter.format(overallTotal)));
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 3;
+				productCount++;
 			}
 			contentStream.endText();
 			contentStream.close();
@@ -128,6 +133,26 @@ public class CashCardBalance extends PdfReportProcessor {
 				}
 			}
 		}
+	}
+
+	private PDPageContentStream newPage(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream)
+			throws Exception {
+
+		if (contentStream != null) {
+			contentStream.endText();
+			contentStream.close();
+		}
+
+		PDPage page = new PDPage(DEFAULT_PAGE_LAYOUT);
+		doc.addPage(page);
+		contentStream = new PDPageContentStream(doc, page);
+		contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+		contentStream.beginText();
+		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
+				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
+		pagination++;
+		writePdfHeader(rgm, contentStream, 1.5f * DEFAULT_FONT_SIZE, pagination);
+		return contentStream;
 	}
 
 	@Override
@@ -199,9 +224,8 @@ public class CashCardBalance extends PdfReportProcessor {
 		}
 	}
 
-	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
-			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc,
+			PDPageContentStream contentStream, float leading) {
 		logger.debug("In CashCardBalance.execute()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -220,15 +244,7 @@ public class CashCardBalance extends PdfReportProcessor {
 				while (rs.next()) {
 					if (pageHeight > totalHeight) {
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream.endText();
-						contentStream.close();
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
+						contentStream = newPage(rgm, doc, contentStream);
 					}
 
 					for (String key : lineFieldsMap.keySet()) {
@@ -299,7 +315,7 @@ public class CashCardBalance extends PdfReportProcessor {
 		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "CRD.CRD_CUSTOM_DATA = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
@@ -328,14 +344,22 @@ public class CashCardBalance extends PdfReportProcessor {
 			}
 
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.BALANCE)) {
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				String amountStr = getFieldValue(field, fieldsMap);
+				if (amountStr.indexOf(",") != -1) {
+					amountStr = amountStr.replace(",", "");
 				}
+				BigDecimal amount = new BigDecimal(amountStr);
+				if (amount.compareTo(BigDecimal.ZERO) > 0) {
+					amount = amount.movePointLeft(2);
+				}
+				balanceTotal += amount.doubleValue();
+				line.append(new DecimalFormat("#,##0.00").format(amount.doubleValue()));
+				line.append(field.getDelimiter());
+			} else {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
 			}
-			line.append(getFieldValue(rgm, field, fieldsMap));
-			line.append(field.getDelimiter());
+
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -354,43 +378,67 @@ public class CashCardBalance extends PdfReportProcessor {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.BALANCE)) {
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+//			if (field.getFieldName().equalsIgnoreCase(ReportConstants.BALANCE)) {
+//				String amountStr = getFieldValue(field, fieldsMap);
+//				if (amountStr.indexOf(",") != -1) {
+//					amountStr = amountStr.replace(",", "");
+//				}
+//				BigDecimal amount = new BigDecimal(amountStr);
+//				if (amount.compareTo(BigDecimal.ZERO) > 0) {
+//					amount = amount.movePointLeft(2);
+//				}
+//				balanceTotal += amount.doubleValue();
+//				
+
+//				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+//					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+//				} else {
+//					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+//				}
+//			}
+
+			switch (field.getFieldName()) {
+			case ReportConstants.CUSTOMER_ID:
+				fieldLength += field.getPdfLength();
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				break;
+			case ReportConstants.CUSTOMER_NAME:
+				if (getFieldValue(field, fieldsMap).length() > 37) {
+					contentStream
+							.showText(getFieldValue(field, fieldsMap).substring(0, 37) + String.format("%1$3s", ""));
+					accNameValue = getFieldValue(field, fieldsMap).substring(37,
+							getFieldValue(field, fieldsMap).length());
+					accName = true;
 				} else {
-					balanceTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
+				break;
+			case ReportConstants.CARD_PRODUCT:
+				contentStream
+						.showText(String.format(String.format("%1$7s", "") + getFieldValue(rgm, field, fieldsMap)));
+				break;
+			case ReportConstants.BALANCE:
+				String amountStr = getFieldValue(field, fieldsMap);
+				if (amountStr.indexOf(",") != -1) {
+					amountStr = amountStr.replace(",", "");
+				}
+				BigDecimal amount = new BigDecimal(amountStr);
+				if (amount.compareTo(BigDecimal.ZERO) > 0) {
+					amount = amount.movePointLeft(2);
+				}
+				balanceTotal += amount.doubleValue();
+				field.setValue(amount.toString());
+				contentStream.showText(field.format(rgm, isHeader(), isBodyHeader(), isBody(), isTrailer()));
+				break;
+			default:
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				break;
 			}
 
 			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.CUSTOMER_ID:
-					fieldLength += field.getPdfLength();
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
-				case ReportConstants.CUSTOMER_NAME:
-					if (getFieldValue(field, fieldsMap).length() > 37) {
-						contentStream.showText(
-								getFieldValue(field, fieldsMap).substring(0, 37) + String.format("%1$3s", ""));
-						accNameValue = getFieldValue(field, fieldsMap).substring(37,
-								getFieldValue(field, fieldsMap).length());
-						accName = true;
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					break;
-				case ReportConstants.CARD_PRODUCT:
-					contentStream
-							.showText(String.format(String.format("%1$7s", "") + getFieldValue(rgm, field, fieldsMap)));
-					break;
-				default:
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
-				}
 			}
+
 		}
 		if (accName) {
 			accName = false;

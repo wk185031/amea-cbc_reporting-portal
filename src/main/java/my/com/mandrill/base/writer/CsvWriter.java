@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import my.com.mandrill.base.reporting.ReportGenerationFields;
@@ -18,25 +16,23 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 @Component
 public class CsvWriter implements IFileWriter {
 
-	private final Logger logger = LoggerFactory.getLogger(CsvWriter.class);
 	public static final String DEFAULT_DELIMITER = ",";
 	public static final String EOL = System.lineSeparator();
-
 
 	@Override
 	public void writeLine(FileOutputStream out, String line) throws IOException {
 		StringBuilder lineBuilder = new StringBuilder(line);
 		out.write(lineBuilder.toString().getBytes());
 	}
-	
+
 	@Override
 	public void writeLine(FileOutputStream out, List<ReportGenerationFields> fields,
 			Map<String, ReportGenerationFields> dataMap) throws IOException {
 		StringBuilder line = new StringBuilder();
 
-		for (ReportGenerationFields field : fields) {			
+		for (ReportGenerationFields field : fields) {
 			if (field.isGroup()) {
-				//skip grouping body field
+				// skip grouping body field
 				continue;
 			}
 			if (field.getDefaultValue() != null && !field.getDefaultValue().isEmpty()) {
@@ -58,10 +54,11 @@ public class CsvWriter implements IFileWriter {
 	}
 
 	@Override
-	public void writeBodyLine(FileOutputStream out, List<ReportGenerationFields> fields, ResultSet rs) throws Exception {
+	public void writeBodyLine(FileOutputStream out, List<ReportGenerationFields> fields, ResultSet rs)
+			throws Exception {
 		Map<String, ReportGenerationFields> groupingMap = new HashMap<>();
-		
-		while(rs.next()) {
+
+		while (rs.next()) {
 			Object result = null;
 
 			for (ReportGenerationFields field : fields) {
@@ -69,8 +66,7 @@ public class CsvWriter implements IFileWriter {
 					if (result instanceof Date) {
 						field.setValue(Long.toString(((Date) result).getTime()));
 					} else if (result instanceof oracle.sql.TIMESTAMP) {
-						field.setValue(
-								Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+						field.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 					} else if (result instanceof oracle.sql.DATE) {
 						field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
 					} else {
@@ -79,25 +75,12 @@ public class CsvWriter implements IFileWriter {
 				} else {
 					field.setValue("");
 				}
-				
-			}	
+
+			}
 			writeLine(out, fields, groupingMap);
-		}	
+		}
 	}
-	
-	private void decryptValue(ReportGenerationFields field) {
-		//TODO
-//		if (field.getTagValue() != null && !field.getTagValue().trim().isEmpty()) {
-//			String customData = SecureString
-//					.fromDatabase(field.getValue(), ekyId).getClear();
-//			String tagData = getTaggedData(customData, field.getTagValue());
-//			field.setValue(tagData);
-//			
-//		} else {
-//			field.setValue(SecurePANField.fromDatabase(field.getValue(), ekyId).getClear());
-//		}
-	}
-	
+
 	public String getTaggedData(String customData, String tag) {
 		if (customData == null || tag == null) {
 			return null;

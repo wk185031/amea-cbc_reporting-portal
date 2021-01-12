@@ -14,6 +14,7 @@
 # ===================================================================
 
 logging:
+  path: logs
   level:
     ROOT: DEBUG
     my.com.mandrill.base: DEBUG
@@ -21,7 +22,6 @@ logging:
   pattern:
     console: "%d %-5level %logger : %msg%n"
     file: "%d %-5level [%thread] %logger : %msg%n"
-  file: /authentic/apache-tomcat-8.5.33/logs/report-portal.log
 
 spring:
     application:

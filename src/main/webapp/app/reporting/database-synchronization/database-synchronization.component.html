@@ -10,7 +10,7 @@
             </button>
             <div *ngIf="jobHistory">
                 <small class="float-right d-inline">
-                    <span jhiTranslate="baseApp.databaseSynchronization.lastSync">Last Synchronization On</span>
+                    <span jhiTranslate="baseApp.databaseSynchronization.lastSync">Last Completed Synchronization On</span>
                     <strong>{{jobHistory.createdDate | date:'medium'}}</strong>
                 </small>
             </div>

@@ -13,6 +13,16 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
+logging:
+  path: logs
+  level:
+    ROOT: DEBUG
+    my.com.mandrill.base: DEBUG
+    io.github.jhipster: DEBUG
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+    file: "%d %-5level [%thread] %logger : %msg%n"
+
 management:
     security:
         roles: ADMIN
@@ -23,16 +33,6 @@ management:
     health:
         mail:
             enabled: false # When using the MailService, configure an SMTP server and set this to true
-
-logging:
-  level:
-    ROOT: DEBUG
-    my.com.mandrill.base: DEBUG
-    io.github.jhipster: DEBUG
-  pattern:
-    console: "%d %-5level %logger : %msg%n"
-    file: "%d %-5level [%thread] %logger : %msg%n"
-  file: logs/report-portal.log
 
 spring:
     application:
