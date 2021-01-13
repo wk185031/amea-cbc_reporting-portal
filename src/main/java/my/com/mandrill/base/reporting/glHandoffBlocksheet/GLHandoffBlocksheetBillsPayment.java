@@ -29,7 +29,7 @@ import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetBillsPayment.class);
-	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+	private float pageHeight = 0;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 	private boolean firstRecord = false;
@@ -77,36 +77,57 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 				while (glDescriptionItr.hasNext()) {
 					glDescription = glDescriptionItr.next();
 					if (!endGroup && !newGroup) {
-						page = new PDPage();
-						doc.addPage(page);
-						firstRecord = true;
-						newGroup = true;
-						pagination++;
-						pageSize = page.getMediaBox();
-						width = pageSize.getWidth() - 2 * margin;
-						startX = pageSize.getLowerLeftX() + margin;
-						startY = pageSize.getUpperRightY() - margin;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
+						//contentStream = newPage(doc, pageSize, margin);
 					}
 
-					if (endGroup && newGroup) {
+//					if (endGroup && newGroup) {
+//						rgm.setBodyQuery(getDebitBodyQuery());
+//						rgm.setTrailerQuery(getDebitTrailerQuery());
+//						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
+//						if (executeQuery(rgm)) {
+//							endGroup = false;
+//							pageHeight = 0;
+//							page = new PDPage();
+//							doc.addPage(page);
+//							firstRecord = true;
+//							pagination++;
+//							//contentStream.close();
+//							contentStream = new PDPageContentStream(doc, page);
+//							contentStream.setFont(pdfFont, fontSize);
+//							contentStream.beginText();
+//							contentStream.newLineAtOffset(startX, startY);
+//							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
+//									pdfFont, fontSize);
+//						}
+//
+//						rgm.setBodyQuery(getCreditBodyQuery());
+//						rgm.setTrailerQuery(getCreditTrailerQuery());
+//						preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
+//						if (executeQuery(rgm)) {
+//							pageHeight = 0;
+//							page = new PDPage();
+//							doc.addPage(page);
+//							firstRecord = true;
+//							pagination++;
+//							//contentStream.close();
+//							contentStream = new PDPageContentStream(doc, page);
+//							contentStream.setFont(pdfFont, fontSize);
+//							contentStream.beginText();
+//							contentStream.newLineAtOffset(startX, startY);
+//							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
+//									pdfFont, fontSize);
+//						}
+//						endGroup = true;
+//					} else {
 						rgm.setBodyQuery(getDebitBodyQuery());
 						rgm.setTrailerQuery(getDebitTrailerQuery());
 						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
+						pageHeight = 0;
 						if (executeQuery(rgm)) {
-							endGroup = false;
-							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-							page = new PDPage();
-							doc.addPage(page);
-							firstRecord = true;
-							pagination++;
-							contentStream = new PDPageContentStream(doc, page);
-							contentStream.setFont(pdfFont, fontSize);
-							contentStream.beginText();
-							contentStream.newLineAtOffset(startX, startY);
+							if (contentStream == null || endGroup) {
+								contentStream = newPage(doc, pageSize, margin);
+								endGroup = false;
+							}
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
 									pdfFont, fontSize);
 						}
@@ -115,46 +136,25 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 						rgm.setTrailerQuery(getCreditTrailerQuery());
 						preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
 						if (executeQuery(rgm)) {
-							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-							page = new PDPage();
-							doc.addPage(page);
+							if (contentStream == null) {
+								contentStream = newPage(doc, pageSize, margin);
+							}
+							
+//							pageHeight = 0;
+//							page = new PDPage();
+//							doc.addPage(page);
 							firstRecord = true;
 							pagination++;
-							contentStream = new PDPageContentStream(doc, page);
+//							contentStream = new PDPageContentStream(doc, page);
+							contentStream = newPage(doc, pageSize, margin);
 							contentStream.setFont(pdfFont, fontSize);
-							contentStream.beginText();
-							contentStream.newLineAtOffset(startX, startY);
+//							contentStream.beginText();
+//							contentStream.newLineAtOffset(startX, startY);
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
 									pdfFont, fontSize);
 						}
 						endGroup = true;
-					} else {
-						rgm.setBodyQuery(getDebitBodyQuery());
-						rgm.setTrailerQuery(getDebitTrailerQuery());
-						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-						if (executeQuery(rgm)) {
-							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
-						}
-
-						rgm.setBodyQuery(getCreditBodyQuery());
-						rgm.setTrailerQuery(getCreditTrailerQuery());
-						preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
-						if (executeQuery(rgm)) {
-							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-							page = new PDPage();
-							doc.addPage(page);
-							firstRecord = true;
-							pagination++;
-							contentStream = new PDPageContentStream(doc, page);
-							contentStream.setFont(pdfFont, fontSize);
-							contentStream.beginText();
-							contentStream.newLineAtOffset(startX, startY);
-							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
-						}
-						endGroup = true;
-					}
+//					}
 				}
 				saveFile(rgm, doc);
 			}
@@ -162,6 +162,14 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
+			if (contentStream != null) {
+				try {
+					contentStream.close();
+				} catch (Exception e) {
+					logger.error("Error in closing Content Stream", e);
+				}
+
+			}
 			if (doc != null) {
 				try {
 					doc.close();
@@ -172,6 +180,22 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 				}
 			}
 		}
+	}
+
+	private PDPageContentStream newPage(PDDocument doc, PDRectangle pageSize, float margin) throws Exception {
+		PDPage page = new PDPage();
+		doc.addPage(page);
+		firstRecord = true;
+		newGroup = true;
+		pagination++;
+		pageSize = page.getMediaBox();
+		float startX = pageSize.getLowerLeftX() + margin;
+		float startY = pageSize.getUpperRightY() - margin;
+		PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+		contentStream.setFont(PDType1Font.COURIER, 6);
+		contentStream.beginText();
+		contentStream.newLineAtOffset(startX, startY);
+		return contentStream;
 	}
 
 	private void pdfProcessingDetail(ReportGenerationMgr rgm, PDPageContentStream contentStream, PDDocument doc,
