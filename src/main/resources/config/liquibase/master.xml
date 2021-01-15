@@ -18,6 +18,5 @@
 	<include file="config/liquibase/changelog/20201212000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20201229000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20210110000001_add_card_custom.xml" relativeToChangelogFile="false"/>
-	<include file="config/liquibase/changelog/20210113000001_update_atm_reports.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20210115000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
