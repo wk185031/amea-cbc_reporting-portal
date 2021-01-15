@@ -52,6 +52,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
 
+			preProcessIssuerNameCriteria(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
@@ -97,6 +98,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
+			preProcessIssuerNameCriteria(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
@@ -248,5 +250,15 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	private void preProcessIssuerNameCriteria(ReportGenerationMgr rgm) {
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+		}
+		
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+		}
 	}
 }
