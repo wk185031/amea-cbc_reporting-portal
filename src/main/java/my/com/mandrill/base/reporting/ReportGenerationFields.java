@@ -910,7 +910,7 @@ public class ReportGenerationFields {
 		if (fieldName != null) {
 			if (body) {
 				if (padFieldLength > 0) {
-					if (tempValue.trim().length() == 0) {
+					if (tempValue == null || tempValue.trim().length() == 0) {
 						tempValue = " ";
 					}
 
