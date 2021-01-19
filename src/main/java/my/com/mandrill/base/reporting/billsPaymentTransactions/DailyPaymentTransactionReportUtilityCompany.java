@@ -58,6 +58,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 			String billerMnem = null;
 			DecimalFormat formatter = new DecimalFormat("#,##0.00");
 
+			preProcessIssuerNameCriteria(rgm);
 			preProcessing(rgm);
 
 			contentStream.setFont(pdfFont, fontSize);
@@ -87,7 +88,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 1;
 				contentStream.showText(String.format("%1$82s", "SUBTOTAL : ") + String.format("%1$13s", "")
-						+ String.format("%1$33s", formatter.format(subTotal)));
+				+ String.format("%1$33s", formatter.format(subTotal)));
 				pageHeight += 1;
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
@@ -122,6 +123,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
+			preProcessIssuerNameCriteria(rgm);
 			preProcessing(rgm);
 			writeHeader(rgm, pagination);
 			for (SortedMap.Entry<String, String> billerCodeMap : filterByCriteriaByBiller(rgm).entrySet()) {
@@ -137,7 +139,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				executeBodyQuery(rgm);
 				billerLine = new StringBuilder();
 				billerLine.append(";").append(";").append(";").append(";").append(";").append("SUBTOTAL : ").append(";")
-						.append(";").append(formatter.format(subTotal)).append(";");
+				.append(";").append(formatter.format(subTotal)).append(";");
 				billerLine.append(getEol());
 				billerLine.append(getEol());
 				rgm.writeLine(billerLine.toString().getBytes());
@@ -289,7 +291,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading, String channel)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
@@ -521,5 +523,15 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+
+	private void preProcessIssuerNameCriteria(ReportGenerationMgr rgm) {
+		if (rgm.getBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+		}
+
+		if (rgm.getTrailerQuery() != null) {
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+		}
 	}
 }
