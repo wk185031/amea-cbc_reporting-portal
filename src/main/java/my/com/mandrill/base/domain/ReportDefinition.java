@@ -1,14 +1,15 @@
 package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -119,7 +120,8 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	
 	@ManyToOne(optional = false)
 	@NotNull
-	private ReportCategory red;
+	@JoinColumn(name="red_rec_id", nullable=false)
+	private ReportCategory category;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -366,16 +368,16 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	}
 
 	public ReportCategory getReportCategory() {
-		return red;
+		return category;
 	}
 
-	public ReportDefinition reportCategory(ReportCategory red) {
-		this.red = red;
+	public ReportDefinition reportCategory(ReportCategory category) {
+		this.category = category;
 		return this;
 	}
 
-	public void setReportCategory(ReportCategory red) {
-		this.red = red;
+	public void setReportCategory(ReportCategory category) {
+		this.category = category;
 	}
 	
 	public String getBranchFlag() {
@@ -443,7 +445,7 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public String toString() {
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", rec=" + red.getName() 
+				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", category=" + category.getName() 
 				+ ", branchFlag=" + branchFlag + ", scheduleTime=" + scheduleTime + ", instutionId=" + institutionId + "]";
 	}
 }

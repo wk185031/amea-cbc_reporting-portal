@@ -185,6 +185,9 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							}
 							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 								branchName = result.toString();
+								if (branchCode == null) {
+									branchCode = branchName;
+								}
 							}
 						}
 					}

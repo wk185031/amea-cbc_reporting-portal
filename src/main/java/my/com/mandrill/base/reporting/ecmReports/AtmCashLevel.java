@@ -43,31 +43,36 @@ public class AtmCashLevel extends CsvReportProcessor {
 		}
 	}
 
+//	@Override
+//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmCashLevel.addPreProcessingFieldsToGlobalMap()");
+//		if (rgm.isGenerate() == true) {
+//			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.END_TIME);
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"ATO.ATO_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND ATO.ATO_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//							+ "')");
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		} else {
+//			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(ReportConstants.END_TIME);
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"ATO.ATO_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND ATO.ATO_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//							+ "')");
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		}
+//	}
+	
 	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In AtmCashLevel.addPreProcessingFieldsToGlobalMap()");
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ATO.ATO_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ATO.ATO_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ATO.ATO_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ATO.ATO_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
+	protected String getTransactionDateRangeFieldName() {
+		return "ATO.ATO_TIMESTAMP";
 	}
 }

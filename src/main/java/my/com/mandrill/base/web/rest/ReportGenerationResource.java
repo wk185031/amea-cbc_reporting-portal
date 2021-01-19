@@ -40,6 +40,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codahale.metrics.annotation.Timed;
@@ -61,6 +62,7 @@ import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.security.SecurityUtils;
+import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
 /**
  * REST controller for managing ReportGeneration.
@@ -211,7 +213,7 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
 
 				runReport(reportGenerationMgr);
-				
+
 			}
 		}
 	}
@@ -248,122 +250,175 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-				
+
 				runReport(reportGenerationMgr);
 
 			}
 		}
 	}
 
-	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
+//	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
+//	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
+//	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
+//			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @PathVariable String txnDate)
+//			throws ParseException {
+//		logger.debug(
+//				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
+//				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId, txnDate);
+//
+//		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+//		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
+//		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
+//
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//
+//		LocalDateTime txnStartDate = LocalDate.parse(txnDate, formatter).atStartOfDay();
+//		LocalDateTime txnEndDate = LocalDateTime.parse(txnDate, formatter);
+//
+//		String instShortCode = null;
+//
+//		List<Institution> institutions = institutionRepository.findAll();
+//		for (Institution institution : institutions) {
+//			if ("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
+//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//					instShortCode = "CBC";
+//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//					instShortCode = "CBS";
+//				}
+//			}
+//		}
+//
+//		reportGenerationMgr.setInstitution(instShortCode);
+//		reportGenerationMgr.setGenerate(true);
+//		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
+//		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+//		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+//
+//		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+//				+ institutionId + File.separator + txnDate.substring(0, 7);
+//
+//		if (reportId == 0) {
+//			List<ReportDefinition> aList = reportDefinitionRepository.findAll(orderByIdAsc());
+//			for (ReportDefinition reportDefinition : aList) {
+//				populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDate, txnEndDate);
+//				runReport(reportGenerationMgr);
+//			}
+//			// FIXME: The return type is only ReportDefinition, but this is processing a
+//			// list
+//			return ResponseUtil
+//					.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
+//		} else {
+//			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
+//			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDate, txnEndDate);
+//			runReport(reportGenerationMgr);
+//			return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
+//		}
+//	}
+
+	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId, @PathVariable Long reportCategoryId, @PathVariable Long reportId,
-			@PathVariable String txnDate) throws ParseException {
+	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
+			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @RequestParam String startDateTime,
+			@RequestParam String endDateTime) throws ParseException {
 		logger.debug(
-				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
-				SecurityUtils.getCurrentUserLogin().orElse(""),institutionId, reportCategoryId, reportId,
-				txnDate);
-		ReportDefinition reportDefinition = null;
+				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, StartDateTime: {}, EndDateTime: {}",
+				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId,
+				startDateTime, endDateTime);
+
+		// ReportDefinition reportDefinition = null;
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
-		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
 
-		String instShortCode = null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-		List<Institution> institutions = institutionRepository.findAll();
-		for (Institution institution : institutions) {
-			if ("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
-				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-					instShortCode = "CBC";
-				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-					instShortCode = "CBS";
-				}
-			}
-		}
+		LocalDateTime txnStartDateTime = LocalDateTime.parse(startDateTime, formatter);
+		LocalDateTime txnEndDateTime = LocalDateTime.parse(endDateTime, formatter);
+
+		String instShortCode = findInstitutionCode(institutionId);
 
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(true);
-		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
+		reportGenerationMgr.setFileDate(txnStartDateTime.toLocalDate());
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
+		String yearMonth = txnStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + txnDate.substring(0, 7);
+				+ institutionId + File.separator + yearMonth;
 
-		if (reportId == 0) {
-			List<ReportDefinition> aList = reportDefinitionRepository.findAll(orderByIdAsc());
-			for (ReportDefinition reportDefinitionList : aList) {
-				if (reportDefinitionList.getReportCategory().getId() == reportCategoryId) {
-					reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
-					reportGenerationMgr.setFileName(reportDefinitionList.getName());
-					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
-					reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
-					reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
-					reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
-					reportGenerationMgr.setBodyFields(reportDefinitionList.getBodyFields());
-					reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
-					reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
-					reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
-
-					if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
-						reportGenerationMgr.setFileLocation(directory + File.separator + txnDate.substring(8, 10)
-								+ File.separator + reportDefinitionList.getReportCategory().getName() + File.separator);
-						reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
-						reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
-						runReport(reportGenerationMgr);
-					}
-
-					if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
-						reportGenerationMgr.setFileLocation(directory + File.separator + "00" + File.separator
-								+ reportDefinitionList.getReportCategory().getName() + File.separator);
-						reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
-						reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
-						runReport(reportGenerationMgr);
-					}
-				}
-			}
-			//FIXME: The return type is only ReportDefinition, but this is processing a list
-			return ResponseUtil.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
+		List<ReportDefinition> aList = new ArrayList<>();
+		
+		if (reportCategoryId == 0) {
+			aList = reportDefinitionRepository.findAll();
+		} else if (reportId == 0) {
+			aList = reportDefinitionRepository.findAllByCategoryId(reportCategoryId);
 		} else {
-			reportDefinition = reportDefinitionRepository.findOne(reportId);
-			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-			reportGenerationMgr.setFileName(reportDefinition.getName());
-			reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
-			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-
-			if (reportDefinition.getFrequency().contains(ReportConstants.DAILY)) {
-				reportGenerationMgr.setFileLocation(directory + File.separator + txnDate.substring(8, 10)
-						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
-				reportGenerationMgr.setTxnStartDate(getTxnStartDate(txnDate));
-				reportGenerationMgr.setTxnEndDate(getTxnEndDate(txnDate));
-				runReport(reportGenerationMgr);
+			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
+			if (reportDefinition != null) {
+				aList.add(reportDefinition);
 			}
+		}
+		logger.debug("Process {} reports", aList.size());
+		for (ReportDefinition reportDefinition : aList) {
+			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDateTime,
+					txnEndDateTime);
+			runReport(reportGenerationMgr);
 
-			if (reportDefinition.getFrequency().contains(ReportConstants.MONTHLY)) {
-				reportGenerationMgr.setFileLocation(directory + File.separator + "00" + File.separator
-						+ reportDefinition.getReportCategory().getName() + File.separator);
-				reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
-				reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
-				runReport(reportGenerationMgr);
-			}
-			return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
+		}
+		return ResponseUtil
+				.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
+	}
+
+	private String findInstitutionCode(Long institutionId) {
+
+		Institution inst = institutionRepository.findOne(institutionId);
+		if (ReportConstants.CBS_INSTITUTION.equals(inst.getName())) {
+			return "CBS";
+		} else {
+			return "CBC";
+		}
+	}
+
+	private void populateReportDetails(ReportGenerationMgr rgm, ReportDefinition def, String reportPath,
+			LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
+		rgm.setReportCategory(def.getReportCategory().getName());
+		rgm.setFileName(def.getName());
+		rgm.setFileNamePrefix(def.getFileNamePrefix());
+		rgm.setFileFormat(def.getFileFormat());
+		rgm.setProcessingClass(def.getProcessingClass());
+		rgm.setHeaderFields(def.getHeaderFields());
+		rgm.setBodyFields(def.getBodyFields());
+		rgm.setTrailerFields(def.getTrailerFields());
+		rgm.setBodyQuery(def.getBodyQuery());
+		rgm.setTrailerQuery(def.getTrailerQuery());
+		rgm.setFrequency(def.getFrequency());
+
+		String dayPrefix = rgm.getFrequency().contains(ReportConstants.MONTHLY) ? "00"
+				: StringUtils.leftPad(String.valueOf(txnStartDate.getDayOfMonth()), 2, "0");
+
+		if (rgm.getFrequency().contains(ReportConstants.DAILY)) {
+			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator
+					+ def.getReportCategory().getName() + File.separator);
+			rgm.setTxnStartDate(txnStartDate);
+			rgm.setTxnEndDate(txnEndDate.plusMinutes(1L));
 		}
 
-		
+		if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
+			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator
+					+ def.getReportCategory().getName() + File.separator);
+			LocalDate firstDayOfMonth = txnStartDate.toLocalDate().withDayOfMonth(1);
+			LocalDate lastDayOfMonth = txnStartDate.toLocalDate()
+					.withDayOfMonth(txnStartDate.toLocalDate().lengthOfMonth());
+			rgm.setTxnStartDate(firstDayOfMonth.atStartOfDay());
+			rgm.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
+		}
 	}
 
 	@GetMapping("/report-get-generated/{institutionId}/{reportDate}/{reportCategoryId}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long institutionId, @PathVariable String reportDate, @PathVariable Long reportCategoryId) {
-		logger.debug(
-				"User: {}, REST request to get generated report by institution and report category",
+	public ResponseEntity<GeneratedReportDTO> getGeneratedReportList(@PathVariable Long institutionId,
+			@PathVariable String reportDate, @PathVariable Long reportCategoryId) {
+		logger.debug("User: {}, REST request to get generated report by institution and report category",
 				SecurityUtils.getCurrentUserLogin());
 
 		GeneratedReportDTO result = null;
@@ -449,8 +504,8 @@ public class ReportGenerationResource {
 	@GetMapping("/download-report/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId,
-			@PathVariable String reportDate, @PathVariable Long reportCategoryId, @PathVariable String reportName) {
+	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId, @PathVariable String reportDate,
+			@PathVariable Long reportCategoryId, @PathVariable String reportName) {
 		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
 
 		Resource resource = null;
@@ -567,28 +622,10 @@ public class ReportGenerationResource {
 		return filesListInDir;
 	}
 
-	private LocalDate getFileDate(String fileDate) throws ParseException {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
-		LocalDate date = LocalDate.parse(fileDate, formatter);
-		return date;
-	}
-
-	private LocalDate getTxnStartDate(String txnStart) throws ParseException {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
-		LocalDate date = LocalDate.parse(txnStart, formatter);
-		return date;
-	}
-
-	private LocalDate getTxnEndDate(String txnEnd) throws ParseException {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
-		LocalDate date = LocalDate.parse(txnEnd, formatter);
-		return date;
-	}
-
 	private Sort orderByIdAsc() {
 		return new Sort(Sort.Direction.ASC, "id");
 	}
-	
+
 	private void runReport(ReportGenerationMgr reportGenerationMgr) {
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 

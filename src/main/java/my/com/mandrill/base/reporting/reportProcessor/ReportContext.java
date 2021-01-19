@@ -18,7 +18,9 @@ public class ReportContext {
 
 	private String query;
 
-	private Map<String, ReportGenerationFields> predefinedDataMap = new HashMap<>();
+	private Map<String, ReportGenerationFields> predefinedFieldMap = new HashMap<>();
+
+	private Map<String, Map<String, ?>> dataMap = new HashMap<>();
 
 	private Map<String, String> currentGroupMap = new HashMap<>();
 
@@ -70,12 +72,12 @@ public class ReportContext {
 		this.writeBodyHeader = writeBodyHeader;
 	}
 
-	public Map<String, ReportGenerationFields> getPredefinedDataMap() {
-		return predefinedDataMap;
+	public Map<String, ReportGenerationFields> getPredefinedFieldMap() {
+		return predefinedFieldMap;
 	}
 
-	public void setPredefinedDataMap(Map<String, ReportGenerationFields> predefinedDataMap) {
-		this.predefinedDataMap = predefinedDataMap;
+	public void setPredefinedFieldMap(Map<String, ReportGenerationFields> predefinedDataMap) {
+		this.predefinedFieldMap = predefinedDataMap;
 	}
 
 	public String getQuery() {
@@ -101,4 +103,13 @@ public class ReportContext {
 	public void setOverallTotal(Map<String, BigDecimal> overallTotal) {
 		this.overallTotal = overallTotal;
 	}
+
+	public Map<String, Map<String, ?>> getDataMap() {
+		return dataMap;
+	}
+
+	public void setDataMap(Map<String, Map<String, ?>> dataMap) {
+		this.dataMap = dataMap;
+	}
+
 }

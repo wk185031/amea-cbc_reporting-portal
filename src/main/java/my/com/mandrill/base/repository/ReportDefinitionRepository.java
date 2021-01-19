@@ -1,25 +1,13 @@
 package my.com.mandrill.base.repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 
-import javafx.animation.KeyFrame;
-import org.springframework.boot.actuate.endpoint.AutoConfigurationReportEndpoint;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import my.com.mandrill.base.domain.ReportDefinition;
-
-import javax.swing.*;
 
 /**
  * Spring Data JPA repository for the ReportDefinition entity.
@@ -36,5 +24,7 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
 
     @Query("select r from ReportDefinition r where to_char(r.scheduleTime, 'HH24:MI') = ?1")
     List<ReportDefinition> findReportDefinitionByTime(String time);
+    
+    List<ReportDefinition> findAllByCategoryId(Long categoryId);
 
 }

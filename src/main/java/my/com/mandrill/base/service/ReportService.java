@@ -33,27 +33,27 @@ public class ReportService {
 
 	@Autowired
 	private ReportDefinitionRepository reportDefinitionRepository;
-	
+
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
 
-	
 	public void generateAllReports(LocalDate transactionDate, Long institutionId, String instShortCode) {
 		LocalDate runDate = LocalDate.now();
-		LocalDate lastDayOfMonth = YearMonth
-				.from(LocalDateTime.now()).atEndOfMonth();
-		
-		log.info("Generate report for institution:{} [Transaction date={}, Report Generation date={}", institutionId, transactionDate, runDate);
-		
+
+		log.info("Generate report for institution:{} [Transaction date={}, Report Generation date={}", institutionId,
+				transactionDate, runDate);
+
 		generateDailyReport(transactionDate, institutionId, instShortCode);
 		if (YearMonth.from(transactionDate).atEndOfMonth().isEqual(transactionDate)) {
 			log.info("Generate monthly report.");
 			generateMonthlyReport(transactionDate, institutionId, instShortCode);
 		}
 	}
-	
+
 	public void generateDailyReport(LocalDate transactionDate, Long institutionId, String instShortCode) {
-		log.debug("In ReportGenerationResource.generateDailyReport()");
+		log.debug(
+				"In ReportGenerationResource.generateDailyReport(): transactionDate={}, institutionId={}, instShortCode={}",
+				transactionDate, institutionId, instShortCode);
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator
@@ -63,9 +63,9 @@ public class ReportService {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
-		reportGenerationMgr.setTxnStartDate(transactionDate);
-		reportGenerationMgr.setTxnEndDate(transactionDate);
-		reportGenerationMgr.setInstitution(instShortCode);	
+		reportGenerationMgr.setTxnStartDate(transactionDate.atStartOfDay());
+		reportGenerationMgr.setTxnEndDate(transactionDate.plusDays(1L).atStartOfDay());
+		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 
@@ -91,9 +91,11 @@ public class ReportService {
 	}
 
 	public void generateMonthlyReport(LocalDate transactionDate, Long institutionId, String instShortCode) {
-		log.debug("In ReportGenerationResource.generateMonthlyReport()");
-		LocalDate firstDayOfMonth = YearMonth.from(transactionDate).atDay(1);
-		LocalDate lastDayOfMonth = YearMonth.from(transactionDate).atEndOfMonth();
+		log.debug(
+				"In ReportGenerationResource.generateMonthlyReport(): transactionDate={}, institutionId={}, instShortCode={}",
+				transactionDate, institutionId, instShortCode);
+		LocalDateTime firstDayOfMonth = YearMonth.from(transactionDate).atDay(1).atStartOfDay();
+		LocalDateTime lastDayOfMonth = YearMonth.from(transactionDate).atEndOfMonth().plusDays(1L).atStartOfDay();
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator
@@ -101,8 +103,8 @@ public class ReportService {
 				+ "00" + File.separator;
 
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-		reportGenerationMgr.setYesterdayDate(firstDayOfMonth);
-		reportGenerationMgr.setTodayDate(lastDayOfMonth);
+		reportGenerationMgr.setYesterdayDate(firstDayOfMonth.toLocalDate());
+		reportGenerationMgr.setTodayDate(transactionDate);
 		reportGenerationMgr.setTxnStartDate(firstDayOfMonth);
 		reportGenerationMgr.setTxnEndDate(lastDayOfMonth);
 		reportGenerationMgr.setInstitution(instShortCode);
@@ -129,7 +131,7 @@ public class ReportService {
 			}
 		}
 	}
-	
+
 	private void runReport(ReportGenerationMgr reportGenerationMgr) {
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 

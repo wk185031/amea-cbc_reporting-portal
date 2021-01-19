@@ -344,7 +344,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In MonthlyCardFileReport.preProcessing():" + rgm.getFileNamePrefix());
 
-        LocalDate date = rgm.getTxnStartDate();
+        LocalDate date = rgm.getTxnStartDate().toLocalDate();
 
         // replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Id} to actual value
         rgm.setBodyQuery(rgm.getBodyQuery()

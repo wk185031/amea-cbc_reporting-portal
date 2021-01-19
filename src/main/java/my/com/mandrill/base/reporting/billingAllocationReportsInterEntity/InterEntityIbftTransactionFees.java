@@ -315,7 +315,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 			case ReportConstants.ACQUIRER_COUNT:
 				if (filterByBranchCode != null) {
 					ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-							ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+							ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
 					getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 				}
 

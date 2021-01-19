@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -432,12 +430,10 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In MonthlyCardbaseReport.preProcessing():" + rgm.getFileNamePrefix());
 
-        LocalDate date = rgm.getTxnStartDate();
-
         // replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Id} to actual value
         rgm.setBodyQuery(rgm.getBodyQuery()
-            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + date.withDayOfMonth(1).atStartOfDay().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
-            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + date.withDayOfMonth(date.lengthOfMonth()).atTime(LocalTime.MAX).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
             .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
             .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
             .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));

@@ -26,9 +26,13 @@ export class GenerateReportTabComponent implements OnInit {
     report: ReportDefinition;
     reports: ReportDefinition[];
     todaydate: string;
-    reportDate: string;
+    txnStartDate: string;
+    txnStartTime: string;
+    txnEndDate: string;
+    txnEndTime: string;
     generated: String;
     failed: String;
+    searchByDateRange: boolean = false;
 
     constructor(
         private generateReportService: GenerateReportService,
@@ -43,7 +47,10 @@ export class GenerateReportTabComponent implements OnInit {
     loadAll() {
         const today = new Date();
         this.todaydate = this.formatDateString(today);
-        this.reportDate = this.todaydate;
+        this.txnStartDate = this.todaydate;
+        this.txnStartTime = '00:00';
+        this.txnEndDate = this.todaydate;
+        this.txnEndTime = '23:59';
         this.category = this.categories[0];
         this.report = null;
         this.filterByCategory();
@@ -96,11 +103,36 @@ export class GenerateReportTabComponent implements OnInit {
 
     generate() {
             this.ngxLoader.start();
-            this.generateReportService.generateReport(this.branchId, this.institutionId, this.category.id,
-                this.report ? this.report.id : 0, this.reportDate).subscribe(
+            if (!this.txnStartTime) {
+              this.txnStartTime = '00:00';
+            }
+            if (!this.txnEndDate) {
+              this.txnEndDate = this.txnStartDate;
+            }
+            if (!this.txnEndTime) {
+              this.txnEndTime = '23:59';
+            }
+
+            let startDateTime = this.txnStartDate + ' ' + this.txnStartTime;
+            let endDateTime = this.txnEndDate + ' ' + this.txnEndTime;
+
+            this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, this.category.id,
+                this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
                 (res: HttpResponse<ReportDefinition[]>) => {
                     this.onSuccess(this.generated);
                 },
                 (res: HttpErrorResponse) => this.onError(this.failed));
+    }
+
+    resetDate(toReset) {
+      if (toReset) {
+        this.txnStartTime = null;
+        this.txnEndDate = null;
+        this.txnEndTime = null;
+      } else {
+        this.txnStartTime = '00:00';
+        this.txnEndDate = this.txnStartDate;
+        this.txnEndTime = '23:59';        
+      }
     }
 }

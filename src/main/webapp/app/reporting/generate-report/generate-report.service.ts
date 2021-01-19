@@ -115,9 +115,15 @@ export class GenerateReportService {
         return copy;
     }
 
-    generateReport(branchId:number, institutionId: number, reportCategoryId: number, reportId: number, txnDate: string): Observable<HttpResponse<ReportDefinition[]>> {
+    generateReport(branchId:number, institutionId: number, reportCategoryId: number, reportId: number, txnStartDate: string): Observable<HttpResponse<ReportDefinition[]>> {
         console.log("generateReport");
-        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${institutionId}/${reportCategoryId}/${reportId}/${txnDate}`, { observe: 'response' })
+        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${institutionId}/${reportCategoryId}/${reportId}/${txnStartDate}`, { observe: 'response' })
+            .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
+    }
+
+    generateReportWithStartEndDate(branchId:number, institutionId: number, reportCategoryId: number, reportId: number, txnStartDateTime: string, txnEndDateTime: string): Observable<HttpResponse<ReportDefinition[]>> {
+        console.log("generateReport with start and end timestamp");
+        return this.http.get<ReportDefinition[]>(`${this.resourceUrl}/${institutionId}/${reportCategoryId}/${reportId}?startDateTime=${txnStartDateTime}&endDateTime=${txnEndDateTime}`, { observe: 'response' })
             .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 

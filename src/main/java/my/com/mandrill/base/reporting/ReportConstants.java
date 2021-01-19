@@ -45,6 +45,7 @@ public final class ReportConstants {
 	public static final String DATE_FORMAT_05 = "HH:mm";
 	public static final String DATE_FORMAT_06 = "yyyy-MM";
 	public static final String DATE_FORMAT_07 = "dd";
+	public static final String DATETIME_FORMAT_01 = "yyyyMMdd HH:mm:ss";
 	public static final String FORMAT_TXN_DATE = "YYYYMMDD HH24:MI:SS";
 
 	// Report Generation Parameter

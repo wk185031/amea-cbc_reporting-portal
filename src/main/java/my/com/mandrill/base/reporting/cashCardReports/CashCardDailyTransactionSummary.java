@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,15 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 
 	private static final String PARAM_CURRENT_MONTH_DATE = "{current_month_year}";
 
-	private static final String SQL_SUM_AMOUNT = "select sum(ACN.ACN_BALANCE_1) \"TOTAL BALANCE\", sum(case when CTR.CTR_DEBIT_CREDIT = 'DEBIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL DEBIT\", sum(case when CTR.CTR_DEBIT_CREDIT = 'CREDIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL CREDIT\" from TRANSACTION_LOG txn left join TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID left join CARD CRD on TXN.TRL_PAN=CRD.CRD_PAN  left join BRANCH BRC on TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE left join CARD_ACCOUNT CAT on CRD.CRD_ID=CAT.CAT_CRD_ID left join ACCOUNT ACN on CAT.CAT_ACN_ID=ACN.ACN_ID left join CARD_PRODUCT CPD on CRD.CRD_CPD_ID=CPD.CPD_ID left join CBC_TRAN_CODE CTR on TXN.TRL_TSC_CODE=CTR.CTR_CODE and TXNC.TRL_ORIGIN_CHANNEL=CTR.CTR_CHANNEL where CPD.CPD_CODE in ('81', '83') ";
+	private static final String SQL_SUM_AMOUNT = "select sum(ACN.ACN_BALANCE_1) \"TOTAL BALANCE\", sum(case when CTR.CTR_DEBIT_CREDIT = 'DEBIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL DEBIT\", sum(case when CTR.CTR_DEBIT_CREDIT = 'CREDIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL CREDIT\" from TRANSACTION_LOG txn left join TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID left join CARD CRD on TXN.TRL_PAN=CRD.CRD_PAN  left join BRANCH BRC on TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE left join CARD_ACCOUNT CAT on CRD.CRD_ID=CAT.CAT_CRD_ID left join ACCOUNT ACN on CAT.CAT_ACN_ID=ACN.ACN_ID left join CARD_PRODUCT CPD on CRD.CRD_CPD_ID=CPD.CPD_ID left join CBC_TRAN_CODE CTR on TXN.TRL_TSC_CODE=CTR.CTR_CODE and TXNC.TRL_ORIGIN_CHANNEL=CTR.CTR_CHANNEL where CPD.CPD_CODE in ('80','81','82','83') ";
+
+	private static final String SQL_COUNT_ACTIVE_ACCOUNT = "select BRC.BRC_CODE \"BRANCH CODE\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 1 ELSE 0 END) AS \"CORPORATE ACCOUNT\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 0 ELSE 1 END) AS \"RETAIL ACCOUNT\" from ACCOUNT ACN join CARD_ACCOUNT CAT on ACN.ACN_ID = CAT.CAT_ACN_ID join CARD CRD on CRD.CRD_ID = CAT.CAT_CRD_ID join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('80','81','82','83') AND ACN_STATUS = 'A' group by BRC.BRC_CODE";
+
+	private static final String CORPORATE_PREFIX = "C_";
+
+	private static final String RETAIL_PREFIX = "R_";
+
+	private static final String BRANCH_ACCOUNT_KEY = "BRANCH_ACCOUNTS";
 
 	protected void writeReportHeader(FileOutputStream out, String headerFieldConfig,
 			Map<String, ReportGenerationFields> predefinedDataMap) throws Exception {
@@ -90,12 +99,21 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 
 			DecimalFormat df = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT);
 
-			List<BigDecimal> balanceSummary = getBalanceSummary(SQL_SUM_AMOUNT, branchCode.getValue(), false);
+			boolean isCorporate = transactionGroup.getValue().contains("CORPORATE");
+
+			List<BigDecimal> balanceSummary = getBalanceSummary(SQL_SUM_AMOUNT, branchCode.getValue(), isCorporate);
 			csvWriter.writeLine(out, ("PREVIOUS MONTH AP BALANCE:" + CsvWriter.DEFAULT_DELIMITER
 					+ df.format(balanceSummary.get(0).doubleValue())));
 			csvWriter.writeLine(out, CsvWriter.EOL);
 			csvWriter.writeLine(out,
 					("MTD AP BALANCE:" + CsvWriter.DEFAULT_DELIMITER + df.format(balanceSummary.get(1).doubleValue())));
+			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(out, CsvWriter.EOL);
+
+			csvWriter.writeLine(out,
+					"NUMBER OF ACTIVE ACCOUNTS: " + (isCorporate
+							? context.getDataMap().get(BRANCH_ACCOUNT_KEY).get(CORPORATE_PREFIX + branchCode.getValue())
+							: context.getDataMap().get(BRANCH_ACCOUNT_KEY).get(RETAIL_PREFIX + branchCode.getValue())));
 			csvWriter.writeLine(out, CsvWriter.EOL);
 			csvWriter.writeLine(out, CsvWriter.EOL);
 		}
@@ -104,6 +122,17 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 	@Override
 	protected void handleGroupFieldInBody(ReportContext context, ReportGenerationFields field, StringBuilder bodyLine) {
 		// Do nothing. Skip writing group column
+	}
+
+	@Override
+	protected Map<String, Map<String, ?>> initDataMap() {
+		Map<String, Map<String, ?>> dataMap = new HashMap<>();
+		Map<String, Integer> branchAccountMap = getAllActiveAccountsByBranch();
+		dataMap.put(BRANCH_ACCOUNT_KEY, branchAccountMap);
+		logger.debug("DataMap size={}, Branch accounts size={}", dataMap.size(),
+				dataMap.get(BRANCH_ACCOUNT_KEY).size());
+
+		return dataMap;
 	}
 
 	private String getBranchCodeFieldName() {
@@ -207,6 +236,61 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 				}
 			}
 		}
+	}
+
+	private Map<String, Integer> getAllActiveAccountsByBranch() {
+		Map<String, Integer> branchAccounts = new HashMap<String, Integer>();
+
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+
+		try {
+			conn = datasource.getConnection();
+			ps = conn.prepareStatement(SQL_COUNT_ACTIVE_ACCOUNT);
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				String branchCode = rs.getString(1);
+				Integer corporateTotalAccount = rs.getInt(2);
+				Integer retailTotalAccount = rs.getInt(3);
+
+				branchAccounts.put(CORPORATE_PREFIX + branchCode, corporateTotalAccount);
+				branchAccounts.put(RETAIL_PREFIX + branchCode, retailTotalAccount);
+			}
+
+		} catch (Exception e) {
+			logger.error("Failed to get balance summary", e);
+			throw new RuntimeException(e);
+		} finally {
+
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (Exception e2) {
+					logger.warn("Failed to close preparedStatement.");
+				}
+
+			}
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e3) {
+					logger.warn("Failed to close resultSet.");
+				}
+
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e4) {
+					logger.warn("Failed to close connection.");
+				}
+			}
+		}
+
+		return branchAccounts;
 	}
 
 }

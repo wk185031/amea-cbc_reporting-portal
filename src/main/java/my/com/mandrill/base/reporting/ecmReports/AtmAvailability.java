@@ -95,52 +95,57 @@ public class AtmAvailability extends CsvReportProcessor {
 	}
 
 	private void preProcess(ReportGenerationMgr rgm) {
-		long totalDay = ChronoUnit.DAYS.between(rgm.getTxnEndDate(), rgm.getTxnStartDate());
+		long totalDay = ChronoUnit.DAYS.between(rgm.getTxnEndDate().toLocalDate(), rgm.getTxnStartDate().toLocalDate());
 		rgm.setBodyQuery(
 				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_TOTAL_DAY + "}", String.valueOf(totalDay + 1L)));
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
+//	@Override
+//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmAvailability.addPreProcessingFieldsToGlobalMap()");
+//		if (rgm.isGenerate() == true) {
+//			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.END_TIME);
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+//							+ ReportConstants.FORMAT_TXN_DATE + "')");
+//			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
+//			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+//
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+//			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+//		} else {
+//			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
+//					.concat(ReportConstants.END_TIME);
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//							+ "')");
+//			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
+//			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getTodayDate().toString());
+//
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+//			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+//		}
+//	}
+	
 	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In AtmAvailability.addPreProcessingFieldsToGlobalMap()");
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
-			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
-			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ATD.ATD_START_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ATD.ATD_START_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
-			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTodayDate().toString());
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
-			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-		}
+	protected String getTransactionDateRangeFieldName() {
+		return "ATD.ATD_START_TIMESTAMP";
 	}
 
 	@Override
@@ -150,7 +155,7 @@ public class AtmAvailability extends CsvReportProcessor {
 		StringBuilder line = new StringBuilder();
 		int noOfDaysInMonth = 0;
 		if (rgm.getTxnStartDate() != null) {
-			noOfDaysInMonth = rgm.getTxnStartDate().lengthOfMonth();
+			noOfDaysInMonth = rgm.getTxnStartDate().toLocalDate().lengthOfMonth();
 		} else if (rgm.getYesterdayDate() != null) {
 			noOfDaysInMonth = rgm.getYesterdayDate().lengthOfMonth();
 		}

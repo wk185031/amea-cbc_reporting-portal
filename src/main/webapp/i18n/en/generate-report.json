@@ -7,6 +7,7 @@
             "fileDateLabel": "File Date (YYYYMMDD): ",
             "queryTxnLabel": "Query Transaction Date : ",
             "txnDateLabel": "Transaction Date : ",
+            "txnStartLabel": "Transaction Start Date : ",
             "txnEndLabel": "Transaction End Date : ",
             "reportTypeLabel": "Report Type : ",
             "reportDateLabel": "Report Date : ",

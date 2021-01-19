@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -188,10 +187,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		
-		String txnStartDate = rgm.getTxnStartDate().atStartOfDay()
-				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		String txnEndDate = rgm.getTxnEndDate().atTime(LocalTime.MAX)
-				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		String txnStartDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		String txnEndDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 		logger.debug(
 				"In DCMSApproveRejectPendingCardReport.preProcessing: fileNamePrefix={}, txnStartDate={}, txnEndDate={}, dcmsSchema={}, dbLink={}, institution={}",

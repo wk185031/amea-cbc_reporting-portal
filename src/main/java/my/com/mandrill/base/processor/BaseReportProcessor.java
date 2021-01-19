@@ -59,8 +59,9 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		PreparedStatement ps = null;
 		try {
 			ReportContext currentContext = new ReportContext();
-			currentContext.setPredefinedDataMap(initPredefinedDataMap(rgm));
-			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedDataMap()));
+			currentContext.setPredefinedFieldMap(initPredefinedFieldMap(rgm));
+			currentContext.setDataMap(initDataMap());
+			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());
 			conn = datasource.getConnection();
@@ -69,7 +70,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 
 			out = new FileOutputStream(outputFile);
 
-			writeReportHeader(out, rgm.getHeaderFields(), currentContext.getPredefinedDataMap());
+			writeReportHeader(out, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
 
 			while (rs.next()) {
 				List<ReportGenerationFields> bodyFields = mapResultsetToField(extractBodyFields(rgm.getBodyFields()),
@@ -130,17 +131,17 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		}
 	}
 
-	protected Map<String, ReportGenerationFields> initPredefinedDataMap(ReportGenerationMgr rgm) {
+	protected Map<String, ReportGenerationFields> initPredefinedFieldMap(ReportGenerationMgr rgm) {
 		Map<String, ReportGenerationFields> predefinedDataMap = new HashMap<>();
 
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
 
 		predefinedDataMap.put(todaysDateValue.getFieldName(), todaysDateValue);
 		predefinedDataMap.put(runDateValue.getFieldName(), runDateValue);
@@ -151,17 +152,21 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 
 		return predefinedDataMap;
 	}
+	
+	protected Map<String, Map<String, ?>> initDataMap() {
+		return new HashMap<>();
+	}
 
 	protected void initQueryPlaceholder(ReportGenerationMgr rgm,
 			Map<String, ReportGenerationFields> predefinedDataMap) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
-		String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-		String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
 
 		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 				ReportGenerationFields.TYPE_STRING,
 				"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-						+ "') AND TXN.TRL_SYSTEM_TIMESTAMP <= TO_DATE('" + txnEnd + "','"
+						+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
 						+ ReportConstants.FORMAT_TXN_DATE + "')");
 		predefinedDataMap.put(txnDate.getFieldName(), txnDate);
 	}
@@ -319,9 +324,9 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			return field.getDefaultValue();
 		} else if (field.getValue() != null && !field.getValue().isEmpty()) {
 			return field.format();
-		} else if (context.getPredefinedDataMap() != null
-				&& context.getPredefinedDataMap().containsKey(field.getFieldName())) {
-			field.setValue(context.getPredefinedDataMap().get(field.getFieldName()).getValue());
+		} else if (context.getPredefinedFieldMap() != null
+				&& context.getPredefinedFieldMap().containsKey(field.getFieldName())) {
+			field.setValue(context.getPredefinedFieldMap().get(field.getFieldName()).getValue());
 			return field.format();
 		}
 		return field.getValue();

@@ -68,47 +68,29 @@ public class OutOfCash extends CsvReportProcessor {
 		}
 	}
 
-	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In OutOfCash.addPreProcessingFieldsToGlobalMap()");
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ADS.ADS_LAST_UPDATE_TS >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ADS.ADS_LAST_UPDATE_TS < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toString());
-			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
-			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01))
-					.concat(ReportConstants.END_TIME);
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"ADS.ADS_LAST_UPDATE_TS >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND ADS.ADS_LAST_UPDATE_TS < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTodayDate().toString());
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
-			getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-		}
-	}
+//	@Override
+//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+//		logger.debug("In OutOfCash.addPreProcessingFieldsToGlobalMap()");
+//
+//		String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01));
+//		String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01));
+//		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//				ReportGenerationFields.TYPE_STRING,
+//				"ADS.ADS_LAST_UPDATE_TS >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//						+ "') AND ADS.ADS_LAST_UPDATE_TS < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//						+ "')");
+//		ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+//				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+//		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+//				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
+//
+//		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+//		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+//
+//	}
+	
+	
 
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
@@ -163,5 +145,10 @@ public class OutOfCash extends CsvReportProcessor {
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+
+	@Override
+	protected String getTransactionDateRangeFieldName() {
+		return "ADS.ADS_LAST_UPDATE_TS";
 	}
 }

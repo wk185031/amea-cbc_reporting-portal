@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -69,8 +70,8 @@ public class ReportGenerationFields {
 	private String source;
 	// Report Generation
 	private LocalDate fileDate;
-	private LocalDate txnStartDate;
-	private LocalDate txnEndDate;
+	private LocalDateTime txnStartDate;
+	private LocalDateTime txnEndDate;
 	private LocalDate todayDate;
 	private LocalDate yesterdayDate;
 	private boolean generate;
@@ -393,19 +394,19 @@ public class ReportGenerationFields {
 		this.fileDate = fileDate;
 	}
 
-	public LocalDate getTxnStartDate() {
+	public LocalDateTime getTxnStartDate() {
 		return txnStartDate;
 	}
 
-	public void setTxnStartDate(LocalDate txnStartDate) {
+	public void setTxnStartDate(LocalDateTime txnStartDate) {
 		this.txnStartDate = txnStartDate;
 	}
 
-	public LocalDate getTxnEndDate() {
+	public LocalDateTime getTxnEndDate() {
 		return txnEndDate;
 	}
 
-	public void setTxnEndDate(LocalDate txnEndDate) {
+	public void setTxnEndDate(LocalDateTime txnEndDate) {
 		this.txnEndDate = txnEndDate;
 	}
 
@@ -487,6 +488,9 @@ public class ReportGenerationFields {
 				if (!value.contains("-")) {
 					ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
 							ZoneId.systemDefault());
+					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
+				} else if (value.contains("T")) {
+					LocalDateTime dateTime = LocalDateTime.parse(value);
 					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
 				} else {
 					DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);

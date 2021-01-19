@@ -274,7 +274,7 @@ public class GeneralReportProcess {
 
 	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In GeneralReportProcess.addReportPreProcessingFieldsToGlobalMap()");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
+
 		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
 		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
@@ -286,79 +286,58 @@ public class GeneralReportProcess {
 		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
 		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
 
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+		ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+		getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+		
+		buildTransactionDateRangeCriteria(rgm);
 
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
 	}
 
 	protected void addBatchPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In GeneralReportProcess.addBatchPreProcessingFieldsToGlobalMap()");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
-		if (rgm.isGenerate() == true) {
-			String fileTxnDate = rgm.getTxnEndDate().format(formatter);
-			String txnStart = rgm.getTxnStartDate().format(formatter) + " " + ReportConstants.START_TIME;
-			String txnEnd = rgm.getTxnEndDate().format(formatter) + " " + ReportConstants.END_TIME;
 
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-			ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
-					ReportGenerationFields.TYPE_STRING,
-					rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
+		String fileTxnDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
-			getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
-		} else {
-			String fileTxnDate = rgm.getYesterdayDate().format(formatter);
-			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+		ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+		ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
+				ReportGenerationFields.TYPE_STRING,
+				rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
+		ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
 
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-			ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
-					ReportGenerationFields.TYPE_STRING,
-					rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
+		buildTransactionDateRangeCriteria(rgm);
+		getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
+		getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
+		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+	}
 
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-			getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
-			getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
-		}
+	protected void buildTransactionDateRangeCriteria(ReportGenerationMgr rgm) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
+
+		String criteria = getTransactionDateRangeFieldName() + " >= TO_DATE('" + txnStart + "', '"
+				+ ReportConstants.FORMAT_TXN_DATE + "') AND " + getTransactionDateRangeFieldName() + " < TO_DATE('"
+				+ txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE + "')";
+		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+				ReportGenerationFields.TYPE_STRING, criteria);
+		ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
+		
+		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+	}
+
+	protected String getTransactionDateRangeFieldName() {
+		return "TXN.TRL_SYSTEM_TIMESTAMP";
 	}
 
 	public String getBranchCode(String toAccountNumber, String toAccountNoEkyId) {

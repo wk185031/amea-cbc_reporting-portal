@@ -24,10 +24,35 @@
     <br />
     <label jhiTranslate="baseApp.reportGeneration.queryTxnLabel">Query Transaction Date</label>
     <div class="row">
-        &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnDateLabel">Transaction Date</label>
+        <div class="col-6">
+              <input type="radio" name="searchByDateRange" [(ngModel)]="searchByDateRange" [value]="false" (click)="resetDate(false)"> Search by Date
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <input type="radio" name="searchByDateRange" [(ngModel)]="searchByDateRange" [value]="true" (click)="resetDate(true)"> Search by Date Range
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="row">
+        &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnStartLabel">Transaction Start Date</label>
         <div class="col-3">
-            <input class="d-flex" id="field_reportDate" type="date" data-date="" data-date-format="dd MMM yyyy"
-                class="form-control" name="reportDate" [(ngModel)]="reportDate" />
+            <input class="d-flex" id="field_txnStartDate" type="date" data-date="" data-date-format="dd MMM yyyy"
+                class="form-control" name="txnStartDate" [(ngModel)]="txnStartDate" />
+        </div>
+        <div class="col-2" *ngIf="searchByDateRange">
+            <input class="d-flex" id="field_txnStartTime" type="time"
+                class="form-control" name="txnStartTime" [(ngModel)]="txnStartTime" />
+        </div>
+    </div>
+    <br/>
+    <div class="row" *ngIf="searchByDateRange">
+        &nbsp;&nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnEndLabel">Transaction End Date</label>
+        <div class="col-3">
+            <input class="d-flex" id="field_txnEndDate" type="date" data-date="" data-date-format="dd MMM yyyy"
+                class="form-control" name="txnEndDate" [(ngModel)]="txnEndDate" />
+        </div>
+        <div class="col-2">
+            <input class="d-flex" id="field_txnEndTime" type="time"
+                class="form-control" name="txnEndTime" [(ngModel)]="txnEndTime" />
         </div>
     </div>
     <br />

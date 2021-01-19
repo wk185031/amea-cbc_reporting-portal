@@ -3,7 +3,6 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.json.JSONException;
@@ -28,7 +27,7 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 			writeHeader(rgm);
 			for (int i = 0; i <= 23; i++) {
 				StringBuilder line = new StringBuilder();
-				preProcessing(rgm);
+				// preProcessing(rgm);
 				writeBodyHeader(rgm);
 				executeBodyQuery(rgm);
 				line.append(getEol());
@@ -36,8 +35,7 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -53,68 +51,68 @@ public class AtmDailyTransactionSummary extends CsvReportProcessor {
 		}
 	}
 
-	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In AtmDailyTransactionSummary.addPreProcessingFieldsToGlobalMap()");
-		if (rgm.isGenerate() == true) {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		} else {
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		}
-	}
+//	@Override
+//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmDailyTransactionSummary.addPreProcessingFieldsToGlobalMap()");
+//		if (rgm.isGenerate() == true) {
+//			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+//			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+//		} else {
+//			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
+//			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+//		}
+//	}
 
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmDailyTransactionSummary.preProcessing()");
-		String startTime = null;
-		String endTime = null;
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
-
-		if (hours > 9) {
-			startTime = ReportConstants.START_TIME.replace(ReportConstants.START_TIME,
-					String.valueOf(hours) + ":00:00");
-			endTime = ReportConstants.END_TIME.replace(ReportConstants.END_TIME, String.valueOf(hours) + ":59:59");
-		} else {
-			startTime = ReportConstants.START_TIME.replace(ReportConstants.START_TIME,
-					"0" + String.valueOf(hours) + ":00:00");
-			endTime = ReportConstants.END_TIME.replace(ReportConstants.END_TIME,
-					"0" + String.valueOf(hours) + ":59:59");
-		}
-
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(startTime);
-			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(endTime);
-
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(startTime);
-			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(endTime);
-
-			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
-					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
-							+ ReportConstants.FORMAT_TXN_DATE + "')");
-
-			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
-	}
+//	private void preProcessing(ReportGenerationMgr rgm)
+//			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+//		logger.debug("In AtmDailyTransactionSummary.preProcessing()");
+//		String startTime = null;
+//		String endTime = null;
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
+//
+//		if (hours > 9) {
+//			startTime = ReportConstants.START_TIME.replace(ReportConstants.START_TIME,
+//					String.valueOf(hours) + ":00:00");
+//			endTime = ReportConstants.END_TIME.replace(ReportConstants.END_TIME, String.valueOf(hours) + ":59:59");
+//		} else {
+//			startTime = ReportConstants.START_TIME.replace(ReportConstants.START_TIME,
+//					"0" + String.valueOf(hours) + ":00:00");
+//			endTime = ReportConstants.END_TIME.replace(ReportConstants.END_TIME,
+//					"0" + String.valueOf(hours) + ":59:59");
+//		}
+//
+//		if (rgm.isGenerate() == true) {
+//			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(startTime);
+//			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(endTime);
+//
+//			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+//							+ ReportConstants.FORMAT_TXN_DATE + "')");
+//
+//			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		} else {
+//			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(startTime);
+//			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(endTime);
+//
+//			ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+//					ReportGenerationFields.TYPE_DATE, rgm.getYesterdayDate().toString());
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+//							+ ReportConstants.FORMAT_TXN_DATE + "')");
+//
+//			getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		}
+//	}
 
 	@Override
 	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {

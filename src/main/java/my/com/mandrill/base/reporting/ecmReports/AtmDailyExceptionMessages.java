@@ -45,32 +45,39 @@ public class AtmDailyExceptionMessages extends CsvReportProcessor {
 		}
 	}
 
+//	@Override
+//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmDailyExceptionMessages.addReportPreProcessingFieldsToGlobalMap()");
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
+//		if (rgm.isGenerate() == true) {
+//			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+//
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"WHERE AJL.AJL_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND AJL.AJL_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//							+ "')");
+//
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		} else {
+//			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
+//			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
+//
+//			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+//					ReportGenerationFields.TYPE_STRING,
+//					"WHERE AJL.AJL_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+//							+ "') AND AJL.AJL_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
+//							+ "')");
+//
+//			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+//		}
+//	}
+	
 	@Override
-	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-		logger.debug("In AtmDailyExceptionMessages.addReportPreProcessingFieldsToGlobalMap()");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01);
-		if (rgm.isGenerate() == true) {
-			String txnStart = rgm.getTxnStartDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTxnEndDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"WHERE AJL.AJL_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND AJL.AJL_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		} else {
-			String txnStart = rgm.getYesterdayDate().format(formatter).concat(" ").concat(ReportConstants.START_TIME);
-			String txnEnd = rgm.getTodayDate().format(formatter).concat(" ").concat(ReportConstants.END_TIME);
-
-			ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-					ReportGenerationFields.TYPE_STRING,
-					"WHERE AJL.AJL_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-							+ "') AND AJL.AJL_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-							+ "')");
-
-			getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-		}
+	protected String getTransactionDateRangeFieldName() {
+		return "AJL.AJL_TIMESTAMP";
 	}
+	
+	
 }

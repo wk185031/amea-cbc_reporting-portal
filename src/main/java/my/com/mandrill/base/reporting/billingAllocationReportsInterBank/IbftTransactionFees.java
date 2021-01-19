@@ -174,13 +174,18 @@ public class IbftTransactionFees extends CsvReportProcessor {
 							transmittingIncome = 0.00;
 							acquiringIncome = 0.00;
 							receivingIncome = 0.00;
+							int i = 0;
 							for (Iterator<String> it = toAccountList.iterator(); it.hasNext();) {
 								String toAccountNo = it.next();
-								if (it.hasNext()) {
-									toAccountNumber += "'" + toAccountNo + "',";
-								} else {
+								
+								if (toAccountNo != null && !toAccountNo.trim().isEmpty()) {
+									if (i > 0) {
+										toAccountNumber += ",";
+									}
 									toAccountNumber += "'" + toAccountNo + "'";
+									i++;
 								}
+								
 							}
 							ReportGenerationFields toAccountNo = new ReportGenerationFields(
 									ReportConstants.PARAM_TO_ACCOUNT, ReportGenerationFields.TYPE_STRING,
