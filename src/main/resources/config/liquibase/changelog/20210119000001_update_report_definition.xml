@@ -14,10 +14,10 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="20210115000001_update_report_definition" author="ny">
+    <changeSet id="20210119000001_update_report_definition" author="ny">
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report_definition_update_20210115.sql"
+                 path="config/liquibase/report_definition_update_20210119.sql"
                  splitStatements="false" 
                  stripComments="true" />
     </changeSet>
