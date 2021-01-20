@@ -400,9 +400,7 @@ public class ReportGenerationResource {
 					+ def.getReportCategory().getName() + File.separator);
 			rgm.setTxnStartDate(txnStartDate);
 			rgm.setTxnEndDate(txnEndDate.plusMinutes(1L));
-		}
-
-		if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
+		} else if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
 			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator
 					+ def.getReportCategory().getName() + File.separator);
 			LocalDate firstDayOfMonth = txnStartDate.toLocalDate().withDayOfMonth(1);

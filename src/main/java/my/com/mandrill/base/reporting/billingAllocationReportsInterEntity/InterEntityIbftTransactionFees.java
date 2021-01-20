@@ -353,11 +353,11 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 
 				rgm.setBodyQuery(getReceivingBodyQuery());
 				rgm.setBodyQuery(getBodyQuery(rgm).replace("TXN.TRL_ACCOUNT_2_ACN_ID \"TO ACCOUNT NO\",", "")
-						.replace("TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,", "")
-						.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("(SELECT BRC_NAME"),
-								getBodyQuery(rgm).indexOf("\"BRANCH NAME\",")), "")
-						.replace("\"BRANCH NAME\",", "")
-						.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("GROUP BY")), ""));
+						.replace("TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,", ""));
+				//		.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("(SELECT BRC_NAME"),
+				//				getBodyQuery(rgm).indexOf("\"BRANCH NAME\",")), "")
+				//		.replace("\"BRANCH NAME\",", "")
+				//		.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("GROUP BY")), ""));
 				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, ReportConstants.RECEIVING_COUNT, null));
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				receivingCount += Integer.parseInt(getFieldValue(field, fieldsMap));

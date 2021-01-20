@@ -103,14 +103,21 @@ export class GenerateReportTabComponent implements OnInit {
 
     generate() {
             this.ngxLoader.start();
-            if (!this.txnStartTime) {
+
+            if (!this.searchByDateRange) {
               this.txnStartTime = '00:00';
-            }
-            if (!this.txnEndDate) {
               this.txnEndDate = this.txnStartDate;
-            }
-            if (!this.txnEndTime) {
               this.txnEndTime = '23:59';
+            } else {
+              if (!this.txnStartTime) {
+                this.txnStartTime = '00:00';
+              }
+              if (!this.txnEndDate) {
+                this.txnEndDate = this.txnStartDate;
+              }
+              if (!this.txnEndTime) {
+                this.txnEndTime = '23:59';
+              }
             }
 
             let startDateTime = this.txnStartDate + ' ' + this.txnStartTime;
@@ -132,7 +139,7 @@ export class GenerateReportTabComponent implements OnInit {
       } else {
         this.txnStartTime = '00:00';
         this.txnEndDate = this.txnStartDate;
-        this.txnEndTime = '23:59';        
+        this.txnEndTime = '23:59';
       }
     }
 }

@@ -125,7 +125,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final int MAX_ROW = 50;
 
 	private static final String TABLE_DETAILS_NAME = "TABLE_DETAILS";
-
+	private static final String INCREMENTAL_UPDATE_TABLES = "ATM_STATUS_HISTORY,ATM_TXN_ACTIVITY_LOG,ATM_JOURNAL_LOG,TRANSACTION_LOG";
+	
 	private final Environment env;
 
 	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
@@ -309,51 +310,35 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private void syncAuthenticTables() throws Exception {
-		Map<String, String> tableShortNameMap = getTableShortName();
+		String[] incrementalUpdateTables = INCREMENTAL_UPDATE_TABLES.split(",");
+		
+		toggleForeignKey(false);
+		for (String table : getAuthenticTablesToSync()) {
+			long start = System.nanoTime();
 
+			boolean isIncrementalUpdateTalble = Arrays.stream(incrementalUpdateTables).anyMatch(table::equals);
+			
+			if (isIncrementalUpdateTalble) {
+				updateIncrementalRecords(table);
+			} else {
+				truncateInsertRecords(table);
+			}
+			log.debug("Complete synchronize table {} in {} ms", table,
+					TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+		}
+		toggleForeignKey(true);
+	}
+	
+	private void toggleForeignKey(boolean enable) throws Exception {
+		log.debug("toggleForeignKey: {}", enable);
+		String sql = "alter table USER_EXTRA_BRANCHES " + (enable ? "ENABLE" : "DISABLE") + " constraint " + "FK_USER_EXTRA_BRANCHES_BRANCH_ID";
 		Connection conn = dataSource.getConnection();
 		PreparedStatement stmt = null;
-		ResultSet rs = null;
 
 		try {
-			for (String table : getAuthenticTablesToSync()) {
-				long start = System.nanoTime();
-
-				String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
-						+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
-				String lastUpdateColumnName = tableShortNameMap.get(table.toUpperCase()) + "_LAST_UPDATE_TS";
-
-				Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
-
-				String sql = "insert into " + table + " (select * from " + schemaTableName;
-				if (lastUpdatedTs != null) {
-					String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
-					sql = sql + " where " + lastUpdateColumnName + " > TO_TIMESTAMP('" + formattedTs
-							+ "','YYYYMMDD HH24:MI:SS.FF3'))";
-				} else {
-					sql += ")";
-				}
-
-				log.debug("sync table:{}, sql={}", table, sql);
-				try {
-					stmt = conn.prepareStatement(sql);
-					rs = stmt.executeQuery();
-
-				} catch (SQLIntegrityConstraintViolationException e) {
-					log.error("Duplicate record! Update of data not implemented!");
-				}
-
-				log.debug("Complete synchronize table {} in {} ms", table,
-						TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
-			}
+			stmt = conn.prepareStatement(sql);
+			stmt.execute();	
 		} finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e) {
-					log.warn("Failed to close rs", e);
-				}
-			}
 			if (stmt != null) {
 				try {
 					stmt.close();
@@ -369,7 +354,93 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 		}
+	}
+	
+	private void truncateInsertRecords(String table) throws Exception {		
+		String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
+				+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		
+		Connection conn = dataSource.getConnection();
+		PreparedStatement stmt = null;
+		PreparedStatement stmt1 = null;
+		String insertSql = "insert into " + table + " (select * from " + schemaTableName +")";
+		
+		log.debug("sync full table:{}, sql={}", table, insertSql);
+		try {
+			stmt = conn.prepareStatement("truncate table " + table);
+			stmt.execute();
+			
+			stmt1 = conn.prepareStatement(insertSql);
+			stmt1.execute();
+	
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (stmt1 != null) {
+				try {
+					stmt1.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					log.warn("Failed to close conn", e);
+				}
+			}
+		}
+	}
 
+	private void updateIncrementalRecords(String table) throws Exception {
+		Map<String, String> tableShortNameMap = getTableShortName();
+		String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
+				+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		String lastUpdateColumnName = tableShortNameMap.get(table.toUpperCase()) + "_LAST_UPDATE_TS";
+
+		Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
+
+		String sql = "insert into " + table + " (select * from " + schemaTableName;
+		if (lastUpdatedTs != null) {
+			String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
+			sql = sql + " where " + lastUpdateColumnName + " > TO_TIMESTAMP('" + formattedTs
+					+ "','YYYYMMDD HH24:MI:SS.FF3'))";
+		} else {
+			sql += ")";
+		}
+
+		log.debug("incremental update table:{}, sql={}", table, sql);
+		Connection conn = dataSource.getConnection();
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.execute();
+
+		} catch (SQLIntegrityConstraintViolationException e) {
+			log.error("Duplicate record! Update of data not implemented!");
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					log.warn("Failed to close conn", e);
+				}
+			}
+		}
 	}
 
 	private Timestamp getTableLastUpdatedTimestamp(String tableName, String lastUpdateColumnName) throws Exception {
@@ -656,31 +727,31 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 		}
 	}
-	
+
 	private void postProcessCardData(Timestamp lastUpdatedTimestamp) {
 		log.debug("Post Process Card data");
-		
+
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		PreparedStatement stmt_insert = null;
 		ResultSet rs = null;
 
-		try {			
+		try {
 			conn = dataSource.getConnection();
 
 			stmt = conn.prepareStatement("TRUNCATE TABLE CARD_CUSTOM");
 			stmt_insert = conn.prepareStatement("insert into card_custom values (?,?)");
 			stmt.execute();
 			stmt.close();
-			
+
 			stmt = conn.prepareStatement("select CRD_ID,CRD_PAN,CRD_PAN_EKY_ID from CARD");
 			rs = stmt.executeQuery();
-			
+
 			while (rs.next()) {
 				Long cardId = rs.getLong("CRD_ID");
 				String encryptedPan = rs.getString("CRD_PAN");
 				int panEkyId = rs.getInt("CRD_PAN_EKY_ID");
-				
+
 				SecurePANField pan = SecurePANField.fromDatabase(encryptedPan, panEkyId);
 				String clearPan = pan.getClear();
 				String branchCode = clearPan.substring(8, 12);
@@ -689,8 +760,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt_insert.setString(2, branchCode);
 				stmt_insert.executeUpdate();
 			}
-			
-			//TODO: After run the first time, should NOT truncate all and only process the latest record
+
+			// TODO: After run the first time, should NOT truncate all and only process the
+			// latest record
 //			if (lastUpdatedTimestamp == null) {
 //				stmt = conn.prepareStatement(SQL_SELECT_CUSTOM_CARD_DATA.replace("{WHERE_CONDITION}", ""));
 //			} else {
@@ -700,7 +772,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 //
 //				stmt = conn.prepareStatement(SQL_SELECT_CUSTOM_CARD_DATA.replace("{WHERE_CONDITION}", whereCondition));
 //			}
-			
+
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to process transaction log", e);
 		} finally {
@@ -710,7 +782,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				} catch (Exception e) {
 				}
 			}
-			
+
 			if (stmt_insert != null) {
 				try {
 					stmt_insert.close();
@@ -732,7 +804,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 		}
-		
+
 	}
 
 	private void postProcessTransactionLogData(Timestamp lastUpdatedTimestamp) {
