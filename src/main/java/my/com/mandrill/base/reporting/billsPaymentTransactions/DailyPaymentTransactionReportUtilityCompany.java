@@ -255,7 +255,8 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$7s", "") + getGlobalFieldValue(rgm, field));
+					//contentStream.showText(String.format("%1$7s", "") + getGlobalFieldValue(rgm, field));
+					contentStream.showText(getGlobalFieldValue(rgm, field));
 				} else
 					contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
