@@ -68,7 +68,6 @@ import my.com.mandrill.base.domain.TaskGroup;
 import my.com.mandrill.base.domain.TxnLogCustom;
 import my.com.mandrill.base.reporting.security.SecurePANField;
 import my.com.mandrill.base.reporting.security.SecureString;
-import my.com.mandrill.base.reporting.security.StandardEncryptionService;
 import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
@@ -99,8 +98,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String ORIGIN_CHANNEL_OLD = "ORIG_CHAN";
 	private static final String CASH_CARD_CORPORATE_PRODUCT_CODE = "83";
 
-	private Map<String, String> matchingBinCache = new HashMap<String, String>();
-
 	private final JobRepository jobRepository;
 	private final JobSearchRepository jobSearchRepository;
 	private final TaskGroupRepository taskGroupRepository;
@@ -108,32 +105,29 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final TaskRepository taskRepository;
 	private final TaskSearchRepository taskSearchRepository;
 	private final JobHistoryRepository jobHistoryRepo;
-	private final StandardEncryptionService encryptionService;
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
 
 	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?)";
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
-	private static final String SQL_SELECT_CUSTOM_CARD_DATA = "select CRD_ID, CRD_PAN from CARD {WHERE_CONDITION} order by CRD_LAST_UPDATE_TS";
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_ISSUER_CUSTOM_DATA = "select ISS_CUSTOM_DATA from {DB_SCHEMA}.ISSUER@{DB_LINK} where ISS_STATUS='ACTIVE'";
-	private static final String SQL_SELECT_BIN = "select CBI_BIN from CBC_BIN where CBI_BIN like ?";
-	private static final String SQL_TRUNCATE_TXN_LOG_CUSTOM = "TRUNCATE TABLE TRANSACTION_LOG_CUSTOM";
 	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS from ATM_STATUS_HISTORY {WHERE_CONDITION} order by ASH_AST_ID, ASH_TIMESTAMP";
 	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?)";
+	private static final String SQL_SELECT_ALL_BIN = "select CBI_BIN from CBC_BIN";
 	private static final int MAX_ROW = 50;
 
 	private static final String TABLE_DETAILS_NAME = "TABLE_DETAILS";
 	private static final String INCREMENTAL_UPDATE_TABLES = "ATM_STATUS_HISTORY,ATM_TXN_ACTIVITY_LOG,ATM_JOURNAL_LOG,TRANSACTION_LOG";
-	
+
 	private final Environment env;
 
 	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
-			JobHistoryRepository jobHistoryRepo, StandardEncryptionService encryptionService, Environment env,
-			ReportService reportService, InstitutionRepository institutionRepository, DataSource dataSource) {
+			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService,
+			InstitutionRepository institutionRepository, DataSource dataSource) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
 		this.taskRepository = taskRepository;
@@ -141,7 +135,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.taskGroupRepository = taskGroupRepository;
 		this.taskGroupSearchRepository = taskGroupSearchRepository;
 		this.jobHistoryRepo = jobHistoryRepo;
-		this.encryptionService = encryptionService;
 		this.env = env;
 		this.reportService = reportService;
 		this.institutionRepository = institutionRepository;
@@ -232,7 +225,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		newTaskGroup.setCreatedBy(ReportConstants.CREATED_BY_USER);
 		newTaskGroup.setCreatedDate(ZonedDateTime.now());
 		newTaskGroup.setJob(job);
-		;
 
 		createTaskGroup(newTaskGroup);
 	}
@@ -285,8 +277,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
 
 		syncAuthenticTables();
+		Map<String, List<String>> cardBinMap = getCardBinMap();
 		postProcessCardData(cardLastUpdatedTs);
-		postProcessTransactionLogData(trxLogLastUpdatedTs);
+		postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
 		postProcessAtmDowntime(atmStatusHistoryLastUpdatedTs);
 
 		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_COMPLETED, user);
@@ -309,15 +302,67 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 	}
 
+	private Map<String, List<String>> getCardBinMap() throws Exception {
+		log.debug("getCardBinMap");
+
+		Connection conn = dataSource.getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Map<String, List<String>> cardBinMap = new HashMap<>();
+
+		try {
+			stmt = conn.prepareStatement(SQL_SELECT_ALL_BIN);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				String bin = String.valueOf(rs.getInt(1));
+				String prefix = bin;
+				if (bin.length() > 4) {
+					prefix = bin.substring(0, 4);
+				}
+				if (!cardBinMap.containsKey(prefix)) {
+					cardBinMap.put(prefix, new ArrayList<String>());
+				}
+				cardBinMap.get(prefix).add(bin);
+			}
+			log.debug("getCardBinMap: size={}", cardBinMap.size());
+			return cardBinMap;
+
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+					log.warn("Failed to close rs", e);
+				}
+
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					log.warn("Failed to close conn", e);
+				}
+			}
+		}
+	}
+
 	private void syncAuthenticTables() throws Exception {
 		String[] incrementalUpdateTables = INCREMENTAL_UPDATE_TABLES.split(",");
-		
+
 		toggleForeignKey(false);
 		for (String table : getAuthenticTablesToSync()) {
 			long start = System.nanoTime();
 
 			boolean isIncrementalUpdateTalble = Arrays.stream(incrementalUpdateTables).anyMatch(table::equals);
-			
+
 			if (isIncrementalUpdateTalble) {
 				updateIncrementalRecords(table);
 			} else {
@@ -328,16 +373,17 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 		toggleForeignKey(true);
 	}
-	
+
 	private void toggleForeignKey(boolean enable) throws Exception {
 		log.debug("toggleForeignKey: {}", enable);
-		String sql = "alter table USER_EXTRA_BRANCHES " + (enable ? "ENABLE" : "DISABLE") + " constraint " + "FK_USER_EXTRA_BRANCHES_BRANCH_ID";
+		String sql = "alter table USER_EXTRA_BRANCHES " + (enable ? "ENABLE" : "DISABLE") + " constraint "
+				+ "FK_USER_EXTRA_BRANCHES_BRANCH_ID";
 		Connection conn = dataSource.getConnection();
 		PreparedStatement stmt = null;
 
 		try {
 			stmt = conn.prepareStatement(sql);
-			stmt.execute();	
+			stmt.execute();
 		} finally {
 			if (stmt != null) {
 				try {
@@ -355,24 +401,24 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 		}
 	}
-	
-	private void truncateInsertRecords(String table) throws Exception {		
+
+	private void truncateInsertRecords(String table) throws Exception {
 		String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
 				+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
-		
+
 		Connection conn = dataSource.getConnection();
 		PreparedStatement stmt = null;
 		PreparedStatement stmt1 = null;
-		String insertSql = "insert into " + table + " (select * from " + schemaTableName +")";
-		
+		String insertSql = "insert into " + table + " (select * from " + schemaTableName + ")";
+
 		log.debug("sync full table:{}, sql={}", table, insertSql);
 		try {
 			stmt = conn.prepareStatement("truncate table " + table);
 			stmt.execute();
-			
+
 			stmt1 = conn.prepareStatement(insertSql);
 			stmt1.execute();
-	
+
 		} finally {
 			if (stmt != null) {
 				try {
@@ -807,7 +853,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	}
 
-	private void postProcessTransactionLogData(Timestamp lastUpdatedTimestamp) {
+	private void postProcessTransactionLogData(Timestamp lastUpdatedTimestamp, Map<String, List<String>> cardBinMap) {
 		log.debug("Post Process Transaction Log data");
 
 		Connection conn = null;
@@ -835,7 +881,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			List<String> atmDummyCards = getAtmDummyCard(conn);
 
 			while (rs.next()) {
-				TxnLogCustom txnCustom = fromResultSet(rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
+				TxnLogCustom txnCustom = fromResultSet(cardBinMap, rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
@@ -924,10 +970,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		return tablesArr;
 	}
 
-	private TxnLogCustom fromResultSet(Long id, String tscCode, String encryptedPan, String acqInstId,
-			String encryptedCustomData, int encryptionKeyId, int panEncryptionKeyId, String originInterchange,
-			String issuerName, String deoName, StringTokenizer corporatePanRange, List<String> atmDummyCards)
-			throws Exception {
+	private TxnLogCustom fromResultSet(Map<String, List<String>> cardBinMap, Long id, String tscCode,
+			String encryptedPan, String acqInstId, String encryptedCustomData, int encryptionKeyId,
+			int panEncryptionKeyId, String originInterchange, String issuerName, String deoName,
+			StringTokenizer corporatePanRange, List<String> atmDummyCards) throws Exception {
 
 		log.debug(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
@@ -952,7 +998,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			o.setInterEntity(isInterEntity(tscCode, acqInstId, issuerName, deoName));
 
 			if (encryptedPan != null) {
-				o.setCardBin(findBin(pan));
+				o.setCardBin(findBin(pan, cardBinMap));
 
 				if (isOnUs(issuerName)) {
 					o.setCardProductType(pan.getClear().substring(6, 8));
@@ -989,68 +1035,25 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		return "CBC".equals(issuerName) || "CBS".equals(issuerName);
 	}
 
-	private String findBin(SecurePANField pan) throws Exception {
+	private String findBin(SecurePANField pan, Map<String, List<String>> cardBinMap) throws Exception {
 		String clearPan = pan.getClear();
-		String truncatedPan = clearPan.substring(0, 6);
 
+		String binPrefix = clearPan.substring(0, 4);
+		log.debug("findBin start: clearPan={}, binPrefix={}", clearPan, binPrefix);
 		String binFound = null;
-		log.debug("Find matching BIN. pan={}, truncatedPan={}", clearPan, truncatedPan);
-
-		if (matchingBinCache.containsKey(truncatedPan)) {
-			binFound = matchingBinCache.get(truncatedPan);
-		} else {
-			binFound = findMatchingBin(truncatedPan);
-			matchingBinCache.put(truncatedPan, binFound);
+		if (cardBinMap.containsKey(binPrefix)) {
+			for (String bin : cardBinMap.get(binPrefix)) {
+				if (clearPan.length() >= bin.length() && bin.equals(clearPan.substring(0, bin.length()))) {
+					if (binFound == null) {
+						binFound = bin;
+					} else if (bin.length() > binFound.length()) {
+						binFound = bin;
+					}
+				}
+			}
 		}
-		log.debug("Find matching BIN: source={}, results={}", truncatedPan, binFound);
+		log.debug("findBin end: clearPan={}, binFound={}", clearPan, binFound);
 		return binFound;
-	}
-
-	private String findMatchingBin(String binToMatch) throws Exception {
-
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-
-		try {
-			conn = dataSource.getConnection();
-
-			stmt = conn.prepareStatement(SQL_SELECT_BIN);
-			stmt.setString(1, binToMatch + "%");
-			stmt.setFetchSize(MAX_ROW);
-			rs = stmt.executeQuery();
-
-			String matchedBin = "";
-			while (rs.next()) {
-				if (matchedBin.length() < rs.getString("CBI_BIN").length()) {
-					matchedBin = rs.getString("CBI_BIN");
-				}
-			}
-
-			return matchedBin;
-
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to process transaction log", e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (Exception e) {
-				}
-			}
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e) {
-				}
-			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (Exception e) {
-				}
-			}
-		}
 	}
 
 	private String determineOriginChannel(Map<String, String> customDataMap, String acqInstId,
