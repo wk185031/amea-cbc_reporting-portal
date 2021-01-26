@@ -507,7 +507,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}", "BRC.BRC_CODE")
 					.replace("{" + ReportConstants.PARAM_BRANCH_NAME + "}", "BRC.BRC_NAME")
 					.replace("{" + ReportConstants.PARAM_JOIN_CRITERIA + "}",
-							"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE")
+							"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE")
 					.replace("{" + ReportConstants.PARAM_DEO_NAME+ "}", "TXN.TRL_DEO_NAME IS NULL")
 					.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
 		}
@@ -535,11 +535,11 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			setIssBodyQuery(getIssBodyQuery().replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}", "BRC.BRC_CODE")
 					.replace("{" + ReportConstants.PARAM_BRANCH_NAME + "}", "BRC.BRC_NAME")
 					.replace("{" + ReportConstants.PARAM_JOIN_CRITERIA + "}",
-							"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE")
+							"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE")
 					.replace("{" + ReportConstants.PARAM_DEO_NAME+ "}", "TXN.TRL_DEO_NAME IS NULL")
 					.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
 			setIssTrailerQuery(getIssTrailerQuery().replace("{" + ReportConstants.PARAM_JOIN_CRITERIA + "}",
-					"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE")
+					"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE")
 					.replace("{" + ReportConstants.PARAM_DEO_NAME+ "}", "TXN.TRL_DEO_NAME IS NULL")
 					.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
 
