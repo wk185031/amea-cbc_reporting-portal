@@ -422,7 +422,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 							branchName = issuingBranchCodeMap.getValue();
 							writeHeader(rgm, pagination, branchCode, branchName);
 							writeBodyHeader(rgm);
-							branchAsIssuingDetails(rgm, branchCode, false);
+							branchAsIssuingDetails(rgm, branchCode, true);
 						}
 					}
 				}
