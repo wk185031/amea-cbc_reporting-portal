@@ -17,6 +17,7 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 public class CsvWriter implements IFileWriter {
 
 	public static final String DEFAULT_DELIMITER = ",";
+	public static final String DELIMITER_SEMICOLON = ";";
 	public static final String EOL = System.lineSeparator();
 
 	@Override

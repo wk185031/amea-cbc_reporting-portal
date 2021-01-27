@@ -59,8 +59,9 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		PreparedStatement ps = null;
 		try {
 			ReportContext currentContext = new ReportContext();
+			currentContext.setTxnEndDateTime(rgm.getTxnEndDate());
 			currentContext.setPredefinedFieldMap(initPredefinedFieldMap(rgm));
-			currentContext.setDataMap(initDataMap());
+			currentContext.setDataMap(initDataMap(rgm));
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());
@@ -85,7 +86,12 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 
 			// Write trailer for last group
 			writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), out);
+			writeReportTrailer(currentContext, parseFieldConfig(rgm.getTrailerFields()), out);
+			out.close();
 			logger.debug("Report generation complete. Total records={}", currentContext.getTotalRecord());
+			
+			postReportGeneration(outputFile);
+			
 		} catch (Exception e) {
 			logger.debug("Failed to process file: {}", outputFile.getAbsolutePath(), e);
 			if (outputFile != null && outputFile.exists()) {
@@ -97,13 +103,6 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			}
 			throw new ReportGenerationException(outputFile.getName(), e);
 		} finally {
-			if (out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					logger.warn("Failed to close FileOutputStream.");
-				}
-			}
 			if (ps != null) {
 				try {
 					ps.close();
@@ -130,6 +129,10 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			}
 		}
 	}
+	
+	protected void postReportGeneration(File outputFile) throws Exception {
+		
+	}
 
 	protected Map<String, ReportGenerationFields> initPredefinedFieldMap(ReportGenerationMgr rgm) {
 		Map<String, ReportGenerationFields> predefinedDataMap = new HashMap<>();
@@ -152,8 +155,8 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 
 		return predefinedDataMap;
 	}
-	
-	protected Map<String, Map<String, ?>> initDataMap() {
+
+	protected Map<String, Map<String, ?>> initDataMap(ReportGenerationMgr rgm) {
 		return new HashMap<>();
 	}
 
@@ -360,5 +363,10 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			}
 		}
 		return bodyFields;
+	}
+
+	protected void writeReportTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) {
+
 	}
 }

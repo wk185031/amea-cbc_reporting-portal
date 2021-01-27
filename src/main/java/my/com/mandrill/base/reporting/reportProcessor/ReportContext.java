@@ -1,6 +1,7 @@
 package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ public class ReportContext {
 	private Map<String, BigDecimal> subTotal = new HashMap<>();
 
 	private Map<String, BigDecimal> overallTotal = new HashMap<>();
+
+	private LocalDateTime txnEndDateTime;
 
 	public String getCurrentBranch() {
 		return currentBranch;
@@ -110,6 +113,14 @@ public class ReportContext {
 
 	public void setDataMap(Map<String, Map<String, ?>> dataMap) {
 		this.dataMap = dataMap;
+	}
+
+	public LocalDateTime getTxnEndDateTime() {
+		return txnEndDateTime;
+	}
+
+	public void setTxnEndDateTime(LocalDateTime txnEndDateTime) {
+		this.txnEndDateTime = txnEndDateTime;
 	}
 
 }
