@@ -24,4 +24,5 @@
 	<include file="config/liquibase/changelog/20210120000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210120000002_update_bill_payment_by_utility_report.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/NY_20210126000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20210127000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
