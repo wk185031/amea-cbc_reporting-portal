@@ -183,7 +183,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			});
 		}
 
-		if (fields.size() > 0) {
+		if (fields != null && fields.size() > 0) {
 			fields.get(fields.size() - 1).setEndOfSection(true);
 		}
 		return fields;

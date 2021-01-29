@@ -102,9 +102,14 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 		if (context.getCurrentBranch() != null && !context.getCurrentBranch().equals(branchCode.getValue())) {
 			writeCorporateCardStatisticSection(context, out);
 		}
-
-		if (context.getCurrentBranch() == null || !context.getCurrentBranch().equals(branchCode.getValue())
-				|| isCorporate) {
+		
+		if (isCorporate && context.isWriteBodyHeader()) {
+			context.setWriteBodyHeader(false);
+			writeBranchSection(out, branchCode, branchName);
+			context.setCurrentBranch(branchCode.getValue());
+			context.getCurrentGroupMap().remove(getTransactionGroupFieldName());
+		} else if (context.getCurrentBranch() == null || !context.getCurrentBranch().equals(branchCode.getValue())) {
+			context.setWriteBodyHeader(true);
 			writeBranchSection(out, branchCode, branchName);
 			context.setCurrentBranch(branchCode.getValue());
 			context.getCurrentGroupMap().remove(getTransactionGroupFieldName());
@@ -330,22 +335,6 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 		String pdfFilePath = outputFile.getAbsolutePath().substring(0, csvFilePath.lastIndexOf('.')) + ".pdf";
 
 		PDDocument doc = new PDDocument();
-//		PDPage page = new PDPage();
-//		doc.addPage(page);
-//		final PDPageContentStream contentStream;
-//		PDFont pdfFont = PDType1Font.COURIER;
-//		float fontSize = 8;
-//		float leading = 1.5f * fontSize;
-//		PDRectangle pageSize = page.getMediaBox();
-//		float margin = 30;
-//		float startX = pageSize.getLowerLeftX() + margin;
-//		float startY = pageSize.getUpperRightY() - margin;
-//
-//		contentStream = new PDPageContentStream(doc, page);
-//		contentStream.setFont(pdfFont, fontSize);
-//		contentStream.setLeading(leading);
-//		contentStream.beginText();
-//		contentStream.newLineAtOffset(startX, startY);
 
 		PDPageContentStream contentStream = null;
 		BufferedReader reader = null;
