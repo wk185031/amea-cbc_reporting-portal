@@ -217,6 +217,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void saveFile(ReportGenerationMgr rgm, PDDocument doc) {
 		logger.debug("In PdfReportProcessor.saveFile()");
+
 		String fileLocation = rgm.getFileLocation();
 		String txnDate = null;
 
@@ -233,7 +234,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					
+
 					String fileFullPath = rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT;
 					doc.save(new File(fileFullPath));
 					logger.info("New file generated in: {}", fileFullPath);
@@ -253,7 +254,15 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 	protected void saveFile(ReportGenerationMgr rgm, PDDocument doc, String branchCode) {
 		logger.debug("In PdfReportProcessor.saveFile()");
 		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-		String fileLocation = rgm.getFileLocation();
+		List<String> reportPaths = new ArrayList<>();
+
+		// for branch report, report need to populate in both MAIN and branch folder
+		String mainFileLocation = rgm.getFileLocation();
+		String branchFileLocation = rgm.getFileBaseDirectory() + File.separator + branchCode + File.separator + rgm.getReportCategory() + File.separator;
+
+		reportPaths.add(mainFileLocation);
+		reportPaths.add(branchFileLocation);
+
 		String txnDate = null;
 
 		try {
@@ -264,18 +273,20 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			}
 
 			if (rgm.errors == 0) {
-				if (fileLocation != null) {
-					File directory = new File(fileLocation);
-					if (!directory.exists()) {
-						directory.mkdirs();
+				for(String fileLocation: reportPaths) {
+					if (fileLocation != null) {
+						File directory = new File(fileLocation);
+						if (!directory.exists()) {
+							directory.mkdirs();
+						}
+						String fileFullPath = fileLocation + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
+						doc.save(new File(fileFullPath));
+						logger.info("New file generated in: {}", fileFullPath);
+
+					} else {
+						throw new Exception("Path is not configured.");
 					}
-					String fileFullPath = rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
-					doc.save(new File(fileFullPath));
-					logger.info("New file generated in: {}", fileFullPath);
-					
-				} else {
-					throw new Exception("Path is not configured.");
-				}
+				}				
 			} else {
 				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + branchCode + "_"
 						+ txnDate + ReportConstants.PDF_FORMAT);
@@ -351,7 +362,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		SortedSet<String> branchCodeList = new TreeSet<>();
 		rgm.setBodyQuery(getAcquirerCreditBodyQuery().indexOf("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}") != 0
 				? getAcquirerCreditBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-				: "");
+						: "");
 		String query = getBodyQuery(rgm);
 		logger.info("Query to filter branch code: {}", query);
 
@@ -455,7 +466,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
@@ -473,7 +484,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading, String txnQualifier, String voidCode)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
@@ -514,7 +525,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+					throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In PdfReportProcessor.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {

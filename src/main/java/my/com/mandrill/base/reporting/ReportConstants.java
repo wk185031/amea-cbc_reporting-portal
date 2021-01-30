@@ -48,6 +48,9 @@ public final class ReportConstants {
 	public static final String DATETIME_FORMAT_01 = "yyyyMMdd HH:mm:ss";
 	public static final String FORMAT_TXN_DATE = "YYYYMMDD HH24:MI:SS";
 
+	// Report Generation Path
+	public static final String MAIN_PATH = "MAIN";
+
 	// Report Generation Parameter
 	public static final String PARAM_FILE_DATE = "FileDate";
 	public static final String PARAM_TXN_DATE = "Txn_Date";

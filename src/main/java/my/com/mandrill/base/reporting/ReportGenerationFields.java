@@ -17,7 +17,7 @@ import my.com.mandrill.base.reporting.security.SecurePANField;
 public class ReportGenerationFields {
 
 	private final Logger logger = LoggerFactory.getLogger(ReportGenerationFields.class);
-	
+
 	public static final String TYPE_NUMBER = "Number";
 	public static final String TYPE_DECIMAL = "Decimal";
 	public static final String TYPE_DATE = "Date";
@@ -37,6 +37,7 @@ public class ReportGenerationFields {
 	private String fileFormat;
 	private String fileFormatTmp;
 	private String fileLocation;
+	private String fileBaseDirectory;
 	private String processingClass;
 	private String frequency;
 	private String headerFields;
@@ -137,6 +138,14 @@ public class ReportGenerationFields {
 
 	public void setFileLocation(String fileLocation) {
 		this.fileLocation = fileLocation;
+	}
+
+	public String getFileBaseDirectory() {
+		return fileBaseDirectory;
+	}
+
+	public void setFileBaseDirectory(String fileBaseDirectory) {
+		this.fileBaseDirectory = fileBaseDirectory;
 	}
 
 	public String getProcessingClass() {
@@ -254,7 +263,7 @@ public class ReportGenerationFields {
 	public String getValue() {
 		return value;
 	}
-	
+
 	public String getValueWithDefault() {
 		if (value == null) {
 			return getDefaultValue();
@@ -449,7 +458,7 @@ public class ReportGenerationFields {
 	public void setDcmsDbSchema(String dcmsDbSchema) {
 		this.dcmsDbSchema = dcmsDbSchema;
 	}
-	
+
 	public String getDbLink() {
 		return dblink;
 	}
@@ -798,22 +807,22 @@ public class ReportGenerationFields {
 		return tempValue;
 	}
 
-    public String formatTxtBodyHeaderValue(String tempValue) {
-        if (fieldName != null) {
-            if (fieldName.contains(ReportConstants.LINE)) {
-                tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
-            } else {
-                if (leftJustified) {
-                    tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
-                } else {
-                    tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-                }
-            }
-        } else {
-            tempValue = String.format("%1$-" + csvTxtLength + "s", "");
-        }
-        return tempValue;
-    }
+	public String formatTxtBodyHeaderValue(String tempValue) {
+		if (fieldName != null) {
+			if (fieldName.contains(ReportConstants.LINE)) {
+				tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
+			} else {
+				if (leftJustified) {
+					tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+				} else {
+					tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
+				}
+			}
+		} else {
+			tempValue = String.format("%1$-" + csvTxtLength + "s", "");
+		}
+		return tempValue;
+	}
 
 	public String formatTxtBodyValue(String tempValue) {
 		if (leftJustified) {
@@ -951,7 +960,8 @@ public class ReportGenerationFields {
 	public String toString() {
 		return "ReportGenerationFields [reportCategory=" + reportCategory + ", fileName=" + fileName
 				+ ", fileNamePrefix=" + fileNamePrefix + ", fileFormat=" + fileFormat + ", fileFormatTmp="
-				+ fileFormatTmp + ", fileLocation=" + fileLocation + ", processingClass=" + processingClass
+				+ fileFormatTmp + ", fileLocation=" + fileLocation
+				+ ", fileBaseDirectory=" + fileBaseDirectory + ", processingClass=" + processingClass
 				+ ", frequency=" + frequency + ", headerFields=" + headerFields + ", bodyFields=" + bodyFields
 				+ ", trailerFields=" + trailerFields + ", bodyQuery=" + bodyQuery + ", trailerQuery=" + trailerQuery
 				+ ", tmpBodyQuery=" + tmpBodyQuery + ", sequence=" + sequence + ", sectionName=" + sectionName

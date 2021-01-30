@@ -76,8 +76,10 @@ public class ReportService {
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
 				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+				reportGenerationMgr.setFileBaseDirectory(directory);
 				reportGenerationMgr.setFileLocation(
-						directory + reportDefinitionList.getReportCategory().getName() + File.separator);
+						directory + File.pathSeparator + ReportConstants.MAIN_PATH + File.pathSeparator + 
+						reportDefinitionList.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
 				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
 				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
@@ -118,8 +120,10 @@ public class ReportService {
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
 				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
+				reportGenerationMgr.setFileBaseDirectory(directory);
 				reportGenerationMgr.setFileLocation(
-						directory + reportDefinitionList.getReportCategory().getName() + File.separator);
+						directory + File.pathSeparator + ReportConstants.MAIN_PATH + File.pathSeparator +
+						reportDefinitionList.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
 				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
 				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
