@@ -68,149 +68,125 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				setIssTrailerQuery(rgm.getTrailerQuery());
 			}
 
-			setCriteriaQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "")
-					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}", "ABR.ABR_CODE")
-					.replace("{" + ReportConstants.PARAM_BRANCH_NAME + "}", "ABR.ABR_NAME")
-					.replace("{" + ReportConstants.PARAM_JOIN_CRITERIA + "}",
-							"JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID")
-					.replace("{" + ReportConstants.PARAM_DEO_NAME+ "}", "TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "'")
-					.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", "TXN.TRL_ISS_NAME IS NULL"));
-			rgm.setBodyQuery(getCriteriaQuery());
-			if (!executeQuery(rgm)) {
-				page = new PDPage();
-				doc.addPage(page);
-				contentStream = new PDPageContentStream(doc, page);
-				pageSize = page.getMediaBox();
-				width = pageSize.getWidth() - 2 * margin;
-				startX = pageSize.getLowerLeftX() + margin;
-				startY = pageSize.getUpperRightY() - margin;
-				contentStream.setFont(pdfFont, fontSize);
-				contentStream.beginText();
-				contentStream.newLineAtOffset(startX, startY);
-				contentStream.endText();
-				contentStream.close();
-				saveFile(rgm, doc);
-			} else {
+			preProcessing(rgm, "acquiring");
+			for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+				branchCodesList.add(acquiringBranchCodeMap.getKey());
+			}
+
+			preProcessing(rgm, "issuing");
+			for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
+				branchCodesList.add(issuingBranchCodeMap.getKey());
+			}
+
+			for (String branchCodes : branchCodesList) {
 				preProcessing(rgm, "acquiring");
 				for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-					branchCodesList.add(acquiringBranchCodeMap.getKey());
+					if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
+						acquiring = true;
+					}
 				}
 
 				preProcessing(rgm, "issuing");
 				for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-					branchCodesList.add(issuingBranchCodeMap.getKey());
+					if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
+						issuing = true;
+					}
 				}
 
-				for (String branchCodes : branchCodesList) {
+				if (acquiring && issuing) {
 					preProcessing(rgm, "acquiring");
 					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
 						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-							acquiring = true;
+							branchCode = acquiringBranchCodeMap.getKey();
+							branchName = acquiringBranchCodeMap.getValue();
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							pagination++;
+							pageSize = page.getMediaBox();
+							width = pageSize.getWidth() - 2 * margin;
+							startX = pageSize.getLowerLeftX() + margin;
+							startY = pageSize.getUpperRightY() - margin;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+
+							writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 4;
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+
+							pdfBranchAsAcquiringIssuingDetails(rgm, branchCode, doc, page, contentStream, pageSize,
+									leading, startX, startY, pdfFont, fontSize);
 						}
 					}
+				} else if (acquiring) {
+					preProcessing(rgm, "acquiring");
+					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
+							branchCode = acquiringBranchCodeMap.getKey();
+							branchName = acquiringBranchCodeMap.getValue();
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							pagination++;
+							pageSize = page.getMediaBox();
+							width = pageSize.getWidth() - 2 * margin;
+							startX = pageSize.getLowerLeftX() + margin;
+							startY = pageSize.getUpperRightY() - margin;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
 
+							writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 4;
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+							pdfBranchAsAcquiringDetails(rgm, branchCode, false, doc, page, contentStream, pageSize,
+									leading, startX, startY, pdfFont, fontSize);
+						}
+					}
+				} else if (issuing) {
 					preProcessing(rgm, "issuing");
 					for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
 						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
-							issuing = true;
-						}
-					}
+							branchCode = issuingBranchCodeMap.getKey();
+							branchName = issuingBranchCodeMap.getValue();
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							page = new PDPage();
+							doc.addPage(page);
+							pagination++;
+							pageSize = page.getMediaBox();
+							width = pageSize.getWidth() - 2 * margin;
+							startX = pageSize.getLowerLeftX() + margin;
+							startY = pageSize.getUpperRightY() - margin;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
 
-					if (acquiring && issuing) {
-						preProcessing(rgm, "acquiring");
-						for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-							if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-								branchCode = acquiringBranchCodeMap.getKey();
-								branchName = acquiringBranchCodeMap.getValue();
-								pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-								page = new PDPage();
-								doc.addPage(page);
-								pagination++;
-								pageSize = page.getMediaBox();
-								width = pageSize.getWidth() - 2 * margin;
-								startX = pageSize.getLowerLeftX() + margin;
-								startY = pageSize.getUpperRightY() - margin;
-								contentStream = new PDPageContentStream(doc, page);
-								contentStream.setFont(pdfFont, fontSize);
-								contentStream.beginText();
-								contentStream.newLineAtOffset(startX, startY);
-
-								writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 4;
-								writePdfBodyHeader(rgm, contentStream, leading);
-								pageHeight += 2;
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 1;
-
-								pdfBranchAsAcquiringIssuingDetails(rgm, branchCode, doc, page, contentStream, pageSize,
-										leading, startX, startY, pdfFont, fontSize);
-							}
-						}
-					} else if (acquiring) {
-						preProcessing(rgm, "acquiring");
-						for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-							if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-								branchCode = acquiringBranchCodeMap.getKey();
-								branchName = acquiringBranchCodeMap.getValue();
-								pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-								page = new PDPage();
-								doc.addPage(page);
-								pagination++;
-								pageSize = page.getMediaBox();
-								width = pageSize.getWidth() - 2 * margin;
-								startX = pageSize.getLowerLeftX() + margin;
-								startY = pageSize.getUpperRightY() - margin;
-								contentStream = new PDPageContentStream(doc, page);
-								contentStream.setFont(pdfFont, fontSize);
-								contentStream.beginText();
-								contentStream.newLineAtOffset(startX, startY);
-
-								writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 4;
-								writePdfBodyHeader(rgm, contentStream, leading);
-								pageHeight += 2;
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 1;
-								pdfBranchAsAcquiringDetails(rgm, branchCode, false, doc, page, contentStream, pageSize,
-										leading, startX, startY, pdfFont, fontSize);
-							}
-						}
-					} else if (issuing) {
-						preProcessing(rgm, "issuing");
-						for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-							if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
-								branchCode = issuingBranchCodeMap.getKey();
-								branchName = issuingBranchCodeMap.getValue();
-								pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-								page = new PDPage();
-								doc.addPage(page);
-								pagination++;
-								pageSize = page.getMediaBox();
-								width = pageSize.getWidth() - 2 * margin;
-								startX = pageSize.getLowerLeftX() + margin;
-								startY = pageSize.getUpperRightY() - margin;
-								contentStream = new PDPageContentStream(doc, page);
-								contentStream.setFont(pdfFont, fontSize);
-								contentStream.beginText();
-								contentStream.newLineAtOffset(startX, startY);
-
-								writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 4;
-								writePdfBodyHeader(rgm, contentStream, leading);
-								pageHeight += 2;
-								contentStream.newLineAtOffset(0, -leading);
-								pageHeight += 1;
-								pdfBranchAsIssuingDetails(rgm, branchCode, true, doc, page, contentStream, pageSize,
-										leading, startX, startY, pdfFont, fontSize);
-							}
+							writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 4;
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 1;
+							pdfBranchAsIssuingDetails(rgm, branchCode, true, doc, page, contentStream, pageSize,
+									leading, startX, startY, pdfFont, fontSize);
 						}
 					}
 				}
-				saveFile(rgm, doc);
 			}
+			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -598,7 +574,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading, String channel)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
@@ -808,7 +784,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 	@Override
 	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)
-			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+					throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
