@@ -50,7 +50,8 @@ public class AtmAvailability extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		DecimalFormat formatter = new DecimalFormat("#,##0.00");
+		//DecimalFormat formatter = new DecimalFormat("#,##0.00");
+        DecimalFormat formatter = new DecimalFormat("##0.00");
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcess(rgm);
