@@ -26,4 +26,5 @@
 	<include file="config/liquibase/changelog/NY_20210126000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20210127000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210203000001_update_atm_availability_report.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210206000001_update_branch_flag.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

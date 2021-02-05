@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -253,15 +252,9 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	protected void saveFile(ReportGenerationMgr rgm, PDDocument doc, String branchCode) {
 		logger.debug("In PdfReportProcessor.saveFile()");
-		SimpleDateFormat df = new SimpleDateFormat(ReportConstants.DATE_FORMAT_01);
-		List<String> reportPaths = new ArrayList<>();
 
-		// for branch report, report need to populate in both MAIN and branch folder
-		String mainFileLocation = rgm.getFileLocation();
+		// for branch report, populate report into branch folder
 		String branchFileLocation = rgm.getFileBaseDirectory() + File.separator + branchCode + File.separator + rgm.getReportCategory() + File.separator;
-
-		reportPaths.add(mainFileLocation);
-		reportPaths.add(branchFileLocation);
 
 		String txnDate = null;
 
@@ -273,20 +266,16 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			}
 
 			if (rgm.errors == 0) {
-				for(String fileLocation: reportPaths) {
-					if (fileLocation != null) {
-						File directory = new File(fileLocation);
-						if (!directory.exists()) {
-							directory.mkdirs();
-						}
-						String fileFullPath = fileLocation + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
-						doc.save(new File(fileFullPath));
-						logger.info("New file generated in: {}", fileFullPath);
-
-					} else {
-						throw new Exception("Path is not configured.");
+				if (branchFileLocation != null) {
+					File directory = new File(branchFileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
 					}
-				}				
+					String fileFullPath = branchFileLocation + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
+					doc.save(new File(fileFullPath));
+					logger.info("New file generated in: {}", fileFullPath);
+
+				} 		
 			} else {
 				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + branchCode + "_"
 						+ txnDate + ReportConstants.PDF_FORMAT);

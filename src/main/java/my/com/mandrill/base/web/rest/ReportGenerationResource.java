@@ -52,6 +52,8 @@ import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.processor.IReportProcessor;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
@@ -61,7 +63,9 @@ import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
+import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.security.SecurityUtils;
+import my.com.mandrill.base.service.UserService;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
 /**
@@ -78,6 +82,8 @@ public class ReportGenerationResource {
 	private final JobHistoryRepository jobHistoryRepository;
 	private final InstitutionRepository institutionRepository;
 	private final ReportProcessorLocator reportProcessLocator;
+	private final UserService userService;
+	private final UserExtraRepository userExtraRepository;
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
@@ -86,13 +92,15 @@ public class ReportGenerationResource {
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
 			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository, 
-			ReportProcessorLocator reportProcessLocator, Environment env) {
+			ReportProcessorLocator reportProcessLocator, Environment env, UserService userService, UserExtraRepository userExtraRepository) {
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.jobRepository = jobRepository;
 		this.jobHistoryRepository = jobHistoryRepository;
 		this.institutionRepository = institutionRepository;
 		this.reportProcessLocator = reportProcessLocator;
+		this.userService = userService;
+		this.userExtraRepository = userExtraRepository;
 		this.env = env;
 	}
 
@@ -382,6 +390,23 @@ public class ReportGenerationResource {
 		}
 	}
 
+	private String getUserBranchCode() {
+		String branchCode = null;
+
+		final Optional<User> isUser = userService.getUserWithAuthorities();
+
+		if(isUser.isPresent()) {
+			User user = isUser.get();
+			// get user extra from given user
+			UserExtra userExtra = userExtraRepository.findByUser(user.getId());
+			if(null != userExtra.getBranches() && !userExtra.getBranches().isEmpty()) {
+				branchCode = userExtra.getBranches().stream().findFirst().get().getAbr_code();
+			}
+		}
+
+		return branchCode;
+	}
+
 	private void populateReportDetails(ReportGenerationMgr rgm, ReportDefinition def, String reportPath,
 			LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
 		rgm.setReportCategory(def.getReportCategory().getName());
@@ -428,16 +453,16 @@ public class ReportGenerationResource {
 		GeneratedReportDTO result = null;
 
 		if (reportCategoryId.equals(new Long(0))) {
-			result = retrieveAllReportbyDate(institutionId, reportDate);
+			result = retrieveAllReportbyDate(institutionId, reportDate, getUserBranchCode());
 		} else {
-			result = retrieveReportbyReportCategory(institutionId, reportDate, reportCategoryId);
+			result = retrieveReportbyReportCategory(institutionId, reportDate, reportCategoryId, getUserBranchCode());
 		}
 		logger.debug("REST finish request to get generated report by institution and report category");
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(result));
 	}
 
 	private GeneratedReportDTO retrieveReportbyReportCategory(Long institutionId, String reportDate,
-			Long reportCategoryId) {
+			Long reportCategoryId, String branchCode) {
 		logger.debug("User: {}, Rest retrieving generated reports by institution and report category",
 				SecurityUtils.getCurrentUserLogin());
 
@@ -450,30 +475,63 @@ public class ReportGenerationResource {
 		String reportYear = reportDate.substring(0, 4);
 		String reportMonth = reportDate.substring(5, 7);
 		String reportDay = reportDate.substring(8, 10);
-		File directory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
-				+ ReportConstants.MAIN_PATH + File.separator + reportCategory.getName());
-		logger.debug("Path =  " + directory.getAbsolutePath());
 
-		if (!directory.exists()) {
-			directory.mkdirs();
+		List<File> files = new ArrayList<>();
+
+		// cater for master user
+		if(branchCode == null) {
+			File mainDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
+					+ ReportConstants.MAIN_PATH + File.separator + reportCategory.getName());
+
+			files.add(mainDirectory);
+
+			// include branch report as well for master user
+			File rootDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator);
+
+			List<String> branchFolders = getBranchFolders(rootDirectory, reportCategory.getBranchFlag());
+			File branchDirectory = null;
+
+			for(String branchFolder: branchFolders) {
+				branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+						+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
+						+ branchFolder + File.separator + reportCategory.getName());
+				files.add(branchDirectory);
+			}
+		} 
+		// cater for branch user
+		else {
+			File branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
+					+ branchCode + File.separator + reportCategory.getName());
+			files.add(branchDirectory);
 		}
 
 		List<String> reportList = new ArrayList<>();
-		File[] reports = directory.listFiles();
+		File[] reports = null;
 
-		for (int i = 0; i < reports.length; i++) {
-			if (reports[i].isFile()) {
-				reportList.add(reports[i].getName());
+		for(File directory: files) {
+			if (!directory.exists()) {
+				directory.mkdirs();
+			}
+
+			reports = directory.listFiles();
+
+			for (int i = 0; i < reports.length; i++) {
+				if (reports[i].isFile()) {
+					reportList.add(reports[i].getName());
+				}
 			}
 		}
+
 		result.setReportList(reportList);
 
 		logger.debug("Rest finish retrieving generated reports by report category");
 		return result;
 	}
 
-	private GeneratedReportDTO retrieveAllReportbyDate(Long institutionId, String reportDate) {
+	private GeneratedReportDTO retrieveAllReportbyDate(Long institutionId, String reportDate, String branchCode) {
 		logger.debug("User: {}, Rest retrieving generated reports by institution and report date",
 				SecurityUtils.getCurrentUserLogin());
 
@@ -484,8 +542,8 @@ public class ReportGenerationResource {
 		String reportMonth = reportDate.substring(5, 7);
 		String reportDay = reportDate.substring(8, 10);
 		File directory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay 
-				+ File.separator + ReportConstants.MAIN_PATH + File.separator);
+				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator 
+				+ ReportConstants.MAIN_PATH + File.separator);
 
 		if (!directory.exists()) {
 			directory.mkdirs();
@@ -510,106 +568,294 @@ public class ReportGenerationResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId, @PathVariable String reportDate,
-			@PathVariable Long reportCategoryId, @PathVariable String reportName) {
+			@PathVariable Long reportCategoryId, @PathVariable String reportName) throws IOException {
 		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
 
 		Resource resource = null;
-		Path outputPath = null;
-		Path outputZipFile = null;
+		Path mainOutputPath = null;
+		Path mainOutputZipFile = null;
+		Path branchOutputPath = null;
+		Path branchOutputZipFile = null;
+		List<Path> outputPathList = new ArrayList<>();
+		List<Path> outputZipFileList = new ArrayList<>();
 
 		String reportYear = reportDate.substring(0, 4);
 		String reportMonth = reportDate.substring(5, 7);
 		String reportDay = reportDate.substring(8, 10);
 
-		if (reportCategoryId.equals(new Long(0))) {
-			outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-					reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH);
-			outputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-					reportYear + '-' + reportMonth, reportDay, reportDate, ReportConstants.MAIN_PATH + ".zip");
+		String branchCode = getUserBranchCode();
 
-			String zipFile = outputZipFile.toString();
-			File directory = new File(outputPath.toString());
-			byte[] buffer = new byte[1024];
-			FileOutputStream fout = null;
-			ZipOutputStream zout = null;
-			List<String> filesListInDir = new ArrayList<String>();
+		// master user
+		if(branchCode == null) {
+			// user find 'ALL' instead of specific category
+			if (reportCategoryId.equals(new Long(0))) {
+				mainOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+						reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH);
+				mainOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+						reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH + ".zip");
 
-			try {
-				filesListInDir = populateFilesList(directory, filesListInDir);
-				fout = new FileOutputStream(zipFile);
-				zout = new ZipOutputStream(fout);
+				outputPathList.add(mainOutputPath);
+				outputZipFileList.add(mainOutputZipFile);
 
-				for (int i = 0; i < filesListInDir.size(); i++) {
-					logger.debug("Zipping " + filesListInDir.get(i));
-					zout.putNextEntry(new ZipEntry(filesListInDir.get(i)
-							.substring(directory.getAbsolutePath().length() + 1, filesListInDir.get(i).length())));
-					FileInputStream fin = new FileInputStream(filesListInDir.get(i));
-					int length;
-					while ((length = fin.read(buffer)) > 0) {
-						zout.write(buffer, 0, length);
-					}
-					zout.closeEntry();
-					fin.close();
+				List<String> branchFolders = getBranchFolders(new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+						+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator), null);
+
+				for(String branchFolder: branchFolders) {
+					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, branchFolder);
+
+					outputPathList.add(branchOutputPath);
 				}
-				zout.close();
-				fout.close();
-				resource = new FileSystemResource(outputZipFile.toFile());
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				IOUtils.closeQuietly(zout);
-				IOUtils.closeQuietly(fout);
-			}
-		} else {
 
-			ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
+				List<String> filesListInDir = new ArrayList<String>();
+				List<String> combineFileListInDir =  new ArrayList<String>();
+				List<File> directoryList = new ArrayList<>();
 
-			if (!reportName.equalsIgnoreCase("All")) {
-				outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-						reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName(), reportName);
-				logger.debug(outputPath.toString());
-				resource = new FileSystemResource(outputPath.toFile());
-			} else {
-				outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-						reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName());
-				outputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-						reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName() + reportDate + ".zip");
+				File mainDirectory = new File(mainOutputPath.toString());
 
-				String zipFile = outputZipFile.toString();
-				File directory = new File(outputPath.toString());
+				for(int i=0; i<outputPathList.size(); i++) {
+					filesListInDir.clear();
+					File directory = new File(outputPathList.get(i).toString());
+					filesListInDir = populateFilesList(directory, filesListInDir);
+					directoryList.add(directory);
+					combineFileListInDir.addAll(filesListInDir);
+				}
+
+				String zipFile = mainOutputZipFile.toString();
+
 				byte[] buffer = new byte[1024];
 				FileOutputStream fout = null;
 				ZipOutputStream zout = null;
-				List<String> filesListInDir = new ArrayList<String>();
 
 				try {
-					filesListInDir = populateFilesList(directory, filesListInDir);
+
 					fout = new FileOutputStream(zipFile);
 					zout = new ZipOutputStream(fout);
 
-					for (int i = 0; i < filesListInDir.size(); i++) {
-						logger.debug("Zipping " + filesListInDir.get(i));
-						zout.putNextEntry(new ZipEntry(filesListInDir.get(i)
-								.substring(directory.getAbsolutePath().length() + 1, filesListInDir.get(i).length())));
-						FileInputStream fin = new FileInputStream(filesListInDir.get(i));
+					for (int j = 0; j < combineFileListInDir.size(); j++) {
+						logger.debug("Zipping " + combineFileListInDir.get(j));		
+						zout.putNextEntry(new ZipEntry(combineFileListInDir.get(j)
+								.substring(mainDirectory.getAbsolutePath().length() - 4, combineFileListInDir.get(j).length())));
+
+						FileInputStream fin = new FileInputStream(combineFileListInDir.get(j));
 						int length;
 						while ((length = fin.read(buffer)) > 0) {
 							zout.write(buffer, 0, length);
 						}
 						zout.closeEntry();
-						fin.close();
+						fin.close();			
 					}
 					zout.close();
 					fout.close();
-					resource = new FileSystemResource(outputZipFile.toFile());
+					resource = new FileSystemResource(mainOutputZipFile.toFile());
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
 					IOUtils.closeQuietly(zout);
 					IOUtils.closeQuietly(fout);
 				}
+			// user find specific category to download
+			} else {
+
+				ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
+				Path outputPath = null;
+
+				// user click download only specific report	from given list			
+				if (!reportName.equalsIgnoreCase("All")) {
+					String[] reportNameArray = reportName.split("_");
+					if(reportNameArray.length > 2) {
+						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+								reportYear + '-' + reportMonth, reportDay, reportNameArray[1], reportCategory.getName(), reportName);
+					} else {
+						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+								reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName(), reportName);
+					}
+
+					logger.debug(outputPath.toString());
+					resource = new FileSystemResource(outputPath.toFile());
+				} 
+				// user click download 'All' from given list
+				else {
+					mainOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName());
+					mainOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName() + reportDate + ".zip");
+
+					outputPathList.add(mainOutputPath);
+
+					List<String> branchFolders = getBranchFolders(new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+							+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator), reportCategory.getBranchFlag());
+
+					for(String branchFolder: branchFolders) {
+						branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+								reportYear + '-' + reportMonth, reportDay, branchFolder);
+
+						outputPathList.add(branchOutputPath);
+					}
+
+					List<String> filesListInDir = new ArrayList<String>();
+					List<String> combineFileListInDir =  new ArrayList<String>();
+
+					File mainDirectory = new File(mainOutputPath.toString());
+
+					for(int i=0; i<outputPathList.size(); i++) {
+						filesListInDir.clear();
+						File directory = new File(outputPathList.get(i).toString());
+						filesListInDir = populateFilesList(directory, filesListInDir);
+						combineFileListInDir.addAll(filesListInDir);
+					}
+
+					String zipFile = mainOutputZipFile.toString();
+
+					byte[] buffer = new byte[1024];
+					FileOutputStream fout = null;
+					ZipOutputStream zout = null;
+
+					try {
+
+						fout = new FileOutputStream(zipFile);
+						zout = new ZipOutputStream(fout);
+
+						for (int k = 0; k < combineFileListInDir.size(); k++) {
+							logger.debug("Zipping " + combineFileListInDir.get(k));
+							zout.putNextEntry(new ZipEntry(combineFileListInDir.get(k)
+									.substring(mainDirectory.getAbsolutePath().length() + 1, combineFileListInDir.get(k).length())));
+							FileInputStream fin = new FileInputStream(combineFileListInDir.get(k));
+							int length;
+							while ((length = fin.read(buffer)) > 0) {
+								zout.write(buffer, 0, length);
+							}
+							zout.closeEntry();
+							fin.close();
+						}
+						zout.close();
+						fout.close();
+						resource = new FileSystemResource(mainOutputZipFile.toFile());
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						IOUtils.closeQuietly(zout);
+						IOUtils.closeQuietly(fout);
+					}
+				}
 			}
 		}
+		// branch user
+		else {
+			// user find 'ALL' instead of specific category
+			if (reportCategoryId.equals(new Long(0))) {
+
+				branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+						reportYear + '-' + reportMonth, reportDay, branchCode);
+				branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+						reportYear + '-' + reportMonth, reportDay, branchCode + ".zip");
+
+				List<String> filesListInDir = new ArrayList<String>();
+				List<File> directoryList = new ArrayList<>();
+
+				File branchDirectory = new File(branchOutputPath.toString());
+
+				File directory = new File(branchOutputPath.toString());
+				filesListInDir = populateFilesList(directory, filesListInDir);
+				directoryList.add(directory);
+
+				String zipFile = branchOutputZipFile.toString();
+
+				byte[] buffer = new byte[1024];
+				FileOutputStream fout = null;
+				ZipOutputStream zout = null;
+
+				try {
+
+					fout = new FileOutputStream(zipFile);
+					zout = new ZipOutputStream(fout);
+
+					for (int j = 0; j < filesListInDir.size(); j++) {
+						logger.debug("Zipping " + filesListInDir.get(j));		
+						zout.putNextEntry(new ZipEntry(filesListInDir.get(j)
+								.substring(branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
+
+						FileInputStream fin = new FileInputStream(filesListInDir.get(j));
+						int length;
+						while ((length = fin.read(buffer)) > 0) {
+							zout.write(buffer, 0, length);
+						}
+						zout.closeEntry();
+						fin.close();			
+					}
+					zout.close();
+					fout.close();
+					resource = new FileSystemResource(branchOutputZipFile.toFile());
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					IOUtils.closeQuietly(zout);
+					IOUtils.closeQuietly(fout);
+				}
+			// user find specific category to download
+			} else {
+				// user click download only specific report	from given list	 
+				if (!reportName.equalsIgnoreCase("All")) {
+					ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
+					Path outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, branchCode, reportCategory.getName(), reportName);
+
+					logger.debug(outputPath.toString());
+					resource = new FileSystemResource(outputPath.toFile());
+				}
+				// user click download 'All' from given list
+				else {
+					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, branchCode);
+					branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, branchCode + ".zip");
+
+					List<String> filesListInDir = new ArrayList<String>();
+					List<File> directoryList = new ArrayList<>();
+
+					File branchDirectory = new File(branchOutputPath.toString());
+
+					File directory = new File(branchOutputPath.toString());
+					filesListInDir = populateFilesList(directory, filesListInDir);
+					directoryList.add(directory);
+
+					String zipFile = branchOutputZipFile.toString();
+
+					byte[] buffer = new byte[1024];
+					FileOutputStream fout = null;
+					ZipOutputStream zout = null;
+
+					try {
+
+						fout = new FileOutputStream(zipFile);
+						zout = new ZipOutputStream(fout);
+
+						for (int j = 0; j < filesListInDir.size(); j++) {
+							logger.debug("Zipping " + filesListInDir.get(j));		
+							zout.putNextEntry(new ZipEntry(filesListInDir.get(j)
+									.substring(branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
+
+							FileInputStream fin = new FileInputStream(filesListInDir.get(j));
+							int length;
+							while ((length = fin.read(buffer)) > 0) {
+								zout.write(buffer, 0, length);
+							}
+							zout.closeEntry();
+							fin.close();			
+						}
+						zout.close();
+						fout.close();
+						resource = new FileSystemResource(branchOutputZipFile.toFile());
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						IOUtils.closeQuietly(zout);
+						IOUtils.closeQuietly(fout);
+					}
+				}			
+			} 
+		}
+
 		logger.debug("REST finish request to download report");
 		return ResponseEntity.ok().body(resource);
 	}
@@ -641,5 +887,35 @@ public class ReportGenerationResource {
 			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
 					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 		}
+	}
+	
+	private List<String> getBranchFolders(File root, String reportCategoryBranchFlag) {
+		List<String> branchFolderList = new ArrayList<>();
+		File[] list = root.listFiles();
+
+		if (list == null) return null;
+
+		for (File f : list) {
+			if (f.isDirectory()) {    
+				if (isBranchFolder(f.getName()) && (null == reportCategoryBranchFlag || reportCategoryBranchFlag.equalsIgnoreCase("BRANCH"))) {
+					branchFolderList.add(f.getName());
+				}               
+			}
+		}
+
+		return branchFolderList;
+	}
+
+
+	public boolean isBranchFolder(String folderName) {
+		if (folderName == null) {
+			return false;
+		}
+		try {
+			double d = Double.parseDouble(folderName);
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+		return true;
 	}
 }
