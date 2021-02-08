@@ -662,14 +662,14 @@ public class ReportGenerationResource {
 				Path outputPath = null;
 				
 				if (!reportName.equalsIgnoreCase("All")) {
-					String[] reportNameArray = reportName.split("_");
-					if(reportNameArray.length > 2) {
-						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-								reportYear + '-' + reportMonth, reportDay, reportNameArray[1], reportCategory.getName(), reportName);
-					} else {
+//					String[] reportNameArray = reportName.split("_");
+//					if(reportNameArray.length > 2) {
+//						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+//								reportYear + '-' + reportMonth, reportDay, reportNameArray[1], reportCategory.getName(), reportName);
+//					} else {
 						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
 								reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName(), reportName);
-					}
+//					}
 
 					logger.debug(outputPath.toString());
 					resource = new FileSystemResource(outputPath.toFile());

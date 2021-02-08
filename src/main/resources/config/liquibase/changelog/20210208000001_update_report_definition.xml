@@ -14,13 +14,11 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="20210208000001" author="kw">
-		<addColumn tableName="CBC_GL_ACCOUNT" >
-			<column name="gla_institution"
-				defaultValue="CBC"
-				type="varchar(10)">
-				<constraints nullable="false"/>
-			</column>   
-		</addColumn> 
+    <changeSet id="20210208000001_update_report_definition" author="kw">
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report_definition_update_20210208_kw.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>

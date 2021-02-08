@@ -88,10 +88,11 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), out);
 			writeReportTrailer(currentContext, parseFieldConfig(rgm.getTrailerFields()), out);
 			out.close();
-			logger.debug("Report generation complete. Total records={}", currentContext.getTotalRecord());
-			
+			logger.debug("Report generation complete. File={}, Total records={}", outputFile.getAbsolutePath(),
+					currentContext.getTotalRecord());
+
 			postReportGeneration(outputFile);
-			
+
 		} catch (Exception e) {
 			logger.debug("Failed to process file: {}", outputFile.getAbsolutePath(), e);
 			if (outputFile != null && outputFile.exists()) {
@@ -129,9 +130,9 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			}
 		}
 	}
-	
+
 	protected void postReportGeneration(File outputFile) throws Exception {
-		
+
 	}
 
 	protected Map<String, ReportGenerationFields> initPredefinedFieldMap(ReportGenerationMgr rgm) {
@@ -341,6 +342,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			if (f.getFieldName() == null) {
 				continue;
 			}
+
 			Object result = rs.getObject(f.getFieldName());
 			if (result != null) {
 				if (result instanceof Date) {
