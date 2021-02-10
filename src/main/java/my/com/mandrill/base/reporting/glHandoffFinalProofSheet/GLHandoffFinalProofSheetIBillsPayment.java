@@ -210,6 +210,10 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
+			
+			if (getCriteriaQuery().contains(ReportConstants.PARAM_ISSUER_NAME)) {
+				setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", ""));
+			}
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -231,6 +235,12 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+		
+		if (ReportConstants.DEBIT_IND.equals(indicator) && getDebitBodyQuery() != null && getDebitBodyQuery().contains(ReportConstants.PARAM_ISSUER_NAME)) {
+			setDebitBodyQuery(getDebitBodyQuery().replace("{" + ReportConstants.PARAM_ISSUER_NAME + "}", ("TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'")));
+		} else if (ReportConstants.CREDIT_IND.equals(indicator) && getCreditBodyQuery() != null && getCreditBodyQuery().contains(ReportConstants.PARAM_ISSUER_NAME)) {
+			setCreditBodyQuery(getCreditBodyQuery().replace("{" + ReportConstants.PARAM_ISSUER_NAME + "}", ("TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'")));
 		}
 
 		switch (filterByGlDescription) {

@@ -285,7 +285,12 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
+			
+			if (getCriteriaQuery().contains(ReportConstants.PARAM_ISSUER_NAME)) {
+				setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", ""));
+			}
 		}
+
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
@@ -306,6 +311,13 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		}
+		
+		if (rgm.getBodyQuery() != null && rgm.getBodyQuery().contains(ReportConstants.PARAM_ISSUER_NAME)) {
+			ReportGenerationFields institutionField = new ReportGenerationFields(ReportConstants.PARAM_ISSUER_NAME,
+					ReportGenerationFields.TYPE_STRING,
+					"TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'");
+			getGlobalFileFieldsMap().put(institutionField.getFieldName(), institutionField);
 		}
 
 		switch (filterByGlDescription) {
