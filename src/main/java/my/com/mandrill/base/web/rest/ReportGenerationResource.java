@@ -572,6 +572,7 @@ public class ReportGenerationResource {
 		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
 
 		Resource resource = null;
+		Path rootOutputPath = null;
 		Path mainOutputPath = null;
 		Path mainOutputZipFile = null;
 		Path branchOutputPath = null;
@@ -656,11 +657,10 @@ public class ReportGenerationResource {
 				}
 			// user find specific category to download
 			} else {
-
+				// user click download only specific report	from given list	
 				ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
 				Path outputPath = null;
-
-				// user click download only specific report	from given list			
+				
 				if (!reportName.equalsIgnoreCase("All")) {
 					String[] reportNameArray = reportName.split("_");
 					if(reportNameArray.length > 2) {
@@ -676,6 +676,8 @@ public class ReportGenerationResource {
 				} 
 				// user click download 'All' from given list
 				else {
+					rootOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay);
 					mainOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
 							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName());
 					mainOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
@@ -696,7 +698,7 @@ public class ReportGenerationResource {
 					List<String> filesListInDir = new ArrayList<String>();
 					List<String> combineFileListInDir =  new ArrayList<String>();
 
-					File mainDirectory = new File(mainOutputPath.toString());
+					File rootDirectory = new File(rootOutputPath.toString());
 
 					for(int i=0; i<outputPathList.size(); i++) {
 						filesListInDir.clear();
@@ -704,7 +706,7 @@ public class ReportGenerationResource {
 						filesListInDir = populateFilesList(directory, filesListInDir);
 						combineFileListInDir.addAll(filesListInDir);
 					}
-
+					
 					String zipFile = mainOutputZipFile.toString();
 
 					byte[] buffer = new byte[1024];
@@ -719,7 +721,7 @@ public class ReportGenerationResource {
 						for (int k = 0; k < combineFileListInDir.size(); k++) {
 							logger.debug("Zipping " + combineFileListInDir.get(k));
 							zout.putNextEntry(new ZipEntry(combineFileListInDir.get(k)
-									.substring(mainDirectory.getAbsolutePath().length() + 1, combineFileListInDir.get(k).length())));
+									.substring(rootDirectory.getAbsolutePath().length() + 1)));
 							FileInputStream fin = new FileInputStream(combineFileListInDir.get(k));
 							int length;
 							while ((length = fin.read(buffer)) > 0) {
