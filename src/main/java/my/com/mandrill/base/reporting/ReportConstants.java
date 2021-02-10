@@ -285,4 +285,6 @@ public final class ReportConstants {
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
 	public static final String SEPARATOR = ",";
+	
+	public static final String SECUREFIELD = "secure-field";
 }

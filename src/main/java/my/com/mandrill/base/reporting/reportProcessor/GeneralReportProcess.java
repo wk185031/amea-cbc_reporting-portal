@@ -415,6 +415,10 @@ public class GeneralReportProcess {
 		if (customData == null || tag == null) {
 			return null;
 		}
+		
+		if(customData.contains(ReportConstants.SECUREFIELD)) {
+			customData = customData.replace(" "+ReportConstants.SECUREFIELD + "=\"Y\"", "");
+		}
 
 		String xmlTag = "<" + tag + ">";
 		int beginIndex = customData.indexOf(xmlTag) + xmlTag.length();
