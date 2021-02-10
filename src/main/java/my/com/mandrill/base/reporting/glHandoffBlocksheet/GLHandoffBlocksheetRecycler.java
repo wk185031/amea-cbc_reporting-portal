@@ -71,6 +71,14 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
+				
+				pdfProcessingDetail(rgm, null, contentStream, doc, page, pageSize, leading, startX,
+						startY, pdfFont, fontSize);
+				
+				contentStream.setFont(PDType1Font.COURIER, 12);
+				contentStream.newLineAtOffset(0, -leading);
+				contentStream.showText("**NO TRANSACTIONS FOR THE DAY**");
+				
 				contentStream.endText();
 				contentStream.close();
 				saveFile(rgm, doc);
@@ -169,8 +177,12 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize, branchCode);
+			
+			if(branchCode!=null) {
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize, branchCode);
+			}
+			
 		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
 				| ClassNotFoundException e) {
 			rgm.errors++;
@@ -190,6 +202,11 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 			preProcessing(rgm);
 
 			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			
+			if(!branchCodeItr.hasNext()) {
+				processingDetail(rgm, branchCode);
+			}
+				
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
 				firstRecord = true;
@@ -234,8 +251,14 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 			preProcessing(rgm, branchCode);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm, branchCode);
-			executeTrailerQuery(rgm);
+			
+			if(branchCode!=null) {
+				executeBodyQuery(rgm, branchCode);
+				executeTrailerQuery(rgm);
+			}else {
+				rgm.writeLine("**NO TRANSACTIONS FOR THE DAY**".getBytes());
+			}
+			
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
