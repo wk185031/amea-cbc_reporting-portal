@@ -161,8 +161,12 @@ public class AtmAvailability extends CsvReportProcessor {
 			noOfDaysInMonth = rgm.getYesterdayDate().lengthOfMonth();
 		}
 		double targetHour = 24 * noOfDaysInMonth;
-
+		
+		double available = 0.00;
+		double unavailable = 0.00;
+		
 		for (ReportGenerationFields field : fields) {
+			
 			switch (field.getFieldName()) {
 			case ReportConstants.TERMINAL:
 				terminalCount++;
@@ -179,11 +183,12 @@ public class AtmAvailability extends CsvReportProcessor {
 //				double available = ((targetHour - availableOutageHour.getHour()) / targetHour) * 100;
 //				line.append(availableFormatter.format(available) + "%");
 //				setAvailablePercentage(available);
-				String value = getFieldValue(rgm, field, fieldsMap);
-				line.append(value);
-				totalPercentage += Double.valueOf(value);
+				String availableValue = getFieldValue(rgm, field, fieldsMap);
+				available = Double.valueOf(availableValue);
+				line.append(availableValue);
+				totalPercentage += available;
 				break;
-//			case ReportConstants.UNAVAILABLE:
+			case ReportConstants.UNAVAILABLE:
 //				DecimalFormat unavailableFormatter = new DecimalFormat("#,##0.00");
 //				setCriteriaQuery(
 //						"SELECT ASH.ASH_TIMESTAMP FROM ATM_STATIONS AST JOIN ATM_STATUS_HISTORY ASH ON AST.AST_ID = ASH.ASH_AST_ID WHERE ASH.ASH_COMM_STATUS = 'Down' AND ASH.ASH_SERVICE_STATE_REASON IN ('Comms Event', 'In supervisor mode', 'Power fail', 'Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty', 'Cash dispenser faulty', 'Cash availability status change', 'Operator request') AND SUBSTR(AST.AST_TERMINAL_ID, -4) = '"
@@ -192,9 +197,13 @@ public class AtmAvailability extends CsvReportProcessor {
 //						.ofInstant(Instant.ofEpochMilli(Long.parseLong(executeQuery(rgm))), ZoneId.systemDefault());
 //				double unavailable = ((targetHour - unavailableOutageHour.getHour()) / targetHour) * 100;
 //				line.append(unavailableFormatter.format(unavailable) + "%");
-//				break;
+				String unavailableValue = getFieldValue(rgm, field, fieldsMap);
+				line.append(unavailableValue);
+				unavailable = Double.valueOf(unavailableValue);
+				break;
 			case ReportConstants.STANDARD:
-				String standardValue = getFieldValue(rgm, field, fieldsMap);
+				//String standardValue = getFieldValue(rgm, field, fieldsMap);
+				String standardValue = available > 95 ? "1" : "0";
 				line.append(standardValue);
 				totalMeetStandard += "1".equals(standardValue) ? 1 : 0;
 				break;
