@@ -37,7 +37,7 @@ public class DCMSControlReport extends PdfReportProcessor {
 	private static final String EMBOSSED_RECORDS_FILE_NAME_PREFIX = "Control Report for Embossed Records";
 		
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In DCMSControlReport.processPdfRecord(): " + rgm.getFileNamePrefix());
 		generateReport(rgm);
 	}

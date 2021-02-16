@@ -65,6 +65,7 @@ import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.security.SecurityUtils;
+import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.UserService;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
@@ -84,6 +85,7 @@ public class ReportGenerationResource {
 	private final ReportProcessorLocator reportProcessLocator;
 	private final UserService userService;
 	private final UserExtraRepository userExtraRepository;
+	private final EncryptionService encryptionService;
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
@@ -91,8 +93,9 @@ public class ReportGenerationResource {
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
-			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository, 
-			ReportProcessorLocator reportProcessLocator, Environment env, UserService userService, UserExtraRepository userExtraRepository) {
+			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository,
+			ReportProcessorLocator reportProcessLocator, EncryptionService encryptionService, Environment env,
+			UserService userService, UserExtraRepository userExtraRepository) {
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.jobRepository = jobRepository;
@@ -101,6 +104,7 @@ public class ReportGenerationResource {
 		this.reportProcessLocator = reportProcessLocator;
 		this.userService = userService;
 		this.userExtraRepository = userExtraRepository;
+		this.encryptionService = encryptionService;
 		this.env = env;
 	}
 
@@ -141,7 +145,7 @@ public class ReportGenerationResource {
 
 								if (jobHistoryList.getStatus().equalsIgnoreCase(ReportConstants.STATUS_COMPLETED)
 										&& DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01)
-										.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
+												.format(jobHistoryList.getCreatedDate()).equals(todayDate)) {
 									logger.debug(
 											"Job History Status: {}, Created Date: {}. Start generating reports. Transaction Date: {}, Report Run Date: {}",
 											jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate,
@@ -203,6 +207,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
@@ -211,9 +216,8 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
 				reportGenerationMgr.setFileBaseDirectory(directory);
-				reportGenerationMgr.setFileLocation(
-						directory + File.separator + ReportConstants.MAIN_PATH + File.separator + 
-						reportDefinitionList.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setFileLocation(directory + File.separator + ReportConstants.MAIN_PATH
+						+ File.separator + reportDefinitionList.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
 				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
 				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
@@ -244,6 +248,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
@@ -252,9 +257,8 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
 				reportGenerationMgr.setFileBaseDirectory(directory);
-				reportGenerationMgr.setFileLocation(
-						directory + File.separator + ReportConstants.MAIN_PATH + File.separator + 
-						reportDefinitionList.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setFileLocation(directory + File.separator + ReportConstants.MAIN_PATH
+						+ File.separator + reportDefinitionList.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
 				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
 				reportGenerationMgr.setHeaderFields(reportDefinitionList.getHeaderFields());
@@ -269,63 +273,79 @@ public class ReportGenerationResource {
 		}
 	}
 
-	//	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
-	//	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	//	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
-	//			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @PathVariable String txnDate)
-	//			throws ParseException {
-	//		logger.debug(
-	//				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, Transaction Date: {}",
-	//				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId, txnDate);
+	// @GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
+	// @PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON +
+	// RESOURCE_GENERATE_REPORT + "')")
+	// public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long
+	// institutionId,
+	// @PathVariable Long reportCategoryId, @PathVariable Long reportId,
+	// @PathVariable String txnDate)
+	// throws ParseException {
+	// logger.debug(
+	// "User: {}, Rest to generate Report Institution ID: {}, Category ID: {},
+	// Report ID: {}, Transaction Date: {}",
+	// SecurityUtils.getCurrentUserLogin().orElse(""), institutionId,
+	// reportCategoryId, reportId, txnDate);
 	//
-	//		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-	//		LocalDate firstDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
-	//		LocalDate lastDayOfMonth = YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
+	// ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+	// LocalDate firstDayOfMonth =
+	// YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
+	// LocalDate lastDayOfMonth =
+	// YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
 	//
-	//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	// DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	//
-	//		LocalDateTime txnStartDate = LocalDate.parse(txnDate, formatter).atStartOfDay();
-	//		LocalDateTime txnEndDate = LocalDateTime.parse(txnDate, formatter);
+	// LocalDateTime txnStartDate = LocalDate.parse(txnDate,
+	// formatter).atStartOfDay();
+	// LocalDateTime txnEndDate = LocalDateTime.parse(txnDate, formatter);
 	//
-	//		String instShortCode = null;
+	// String instShortCode = null;
 	//
-	//		List<Institution> institutions = institutionRepository.findAll();
-	//		for (Institution institution : institutions) {
-	//			if ("Institution".equals(institution.getType()) && institution.getId() == institutionId) {
-	//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-	//					instShortCode = "CBC";
-	//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-	//					instShortCode = "CBS";
-	//				}
-	//			}
-	//		}
+	// List<Institution> institutions = institutionRepository.findAll();
+	// for (Institution institution : institutions) {
+	// if ("Institution".equals(institution.getType()) && institution.getId() ==
+	// institutionId) {
+	// if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+	// instShortCode = "CBC";
+	// } else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+	// instShortCode = "CBS";
+	// }
+	// }
+	// }
 	//
-	//		reportGenerationMgr.setInstitution(instShortCode);
-	//		reportGenerationMgr.setGenerate(true);
-	//		reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
-	//		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
-	//		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+	// reportGenerationMgr.setInstitution(instShortCode);
+	// reportGenerationMgr.setGenerate(true);
+	// reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
+	// reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+	// reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 	//
-	//		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-	//				+ institutionId + File.separator + txnDate.substring(0, 7);
+	// String directory =
+	// Paths.get(env.getProperty("application.reportDir.path")).toString() +
+	// File.separator
+	// + institutionId + File.separator + txnDate.substring(0, 7);
 	//
-	//		if (reportId == 0) {
-	//			List<ReportDefinition> aList = reportDefinitionRepository.findAll(orderByIdAsc());
-	//			for (ReportDefinition reportDefinition : aList) {
-	//				populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDate, txnEndDate);
-	//				runReport(reportGenerationMgr);
-	//			}
-	//			// FIXME: The return type is only ReportDefinition, but this is processing a
-	//			// list
-	//			return ResponseUtil
-	//					.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
-	//		} else {
-	//			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
-	//			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDate, txnEndDate);
-	//			runReport(reportGenerationMgr);
-	//			return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
-	//		}
-	//	}
+	// if (reportId == 0) {
+	// List<ReportDefinition> aList =
+	// reportDefinitionRepository.findAll(orderByIdAsc());
+	// for (ReportDefinition reportDefinition : aList) {
+	// populateReportDetails(reportGenerationMgr, reportDefinition, directory,
+	// txnStartDate, txnEndDate);
+	// runReport(reportGenerationMgr);
+	// }
+	// // FIXME: The return type is only ReportDefinition, but this is processing a
+	// // list
+	// return ResponseUtil
+	// .wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null
+	// : aList.get(0)));
+	// } else {
+	// ReportDefinition reportDefinition =
+	// reportDefinitionRepository.findOne(reportId);
+	// populateReportDetails(reportGenerationMgr, reportDefinition, directory,
+	// txnStartDate, txnEndDate);
+	// runReport(reportGenerationMgr);
+	// return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
+	// }
+	// }
 
 	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
@@ -352,6 +372,7 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setFileDate(txnStartDateTime.toLocalDate());
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		String yearMonth = txnStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
@@ -371,8 +392,7 @@ public class ReportGenerationResource {
 		}
 		logger.debug("Process {} reports", aList.size());
 		for (ReportDefinition reportDefinition : aList) {
-			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDateTime,
-					txnEndDateTime);
+			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDateTime, txnEndDateTime);
 			runReport(reportGenerationMgr);
 
 		}
@@ -395,11 +415,11 @@ public class ReportGenerationResource {
 
 		final Optional<User> isUser = userService.getUserWithAuthorities();
 
-		if(isUser.isPresent()) {
+		if (isUser.isPresent()) {
 			User user = isUser.get();
 			// get user extra from given user
 			UserExtra userExtra = userExtraRepository.findByUser(user.getId());
-			if(null != userExtra.getBranches() && !userExtra.getBranches().isEmpty()) {
+			if (null != userExtra.getBranches() && !userExtra.getBranches().isEmpty()) {
 				branchCode = userExtra.getBranches().stream().findFirst().get().getAbr_code();
 			}
 		}
@@ -426,14 +446,14 @@ public class ReportGenerationResource {
 
 		if (rgm.getFrequency().contains(ReportConstants.DAILY)) {
 			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
-			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator
-					+ ReportConstants.MAIN_PATH + File.separator + def.getReportCategory().getName() + File.separator);
+			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
+					+ File.separator + def.getReportCategory().getName() + File.separator);
 			rgm.setTxnStartDate(txnStartDate);
 			rgm.setTxnEndDate(txnEndDate.plusMinutes(1L));
 		} else if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
 			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
-			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator
-					+ ReportConstants.MAIN_PATH + File.separator + def.getReportCategory().getName() + File.separator);
+			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
+					+ File.separator + def.getReportCategory().getName() + File.separator);
 			LocalDate firstDayOfMonth = txnStartDate.toLocalDate().withDayOfMonth(1);
 			LocalDate lastDayOfMonth = txnStartDate.toLocalDate()
 					.withDayOfMonth(txnStartDate.toLocalDate().lengthOfMonth());
@@ -479,39 +499,42 @@ public class ReportGenerationResource {
 		List<File> files = new ArrayList<>();
 
 		// cater for master user
-		if(branchCode == null) {
-			File mainDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
-					+ ReportConstants.MAIN_PATH + File.separator + reportCategory.getName());
+		if (branchCode == null) {
+			File mainDirectory = new File(
+					Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator + institutionId
+							+ File.separator + reportYear + '-' + reportMonth + File.separator + reportDay
+							+ File.separator + ReportConstants.MAIN_PATH + File.separator + reportCategory.getName());
 
 			files.add(mainDirectory);
 
 			// include branch report as well for master user
-			File rootDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator);
+			File rootDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString()
+					+ File.separator + institutionId + File.separator + reportYear + '-' + reportMonth + File.separator
+					+ reportDay + File.separator);
 
 			List<String> branchFolders = getBranchFolders(rootDirectory, reportCategory.getBranchFlag());
 			File branchDirectory = null;
 
-			for(String branchFolder: branchFolders) {
-				branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-						+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
-						+ branchFolder + File.separator + reportCategory.getName());
+			for (String branchFolder : branchFolders) {
+				branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString()
+						+ File.separator + institutionId + File.separator + reportYear + '-' + reportMonth
+						+ File.separator + reportDay + File.separator + branchFolder + File.separator
+						+ reportCategory.getName());
 				files.add(branchDirectory);
 			}
-		} 
+		}
 		// cater for branch user
 		else {
-			File branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-					+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator
-					+ branchCode + File.separator + reportCategory.getName());
+			File branchDirectory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString()
+					+ File.separator + institutionId + File.separator + reportYear + '-' + reportMonth + File.separator
+					+ reportDay + File.separator + branchCode + File.separator + reportCategory.getName());
 			files.add(branchDirectory);
 		}
 
 		List<String> reportList = new ArrayList<>();
 		File[] reports = null;
 
-		for(File directory: files) {
+		for (File directory : files) {
 			if (!directory.exists()) {
 				directory.mkdirs();
 			}
@@ -542,8 +565,8 @@ public class ReportGenerationResource {
 		String reportMonth = reportDate.substring(5, 7);
 		String reportDay = reportDate.substring(8, 10);
 		File directory = new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator 
-				+ ReportConstants.MAIN_PATH + File.separator);
+				+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay
+				+ File.separator + ReportConstants.MAIN_PATH + File.separator);
 
 		if (!directory.exists()) {
 			directory.mkdirs();
@@ -587,7 +610,7 @@ public class ReportGenerationResource {
 		String branchCode = getUserBranchCode();
 
 		// master user
-		if(branchCode == null) {
+		if (branchCode == null) {
 			// user find 'ALL' instead of specific category
 			if (reportCategoryId.equals(new Long(0))) {
 				mainOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
@@ -598,23 +621,26 @@ public class ReportGenerationResource {
 				outputPathList.add(mainOutputPath);
 				outputZipFileList.add(mainOutputZipFile);
 
-				List<String> branchFolders = getBranchFolders(new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-						+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator), null);
+				List<String> branchFolders = getBranchFolders(
+						new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+								+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator
+								+ reportDay + File.separator),
+						null);
 
-				for(String branchFolder: branchFolders) {
-					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, branchFolder);
+				for (String branchFolder : branchFolders) {
+					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchFolder);
 
 					outputPathList.add(branchOutputPath);
 				}
 
 				List<String> filesListInDir = new ArrayList<String>();
-				List<String> combineFileListInDir =  new ArrayList<String>();
+				List<String> combineFileListInDir = new ArrayList<String>();
 				List<File> directoryList = new ArrayList<>();
 
 				File mainDirectory = new File(mainOutputPath.toString());
 
-				for(int i=0; i<outputPathList.size(); i++) {
+				for (int i = 0; i < outputPathList.size(); i++) {
 					filesListInDir.clear();
 					File directory = new File(outputPathList.get(i).toString());
 					filesListInDir = populateFilesList(directory, filesListInDir);
@@ -634,9 +660,9 @@ public class ReportGenerationResource {
 					zout = new ZipOutputStream(fout);
 
 					for (int j = 0; j < combineFileListInDir.size(); j++) {
-						logger.debug("Zipping " + combineFileListInDir.get(j));		
-						zout.putNextEntry(new ZipEntry(combineFileListInDir.get(j)
-								.substring(mainDirectory.getAbsolutePath().length() - 4, combineFileListInDir.get(j).length())));
+						logger.debug("Zipping " + combineFileListInDir.get(j));
+						zout.putNextEntry(new ZipEntry(combineFileListInDir.get(j).substring(
+								mainDirectory.getAbsolutePath().length() - 4, combineFileListInDir.get(j).length())));
 
 						FileInputStream fin = new FileInputStream(combineFileListInDir.get(j));
 						int length;
@@ -644,7 +670,7 @@ public class ReportGenerationResource {
 							zout.write(buffer, 0, length);
 						}
 						zout.closeEntry();
-						fin.close();			
+						fin.close();
 					}
 					zout.close();
 					fout.close();
@@ -655,58 +681,64 @@ public class ReportGenerationResource {
 					IOUtils.closeQuietly(zout);
 					IOUtils.closeQuietly(fout);
 				}
-			// user find specific category to download
+				// user find specific category to download
 			} else {
-				// user click download only specific report	from given list	
+				// user click download only specific report from given list
 				ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
 				Path outputPath = null;
-				
+
 				if (!reportName.equalsIgnoreCase("All")) {
 //					String[] reportNameArray = reportName.split("_");
 //					if(reportNameArray.length > 2) {
 //						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
 //								reportYear + '-' + reportMonth, reportDay, reportNameArray[1], reportCategory.getName(), reportName);
 //					} else {
-						outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-								reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName(), reportName);
+					outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
+							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH,
+							reportCategory.getName(), reportName);
 //					}
 
 					logger.debug(outputPath.toString());
 					resource = new FileSystemResource(outputPath.toFile());
-				} 
+				}
 				// user click download 'All' from given list
 				else {
 					rootOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
 							reportYear + '-' + reportMonth, reportDay);
 					mainOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName());
-					mainOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH, reportCategory.getName() + reportDate + ".zip");
+							reportYear + '-' + reportMonth, reportDay, ReportConstants.MAIN_PATH,
+							reportCategory.getName());
+					mainOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay,
+							ReportConstants.MAIN_PATH, reportCategory.getName() + reportDate + ".zip");
 
 					outputPathList.add(mainOutputPath);
 
-					List<String> branchFolders = getBranchFolders(new File(Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-							+ institutionId + File.separator + reportYear + '-' + reportMonth + File.separator + reportDay + File.separator), reportCategory.getBranchFlag());
+					List<String> branchFolders = getBranchFolders(
+							new File(Paths.get(env.getProperty("application.reportDir.path")).toString()
+									+ File.separator + institutionId + File.separator + reportYear + '-' + reportMonth
+									+ File.separator + reportDay + File.separator),
+							reportCategory.getBranchFlag());
 
-					for(String branchFolder: branchFolders) {
-						branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-								reportYear + '-' + reportMonth, reportDay, branchFolder);
+					for (String branchFolder : branchFolders) {
+						branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
+								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchFolder);
 
 						outputPathList.add(branchOutputPath);
 					}
 
 					List<String> filesListInDir = new ArrayList<String>();
-					List<String> combineFileListInDir =  new ArrayList<String>();
+					List<String> combineFileListInDir = new ArrayList<String>();
 
 					File rootDirectory = new File(rootOutputPath.toString());
 
-					for(int i=0; i<outputPathList.size(); i++) {
+					for (int i = 0; i < outputPathList.size(); i++) {
 						filesListInDir.clear();
 						File directory = new File(outputPathList.get(i).toString());
 						filesListInDir = populateFilesList(directory, filesListInDir);
 						combineFileListInDir.addAll(filesListInDir);
 					}
-					
+
 					String zipFile = mainOutputZipFile.toString();
 
 					byte[] buffer = new byte[1024];
@@ -773,9 +805,9 @@ public class ReportGenerationResource {
 					zout = new ZipOutputStream(fout);
 
 					for (int j = 0; j < filesListInDir.size(); j++) {
-						logger.debug("Zipping " + filesListInDir.get(j));		
-						zout.putNextEntry(new ZipEntry(filesListInDir.get(j)
-								.substring(branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
+						logger.debug("Zipping " + filesListInDir.get(j));
+						zout.putNextEntry(new ZipEntry(filesListInDir.get(j).substring(
+								branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
 
 						FileInputStream fin = new FileInputStream(filesListInDir.get(j));
 						int length;
@@ -783,7 +815,7 @@ public class ReportGenerationResource {
 							zout.write(buffer, 0, length);
 						}
 						zout.closeEntry();
-						fin.close();			
+						fin.close();
 					}
 					zout.close();
 					fout.close();
@@ -794,23 +826,24 @@ public class ReportGenerationResource {
 					IOUtils.closeQuietly(zout);
 					IOUtils.closeQuietly(fout);
 				}
-			// user find specific category to download
+				// user find specific category to download
 			} else {
-				// user click download only specific report	from given list	 
+				// user click download only specific report from given list
 				if (!reportName.equalsIgnoreCase("All")) {
 					ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
 					Path outputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, branchCode, reportCategory.getName(), reportName);
+							reportYear + '-' + reportMonth, reportDay, branchCode, reportCategory.getName(),
+							reportName);
 
 					logger.debug(outputPath.toString());
 					resource = new FileSystemResource(outputPath.toFile());
 				}
 				// user click download 'All' from given list
 				else {
-					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, branchCode);
-					branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
-							reportYear + '-' + reportMonth, reportDay, branchCode + ".zip");
+					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode);
+					branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode + ".zip");
 
 					List<String> filesListInDir = new ArrayList<String>();
 					List<File> directoryList = new ArrayList<>();
@@ -833,9 +866,9 @@ public class ReportGenerationResource {
 						zout = new ZipOutputStream(fout);
 
 						for (int j = 0; j < filesListInDir.size(); j++) {
-							logger.debug("Zipping " + filesListInDir.get(j));		
-							zout.putNextEntry(new ZipEntry(filesListInDir.get(j)
-									.substring(branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
+							logger.debug("Zipping " + filesListInDir.get(j));
+							zout.putNextEntry(new ZipEntry(filesListInDir.get(j).substring(
+									branchDirectory.getAbsolutePath().length() - 4, filesListInDir.get(j).length())));
 
 							FileInputStream fin = new FileInputStream(filesListInDir.get(j));
 							int length;
@@ -843,7 +876,7 @@ public class ReportGenerationResource {
 								zout.write(buffer, 0, length);
 							}
 							zout.closeEntry();
-							fin.close();			
+							fin.close();
 						}
 						zout.close();
 						fout.close();
@@ -854,8 +887,8 @@ public class ReportGenerationResource {
 						IOUtils.closeQuietly(zout);
 						IOUtils.closeQuietly(fout);
 					}
-				}			
-			} 
+				}
+			}
 		}
 
 		logger.debug("REST finish request to download report");
@@ -890,24 +923,25 @@ public class ReportGenerationResource {
 					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 		}
 	}
-	
+
 	private List<String> getBranchFolders(File root, String reportCategoryBranchFlag) {
 		List<String> branchFolderList = new ArrayList<>();
 		File[] list = root.listFiles();
 
-		if (list == null) return null;
+		if (list == null)
+			return null;
 
 		for (File f : list) {
-			if (f.isDirectory()) {    
-				if (isBranchFolder(f.getName()) && (null == reportCategoryBranchFlag || reportCategoryBranchFlag.equalsIgnoreCase("BRANCH"))) {
+			if (f.isDirectory()) {
+				if (isBranchFolder(f.getName())
+						&& (null == reportCategoryBranchFlag || reportCategoryBranchFlag.equalsIgnoreCase("BRANCH"))) {
 					branchFolderList.add(f.getName());
-				}               
+				}
 			}
 		}
 
 		return branchFolderList;
 	}
-
 
 	public boolean isBranchFolder(String folderName) {
 		if (folderName == null) {

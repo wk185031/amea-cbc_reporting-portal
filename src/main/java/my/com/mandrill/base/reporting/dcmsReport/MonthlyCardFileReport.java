@@ -38,7 +38,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
     private int totalCount = 0;
 
     @Override
-    public void processPdfRecord(ReportGenerationMgr rgm) {
+    public void executePdf(ReportGenerationMgr rgm) {
         logger.debug("In MonthlyCardFileReport.processPdfRecord()");
 
         PDDocument doc = null;

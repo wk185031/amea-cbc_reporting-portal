@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,11 +24,17 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.security.SecurePANField;
-import my.com.mandrill.base.reporting.security.SecureString;
+import my.com.mandrill.base.service.EncryptionService;
 
+@Service
 public class GeneralReportProcess {
 
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
+
+	private static String DCMS_ENCRYPTION_KEY = "DCMS_ENCRYPTION_KEY";
+
+	private EncryptionService encryptionService;
+
 	private HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
 	private String eol = System.lineSeparator();
 	private boolean header = false;
@@ -289,7 +296,7 @@ public class GeneralReportProcess {
 		ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
 		getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
-		
+
 		buildTransactionDateRangeCriteria(rgm);
 
 	}
@@ -330,7 +337,7 @@ public class GeneralReportProcess {
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
 		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
-		
+
 		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
 		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
@@ -386,17 +393,26 @@ public class GeneralReportProcess {
 			if (fieldsMap.get(field.getFieldName()).getValue() != null
 					&& fieldsMap.get(field.getFieldName()).getValue().trim().length() > 0
 					&& field.getDecryptionKey() != null && field.getDecryptionKey().trim().length() > 0) {
-				ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
 
-				if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
-					String customDataSecure = SecureString
-							.fromDatabase(fieldsMap.get(field.getFieldName()).getValue(), ekyId).getClear();
+				if (DCMS_ENCRYPTION_KEY.equals(field.getDecryptionKey())) {
 					decryptedField = new ReportGenerationFields(field.getFieldName(),
-							ReportGenerationFields.TYPE_STRING, getTaggedData(customDataSecure, field.getTagValue()));
+							ReportGenerationFields.TYPE_STRING,
+							encryptionService.decryptDcms(fieldsMap.get(field.getFieldName()).getValue()));
 				} else {
-					decryptedField = new ReportGenerationFields(field.getFieldName(),
-							ReportGenerationFields.TYPE_STRING, SecurePANField
-									.fromDatabase(fieldsMap.get(field.getFieldName()).getValue(), ekyId).getClear());
+					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
+
+					if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
+						decryptedField = new ReportGenerationFields(field.getFieldName(),
+								ReportGenerationFields.TYPE_STRING,
+								getTaggedData(
+										encryptionService.decryptAuthenticTag(
+												fieldsMap.get(field.getFieldName()).getValue(), ekyId),
+										field.getTagValue()));
+					} else {
+						decryptedField = new ReportGenerationFields(field.getFieldName(),
+								ReportGenerationFields.TYPE_STRING, encryptionService
+										.decryptAuthenticField(fieldsMap.get(field.getFieldName()).getValue(), ekyId));
+					}
 				}
 			} else {
 				decryptedField = new ReportGenerationFields(field.getFieldName(), ReportGenerationFields.TYPE_STRING,
@@ -415,9 +431,9 @@ public class GeneralReportProcess {
 		if (customData == null || tag == null) {
 			return null;
 		}
-		
-		if(customData.contains(ReportConstants.SECUREFIELD)) {
-			customData = customData.replace(" "+ReportConstants.SECUREFIELD + "=\"Y\"", "");
+
+		if (customData.contains(ReportConstants.SECUREFIELD)) {
+			customData = customData.replace(" " + ReportConstants.SECUREFIELD + "=\"Y\"", "");
 		}
 
 		String xmlTag = "<" + tag + ">";
@@ -436,4 +452,14 @@ public class GeneralReportProcess {
 			return StringEscapeUtils.unescapeXml(beforeValue);
 		}
 	}
+
+	public EncryptionService getEncryptionService() {
+		return encryptionService;
+	}
+
+	public void setEncryptionService(EncryptionService encryptionService) {
+		this.encryptionService = encryptionService;
+	}
+	
+	
 }

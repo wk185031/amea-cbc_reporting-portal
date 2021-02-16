@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -91,10 +89,15 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
     private void preProcessing(ReportGenerationMgr rgm)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In TransmittalSlipForNewPins.preProcessing():" + rgm.getFileNamePrefix());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+        String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
 
         rgm.setBodyQuery(rgm.getBodyQuery()
             .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
             .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
+            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + txnStart + "'")
+            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + txnEnd + "'")
             .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 
         addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -147,7 +150,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
         PreparedStatement ps = null;
         HashMap<String, ReportGenerationFields> fieldsMap = null;
         HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-        HashSet<String> branchSet = null;
+        HashSet<String> branchSet = new HashSet<String>();
         HashMap<String, List<HashMap<String, ReportGenerationFields>>> programToLineFieldsMap = null;
         List< HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
         String query = getBodyQuery(rgm);
@@ -242,8 +245,10 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                             }
                         }
                     }
-                    preProcessingBodyTrailer(rgm, branch.split(",")[0], totalCount);
-                    writeTrailer(rgm, null);
+                    if (rgm.getTrailerFields() != null) {
+                    	preProcessingBodyTrailer(rgm, branch.split(",")[0], totalCount);
+                        writeTrailer(rgm, null);
+                    }                  
                 }
 
             } catch (Exception e) {

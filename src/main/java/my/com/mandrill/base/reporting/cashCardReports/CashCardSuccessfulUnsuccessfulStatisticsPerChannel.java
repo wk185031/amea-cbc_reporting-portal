@@ -35,7 +35,7 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 	private int channelCount = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardSuccessfulUnsuccessfulStatisticsPerChannel.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

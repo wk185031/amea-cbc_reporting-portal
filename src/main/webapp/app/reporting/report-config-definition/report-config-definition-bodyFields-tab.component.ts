@@ -21,7 +21,7 @@ export class ReportConfigDefinitionBodyFieldsTabComponent implements OnChanges {
     padFieldLengthOptions: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
     padFieldTypeOptions: string[] = ['Leading', 'Trailing'];
     padFieldValueOptions: string[] = ['Zeros', 'Spaces'];
-    decryptionKeyOptions: string[] = ['', 'TRL_PAN_EKY_ID', 'TRL_ACCOUNT_1_ACN_ID_EKY_ID', 'TRL_ACCOUNT_2_ACN_ID_EKY_ID', 'TRL_CUSTOM_DATA_EKY_ID', 'CRD_PAN_EKY_ID', 'ACN_ACCOUNT_NUMBER_EKY_ID'];
+    decryptionKeyOptions: string[] = ['', 'TRL_PAN_EKY_ID', 'TRL_ACCOUNT_1_ACN_ID_EKY_ID', 'TRL_ACCOUNT_2_ACN_ID_EKY_ID', 'TRL_CUSTOM_DATA_EKY_ID', 'CRD_PAN_EKY_ID', 'ACN_ACCOUNT_NUMBER_EKY_ID', 'DCMS_ENCRYPTION_KEY'];
     tagValueOptions: string[] = ['', 'BILLERSUBN'];
 
     ngOnChanges() {

@@ -39,7 +39,7 @@ public class GLHandoffBlocksheetOnUs extends TxtReportProcessor {
 	private boolean endBranch = false;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffBlocksheetOnUs.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;

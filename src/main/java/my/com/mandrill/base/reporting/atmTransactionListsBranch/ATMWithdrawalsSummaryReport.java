@@ -34,7 +34,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In ATMWithdrawalsSummaryReport.processPdfRecord()");
 		if (rgm.getTrailerQuery() != null) {
 			setTmpTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));

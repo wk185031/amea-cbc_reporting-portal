@@ -209,8 +209,12 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		this.creditTrailerQuery = creditTrailerQuery;
 	}
 
-	@Override
 	public void processPdfRecord(ReportGenerationMgr rgm) {
+		this.setEncryptionService(rgm.getEncryptionService());
+		executePdf(rgm);
+	}
+	
+	public void executePdf(ReportGenerationMgr rgm) {
 		// To be overriden
 	}
 

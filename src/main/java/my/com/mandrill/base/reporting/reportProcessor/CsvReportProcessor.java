@@ -114,6 +114,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
+		this.setEncryptionService(rgm.getEncryptionService());
 
 		try {
 			if (rgm.isGenerate() == true) {

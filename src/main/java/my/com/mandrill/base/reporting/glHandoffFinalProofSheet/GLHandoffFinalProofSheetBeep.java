@@ -37,7 +37,7 @@ public class GLHandoffFinalProofSheetBeep extends TxtReportProcessor {
 	private double total = 0.00;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffFinalProofSheetBeep.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

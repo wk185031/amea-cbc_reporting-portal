@@ -34,7 +34,7 @@ public class EftAtmTransactionListInterEntity extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In EftAtmTransactionListInterEntity.processPdfRecord()");
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);

@@ -34,7 +34,7 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In DailyPaymentTransactionReportTellerCardSummaryUtilityCompany.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

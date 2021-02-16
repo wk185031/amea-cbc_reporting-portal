@@ -37,7 +37,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 	private double subTotal = 0.00;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In DailyPaymentTransactionReportUtilityCompany.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

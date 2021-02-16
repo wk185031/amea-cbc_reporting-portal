@@ -35,7 +35,7 @@ public class CashCardLoadingLimit extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardLoadingLimit.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

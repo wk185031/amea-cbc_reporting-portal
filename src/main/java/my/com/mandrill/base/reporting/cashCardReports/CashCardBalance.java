@@ -45,7 +45,7 @@ public class CashCardBalance extends PdfReportProcessor {
 	private double overallTotal = 0.00;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardBalance.processPdfRecord()");
 		PDDocument doc = new PDDocument();
 		PDPageContentStream contentStream = null;

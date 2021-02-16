@@ -32,7 +32,7 @@ public class CashCardWithdrawalsPerChannel extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardWithdrawalsPerChannel.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

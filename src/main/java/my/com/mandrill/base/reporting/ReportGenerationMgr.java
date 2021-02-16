@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
+import my.com.mandrill.base.service.EncryptionService;
 
 public class ReportGenerationMgr extends ReportGenerationFields {
 
@@ -28,6 +29,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public int errors = 0;
 	private String fixBodyQuery;
 	private String fixTrailerQuery;
+	private EncryptionService encryptionService;
 
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
@@ -165,5 +167,13 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			fieldsMap.put(name, tempField);
 		}
 		return fieldsMap;
+	}
+
+	public EncryptionService getEncryptionService() {
+		return encryptionService;
+	}
+
+	public void setEncryptionService(EncryptionService encryptionService) {
+		this.encryptionService = encryptionService;
 	}
 }

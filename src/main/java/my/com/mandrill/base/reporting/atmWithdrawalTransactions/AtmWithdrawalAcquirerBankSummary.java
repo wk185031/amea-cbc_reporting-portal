@@ -38,7 +38,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 	private boolean bankDetails = false;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

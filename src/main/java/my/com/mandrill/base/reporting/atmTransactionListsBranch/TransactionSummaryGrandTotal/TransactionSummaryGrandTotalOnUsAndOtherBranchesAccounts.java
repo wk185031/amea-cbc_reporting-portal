@@ -35,7 +35,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Pd
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.processPdfRecord()");
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);

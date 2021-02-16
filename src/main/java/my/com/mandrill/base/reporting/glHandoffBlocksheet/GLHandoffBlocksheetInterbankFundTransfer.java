@@ -37,7 +37,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 	private boolean endGroup = false;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffBlocksheetInterbankFundTransfer.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;

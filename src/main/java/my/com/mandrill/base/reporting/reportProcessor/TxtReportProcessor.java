@@ -28,6 +28,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
+		this.setEncryptionService(rgm.getEncryptionService());
 
 		try {
 			if (rgm.isGenerate() == true) {
@@ -124,7 +125,6 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 				line.append(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
-		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
 

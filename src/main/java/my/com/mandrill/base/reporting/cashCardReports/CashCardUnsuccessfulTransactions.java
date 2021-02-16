@@ -44,7 +44,7 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 	}
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CashCardUnsuccessfulTransactions.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;

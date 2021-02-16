@@ -35,7 +35,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 	private int pagination = 0;
 
 	@Override
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;
