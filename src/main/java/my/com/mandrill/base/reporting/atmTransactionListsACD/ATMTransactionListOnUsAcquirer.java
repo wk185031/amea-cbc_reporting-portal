@@ -31,6 +31,8 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 		String branchName = null;
 		String terminal = null;
 		String location = null;
+		boolean isRecordsExist = false;
+		StringBuilder blankRecords = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
@@ -58,9 +60,16 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 						line = new StringBuilder();
 						line.append(getEol());
 						rgm.writeLine(line.toString().getBytes());
+						isRecordsExist = true;
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				blankRecords.append(" **NO TRANSACTIONS FOR THE DAY** ");
+				rgm.writeLine(blankRecords.toString().getBytes());
+			}
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException

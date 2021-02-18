@@ -522,6 +522,12 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 			}
 		}
 	}
+	
+	protected void writeEmptyPdfBody(PDPageContentStream contentStream, float leading)
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		contentStream.showText(" **NO TRANSACTIONS FOR THE DAY** ");
+		contentStream.newLineAtOffset(0, -leading);
+	}
 
 	protected void writePdfTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			PDPageContentStream contentStream, float leading)

@@ -27,6 +27,8 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String bankCode = null;
 		String bankName = null;
+		boolean isRecordsExist = false;
+		StringBuilder blankRecords = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
@@ -44,7 +46,14 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 				line = new StringBuilder();
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
+				isRecordsExist = true;
 			}
+			
+			if (!isRecordsExist) {
+				blankRecords.append(" **NO TRANSACTIONS FOR THE DAY** ");
+				rgm.writeLine(blankRecords.toString().getBytes());
+			}
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
