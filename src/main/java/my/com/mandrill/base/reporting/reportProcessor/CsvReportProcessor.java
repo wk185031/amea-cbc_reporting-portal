@@ -706,6 +706,9 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			
 			line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
 			line.append(field.getDelimiter());
+			if (field.isEol()) {
+				line.append(getEol());
+			}
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());

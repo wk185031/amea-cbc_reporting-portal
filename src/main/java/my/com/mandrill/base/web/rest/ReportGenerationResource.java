@@ -441,8 +441,9 @@ public class ReportGenerationResource {
 		rgm.setTrailerQuery(def.getTrailerQuery());
 		rgm.setFrequency(def.getFrequency());
 
-		String dayPrefix = rgm.getFrequency().contains(ReportConstants.MONTHLY) ? "00"
-				: StringUtils.leftPad(String.valueOf(txnStartDate.getDayOfMonth()), 2, "0");
+		String dayPrefix = rgm.getFrequency().contains(ReportConstants.DAILY)
+				? StringUtils.leftPad(String.valueOf(txnStartDate.getDayOfMonth()), 2, "0")
+				: "00";
 
 		if (rgm.getFrequency().contains(ReportConstants.DAILY)) {
 			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
