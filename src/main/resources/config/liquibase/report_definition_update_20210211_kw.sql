@@ -9,7 +9,32 @@ BEGIN
 
 -- ATM Availability
 	i_BODY_QUERY := TO_CLOB('
-	SELECT
+	with nonExistsStation as (
+  select ash_ast_id, ash_operation_status,
+    ROW_NUMBER() over (partition by ash_ast_id order by ash_timestamp DESC) as rn
+  from atm_status_history 
+  where ash_timestamp < TO_DATE({From_Date}, ''YYYYMMDD HH24:MI:SS'')
+)
+SELECT
+    AST.AST_ARE_NAME "REGION",
+    ABR.ABR_CODE "BRANCH CODE",
+    SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
+    AST.AST_ALO_LOCATION_ID "LOCATION",
+    AST.AST_ID "STATION ID",
+    case when NES.ASH_OPERATION_STATUS = ''In service'' then 0 else 100 end "UNAVAILABLE",
+    case when NES.ASH_OPERATION_STATUS = ''In service'' then 100 else 0 end  "AVAILABLE",
+    case when NES.ASH_OPERATION_STATUS = ''In service'' then ''1'' else ''0'' end "STANDARD"
+FROM
+    ATM_STATIONS AST
+    JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+    LEFT JOIN nonExistsStation NES on AST.AST_ID = NES.ASH_AST_ID and NES.RN = 1
+WHERE
+	AST_ALO_LOCATION_ID NOT LIKE ''CBS%''
+    AND AST_ID NOT IN (
+      select distinct(ATD_AST_ID) from ATM_DOWNTIME ATD WHERE {Txn_Date}
+    )
+UNION 
+(SELECT
      AST.AST_ARE_NAME "REGION",
      ABR.ABR_CODE "BRANCH CODE",
      SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
@@ -21,23 +46,25 @@ BEGIN
 FROM
       ATM_STATIONS AST
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      LEFT JOIN ATM_DOWNTIME ATD ON AST.AST_ID = ATD_AST_ID AND {Txn_Date} 
+      JOIN ATM_DOWNTIME ATD ON AST.AST_ID = ATD_AST_ID AND {Txn_Date}
 WHERE
 	AST_ALO_LOCATION_ID NOT LIKE ''CBS%''
+    AND AST.AST_ID in (select distinct(ASH_AST_ID) from ATM_STATUS_HISTORY) 
 GROUP BY
       AST.AST_ARE_NAME,
       ABR.ABR_CODE,
       AST.AST_TERMINAL_ID,
       AST.AST_ALO_LOCATION_ID,
       AST.AST_ID
+)
 ORDER BY
-      AST.AST_ARE_NAME  ASC,
-      ABR.ABR_CODE ASC,
-      AST.AST_TERMINAL_ID ASC,
-      AST.AST_ALO_LOCATION_ID ASC');
+      REGION  ASC,
+      "BRANCH CODE" ASC,
+      TERMINAL ASC,
+      LOCATION ASC
+	');
 	  
 	  UPDATE REPORT_DEFINITION SET RED_BODY_QUERY = i_BODY_QUERY WHERE RED_NAME = 'ATM Availability';
-
 
 -- Control Report for PIN Mailer
 i_BODY_QUERY := TO_CLOB('

@@ -5,11 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
@@ -98,7 +95,8 @@ public class AtmAvailability extends CsvReportProcessor {
 		long totalSeconds = ChronoUnit.SECONDS.between(rgm.getTxnStartDate(), rgm.getTxnEndDate());
 		logger.debug("endDate:{}, startDate:{}, totalSeconds:{}", rgm.getTxnEndDate(), rgm.getTxnStartDate(), totalSeconds);
 		rgm.setBodyQuery(
-				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_TOTAL_DAY + "}", String.valueOf(totalSeconds)));
+				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_TOTAL_DAY + "}", String.valueOf(totalSeconds))
+				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")) + "'"));
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 	
