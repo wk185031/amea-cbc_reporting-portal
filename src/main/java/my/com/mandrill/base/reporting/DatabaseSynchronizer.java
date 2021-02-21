@@ -113,8 +113,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_ISSUER_CUSTOM_DATA = "select ISS_CUSTOM_DATA from {DB_SCHEMA}.ISSUER@{DB_LINK} where ISS_STATUS='ACTIVE'";
-	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS from ATM_STATUS_HISTORY {WHERE_CONDITION} order by ASH_AST_ID, ASH_TIMESTAMP";
-	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?)";
+	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS,ASH_SERVICE_STATE_REASON from ATM_STATUS_HISTORY {WHERE_CONDITION} order by ASH_AST_ID, ASH_TIMESTAMP";
+	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?, ?)";
 	private static final String SQL_SELECT_ALL_BIN = "select CBI_BIN from CBC_BIN";
 	private static final int MAX_ROW = 50;
 
@@ -272,15 +272,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_IN_PROGRESS, user);
 
 		Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
-		Timestamp atmStatusHistoryLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_STATUS_HISTORY",
-				"ASH_LAST_UPDATE_TS");
+		Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME",
+				"ATD_END_TIMESTAMP");
 		Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
 
 		syncAuthenticTables();
 		Map<String, List<String>> cardBinMap = getCardBinMap();
 		postProcessCardData(cardLastUpdatedTs);
 		postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
-		postProcessAtmDowntime(atmStatusHistoryLastUpdatedTs);
+		postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
 
 		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_COMPLETED, user);
 
@@ -289,17 +289,20 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		String instShortCode = null;
 
-		List<Institution> institutions = institutionRepository.findAll();
-		for (Institution institution : institutions) {
-			if ("Institution".equals(institution.getType())) {
-				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-					instShortCode = "CBC";
-				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-					instShortCode = "CBS";
-				}
-				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
-			}
-		}
+		
+		
+		//FIXME: uncomment after test
+//		List<Institution> institutions = institutionRepository.findAll();
+//		for (Institution institution : institutions) {
+//			if ("Institution".equals(institution.getType())) {
+//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//					instShortCode = "CBC";
+//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//					instShortCode = "CBS";
+//				}
+//				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+//			}
+//		}
 	}
 
 	private Map<String, List<String>> getCardBinMap() throws Exception {
@@ -604,6 +607,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private void postProcessAtmDowntime(Timestamp atmStatusHistoryLastUpdatedTs) {
+		log.debug("postProcessAtmDowntime: atmStatusHistoryLastUpdatedTs = {}", atmStatusHistoryLastUpdatedTs);
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		PreparedStatement stmt_insert = null;
@@ -633,6 +637,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				String commStatus = rs.getString("ASH_COMM_STATUS");
 				long astId = rs.getLong("ASH_AST_ID");
 				Timestamp statusTimestamp = rs.getTimestamp("ASH_TIMESTAMP");
+				String serviceStateReason = rs.getString("ASH_SERVICE_STATE_REASON");
 				java.sql.Date statusDate = new java.sql.Date(
 						DateUtils.truncate(new Date(statusTimestamp.getTime()), Calendar.DATE).getTime());
 
@@ -653,7 +658,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 									LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
 							insertAtmDownTime(tempLastDowntime);
 
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null);
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null, serviceStateReason);
 						} else if (lastDowntime != null && astId == lastDowntime.getAstId()
 								&& lastDowntime.getEndTimestamp() == null) {
 							log.debug("Entering criteria 1.3");
@@ -665,10 +670,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 							// Since ATM not up from yesterday, downtime will start at 00:00
 							lastDowntime = new AtmDowntime(astId, statusDate,
-									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null);
+									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null, serviceStateReason);
 						} else {
 							log.debug("Entering criteria 1.4");
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null);
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null, serviceStateReason);
 						}
 					}
 
@@ -681,7 +686,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 							log.debug("Entering criteria 2.2");
 							AtmDowntime tempLastDowntime = new AtmDowntime(astId, statusDate,
 									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)),
-									statusTimestamp);
+									statusTimestamp, serviceStateReason);
 							insertAtmDownTime(tempLastDowntime);
 							lastDowntime = tempLastDowntime;
 						} else if (astId == lastDowntime.getAstId() && statusDate.equals(lastDowntime.getStatusDate())
@@ -703,7 +708,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 							log.debug("Entering criteria 2.5");
 							AtmDowntime newLastDowntime = new AtmDowntime(astId, statusDate,
 									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)),
-									statusTimestamp);
+									statusTimestamp, serviceStateReason);
 							insertAtmDownTime(newLastDowntime);
 							lastDowntime = newLastDowntime;
 						}
@@ -712,7 +717,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to process transaction log", e);
+			throw new RuntimeException("Failed to process", e);
 		} finally {
 			if (stmt != null) {
 				try {
@@ -755,6 +760,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			stmt.setDate(2, atmDowntime.getStatusDate());
 			stmt.setTimestamp(3, atmDowntime.getStartTimestamp());
 			stmt.setTimestamp(4, atmDowntime.getEndTimestamp());
+			stmt.setString(5, atmDowntime.getDownReason());
 			stmt.executeUpdate();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to process insertAtmDownTime", e);

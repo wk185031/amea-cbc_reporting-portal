@@ -13,11 +13,14 @@ public class AtmDowntime {
 	
 	private Timestamp endTimestamp;
 	
-	public AtmDowntime(Long astId, Date statusDate, Timestamp startTimestamp, Timestamp endTimestamp) {
+	private String downReason;
+	
+	public AtmDowntime(Long astId, Date statusDate, Timestamp startTimestamp, Timestamp endTimestamp, String downReason) {
 		this.astId = astId;
 		this.statusDate = statusDate;
 		this.startTimestamp = startTimestamp;
 		this.endTimestamp = endTimestamp;
+		this.downReason = downReason;
 	}
 
 	public Long getAstId() {
@@ -51,7 +54,15 @@ public class AtmDowntime {
 	public void setEndTimestamp(Timestamp endTimestamp) {
 		this.endTimestamp = endTimestamp;
 	}
-	
+
+	public String getDownReason() {
+		return downReason;
+	}
+
+	public void setDownReason(String downReason) {
+		this.downReason = downReason;
+	}
+
 	public boolean isRepeatedEntry(Long astId, Date businessDate, boolean isDown) {
 		if (isDown) {
 			return this.astId.equals(astId) && this.statusDate.equals(businessDate) && this.endTimestamp == null;
@@ -61,7 +72,7 @@ public class AtmDowntime {
 	}
 	
 	public AtmDowntime clone() {
-		return new AtmDowntime(this.astId, this.statusDate, this.startTimestamp, this.endTimestamp);
+		return new AtmDowntime(this.astId, this.statusDate, this.startTimestamp, this.endTimestamp, this.downReason);
 	}
 
 }

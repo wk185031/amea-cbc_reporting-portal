@@ -34,4 +34,6 @@
 	<include file="config/liquibase/changelog/20210209000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/NY_20210217000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20210211000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20210221000001_update_atm_downtime.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20210221000002_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

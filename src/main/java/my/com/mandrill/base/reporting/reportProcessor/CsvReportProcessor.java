@@ -710,7 +710,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				line.append(getEol());
 			}
 		}
-		line.append(getEol());
+		//line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
 
