@@ -112,6 +112,7 @@ public final class ReportConstants {
 	public static final String PAGE_NUMBER = "Page Number";
 	public static final String FROM_DATE = "From Date";
 	public static final String TO_DATE = "To Date";
+	public static final String REPORT_TO_DATE = "Report To Date";
 	public static final String TODAYS_DATE_VALUE = "Todays Date Value";
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
 	public static final String RUNDATE_VALUE = "RunDate Value";

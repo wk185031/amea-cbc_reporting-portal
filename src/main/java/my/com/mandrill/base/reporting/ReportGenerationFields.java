@@ -81,6 +81,7 @@ public class ReportGenerationFields {
 	private String dblink;
 	private boolean group = false;
 	private boolean sumAmount = false;
+	private LocalDateTime reportTxnEndDate;
 
 	public ReportGenerationFields() {
 		super();
@@ -417,6 +418,14 @@ public class ReportGenerationFields {
 
 	public void setTxnEndDate(LocalDateTime txnEndDate) {
 		this.txnEndDate = txnEndDate;
+	}
+
+	public LocalDateTime getReportTxnEndDate() {
+		return reportTxnEndDate;
+	}
+
+	public void setReportTxnEndDate(LocalDateTime reportTxnEndDate) {
+		this.reportTxnEndDate = reportTxnEndDate;
 	}
 
 	public LocalDate getTodayDate() {
