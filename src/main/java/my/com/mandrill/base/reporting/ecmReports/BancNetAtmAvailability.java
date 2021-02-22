@@ -106,42 +106,36 @@ public class BancNetAtmAvailability extends CsvReportProcessor {
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
+		
+		int noOfDaysInMonth = 0;
+		if (rgm.getTxnStartDate() != null) {
+			noOfDaysInMonth = rgm.getTxnStartDate().toLocalDate().lengthOfMonth();
+		} else if (rgm.getYesterdayDate() != null) {
+			noOfDaysInMonth = rgm.getYesterdayDate().lengthOfMonth();
+		}
+		
+		int targetHour = (24 * noOfDaysInMonth) - 1;
+		int targetMinute = 1 * noOfDaysInMonth;
+		
 		for (ReportGenerationFields field : fields) {
-			int noOfDaysInMonth = 0;
-			if (rgm.getTxnStartDate() != null) {
-				noOfDaysInMonth = rgm.getTxnStartDate().toLocalDate().lengthOfMonth();
-			} else if (rgm.getYesterdayDate() != null) {
-				noOfDaysInMonth = rgm.getYesterdayDate().lengthOfMonth();
-			}
-
 			switch (field.getFieldName()) {
 			case ReportConstants.TERMINAL:
 				terminalCount++;
 				line.append(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.HOUR:
-				int targetHour = (24 * noOfDaysInMonth) - 1;
 				line.append(targetHour);
 				setTargetHour(targetHour);
 				break;
 			case ReportConstants.MINUTE:
-				int targetMinute = 1 * noOfDaysInMonth;
 				line.append(targetMinute);
 				break;
 			case ReportConstants.OUTAGE_HOUR:
-				ZonedDateTime outageHour = ZonedDateTime.ofInstant(
-						Instant.ofEpochMilli(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue())),
-						ZoneId.systemDefault());
-				line.append(outageHour.getHour());
-				setOutageHour(outageHour.getHour());
-				break;
-			case ReportConstants.OUTAGE_MINUTE:
-				ZonedDateTime outageMinute = ZonedDateTime.ofInstant(
-						Instant.ofEpochMilli(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue())),
-						ZoneId.systemDefault());
-				line.append(outageMinute.getMinute());
+				line.append(fieldsMap.get(field.getFieldName()).getValue());
+				setOutageHour(Integer.parseInt(fieldsMap.get(field.getFieldName()).getValue()));
 				break;
 			case ReportConstants.PERCENTAGE:
 				DecimalFormat formatter = new DecimalFormat("#,##0.00");
