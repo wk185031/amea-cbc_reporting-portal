@@ -254,11 +254,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				contentStream.showText(getGlobalFieldValue(rgm, field));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				if (field.isFirstField()) {
-					//contentStream.showText(String.format("%1$7s", "") + getGlobalFieldValue(rgm, field));
-					contentStream.showText(getGlobalFieldValue(rgm, field));
-				} else
-					contentStream.showText(getGlobalFieldValue(rgm, field));
+				contentStream.showText(getGlobalFieldValue(rgm, field));
 			}
 		}
 	}
@@ -355,6 +351,11 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				} else {
 					line.append(getFieldValue(rgm, field, fieldsMap));
 				}
+				line.append(field.getDelimiter());
+				break;
+			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
+				String subscriberAccountNo = getFieldValue(rgm, field, fieldsMap) != null ? getFieldValue(rgm, field, fieldsMap) : "0000000000000000";
+				line.append(subscriberAccountNo);
 				line.append(field.getDelimiter());
 				break;
 			default:
