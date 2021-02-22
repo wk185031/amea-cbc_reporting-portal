@@ -289,20 +289,17 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		String instShortCode = null;
 
-		
-		
-		//FIXME: uncomment after test
-//		List<Institution> institutions = institutionRepository.findAll();
-//		for (Institution institution : institutions) {
-//			if ("Institution".equals(institution.getType())) {
-//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-//					instShortCode = "CBC";
-//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-//					instShortCode = "CBS";
-//				}
-//				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
-//			}
-//		}
+		List<Institution> institutions = institutionRepository.findAll();
+		for (Institution institution : institutions) {
+			if ("Institution".equals(institution.getType())) {
+				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+					instShortCode = "CBC";
+				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+					instShortCode = "CBS";
+				}
+				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+			}
+		}
 	}
 
 	private Map<String, List<String>> getCardBinMap() throws Exception {

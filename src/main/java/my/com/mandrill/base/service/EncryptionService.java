@@ -23,7 +23,12 @@ public class EncryptionService {
 	}
 	
 	public String decryptDcms(String encString) {
-		return dcmsDecrypt.decrypt("CBC", 0, encString);
+		String decrypt = dcmsDecrypt.decrypt("CBC", 0, encString);
+		if (decrypt == null || decrypt.trim().isEmpty()) {
+			//FIXME: temporary hack. will enhance in decrypt v2
+			decrypt = dcmsDecrypt.decrypt("CBS", 0, encString);
+		}
+		return decrypt;
 	}
 	
 	@PostConstruct

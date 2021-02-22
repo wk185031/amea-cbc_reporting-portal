@@ -36,6 +36,9 @@ public class ReportService {
 
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
+	
+	@Autowired
+	private EncryptionService encryptionService;
 
 	public void generateAllReports(LocalDate transactionDate, Long institutionId, String instShortCode) {
 		LocalDate runDate = LocalDate.now();
@@ -61,13 +64,16 @@ public class ReportService {
 				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_07).format(transactionDate) + File.separator;
 
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
 		reportGenerationMgr.setTxnStartDate(transactionDate.atStartOfDay());
 		reportGenerationMgr.setTxnEndDate(transactionDate.plusDays(1L).atStartOfDay());
+		reportGenerationMgr.setFileDate(reportGenerationMgr.getTxnStartDate().toLocalDate());
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -112,6 +118,7 @@ public class ReportService {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
