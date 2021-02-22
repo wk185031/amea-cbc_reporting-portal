@@ -71,6 +71,13 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			pageHeight += 2;
 
 			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			
+			if(!branchCodeItr.hasNext()) {
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.newLineAtOffset(0, -leading);
+				contentStream.showText("**NO TRANSACTIONS FOR THE DAY**");
+				contentStream.newLineAtOffset(0, -leading);
+			}
 
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
@@ -120,6 +127,15 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			
+			if(!branchCodeItr.hasNext()) {
+				StringBuilder line = new StringBuilder();
+				line.append(getEol());
+				line.append("**NO TRANSACTIONS FOR THE DAY**");
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+			}
+			
 			while (branchCodeItr.hasNext()) {
 				branchCode = branchCodeItr.next();
 				preProcessing(rgm, branchCode);
