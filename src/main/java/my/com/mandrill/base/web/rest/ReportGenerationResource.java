@@ -451,6 +451,7 @@ public class ReportGenerationResource {
 					+ File.separator + def.getReportCategory().getName() + File.separator);
 			rgm.setTxnStartDate(txnStartDate);
 			rgm.setTxnEndDate(txnEndDate.plusMinutes(1L));
+			rgm.setReportTxnEndDate(txnEndDate);
 		} else if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
 			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
 			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
@@ -460,6 +461,7 @@ public class ReportGenerationResource {
 					.withDayOfMonth(txnStartDate.toLocalDate().lengthOfMonth());
 			rgm.setTxnStartDate(firstDayOfMonth.atStartOfDay());
 			rgm.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
+			rgm.setReportTxnEndDate(txnEndDate);
 		}
 	}
 
