@@ -581,26 +581,30 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.TERMINAL:
-					if (channel.equals(ReportConstants.OB) && getFieldValue(field, fieldsMap).trim().length() == 8) {
-						String terminalId = getFieldValue(field, fieldsMap);
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4)));
-					} else {
-						String terminalId = getFieldValue(field, fieldsMap);
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								terminalId.substring(terminalId.length() - 4)));
-					}
-					break;
-				default:
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
+			switch (field.getFieldName()) {
+			case ReportConstants.TERMINAL:
+				if (channel.equals(ReportConstants.OB) && getFieldValue(field, fieldsMap).trim().length() == 8) {
+					String terminalId = getFieldValue(field, fieldsMap);
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							terminalId.substring(0, 4) + "-" + terminalId.substring(terminalId.length() - 4)));
+				} else {
+					String terminalId = getFieldValue(field, fieldsMap);
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							terminalId.substring(terminalId.length() - 4)));
 				}
+				break;
+			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
+				String subscriberAccountNo = (getFieldValue(rgm, field, fieldsMap) != null && !getFieldValue(rgm, field, fieldsMap).trim().isEmpty()) ? 
+						getFieldValue(rgm, field, fieldsMap) : String.format("%1$" + field.getPdfLength() + "s", "0000000000000000");
+						contentStream.showText(subscriberAccountNo);
+						break;
+			default:
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				break;
+			}
+
+			if (field.isEol()) {
+				contentStream.newLineAtOffset(0, -leading);
 			}
 		}
 	}
@@ -624,6 +628,11 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 					String terminalId = getFieldValue(field, fieldsMap).trim();
 					line.append(terminalId.substring(terminalId.length() - 4));
 				}
+				line.append(field.getDelimiter());
+				break;
+			case ReportConstants.SUBSCRIBER_ACCT_NUMBER:
+				String subscriberAccountNo = getFieldValue(rgm, field, fieldsMap) != null ? getFieldValue(rgm, field, fieldsMap) : "0000000000000000";
+				line.append(subscriberAccountNo);
 				line.append(field.getDelimiter());
 				break;
 			default:
