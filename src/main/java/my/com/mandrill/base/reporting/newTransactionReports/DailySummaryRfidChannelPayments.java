@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -718,7 +719,27 @@ public class DailySummaryRfidChannelPayments extends CsvReportProcessor {
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		String query = getTrailerQuery(rgm);
+		String query = null;
+		if ("firstPage".equals(paging)) {
+			query = getFirstPageTrailerQuery();
+		} else if ("secondPage".equals(paging)) {
+			query = getSecondPageTrailerQuery();
+		} else if ("thirdPage".equals(paging)) {
+			query = getThirdPageTrailerQuery();
+		} else {
+			return;
+		}
+		
+		if (query != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+			String txnStart = rgm.getTxnStartDate().format(formatter);
+			String txnEnd = rgm.getTxnEndDate().format(formatter);
+			String criteria = "TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+					+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+					+ ReportConstants.FORMAT_TXN_DATE + "')";
+			query = query.replace('{'+ReportConstants.PARAM_TXN_DATE+'}', criteria);
+		}
+		
 		logger.info("Query for trailer line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
