@@ -807,37 +807,36 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				if (!rs.next()) {
 					writeEmptyBody(rgm);
 				}
-				else {
-					while (rs.next()) {
-						new StringBuffer();
-						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-						for (String key : lineFieldsMap.keySet()) {
-							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-							Object result;
-							try {
-								result = rs.getObject(field.getSource());
-							} catch (SQLException e) {
-								rgm.errors++;
-								logger.error("An error was encountered when trying to write a line", e);
-								continue;
-							}
-							if (result != null) {
-								if (result instanceof Date) {
-									field.setValue(Long.toString(((Date) result).getTime()));
-								} else if (result instanceof oracle.sql.TIMESTAMP) {
-									field.setValue(
-											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-								} else if (result instanceof oracle.sql.DATE) {
-									field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-								} else {
-									field.setValue(result.toString());
-								}
-							} else {
-								field.setValue("");
-							}
+				
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
 						}
-						writeBody(rgm, lineFieldsMap);
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
 					}
+					writeBody(rgm, lineFieldsMap);
 				}
 			} catch (Exception e) {
 				rgm.errors++;

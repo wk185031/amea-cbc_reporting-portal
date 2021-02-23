@@ -279,49 +279,48 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 				if (!rs.next()) {
 					writeEmptyPdfBody(contentStream, leading);
 				}
-				else {
-					while (rs.next()) {
-						if (pageHeight > totalHeight) {
-							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-							contentStream.endText();
-							contentStream.close();
-							page = new PDPage();
-							doc.addPage(page);
-							pagination++;
-							contentStream = new PDPageContentStream(doc, page);
-							contentStream.setFont(pdfFont, fontSize);
-							contentStream.beginText();
-							contentStream.newLineAtOffset(startX, startY);
-						}
-
-						for (String key : lineFieldsMap.keySet()) {
-							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-							Object result;
-							try {
-								result = rs.getObject(field.getSource());
-							} catch (SQLException e) {
-								rgm.errors++;
-								logger.error("An error was encountered when trying to write a line", e);
-								continue;
-							}
-							if (result != null) {
-								if (result instanceof Date) {
-									field.setValue(Long.toString(((Date) result).getTime()));
-								} else if (result instanceof oracle.sql.TIMESTAMP) {
-									field.setValue(
-											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-								} else if (result instanceof oracle.sql.DATE) {
-									field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-								} else {
-									field.setValue(result.toString());
-								}
-							} else {
-								field.setValue("");
-							}
-						}
-						writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-						pageHeight++;
+				
+				while (rs.next()) {
+					if (pageHeight > totalHeight) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream.endText();
+						contentStream.close();
+						page = new PDPage();
+						doc.addPage(page);
+						pagination++;
+						contentStream = new PDPageContentStream(doc, page);
+						contentStream.setFont(pdfFont, fontSize);
+						contentStream.beginText();
+						contentStream.newLineAtOffset(startX, startY);
 					}
+
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					pageHeight++;
 				}
 			} catch (Exception e) {
 				rgm.errors++;

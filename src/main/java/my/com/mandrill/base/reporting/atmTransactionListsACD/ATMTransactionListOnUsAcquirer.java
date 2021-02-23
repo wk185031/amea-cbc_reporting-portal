@@ -32,7 +32,6 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 		String terminal = null;
 		String location = null;
 		boolean isRecordsExist = false;
-		StringBuilder blankRecords = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
@@ -66,8 +65,7 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 			}
 			
 			if (!isRecordsExist) {
-				blankRecords.append(" **NO TRANSACTIONS FOR THE DAY** ");
-				rgm.writeLine(blankRecords.toString().getBytes());
+				writeEmptyBody(rgm);
 			}
 			
 			rgm.fileOutputStream.flush();
