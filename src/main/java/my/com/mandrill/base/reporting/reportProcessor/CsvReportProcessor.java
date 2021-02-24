@@ -796,6 +796,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		boolean isRecordsExist = false;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -803,10 +804,6 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				ps = rgm.connection.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
-				
-				if (!rs.next()) {
-					writeEmptyBody(rgm);
-				}
 				
 				while (rs.next()) {
 					new StringBuffer();
@@ -837,7 +834,13 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 						}
 					}
 					writeBody(rgm, lineFieldsMap);
+					isRecordsExist = true;
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyBody(rgm);
+				}
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
