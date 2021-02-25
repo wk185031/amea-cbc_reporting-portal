@@ -52,6 +52,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 		String branchName = null;
 		String terminal = null;
 		String location = null;
+		boolean isRecordsExist = false;
 		try {
 			preProcessing(rgm);
 
@@ -95,6 +96,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, location);
 						pageHeight += 1;
+						isRecordsExist = true;
 					}
 					executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
 							fontSize, false);
@@ -102,6 +104,11 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 1;
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
 						true);
 				contentStream.endText();
@@ -133,6 +140,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 		String branchName = null;
 		String terminal = null;
 		String location = null;
+		boolean isRecordsExist = false;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -178,6 +186,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, location);
 						pageHeight += 1;
+						isRecordsExist = true;
 					}
 					executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont,
 							fontSize, false);
@@ -186,6 +195,11 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					pageHeight += 1;
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyPdfBody(contentStream, leading);
+			}
+			
 			rgm.setTrailerQuery(getTmpTrailerQuery());
 			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize, true);
 			contentStream.endText();

@@ -47,6 +47,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		try {
 			preProcessing(rgm);
 
@@ -100,8 +101,14 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 						writePdfTrailer(rgm, contentStream, leading);
 						pageHeight += 1;
 						contentStream.newLineAtOffset(0, -leading);
+						isRecordsExist = true;
 					}
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 				contentStream.endText();
 				contentStream.close();
 
@@ -127,6 +134,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -180,9 +188,15 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 						writePdfTrailer(rgm, contentStream, leading);
 						pageHeight += 1;
 						contentStream.newLineAtOffset(0, -leading);
+						isRecordsExist = true;
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyPdfBody(contentStream, leading);
+			}
+			
 			contentStream.endText();
 			contentStream.close();
 

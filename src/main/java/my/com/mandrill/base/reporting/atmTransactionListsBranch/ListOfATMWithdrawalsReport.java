@@ -45,6 +45,7 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		try {
 			preProcessing(rgm);
 
@@ -95,8 +96,14 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 								startY, pdfFont, fontSize);
 						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
+						isRecordsExist = true;
 					}
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 				contentStream.endText();
 				contentStream.close();
 
@@ -122,6 +129,7 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -173,9 +181,15 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 								startY, pdfFont, fontSize);
 						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
+						isRecordsExist = true;
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyPdfBody(contentStream, leading);
+			}
+			
 			contentStream.endText();
 			contentStream.close();
 

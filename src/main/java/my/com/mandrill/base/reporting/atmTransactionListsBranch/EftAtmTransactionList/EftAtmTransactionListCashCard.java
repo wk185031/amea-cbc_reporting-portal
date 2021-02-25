@@ -45,6 +45,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		try {
 			preProcessing(rgm);
 
@@ -99,9 +100,15 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
 									startX, startY, pdfFont, fontSize);
 							pageHeight += 1;
+							isRecordsExist = true;
 						}
 					}
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 				contentStream.endText();
 				contentStream.close();
 
@@ -127,6 +134,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -182,10 +190,16 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
 									startX, startY, pdfFont, fontSize);
 							pageHeight += 1;
+							isRecordsExist = true;
 						}
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyPdfBody(contentStream, leading);
+			}
+			
 			contentStream.endText();
 			contentStream.close();
 
