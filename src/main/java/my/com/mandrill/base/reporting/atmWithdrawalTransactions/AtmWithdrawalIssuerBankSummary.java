@@ -193,6 +193,7 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		boolean isRecordsExist = false;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -243,7 +244,13 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
 					pageHeight++;
+					isRecordsExist = true;
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);

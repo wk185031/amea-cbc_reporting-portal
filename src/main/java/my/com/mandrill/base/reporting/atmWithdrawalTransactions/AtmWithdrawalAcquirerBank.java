@@ -28,6 +28,7 @@ public class AtmWithdrawalAcquirerBank extends CsvReportProcessor {
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String branchCode = null;
+		boolean isRecordsExist = false;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
@@ -48,8 +49,14 @@ public class AtmWithdrawalAcquirerBank extends CsvReportProcessor {
 					line = new StringBuilder();
 					line.append(getEol());
 					rgm.writeLine(line.toString().getBytes());
+					isRecordsExist = true;
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyBody(rgm);
+			}
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException

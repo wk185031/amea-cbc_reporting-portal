@@ -41,6 +41,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 	public void processPdfRecord(ReportGenerationMgr rgm) {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.processPdfRecord()");
 		PDDocument doc = null;
+		boolean isRecordsExist = false;
 		pagination = 1;
 		try {
 			doc = new PDDocument();
@@ -97,9 +98,15 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
 						pageHeight += 1;
+						isRecordsExist = true;
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyPdfBody(contentStream, leading);
+			}
+			
 			rgm.setTrailerQuery(getBranchTrailerQuery());
 			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
 					bankDetails);
@@ -161,6 +168,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 		String branchName = null;
 		String terminal = null;
 		String location = null;
+		boolean isRecordsExist = false;
 		StringBuilder line = new StringBuilder();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
@@ -191,9 +199,15 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 						rgm.setBodyQuery(getBranchBodyQuery());
 						preProcessing(rgm, branchCode, terminal);
 						executeBodyQuery(rgm, bankDetails, branchName, location);
+						isRecordsExist = true;
 					}
 				}
 			}
+			
+			if (!isRecordsExist) {
+				writeEmptyBody(rgm);
+			}
+			
 			rgm.setTrailerQuery(getBranchTrailerQuery());
 			executeTrailerQuery(rgm, bankDetails);
 			line.append("*** END OF REPORT ***");
@@ -559,6 +573,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		boolean isRecordsExist = false;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -600,7 +615,13 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 					} else {
 						writeBranchBody(rgm, lineFieldsMap, branchName, location);
 					}
+					isRecordsExist = true;
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyBody(rgm);
+				}
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
@@ -626,6 +647,7 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		boolean isRecordsExist = false;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -681,7 +703,13 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 								location);
 					}
 					pageHeight++;
+					isRecordsExist = true;
 				}
+				
+				if (!isRecordsExist) {
+					writeEmptyPdfBody(contentStream, leading);
+				}
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
