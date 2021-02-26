@@ -13,7 +13,7 @@ export class LoginService {
         private authServerProvider: AuthServerProvider
     ) {}
 
-    login(credentials, callback?) { 
+    login(credentials, callback?) {
         const cb = callback || function() {};
 
         return new Promise((resolve, reject) => {
