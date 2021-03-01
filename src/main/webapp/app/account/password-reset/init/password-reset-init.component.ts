@@ -43,4 +43,8 @@ export class PasswordResetInitComponent implements OnInit, AfterViewInit {
             }
         });
     }
+
+    goBack() {
+        window.history.back();
+    }
 }

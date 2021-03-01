@@ -69,6 +69,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.modalRef = this.loginModalService.open();
     }
 
+    goBack() {
+        window.history.back();
+    }
+
     private processError(response: HttpErrorResponse) {
         this.success = null;
         if (response.status === 400 && response.error.type === LOGIN_ALREADY_USED_TYPE) {
