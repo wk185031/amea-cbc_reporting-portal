@@ -3,13 +3,21 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -45,14 +53,42 @@ public class AtmDowntime extends CsvReportProcessor {
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		try {
+			String terminal = null;
+			String cause = null;
+			
 			rgm.fileOutputStream = new FileOutputStream(file);
-			addReportPreProcessingFieldsToGlobalMap(rgm);
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
+			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			preProcess(rgm);
+			separateQuery(rgm);
+			addAtmDownTimeReportPreProcessingFieldsToGlobalMap(rgm);
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			
+			List<String> causeListing = new ArrayList<>();
+			for (SortedMap.Entry<String, String> causeMap : filterCriteriaByCause(rgm).entrySet()) {
+				cause = causeMap.getKey();
+				causeListing.add(cause);
+			}
+			
+			for (SortedMap.Entry<String, String> terminalMap : filterCriteriaByTerminal(rgm).entrySet()) {
+				terminal = terminalMap.getKey();
+			    for (int listCause = 0; listCause < causeListing.size(); listCause++) {
+					preProcess(rgm, terminal, causeListing.get(listCause));
+					rgm.setTrailerQuery(getCauseTrailerQuery());
+					executeBodyQuery(rgm);
+					executeCauseTrailerQuery(rgm);
+			    }
+			    rgm.setTrailerQuery(getTerminalTrailerQuery());
+				StringBuilder line = new StringBuilder();
+			    line.append(",,,,,").append(terminal).append(" ");
+				rgm.writeLine(line.toString().getBytes());
+				executeTerminalTrailerQuery(rgm);
+			}
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
+				| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -69,16 +105,69 @@ public class AtmDowntime extends CsvReportProcessor {
 	}
 
 	private void preProcess(ReportGenerationMgr rgm) {
-		rgm.setBodyQuery(rgm.getBodyQuery()
-				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}",
-						rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")))
-				.replace("{" + ReportConstants.PARAM_TO_DATE + "}",
-						rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss"))));
+		logger.debug("In AtmDowntime.preProcess()");
+		
+		if (rgm.getBodyQuery() != null) {
+			rgm.setTmpBodyQuery(rgm.getBodyQuery());
+			rgm.setBodyQuery(rgm.getBodyQuery()
+					.replace("{" + ReportConstants.PARAM_FROM_DATE + "}",
+							rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")))
+					.replace("{" + ReportConstants.PARAM_TO_DATE + "}",
+							rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")))
+					.replace("AND {" + ReportConstants.PARAM_DOWN_REASON + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+		}
+	}
+	
+	private void preProcess(ReportGenerationMgr rgm, String filterByTerminal, String filterByCause) 
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In AtmDowntime.preProcess()");
+		
+		if (rgm.getTmpBodyQuery() != null) {
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+			
+			if (filterByTerminal != null) {
+				ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
+						ReportGenerationFields.TYPE_STRING, "AST.AST_TERMINAL_ID = '" + filterByTerminal + "'");
+				getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
+			}
+			
+			if (filterByCause != null) {
+				ReportGenerationFields cause = new ReportGenerationFields(ReportConstants.PARAM_DOWN_REASON,
+						ReportGenerationFields.TYPE_STRING, "CASE WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Comms Event' THEN 'Host'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'In supervisor mode' THEN 'Replenish'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Power fail' THEN 'PF'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) IN ('Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty') THEN 'HW'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Cash dispenser faulty' THEN 'OOC'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Cash availability status change' THEN 'Cash'\r\n"
+								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) IN ('Operator request', 'Exiting supervisor mode') THEN 'Other' END = '" + filterByCause + "'");
+				getGlobalFileFieldsMap().put(cause.getFieldName(), cause);
+			}
+		}
+	}
+	
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In AtmDowntime.separateQuery()");
+		
+		if (rgm.getTrailerQuery() != null) {
+			setCauseTrailerQuery(
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_STARTING)));
+			setTerminalTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_STARTING),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_STARTING, ""));
+		}
 	}
 
 	@Override
-	protected String getTransactionDateRangeFieldName() {
-		return "ASH.ASH_TIMESTAMP";
+	protected String getAtmDownTimeStartDateRangeFieldName() {
+		return "ATD.ATD_START_TIMESTAMP";
+	}
+	
+	@Override
+	protected String getAtmDownTimeEndDateRangeFieldName() {
+		return "ATD.ATD_END_TIMESTAMP";
 	}
 
 	@Override
@@ -87,51 +176,174 @@ public class AtmDowntime extends CsvReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-//			switch (field.getFieldName()) {
-//			case ReportConstants.TIME_UP:
-//				if (getFieldValue(field, fieldsMap) == null || getFieldValue(field, fieldsMap).isEmpty()) {
-//					setTimeUp(0L);
-//				} else {
-//					setTimeUp(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue()));
-//				}
-//				line.append(getFieldValue(rgm, field, fieldsMap));
-//				break;
-//			case ReportConstants.TIME_DOWN:
-//				if (getFieldValue(field, fieldsMap) == null || getFieldValue(field, fieldsMap).isEmpty()) {
-//					setTimeDown(0L);
-//				} else {
-//					setTimeDown(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue()));
-//				}
-//				line.append(getFieldValue(rgm, field, fieldsMap));
-//				break;
-//			case ReportConstants.TOTAL_DOWN_TIME:
-//				if (getTimeDown() == 0L || getTimeUp() == 0L) {
-//					line.append("");
-//				} else {
-//					ZonedDateTime timeDown = ZonedDateTime.ofInstant(Instant.ofEpochMilli(getTimeDown()),
-//							ZoneId.systemDefault());
-//					ZonedDateTime timeUp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(getTimeUp()),
-//							ZoneId.systemDefault());
-//					ZonedDateTime zonedDateTime = ZonedDateTime.from(timeDown);
-//
-//					long days = zonedDateTime.until(timeUp, ChronoUnit.DAYS);
-//					zonedDateTime = zonedDateTime.plusDays(days);
-//
-//					long hours = zonedDateTime.until(timeUp, ChronoUnit.HOURS);
-//					zonedDateTime = zonedDateTime.plusHours(hours);
-//
-//					long minutes = zonedDateTime.until(timeUp, ChronoUnit.MINUTES);
-//					zonedDateTime = zonedDateTime.plusMinutes(minutes);
-//
-//					line.append(days + "day/s" + hours + ":" + minutes);
-//				}
-//				break;
-//			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-//				break;
-//			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	private void executeCauseTrailerQuery(ReportGenerationMgr rgm) {
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeCauseTrailer(rgm, lineFieldsMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+	
+	private void executeTerminalTrailerQuery(ReportGenerationMgr rgm) {
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeTerminalTrailer(rgm, lineFieldsMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+	
+	private void writeCauseTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		StringBuilder line = new StringBuilder();
+		String total = null;
+		line.append(",,,,,,").append("Sub Total");
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+			} else {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.CAUSE_TERMINAL_TOTAL)) {
+					total = getFieldValue(rgm, field, fieldsMap);
+					line.append(",").append(total);
+				}
+				line.append(field.getDelimiter());
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	private void writeTerminalTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		StringBuilder line = new StringBuilder();
+		String total = null;
+		line.append(",").append("Total Downtime");
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+			} else {
+				if (field.getFieldName().equalsIgnoreCase(ReportConstants.CAUSE_TERMINAL_TOTAL)) {
+					total = getFieldValue(rgm, field, fieldsMap);
+					line.append(",").append(total);
+				}
+				line.append(field.getDelimiter());
+			}
+		}
+		line.append(getEol());
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}

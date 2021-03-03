@@ -35,6 +35,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String txnTrailerQuery = null;
 	private String summaryTrailerQuery = null;
 	private String criteriaQuery = null;
+	private String causeTrailerQuery = null;
+	private String terminalTrailerQuery = null;
 
 	public String getAcquiringBodyQuery() {
 		return acquiringBodyQuery;
@@ -106,6 +108,22 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setCriteriaQuery(String criteriaQuery) {
 		this.criteriaQuery = criteriaQuery;
+	}
+	
+	public String getCauseTrailerQuery() {
+		return causeTrailerQuery;
+	}
+
+	public void setCauseTrailerQuery(String causeTrailerQuery) {
+		this.causeTrailerQuery = causeTrailerQuery;
+	}
+	
+	public String getTerminalTrailerQuery() {
+		return terminalTrailerQuery;
+	}
+
+	public void setTerminalTrailerQuery(String terminalTrailerQuery) {
+		this.terminalTrailerQuery = terminalTrailerQuery;
 	}
 
 	@Override
@@ -607,6 +625,112 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			}
 		}
 		return criteriaMap;
+	}
+	
+	protected SortedMap<String, String> filterCriteriaByTerminal(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByTerminal()");
+		String terminal = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, String> terminalMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter bank code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
+								terminal = result.toString();
+							}
+						}
+					}
+					terminalMap.put(terminal, "");
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return terminalMap;
+	}
+	
+	protected SortedMap<String, String> filterCriteriaByCause(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByCause()");
+		String cause = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, String> causeMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter bank code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.CAUSE)) {
+								cause = result.toString();
+							}
+						}
+					}
+					causeMap.put(cause, "");
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return causeMap;
 	}
 
 	protected void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
