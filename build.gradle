@@ -225,7 +225,7 @@ dependencies {
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.54' // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
     compile group: 'org.apache.cxf', name: 'cxf', version: '3.1.6' // https://mvnrepository.com/artifact/org.apache.cxf/cxf
     compile group: 'org.apache.commons', name: 'commons-compress', version: '1.15'
-	compile files('libs/decrypt-v1.jar')
+	compile files('libs/decrypt-v2.jar')
 	
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
