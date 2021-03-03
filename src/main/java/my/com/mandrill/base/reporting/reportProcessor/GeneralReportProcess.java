@@ -300,6 +300,28 @@ public class GeneralReportProcess {
 		buildTransactionDateRangeCriteria(rgm);
 
 	}
+	
+	protected void addAtmDownTimeReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+		logger.debug("In GeneralReportProcess.addAtmDownTimeReportPreProcessingFieldsToGlobalMap()");
+
+		ReportGenerationFields todaysDateValue = new ReportGenerationFields(ReportConstants.TODAYS_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields runDateValue = new ReportGenerationFields(ReportConstants.RUNDATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+		ReportGenerationFields timeValue = new ReportGenerationFields(ReportConstants.TIME_VALUE,
+				ReportGenerationFields.TYPE_DATE, Long.toString(new Date().getTime()));
+
+		getGlobalFileFieldsMap().put(todaysDateValue.getFieldName(), todaysDateValue);
+		getGlobalFileFieldsMap().put(runDateValue.getFieldName(), runDateValue);
+		getGlobalFileFieldsMap().put(timeValue.getFieldName(), timeValue);
+
+		ReportGenerationFields asOfDateValue = new ReportGenerationFields(ReportConstants.AS_OF_DATE_VALUE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+		getGlobalFileFieldsMap().put(asOfDateValue.getFieldName(), asOfDateValue);
+
+		buildAtmDownTimeTransactionDateRangeCriteria(rgm);
+
+	}
 
 	protected void addBatchPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In GeneralReportProcess.addBatchPreProcessingFieldsToGlobalMap()");
@@ -348,6 +370,37 @@ public class GeneralReportProcess {
 
 	protected String getTransactionDateRangeFieldName() {
 		return "TXN.TRL_SYSTEM_TIMESTAMP";
+	}
+	
+	protected void buildAtmDownTimeTransactionDateRangeCriteria(ReportGenerationMgr rgm) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
+
+		String criteria = getAtmDownTimeStartDateRangeFieldName() + " >= TO_DATE('" + txnStart + "', '"
+				+ ReportConstants.FORMAT_TXN_DATE + "') AND " + getAtmDownTimeEndDateRangeFieldName() + " < TO_DATE('"
+				+ txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE + "')";
+		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
+				ReportGenerationFields.TYPE_STRING, criteria);
+		ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
+		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
+		ReportGenerationFields reportToDateValue = new ReportGenerationFields(ReportConstants.REPORT_TO_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getReportTxnEndDate().toLocalDate().toString());
+
+		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
+		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
+		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+		getGlobalFileFieldsMap().put(reportToDateValue.getFieldName(), reportToDateValue);
+	}
+	
+	protected String getAtmDownTimeStartDateRangeFieldName() {
+		return "ATD.ATD_START_TIMESTAMP";
+	}
+	
+	protected String getAtmDownTimeEndDateRangeFieldName() {
+		return "ATD.ATD_END_TIMESTAMP";
 	}
 
 	public String getBranchCode(String toAccountNumber, String toAccountNoEkyId) {

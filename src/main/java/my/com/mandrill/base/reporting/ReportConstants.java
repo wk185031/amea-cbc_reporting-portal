@@ -83,6 +83,7 @@ public final class ReportConstants {
 	public static final String PARAM_DB_LINK_DCMS = "DB_LINK_DCMS";
 	public static final String PARAM_TOTAL_DAY = "Total_Day";
 	public static final String PARAM_TXN_END_DATE = "Txn_End_Date";
+	public static final String PARAM_DOWN_REASON = "DOWN_REASON";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -224,6 +225,8 @@ public final class ReportConstants {
 	public static final int PAGE_HEIGHT_THRESHOLD = 70;
 	public static final String PRODUCT_CODE = "PRODUCT_CODE";
 	public static final String PRODUCT_NAME = "PRODUCT_NAME";
+	public static final String CAUSE = "CAUSE";
+	public static final String CAUSE_TERMINAL_TOTAL = "SUB TOTAL";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";
@@ -256,6 +259,10 @@ public final class ReportConstants {
 	public static final String SUBSTRING_END = "END";
 	public static final String SUBSTRING_START = "START";
 	public static final String SUBSTRING_SECOND_QUERY_START = "START SELECT";
+	
+	// Query - AtmDowntime
+	public static final String SUBSTRING_STARTING = "STARTING";
+	public static final String SUBSTRING_SECOND_QUERY_STARTING = "STARTING SELECT";
 
 	// GL Constants
 	public static final String INTER_ENTITY_IBFT_CHARGE = "INTER-ENTITY IBFT CHARGE";
