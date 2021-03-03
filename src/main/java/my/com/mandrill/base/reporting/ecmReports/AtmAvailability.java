@@ -119,7 +119,6 @@ public class AtmAvailability extends CsvReportProcessor {
 		//double targetHour = 24 * noOfDaysInMonth;
 		
 		double available = 0.00;
-		//double unavailable = 0.00;
 		
 		for (ReportGenerationFields field : fields) {
 			
@@ -132,14 +131,13 @@ public class AtmAvailability extends CsvReportProcessor {
 			case ReportConstants.AVAILABLE:
 				String availableValue = getFieldValue(rgm, field, fieldsMap);
 				available = Double.valueOf(availableValue);
-				line.append(availableValue);
+				line.append(availableValue).append("%");
 				totalPercentage += available;
 				break;
-//			case ReportConstants.UNAVAILABLE:
-//				String unavailableValue = getFieldValue(rgm, field, fieldsMap);
-//				line.append(unavailableValue);
-//				unavailable = Double.valueOf(unavailableValue);
-//				break;
+			case ReportConstants.UNAVAILABLE:
+				String unavailableValue = getFieldValue(rgm, field, fieldsMap);
+				line.append(unavailableValue).append("%");
+				break;
 			case ReportConstants.STANDARD:
 				//String standardValue = getFieldValue(rgm, field, fieldsMap);
 				String standardValue = available > 95 ? "1" : "0";
