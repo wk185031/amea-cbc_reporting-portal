@@ -220,7 +220,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		}
 		if (rgm.getTrailerQuery() != null) {
 			setOnUsTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),a
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
 			setAcqTrailerQuery(
