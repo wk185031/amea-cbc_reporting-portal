@@ -68,6 +68,11 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			contentStream.showText("FROM ONUS TRANSACTIONS");
 			pdfProcessingDetails(rgm, doc, page, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
 
+			rgm.setBodyQuery(getAcqBodyQuery());
+			rgm.setTrailerQuery(getAcqTrailerQuery());
+			contentStream.showText("FROM ACQUIRER TRANSACTIONS");
+			pdfProcessingDetails(rgm, doc, page, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+
 			rgm.setBodyQuery(getIssBodyQuery());
 			rgm.setTrailerQuery(getIssTrailerQuery());
 			contentStream.showText("FROM ISSUER TRANSACTIONS");
@@ -121,6 +126,8 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		StringBuilder onUsLine = new StringBuilder();
 		StringBuilder issLine = new StringBuilder();
+		StringBuilder acqLine = new StringBuilder();
+
 		try {
 			pagination++;
 			rgm.fileOutputStream = new FileOutputStream(file);
@@ -136,6 +143,13 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			onUsLine.append("FROM ONUS TRANSACTIONS").append(";");
 			onUsLine.append(getEol());
 			rgm.writeLine(onUsLine.toString().getBytes());
+			processingDetails(rgm);
+
+			rgm.setBodyQuery(getAcqBodyQuery());
+			rgm.setTrailerQuery(getAcqTrailerQuery());
+			acqLine.append("FROM ACQUIRER TRANSACTIONS").append(";");
+			acqLine.append(getEol());
+			rgm.writeLine(acqLine.toString().getBytes());
 			processingDetails(rgm);
 
 			rgm.setBodyQuery(getIssBodyQuery());
@@ -174,7 +188,7 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			logger.error("Errors in processingDetails", e);
 		}
 	}
-	
+
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListSummary.preProcessing()");
@@ -194,7 +208,11 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		logger.debug("In ATMTransactionListSummary.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setOnUsBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
+			setAcqBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL"));
 			setIssBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
@@ -202,10 +220,15 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		}
 		if (rgm.getTrailerQuery() != null) {
 			setOnUsTrailerQuery(
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),a
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
+			setAcqTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-			setIssTrailerQuery(rgm.getTrailerQuery()
-					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL"));
+			setIssTrailerQuery(
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
 		}
