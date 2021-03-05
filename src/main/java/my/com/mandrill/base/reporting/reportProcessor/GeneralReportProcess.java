@@ -359,13 +359,16 @@ public class GeneralReportProcess {
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
 		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
-		ReportGenerationFields reportToDateValue = new ReportGenerationFields(ReportConstants.REPORT_TO_DATE,
-				ReportGenerationFields.TYPE_DATE, rgm.getReportTxnEndDate().toLocalDate().toString());
+		if (rgm.getReportTxnEndDate() != null) {
+			ReportGenerationFields reportToDateValue = new ReportGenerationFields(ReportConstants.REPORT_TO_DATE,
+					ReportGenerationFields.TYPE_DATE, rgm.getReportTxnEndDate().toLocalDate().toString());
+			getGlobalFileFieldsMap().put(reportToDateValue.getFieldName(), reportToDateValue);
+		}
 
 		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
 		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
 		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-		getGlobalFileFieldsMap().put(reportToDateValue.getFieldName(), reportToDateValue);
+		
 	}
 
 	protected String getTransactionDateRangeFieldName() {
