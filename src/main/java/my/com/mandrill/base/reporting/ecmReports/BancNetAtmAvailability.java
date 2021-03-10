@@ -54,8 +54,8 @@ public class BancNetAtmAvailability extends CsvReportProcessor {
 			writeBodyHeader(rgm);
 			executeBodyQuery(rgm);
 			StringBuilder line = new StringBuilder();
-			line.append(";").append(";").append(";").append(";").append(";").append(";").append("AVERAGE").append(";")
-					.append(formatter.format(totalPercentage / terminalCount) + "%").append(";");
+			line.append(",").append(",").append(",").append(",").append(",").append(",").append("AVERAGE").append(",")
+					.append(formatter.format(totalPercentage / terminalCount) + "%").append(",");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
