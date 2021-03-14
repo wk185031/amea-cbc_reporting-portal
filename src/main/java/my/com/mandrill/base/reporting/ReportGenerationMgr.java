@@ -30,6 +30,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private String fixBodyQuery;
 	private String fixTrailerQuery;
 	private EncryptionService encryptionService;
+	private String lastGlAccount;
 
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
@@ -176,4 +177,13 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public void setEncryptionService(EncryptionService encryptionService) {
 		this.encryptionService = encryptionService;
 	}
+
+	public String getLastGlAccount() {
+		return lastGlAccount;
+	}
+
+	public void setLastGlAccount(String lastGlAccount) {
+		this.lastGlAccount = lastGlAccount;
+	}
+	
 }

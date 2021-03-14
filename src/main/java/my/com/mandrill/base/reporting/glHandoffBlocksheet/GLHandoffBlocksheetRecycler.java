@@ -369,32 +369,58 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
+		boolean writeAccount = false;
+		String formattedGlAccount = null;
+		
+		ReportGenerationFields glAccountField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String account = getFieldValue(rgm, glAccountField, fieldsMap);
+		if (account.trim().length() < 14) {
+			formattedGlAccount = String.format("%1$" + glAccountField.getCsvTxtLength() + "s", (branchCode + account.trim()));
+		} else {
+			formattedGlAccount = account;
+		}		
+		if (!account.equals(rgm.getLastGlAccount())) {
+			writeAccount = true;
+		}
+		rgm.setLastGlAccount(account);			
+
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
 			if (!firstRecord) {
-				switch (field.getFieldName()) {
-				case ReportConstants.BRANCH_CODE:
-				case ReportConstants.GL_ACCOUNT_NUMBER:
-				case ReportConstants.GL_ACCOUNT_NAME:
-				case ReportConstants.DESCRIPTION:
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+				if (writeAccount) {
+					switch (field.getFieldName()) {
+					case ReportConstants.BRANCH_CODE:
 						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+						break;
+					case ReportConstants.GL_ACCOUNT_NUMBER:
+						line.append(formattedGlAccount);
+						break;
+					default:
+						line.append(getFieldValue(rgm, field, fieldsMap));
+						break;
 					}
-					break;
-				default:
-					line.append(getFieldValue(rgm, field, fieldsMap));
-					break;
+				} else {
+					switch (field.getFieldName()) {
+					case ReportConstants.BRANCH_CODE:
+					case ReportConstants.GL_ACCOUNT_NUMBER:
+					case ReportConstants.GL_ACCOUNT_NAME:
+					case ReportConstants.DESCRIPTION:
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
+						break;
+					default:
+						line.append(getFieldValue(rgm, field, fieldsMap));
+						break;
+					}
 				}
+				
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.GL_ACCOUNT_NUMBER:
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
+					line.append(formattedGlAccount);
 					break;
 				default:
 					line.append(getFieldValue(rgm, field, fieldsMap));
@@ -411,32 +437,60 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 			PDPageContentStream contentStream, float leading, String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		
+		boolean writeAccount = false;
+		String formattedGlAccount = null;
+		
+		ReportGenerationFields glAccountField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String account = getFieldValue(rgm, glAccountField, fieldsMap);
+		if (account.trim().length() < 14) {
+			formattedGlAccount = String.format("%1$" + glAccountField.getPdfLength() + "s", (branchCode + account.trim()));
+		} else {
+			formattedGlAccount = account;
+		}		
+		if (!account.equals(rgm.getLastGlAccount())) {
+			writeAccount = true;
+		}
+		rgm.setLastGlAccount(account);	
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
 			if (!firstRecord) {
-				switch (field.getFieldName()) {
-				case ReportConstants.BRANCH_CODE:
-				case ReportConstants.GL_ACCOUNT_NUMBER:
-				case ReportConstants.GL_ACCOUNT_NAME:
-				case ReportConstants.DESCRIPTION:
-					if (field.isEol()) {
+				if (writeAccount) {
+					switch (field.getFieldName()) {
+					case ReportConstants.BRANCH_CODE:
 						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
-					} else {
-						if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
+						break;
+					case ReportConstants.GL_ACCOUNT_NUMBER:
+						contentStream.showText(formattedGlAccount);
+						break;
+					default:
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						break;
+					}
+				} else {
+					switch (field.getFieldName()) {
+					case ReportConstants.BRANCH_CODE:
+					case ReportConstants.GL_ACCOUNT_NUMBER:
+					case ReportConstants.GL_ACCOUNT_NAME:
+					case ReportConstants.DESCRIPTION:
+						if (field.isEol()) {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
+							contentStream.newLineAtOffset(0, -leading);
 						} else {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 						}
+						break;
+					default:
+						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						break;
 					}
-					break;
-				default:
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
 				}
+				
 			} else {
 				if (field.isEol()) {
 					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
@@ -444,8 +498,7 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 				} else {
 					switch (field.getFieldName()) {
 					case ReportConstants.GL_ACCOUNT_NUMBER:
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-								branchCode + getFieldValue(field, fieldsMap)));
+						contentStream.showText(formattedGlAccount);
 						break;
 					default:
 						contentStream.showText(getFieldValue(rgm, field, fieldsMap));

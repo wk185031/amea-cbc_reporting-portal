@@ -90,6 +90,38 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 			context.getOverallTotal().clear();
 		}
 	}
+	
+	
+
+	@Override
+	protected void writeReportTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
+			FileOutputStream out) {
+		// write last line of Overall-Total
+		BigDecimal overallTotal = BigDecimal.ZERO;
+		if (context.getOverallTotal() != null && context.getOverallTotal().containsKey(OVERALL_TOTAL_FIELD_NAME)) {
+			overallTotal = context.getOverallTotal().get(OVERALL_TOTAL_FIELD_NAME);
+		}
+		String formattedAmount = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT)
+				.format(overallTotal.doubleValue());
+		StringBuilder s = new StringBuilder();
+		s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
+				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
+				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
+		if (context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
+			s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
+		} else {
+			s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
+		}
+		s.append("\"" + formattedAmount + "\"");
+		s.append(CsvWriter.EOL);
+		try {
+			csvWriter.writeLine(out, s.toString());	
+		} catch (Exception e) {
+			logger.warn("Failed to write line: {}", e);
+		}
+		
+		context.getOverallTotal().clear();
+	}
 
 	@Override
 	protected String getBodyGroupFieldName() {
