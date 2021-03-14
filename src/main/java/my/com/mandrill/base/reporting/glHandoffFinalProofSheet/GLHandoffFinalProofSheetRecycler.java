@@ -35,7 +35,8 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
-	private double total = 0.00;
+	private double debitTotal = 0.00;
+	private double creditTotal = 0.00;
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -118,7 +119,8 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
-			total = 0.00;
+			debitTotal = 0.00;
+			creditTotal = 0.00;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			separateQuery(rgm);
@@ -260,9 +262,16 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.CREDITS)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
@@ -293,7 +302,7 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(creditTotal)));
 				} else {
 					line.append(getGlobalFieldValue(rgm, field));
 				}
@@ -301,7 +310,7 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(debitTotal)));
 				} else {
 					line.append(getGlobalFieldValue(rgm, field));
 				}
@@ -318,9 +327,16 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.CREDITS)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
@@ -349,7 +365,7 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(creditTotal)));
 				} else {
 					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
@@ -357,7 +373,7 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(debitTotal)));
 				} else {
 					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
