@@ -37,7 +37,8 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In ATMWithdrawalsSummaryReport.processPdfRecord()");
 		if (rgm.getTrailerQuery() != null) {
-			setTmpTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			setTmpTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", ""));
 		}
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);
@@ -91,7 +92,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
-						preProcessing(rgm, branchCode, terminal);
+						preProcessing(rgm, branchCode, terminal, branchName);
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, location);
 						pageHeight += 1;
@@ -102,6 +103,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 1;
 				}
+				rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", ""));
 				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
 						true);
 				contentStream.endText();
@@ -174,7 +176,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
-						preProcessing(rgm, branchCode, terminal);
+						preProcessing(rgm, branchCode, terminal, branchName);
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, location);
 						pageHeight += 1;
@@ -219,7 +221,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByBranchName)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMWithdrawalsSummaryReport.preProcessing()");
 		if (rgm.getTmpBodyQuery() != null) {
@@ -228,9 +230,12 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
+			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 	}
 
