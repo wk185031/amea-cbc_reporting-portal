@@ -107,10 +107,12 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 		s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
 				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
 				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
-		if (context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
-			s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
-		} else {
-			s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
+		if (context.getCurrentGroupMap().get("TRANSACTION GROUP") != null) {
+			if (context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
+				s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
+			} else {
+				s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
+			}
 		}
 		s.append("\"" + formattedAmount + "\"");
 		s.append(CsvWriter.EOL);

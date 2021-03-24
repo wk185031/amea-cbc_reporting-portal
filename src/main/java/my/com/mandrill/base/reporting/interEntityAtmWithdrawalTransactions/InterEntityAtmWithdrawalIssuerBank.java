@@ -62,6 +62,12 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 			}
+			StringBuilder line = new StringBuilder();
+			line.append(getEol());
+			line.append("*** END OF REPORT ***");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {

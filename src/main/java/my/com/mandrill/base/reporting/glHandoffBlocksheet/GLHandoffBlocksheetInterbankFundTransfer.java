@@ -117,6 +117,9 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 						if (executeQuery(rgm)) {
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
 									pdfFont, fontSize);
+						} else {
+							contentStream.endText();
+							contentStream.close();
 						}
 					}
 

@@ -245,6 +245,9 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			rgm.setBodyQuery(getTxnBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
+			rgm.setTrailerQuery(getTxnTrailerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
 		} else {
 			if (summaryType != null) {
 				if (summaryType.equals("issuer")) {

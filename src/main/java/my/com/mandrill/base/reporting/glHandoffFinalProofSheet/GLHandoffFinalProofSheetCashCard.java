@@ -76,13 +76,14 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 				glDescription = glDescriptionItr.next();
 				if (glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
 					while (branchCodeItr.hasNext()) {
 						branchCode = branchCodeItr.next();
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
+						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
@@ -142,12 +143,13 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 				glDescription = glDescriptionItr.next();
 				if (glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-					executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
 					while (branchCodeItr.hasNext()) {
 						branchCode = branchCodeItr.next();
+						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
+						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
+						executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
 						executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
@@ -251,6 +253,12 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 		logger.debug("In GLHandoffFinalProofSheetCashCard.preProcessing()");
 		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
+			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING,
+						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
@@ -304,7 +312,10 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
+					.replace("\"BRANCH CODE\",", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
