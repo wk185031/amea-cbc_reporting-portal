@@ -478,12 +478,7 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 					case ReportConstants.GL_ACCOUNT_NUMBER:
 					case ReportConstants.GL_ACCOUNT_NAME:
 					case ReportConstants.DESCRIPTION:
-						if (field.isEol()) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-							contentStream.newLineAtOffset(0, -leading);
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						}
+						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
 						break;
 					default:
 						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
@@ -492,10 +487,10 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 				}
 				
 			} else {
-				if (field.isEol()) {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
+//				if (field.isEol()) {
+//					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					contentStream.newLineAtOffset(0, -leading);
+//				} else {
 					switch (field.getFieldName()) {
 					case ReportConstants.GL_ACCOUNT_NUMBER:
 						contentStream.showText(formattedGlAccount);
@@ -504,7 +499,10 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 						break;
 					}
-				}
+//				}
+			}
+			if (field.isEol()) {
+				contentStream.newLineAtOffset(0, -leading);
 			}
 		}
 		firstRecord = false;

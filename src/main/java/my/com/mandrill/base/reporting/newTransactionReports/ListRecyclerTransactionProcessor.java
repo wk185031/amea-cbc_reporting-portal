@@ -78,7 +78,7 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 			String formattedAmount = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT)
 					.format(overallTotal.doubleValue());
 			
-			if (context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
+			if (context.getCurrentGroupMap() != null && context.getCurrentGroupMap().containsKey("TRANSACTION GROUP") && context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
 				s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
 			} else {
 				s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
@@ -107,12 +107,11 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 		s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
 				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
 				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
-		if (context.getCurrentGroupMap().get("TRANSACTION GROUP") != null) {
-			if (context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
-				s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
-			} else {
-				s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
-			}
+		if (context.getCurrentGroupMap() != null && context.getCurrentGroupMap().containsKey("TRANSACTION GROUP")
+				&& context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
+			s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
+		} else {
+			s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
 		}
 		s.append("\"" + formattedAmount + "\"");
 		s.append(CsvWriter.EOL);
