@@ -8,13 +8,13 @@ DECLARE
 BEGIN 
 
 -- additional update
-    update cbc_tran_code set ctr_channel='BNT' where ctr_channel='OB';
-    insert into cbc_tran_code values((select max(ctr_id) + 1 from cbc_tran_code), '41','BNT','BXC','BXR','CREDIT',current_timestamp);
-    update cbc_tran_code set ctr_debit_credit='DEBIT' where ctr_code='40' and ctr_channel='BNT' and ctr_mnem='BXD';
-    update cbc_tran_code set ctr_debit_credit='CREDIT' where ctr_code='40' and ctr_channel='BNT' and ctr_mnem='BXC';
+    -- update cbc_tran_code set ctr_channel='BNT' where ctr_channel='OB';
+    -- insert into cbc_tran_code values((select max(ctr_id) + 1 from cbc_tran_code), '41','BNT','BXC','BXR','CREDIT',current_timestamp);
+    -- update cbc_tran_code set ctr_debit_credit='DEBIT' where ctr_code='40' and ctr_channel='BNT' and ctr_mnem='BXD';
+    -- update cbc_tran_code set ctr_debit_credit='CREDIT' where ctr_code='40' and ctr_channel='BNT' and ctr_mnem='BXC';
 
     -- temporary update to 1001
-    update atm_branches set abr_code='1001';
+    -- update atm_branches set abr_code='1001';
 
 -- ATM Transaction List (Issuer)
 	i_BODY_QUERY := TO_CLOB('		
