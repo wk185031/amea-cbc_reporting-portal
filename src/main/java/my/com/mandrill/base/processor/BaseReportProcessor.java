@@ -35,6 +35,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.writer.CsvWriter;
 
 public abstract class BaseReportProcessor implements IReportProcessor {
@@ -62,6 +63,10 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			currentContext.setTxnEndDateTime(rgm.getTxnEndDate());
 			currentContext.setPredefinedFieldMap(initPredefinedFieldMap(rgm));
 			currentContext.setDataMap(initDataMap(rgm));
+			
+			String institution = rgm.getInstitution() == null ? "'CBC'" : rgm.getInstitution();
+			rgm.setBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
+					ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME));
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());

@@ -17,6 +17,7 @@ import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
 import my.com.mandrill.base.service.EncryptionService;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
 public class ReportGenerationMgr extends ReportGenerationFields {
 
@@ -53,6 +54,11 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;
 		this.setFileFormatTmp(this.getFileFormat());
+		
+		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
+		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME));
+		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME));
+		
 		setFixBodyQuery(getBodyQuery());
 		setFixTrailerQuery(getTrailerQuery());
 
