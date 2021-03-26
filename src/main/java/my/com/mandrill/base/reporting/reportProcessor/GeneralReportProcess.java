@@ -32,6 +32,9 @@ public class GeneralReportProcess {
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
 
 	private static String DCMS_ENCRYPTION_KEY = "DCMS_ENCRYPTION_KEY";
+	private static String DCMS_ROTATION_NUMBER_KEY = "ROTATION_NUMBER";
+	private static String DCMS_INSTITUTION_ID_KEY = "INSTITUTION_ID";
+
 
 	private EncryptionService encryptionService;
 
@@ -337,12 +340,18 @@ public class GeneralReportProcess {
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
 		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
 				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
+		if (rgm.getReportTxnEndDate() != null) {
+			ReportGenerationFields reportToDateValue = new ReportGenerationFields(ReportConstants.REPORT_TO_DATE,
+					ReportGenerationFields.TYPE_DATE, rgm.getReportTxnEndDate().toLocalDate().toString());
+			getGlobalFileFieldsMap().put(reportToDateValue.getFieldName(), reportToDateValue);
+		}
 
 		buildTransactionDateRangeCriteria(rgm);
 		getGlobalFileFieldsMap().put(fileUploadDate.getFieldName(), fileUploadDate);
 		getGlobalFileFieldsMap().put(fileName.getFieldName(), fileName);
 		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
 		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
+		
 	}
 
 	protected void buildTransactionDateRangeCriteria(ReportGenerationMgr rgm) {
@@ -454,9 +463,18 @@ public class GeneralReportProcess {
 					&& field.getDecryptionKey() != null && field.getDecryptionKey().trim().length() > 0) {
 
 				if (DCMS_ENCRYPTION_KEY.equals(field.getDecryptionKey())) {
+					int keyRotationNumber = 0;
+					try {
+						keyRotationNumber = Integer.parseInt(fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue());
+					} catch (NumberFormatException e) {
+						logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY");
+					}
+					String institutionCode = fieldsMap.get(DCMS_INSTITUTION_ID_KEY).getValue();
+					String encryptedValue = fieldsMap.get(field.getFieldName()).getValue();
+
 					decryptedField = new ReportGenerationFields(field.getFieldName(),
 							ReportGenerationFields.TYPE_STRING,
-							encryptionService.decryptDcms(fieldsMap.get(field.getFieldName()).getValue()));
+							encryptionService.decryptDcms(encryptedValue, institutionCode, keyRotationNumber));
 				} else {
 					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
 

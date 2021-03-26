@@ -52,8 +52,12 @@
     <include file="config/liquibase/changelog/GS_20210322000003_update_report_definition.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/GS_20210322000004_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210326000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+    <!--  
     <include file="config/liquibase/changelog/GS_20210326000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	-->
 	<include file="config/liquibase/changelog/20210314000001_update_report_definition.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/GS_20210330000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/GS_20210405000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/20210222000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
