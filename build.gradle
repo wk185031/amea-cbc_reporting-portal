@@ -247,6 +247,17 @@ dependencies {
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 }
 
+task fatJar(type: Jar) {
+	manifest {
+		attributes 'Implementation-Title': 'Reporting Portal fat jar',
+			'Implementation-Version': version,
+			'Main-Class': 'my.com.mandrill.base.BaseApp'
+	}
+	baseName = project.name + '-all'
+	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
+}
+
 task cleanResources(type: Delete) {
     delete 'build/resources'
 }

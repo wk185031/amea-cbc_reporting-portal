@@ -473,9 +473,8 @@ UPDATE REPORT_DEFINITION SET RED_BODY_QUERY = i_BODY_QUERY WHERE RED_NAME = 'App
 
 -- Pending Approval Card Records
 i_BODY_QUERY := TO_CLOB('
-
 SELECT
-	'ACCOUNT DLINKING' AS FUNCTIONNAME,
+	''ACCOUNT DLINKING'' AS FUNCTIONNAME,
 	SALD.ADL_CREATED_TS AS ISSUE_DATE,
 	IC.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -492,12 +491,12 @@ FROM
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON SALD.ADL_STS_ID=MS.STS_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	TO_DATE(Sald.Adl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between TO_DATE({From_Date}, 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	AND STS_ID = 89
 	AND SALD.ADL_INS_ID = 1
 UNION ALL
 Select
-	'Request For Add On Card' As FUNCTIONNAME,
+	''Request For Add On Card'' As FUNCTIONNAME,
 	Rac.Aoc_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -513,12 +512,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Rac.Aoc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Rac.Aoc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Rac.Aoc_Ins_Id = 1
 UNION ALL
 Select
-	'ACCOUNT LINKING' As FUNCTIONNAME,
+	''ACCOUNT LINKING'' As FUNCTIONNAME,
 	Acl_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -535,12 +534,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sal.Acl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sal.Acl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sal.Acl_Ins_Id = 1
 Union All
 Select
-	'Card Activation'As Functionname,
+	''Card Activation''As Functionname,
 	Sac.Caa_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -557,12 +556,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sac.Caa_Created_Ts, 'YYYY-MM-DD HH24:MI:SS')  Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date},'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sac.Caa_Ins_Id = 1
 UNION ALL
 Select
-	'CARD RENEWAL' As Functionname,
+	''CARD RENEWAL'' As Functionname,
 	Scr.Crn_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -579,12 +578,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scr.Crn_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scr.Crn_Ins_Id = 1
 Union All
 Select
-	'CASH CARD ACTIVATION' Functionname,
+	''CASH CARD ACTIVATION'' Functionname,
 	Scca.Cc_Caa_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -601,12 +600,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scca.Cc_Caa_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scca.Cc_Caa_Ins_Id = 1
 Union All
 Select
-	'CASH CARD RENEWAL' Functionname,
+	''CASH CARD RENEWAL'' Functionname,
 	Sccr.Cc_Crn_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC ,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -623,12 +622,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sccr.Cc_Crn_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sccr.Cc_Crn_Ins_Id = 1
 UNION ALL
 Select
-	'CASH DEHOTLIST' Functionname,
+	''CASH DEHOTLIST'' Functionname,
 	Sccd.Cc_Dhl_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -645,12 +644,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sccd.Cc_Dhl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sccd.Cc_Dhl_Ins_Id = 1
 Union All
 Select
-	'HOTLIST' Functionname,
+	''HOTLIST'' Functionname,
 	Scch.Hot_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -667,12 +666,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scch.Hot_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scch.Hot_Ins_id = 1
 Union All
 Select
-	'CASH CARD RESET PIN' Functionname,
+	''CASH CARD RESET PIN'' Functionname,
 	Sccrp.Cc_Rpc_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -689,12 +688,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sccrp.Cc_Rpc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sccrp.Cc_Rpc_Ins_id = 1
 UNION ALL
 Select
-	'CASH CARD HOTLIST' Functionname,
+	''CASH CARD HOTLIST'' Functionname,
 	Scht.Cc_Hot_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -711,12 +710,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scht.Cc_Hot_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scht.Cc_Hot_Ins_Id = 1
 Union All
 Select
-	'REPIN' Functionname,
+	''REPIN'' Functionname,
 	Sdrp.Rep_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -733,12 +732,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sdrp.Rep_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sdrp.Rep_Ins_Id = 1
 UNION ALL
 Select
-	'RESET PIN COUNTER' Functionname,
+	''RESET PIN COUNTER'' Functionname,
 	Srp.Rpc_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -755,12 +754,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Srp.Rpc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Srp.Rpc_Ins_Id = 1
 UNION ALL
 Select
-	'STOP CARD RENEWAL' Functionname,
+	''STOP CARD RENEWAL'' Functionname,
 	Scrn.SRN_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -777,12 +776,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scrn.SRN_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scrn.SRN_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scrn.Srn_Ins_Id = 1
 UNION ALL
 Select
-	'Default Account Change' As Functionnamesal,
+	''Default Account Change'' As Functionnamesal,
 	DAR_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -799,12 +798,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Dac.DAR_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Dac.Dar_Ins_Id = 1
 UNION ALL
 Select
-	'Transaction Limit Update Cash card' As FunctionName,
+	''Transaction Limit Update Cash card'' As FunctionName,
 	Scctlu.CC_Trm_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -821,12 +820,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Scctlu.CC_TRM_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Scctlu.CC_TRM_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Scctlu.Cc_Trm_Ins_Id = 1
 UNION ALL
 Select
-	'Reset pin Cash card' As Functionname,
+	''Reset pin Cash card'' As Functionname,
 	Srp.Cc_Rep_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -843,12 +842,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Srp.Cc_Rep_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Srp.Cc_Rep_Ins_Id = 1
 UNION ALL
 Select
-	'Address Update' As Functionname,
+	''Address Update'' As Functionname,
 	Sarm.Aur_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -864,12 +863,12 @@ From
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarm.AUR_STS_ID=MS.STS_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 WHERE
-	To_Date(Sarm.Aur_Created_Ts ,'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sarm.Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sarm.Aur_Ins_Id = 1
 UNION ALL
 Select
-	'Cash Card Address Update' As Functionname,
+	''Cash Card Address Update'' As Functionname,
 	Sarcm.Cc_Aur_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -885,12 +884,12 @@ From
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 WHERE
-	To_Date(Sarcm.CC_Aur_Created_Ts ,'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sarcm.CC_Aur_Created_Ts ,''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sarcm.Cc_Aur_Ins_Id = 1
 UNION ALL
 Select
-	'Dehotlist' As Functionname,
+	''Dehotlist'' As Functionname,
 	Sdhl.Dhl_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -907,12 +906,12 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Sdhl.Dhl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Sdhl.Dhl_Ins_Id = 1
 UNION ALL
 Select
-	'Transaction Limit Update' As FunctionName,
+	''Transaction Limit Update'' As FunctionName,
 	Stlu.Trm_Created_Ts As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
@@ -929,10 +928,9 @@ From
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 Where
-	To_Date(Stlu.Trm_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
+	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And Stlu.Trm_Ins_Id = 1
-
 ');
 
 UPDATE REPORT_DEFINITION SET RED_BODY_QUERY = i_BODY_QUERY WHERE RED_NAME = 'Pending Approval Card Records';
