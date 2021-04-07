@@ -479,13 +479,13 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) AND TXN.TRL_ORIGIN_ICH_NAME = 'CBS_Bridge'");
+					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
+					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
@@ -504,7 +504,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 31 AND TXN.TRL_ORIGIN_ICH_NAME = 'CBS_Bridge'");
+					"TXN.TRL_TSC_CODE = 31 ");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
