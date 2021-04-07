@@ -90,6 +90,7 @@ public class ReportGenerationResource {
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
 	private boolean executed = false;
+    private static String userInsId = "";
 
 	public ReportGenerationResource(ReportDefinitionRepository reportDefinitionRepository,
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
@@ -404,8 +405,10 @@ public class ReportGenerationResource {
 
 		Institution inst = institutionRepository.findOne(institutionId);
 		if (ReportConstants.CBS_INSTITUTION.equals(inst.getName())) {
+            setUserInsId("CBS");
 			return "CBS";
 		} else {
+            setUserInsId("CBC");
 			return "CBC";
 		}
 	}
@@ -957,4 +960,12 @@ public class ReportGenerationResource {
 		}
 		return true;
 	}
+	
+    public static String getUserInsId() {
+        return userInsId;
+    }
+
+    public void setUserInsId(String userInsId) {
+        this.userInsId = userInsId;
+    }
 }
