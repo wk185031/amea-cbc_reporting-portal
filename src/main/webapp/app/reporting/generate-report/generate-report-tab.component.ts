@@ -123,8 +123,8 @@ export class GenerateReportTabComponent implements OnInit {
             let startDateTime = this.txnStartDate + ' ' + this.txnStartTime;
             let endDateTime = this.txnEndDate + ' ' + this.txnEndTime;
 
-            this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, this.category.id,
-                this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
+            this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, 
+            this.category ? this.category.id : 0, this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
                 (res: HttpResponse<ReportDefinition[]>) => {
                     this.onSuccess(this.generated);
                 },

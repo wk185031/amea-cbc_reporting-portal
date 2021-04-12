@@ -6,6 +6,7 @@
             <label jhiTranslate="baseApp.reportGeneration.reportCategoryLabel">Category</label>
             <br />
             <select class="form-control" style="width: 600px" [(ngModel)]="category" (change)="filterByCategory()">
+                <option [ngValue]="null">ALL</option>
                 <option [ngValue]="categoryOption.name === category?.name ? category : categoryOption"
                     *ngFor="let categoryOption of categories">
                     {{categoryOption.name}}</option>
