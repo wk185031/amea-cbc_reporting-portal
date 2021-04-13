@@ -61,4 +61,5 @@
 	<include file="config/liquibase/changelog/20210222000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/20210407000001_atm_cash_level.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210401000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/NA_20210413000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
