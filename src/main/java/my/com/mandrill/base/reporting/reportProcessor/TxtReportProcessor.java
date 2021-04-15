@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import my.com.mandrill.base.processor.IReportOutputFileName;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class TxtReportProcessor extends PdfReportProcessor implements ITxtReportProcessor {
+public class TxtReportProcessor extends PdfReportProcessor implements ITxtReportProcessor, IReportOutputFileName {
 
 	private final Logger logger = LoggerFactory.getLogger(TxtReportProcessor.class);
 
@@ -29,13 +30,13 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
 		this.setEncryptionService(rgm.getEncryptionService());
+		String fileName = "";
 
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			}
+            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
+                rgm.getTxnStartDate(),
+                rgm.getReportTxnEndDate(),
+                ReportConstants.TXT_FORMAT);
 
 			if (rgm.errors == 0) {
 				if (fileLocation != null) {
@@ -43,19 +44,16 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.TXT_FORMAT);
+					file = new File(rgm.getFileLocation() + fileName);
 					execute(rgm, file);
 				} else {
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.TXT_FORMAT);
+				throw new Exception("Errors when generating " + fileName);
 			}
 		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.TXT_FORMAT,
-					e);
+			logger.error("Errors in generating " + fileName, e);
 		}
 	}
 

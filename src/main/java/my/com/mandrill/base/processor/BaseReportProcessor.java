@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.writer.CsvWriter;
 
-public abstract class BaseReportProcessor implements IReportProcessor {
+public abstract class BaseReportProcessor implements IReportProcessor,IReportOutputFileName {
 
 	private final Logger logger = LoggerFactory.getLogger(BaseReportProcessor.class);
 	private static final String ENCRYPTION_KEY_SUFFIX = "_ENCKEY";
@@ -52,8 +53,11 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 	@Override
 	public void process(ReportGenerationMgr rgm) {
 		FileOutputStream out = null;
-		File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
-				(rgm.isGenerate() ? rgm.getFileDate() : rgm.getYesterdayDate()));
+		/*File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+				(rgm.isGenerate() ? rgm.getFileDate() : rgm.getYesterdayDate()));*/
+
+        File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+            rgm.getTxnStartDate(), rgm.getTxnEndDate());
 
 		Connection conn = null;
 		ResultSet rs = null;
@@ -63,7 +67,7 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 			currentContext.setTxnEndDateTime(rgm.getTxnEndDate());
 			currentContext.setPredefinedFieldMap(initPredefinedFieldMap(rgm));
 			currentContext.setDataMap(initDataMap(rgm));
-			
+
 			String institution = rgm.getInstitution() == null ? "'CBC'" : rgm.getInstitution();
 			rgm.setBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
 					ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME));
@@ -249,16 +253,17 @@ public abstract class BaseReportProcessor implements IReportProcessor {
 		return bodyFields;
 	}
 
-	protected File createEmptyReportFile(String reportPathStr, String fileNamePrefix, LocalDate txnDate) {
-		String txnDateStr = txnDate.format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-		String filename = fileNamePrefix + "_" + txnDateStr + ReportConstants.CSV_FORMAT;
+	protected File createEmptyReportFile(String reportPathStr, String fileNamePrefix, LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
+		/*String txnDateStr = txnDate.format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+		String filename = fileNamePrefix + "_" + txnDateStr + ReportConstants.CSV_FORMAT;*/
+        String fileName = generateDateRangeOutputFileName(fileNamePrefix, txnStartDate, txnEndDate, ReportConstants.CSV_FORMAT);
 
-		File reportPath = new File(reportPathStr);
+        File reportPath = new File(reportPathStr);
 		if (!reportPath.exists()) {
 			reportPath.mkdirs();
 		}
 
-		Path filePath = Paths.get(reportPath.getAbsolutePath(), filename);
+		Path filePath = Paths.get(reportPath.getAbsolutePath(), fileName);
 		return filePath.toFile();
 	}
 

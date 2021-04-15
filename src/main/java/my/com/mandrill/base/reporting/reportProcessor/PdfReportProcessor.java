@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import my.com.mandrill.base.processor.IReportOutputFileName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -25,7 +26,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class PdfReportProcessor extends CsvReportProcessor implements IPdfReportProcessor {
+public class PdfReportProcessor extends CsvReportProcessor implements IPdfReportProcessor, IReportOutputFileName {
 
 	private final Logger logger = LoggerFactory.getLogger(PdfReportProcessor.class);
 	private String tmpTrailerQuery = null;
@@ -213,7 +214,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		this.setEncryptionService(rgm.getEncryptionService());
 		executePdf(rgm);
 	}
-	
+
 	public void executePdf(ReportGenerationMgr rgm) {
 		// To be overriden
 	}
@@ -222,14 +223,13 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		logger.debug("In PdfReportProcessor.saveFile()");
 
 		String fileLocation = rgm.getFileLocation();
-		String txnDate = null;
-
+        String fileName = "";
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			}
+
+		    fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
+                rgm.getTxnStartDate(),
+                rgm.getReportTxnEndDate(),
+                ReportConstants.PDF_FORMAT);
 
 			if (rgm.errors == 0) {
 				if (fileLocation != null) {
@@ -238,19 +238,18 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 						directory.mkdirs();
 					}
 
-					String fileFullPath = rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT;
+					String fileFullPath = rgm.getFileLocation() + fileName;
 					doc.save(new File(fileFullPath));
 					logger.info("New file generated in: {}", fileFullPath);
 				} else {
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.PDF_FORMAT);
+				throw new Exception("Errors when generating " + fileName);
 			}
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Error in saving " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.PDF_FORMAT, e);
+			logger.error("Error in saving " + fileName, e);
 		}
 	}
 
@@ -261,13 +260,13 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		String branchFileLocation = rgm.getFileBaseDirectory() + File.separator + branchCode + File.separator + rgm.getReportCategory() + File.separator;
 
 		String txnDate = null;
+		String fileName = "";
 
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			}
+            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix() + "_" + branchCode,
+                rgm.getTxnStartDate(),
+                rgm.getReportTxnEndDate(),
+                ReportConstants.PDF_FORMAT);
 
 			if (rgm.errors == 0) {
 				if (branchFileLocation != null) {
@@ -275,19 +274,17 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					String fileFullPath = branchFileLocation + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate + ReportConstants.PDF_FORMAT;
+					String fileFullPath = branchFileLocation + fileName;
 					doc.save(new File(fileFullPath));
 					logger.info("New file generated in: {}", fileFullPath);
 
-				} 		
+				}
 			} else {
-				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + branchCode + "_"
-						+ txnDate + ReportConstants.PDF_FORMAT);
+				throw new Exception("Errors when generating " + fileName);
 			}
 		} catch (Exception e) {
 			rgm.errors++;
-			logger.error("Error in saving " + rgm.getFileNamePrefix() + "_" + branchCode + "_" + txnDate
-					+ ReportConstants.PDF_FORMAT, e);
+			logger.error("Error in saving " + fileName, e);
 		}
 	}
 

@@ -28,13 +28,14 @@ public class BatchProcessor extends TxtReportProcessor {
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
+        String fileName = "";
 
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			}
+            //TODO - Please double check this report need to change or not
+            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
+                rgm.getTxnStartDate(),
+                rgm.getReportTxnEndDate(),
+                ReportConstants.TXT_FORMAT);
 
 			if (rgm.errors == 0) {
 				if (fileLocation != null) {
@@ -42,19 +43,17 @@ public class BatchProcessor extends TxtReportProcessor {
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
-							+ ReportConstants.TXT_FORMAT);
+					fileName = fileName.replace(ReportConstants.TXT_FORMAT, "_001" + ReportConstants.TXT_FORMAT);
+					file = new File(rgm.getFileLocation() + fileName);
 					execute(file, rgm);
 				} else {
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating" + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.TXT_FORMAT);
+				throw new Exception("Errors when generating" + fileName);
 			}
 		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + "_" + "001"
-					+ ReportConstants.TXT_FORMAT, e);
+			logger.error("Errors in generating " + fileName, e);
 		}
 	}
 
