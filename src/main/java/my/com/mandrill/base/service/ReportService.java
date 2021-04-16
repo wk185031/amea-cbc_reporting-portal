@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 
@@ -36,7 +37,7 @@ public class ReportService {
 
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
-	
+
 	@Autowired
 	private EncryptionService encryptionService;
 
@@ -64,7 +65,7 @@ public class ReportService {
 				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_07).format(transactionDate) + File.separator;
 
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-		
+
 		reportGenerationMgr.setYesterdayDate(transactionDate);
 		reportGenerationMgr.setTodayDate(transactionDate);
 		reportGenerationMgr.setTxnStartDate(transactionDate.atStartOfDay());
@@ -74,6 +75,7 @@ public class ReportService {
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 		reportGenerationMgr.setEncryptionService(encryptionService);
+        reportGenerationMgr.setReportTxnEndDate(transactionDate.atTime(LocalTime.MAX));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -84,7 +86,7 @@ public class ReportService {
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
 				reportGenerationMgr.setFileBaseDirectory(directory);
 				reportGenerationMgr.setFileLocation(
-						directory + File.separator + ReportConstants.MAIN_PATH + File.separator + 
+						directory + File.separator + ReportConstants.MAIN_PATH + File.separator +
 						reportDefinitionList.getReportCategory().getName() + File.separator);
 				reportGenerationMgr.setFrequency(reportDefinitionList.getFrequency());
 				reportGenerationMgr.setProcessingClass(reportDefinitionList.getProcessingClass());
@@ -119,6 +121,7 @@ public class ReportService {
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 		reportGenerationMgr.setEncryptionService(encryptionService);
+		reportGenerationMgr.setReportTxnEndDate(YearMonth.from(transactionDate).atEndOfMonth().atTime(LocalTime.MAX));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {

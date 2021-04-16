@@ -2,6 +2,7 @@ package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import my.com.mandrill.base.processor.IReportOutputFileName;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 
-public class CsvReportProcessor extends GeneralReportProcess implements ICsvReportProcessor {
+public class CsvReportProcessor extends GeneralReportProcess implements ICsvReportProcessor, IReportOutputFileName {
 
 	private final Logger logger = LoggerFactory.getLogger(CsvReportProcessor.class);
 	private String acquiringBodyQuery = null;
@@ -109,7 +111,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	public void setCriteriaQuery(String criteriaQuery) {
 		this.criteriaQuery = criteriaQuery;
 	}
-	
+
 	public String getCauseTrailerQuery() {
 		return causeTrailerQuery;
 	}
@@ -117,7 +119,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	public void setCauseTrailerQuery(String causeTrailerQuery) {
 		this.causeTrailerQuery = causeTrailerQuery;
 	}
-	
+
 	public String getTerminalTrailerQuery() {
 		return terminalTrailerQuery;
 	}
@@ -133,13 +135,13 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
 		this.setEncryptionService(rgm.getEncryptionService());
+		String fileName = "";
 
 		try {
-			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
-			}
+            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
+                rgm.getTxnStartDate(),
+                rgm.getReportTxnEndDate(),
+                ReportConstants.CSV_FORMAT);
 
 			if (rgm.errors == 0) {
 				if (fileLocation != null) {
@@ -147,20 +149,18 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "_" + txnDate
-							+ ReportConstants.CSV_FORMAT);
+
+					file = new File(rgm.getFileLocation() + fileName);
 					execute(rgm, file);
 					logger.debug("Write file to : {}", file.getAbsolutePath());
 				} else {
 					throw new Exception("Path is not configured.");
 				}
 			} else {
-				throw new Exception("Errors when generating " + rgm.getFileNamePrefix() + "_" + txnDate
-						+ ReportConstants.CSV_FORMAT);
+				throw new Exception("Errors when generating " + fileName);
 			}
 		} catch (Exception e) {
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + txnDate + ReportConstants.CSV_FORMAT,
-					e);
+			logger.error("Errors in generating " + fileName, e);
 		}
 	}
 
@@ -339,7 +339,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							}
 						}
 					}
-					
+
 					if (branchCode != null) {
 						if (criteriaMap.get(branchCode) == null) {
 							Map<String, TreeMap<String, String>> branchNameMap = new TreeMap<>();
@@ -358,7 +358,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 								terminalMap.put(terminal, location);
 							}
 						}
-					}					
+					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -626,7 +626,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		}
 		return criteriaMap;
 	}
-	
+
 	protected SortedMap<String, String> filterCriteriaByTerminal(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.filterCriteriaByTerminal()");
 		String terminal = null;
@@ -679,7 +679,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		}
 		return terminalMap;
 	}
-	
+
 	protected SortedMap<String, String> filterCriteriaByCause(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.filterCriteriaByCause()");
 		String cause = null;
@@ -810,11 +810,11 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if(field.isEol()) {
 				line.append("\"" + getFieldValue(rgm, field, null) + "\"");
 				line.append(field.getDelimiter());
-				line.append(getEol());				
+				line.append(getEol());
 			} else {
 				line.append("\"" + getFieldValue(rgm, field, null) + "\"");
 				line.append(field.getDelimiter());
-			}			
+			}
 		}
 		rgm.writeLine(line.toString().getBytes());
 	}
@@ -827,7 +827,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
-			
+
 			line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
 			line.append(field.getDelimiter());
 			if (field.isEol()) {

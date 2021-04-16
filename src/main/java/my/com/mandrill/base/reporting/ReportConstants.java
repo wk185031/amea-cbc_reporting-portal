@@ -45,7 +45,12 @@ public final class ReportConstants {
 	public static final String DATE_FORMAT_05 = "HH:mm";
 	public static final String DATE_FORMAT_06 = "yyyy-MM";
 	public static final String DATE_FORMAT_07 = "dd";
+    public static final String DATE_FORMAT_08 = "HH";
 	public static final String DATETIME_FORMAT_01 = "yyyyMMdd HH:mm:ss";
+    public static final String DATETIME_FORMAT_02 = "yyyyMMdd hh:mm a";
+    public static final String DATETIME_FORMAT_03 = "yyyyMMdd HH:mm a";
+    public static final String DATETIME_FORMAT_04 = "MMdd HH:mm a";
+    public static final String DATETIME_FORMAT_05 = "yyyyMMdd hhmma";
 	public static final String FORMAT_TXN_DATE = "YYYYMMDD HH24:MI:SS";
 
 	// Report Generation Path
@@ -84,7 +89,7 @@ public final class ReportConstants {
 	public static final String PARAM_TOTAL_DAY = "Total_Day";
 	public static final String PARAM_TXN_END_DATE = "Txn_End_Date";
 	public static final String PARAM_DOWN_REASON = "DOWN_REASON";
-	
+
 	public static final String VALUE_DEO_NAME = "V_Deo_Name";
 	public static final String VALUE_ISSUER_NAME = "V_Iss_Name";
 	public static final String VALUE_INTER_ISSUER_NAME = "V_IE_Iss_Name";
@@ -263,7 +268,7 @@ public final class ReportConstants {
 	public static final String SUBSTRING_END = "END";
 	public static final String SUBSTRING_START = "START";
 	public static final String SUBSTRING_SECOND_QUERY_START = "START SELECT";
-	
+
 	// Query - AtmDowntime
 	public static final String SUBSTRING_STARTING = "STARTING";
 	public static final String SUBSTRING_SECOND_QUERY_STARTING = "STARTING SELECT";
@@ -297,6 +302,6 @@ public final class ReportConstants {
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
 	public static final String SEPARATOR = ",";
-	
+
 	public static final String SECUREFIELD = "secure-field";
 }
