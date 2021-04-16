@@ -22,7 +22,7 @@ export class ReportConfigDefinitionTrailerFieldsTabComponent implements OnChange
     padFieldTypeOptions: string[] = ['Leading', 'Trailing'];
     padFieldValueOptions: string[] = ['Zeros', 'Spaces'];
     decryptionKeyOptions: string[] = ['', 'TRL_PAN_EKY_ID', 'TRL_ACCOUNT_1_ACN_ID', 'TRL_ACCOUNT_2_ACN_ID', 'CRD_PAN_EKY_ID', 'ACN_ACCOUNT_NUMBER_EKY_ID'];
-    tagValueOptions: string[] = ['', 'BILLERSUBN'];
+    tagValueOptions: string[] = ['', 'BILLERSUBN','CBC143'];
 
     ngOnChanges() {
         if (!this.reportDefinition.id) {

@@ -479,12 +479,14 @@ public class GeneralReportProcess {
 					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
 
 					if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
+						logger.debug("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
+						String decryptedCustomData = encryptionService
+								.decryptAuthenticTag(fieldsMap.get(field.getFieldName()).getValue(), ekyId);
+						logger.debug("decrypted custom data: {}", decryptedCustomData);
+						
 						decryptedField = new ReportGenerationFields(field.getFieldName(),
 								ReportGenerationFields.TYPE_STRING,
-								getTaggedData(
-										encryptionService.decryptAuthenticTag(
-												fieldsMap.get(field.getFieldName()).getValue(), ekyId),
-										field.getTagValue()));
+								getTaggedData(decryptedCustomData, field.getTagValue()));
 					} else {
 						decryptedField = new ReportGenerationFields(field.getFieldName(),
 								ReportGenerationFields.TYPE_STRING, encryptionService
@@ -523,7 +525,7 @@ public class GeneralReportProcess {
 		int endIndex = customData.indexOf("<", beginIndex);
 
 		if (beginIndex >= endIndex) {
-			return null;
+			return "";
 		} else {
 			String beforeValue = customData.substring(beginIndex, endIndex);
 			return StringEscapeUtils.unescapeXml(beforeValue);
