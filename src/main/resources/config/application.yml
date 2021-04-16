@@ -54,10 +54,10 @@ spring:
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:oracle:thin:@192.168.222.101:1521/ORCLCDB.localdomain
-        #username: A5RPUAT
-        #password: A5RPUAT
-        username: ATM5RPT
-        password: ATM5RPT
+        username: A5RPUAT
+        password: A5RPUAT
+        #username: ATM5RPT
+        #password: ATM5RPT
         driver-class-name: oracle.jdbc.OracleDriver
         hikari:
             data-source-properties:
@@ -65,12 +65,12 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
-        dblink:
-          authentic: ATM5ADM
-          dcms: DCMSADM
+        dblink: 
+          authentic: A5SWUAT
+          dcms: A5CMUAT
         schema:
-          authentic: ATM5ADM
-          dcms: DCMSADM
+          authentic: A5SWUAT
+          dcms: A5CMUAT
     jpa:
         database-platform: org.hibernate.dialect.Oracle12cDialect
         database: Oracle
