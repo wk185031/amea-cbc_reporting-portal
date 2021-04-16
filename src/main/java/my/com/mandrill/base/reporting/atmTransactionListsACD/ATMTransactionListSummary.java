@@ -209,29 +209,30 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		logger.debug("In ATMTransactionListSummary.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setOnUsBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ))
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
-			setAcqBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL"));
+			setAcqBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
 			setIssBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""));
 		}
 		if (rgm.getTrailerQuery() != null) {
 			setOnUsTrailerQuery(
 					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ))
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
 			setAcqTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL"));
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
 			setIssTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, ""));
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""));
 		}
 	}
 
