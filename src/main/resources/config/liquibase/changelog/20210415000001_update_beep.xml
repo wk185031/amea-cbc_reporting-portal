@@ -19,6 +19,11 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report_definition_update_20210415_beep.sql"
                  splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report_definition_update_20210415_atm.sql"
+                 splitStatements="false" 
                  stripComments="true" />		
     </changeSet>
 </databaseChangeLog>
