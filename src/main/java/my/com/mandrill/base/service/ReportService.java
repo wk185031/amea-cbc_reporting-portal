@@ -75,7 +75,7 @@ public class ReportService {
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 		reportGenerationMgr.setEncryptionService(encryptionService);
-        reportGenerationMgr.setReportTxnEndDate(transactionDate.plusDays(1L).atTime(LocalTime.MAX));
+        reportGenerationMgr.setReportTxnEndDate(transactionDate.atTime(LocalTime.MAX));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
@@ -121,7 +121,7 @@ public class ReportService {
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 		reportGenerationMgr.setEncryptionService(encryptionService);
-		reportGenerationMgr.setReportTxnEndDate(YearMonth.from(transactionDate).atEndOfMonth().plusDays(1L).atTime(LocalTime.MAX));
+		reportGenerationMgr.setReportTxnEndDate(YearMonth.from(transactionDate).atEndOfMonth().atTime(LocalTime.MAX));
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
 				.findAll(new Sort(Sort.Direction.ASC, "id"))) {
