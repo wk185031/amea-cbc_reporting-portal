@@ -497,18 +497,7 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 				}
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.AMOUNT:
-					if (!voidCode.equals("0")) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					break;
-				default:
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
-				}
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
 	}
