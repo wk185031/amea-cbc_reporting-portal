@@ -358,37 +358,4 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		}
 		return contentStream;
 	}
-	
-    protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-        logger.debug("In ATMTransactionListSummary.writeHeader()");
-
-        List<ReportGenerationFields> fields = extractHeaderFields(rgm);
-        StringBuilder line = new StringBuilder();
-        for (ReportGenerationFields field : fields) {
-            logger.debug("field.getFieldName():"+field.getFieldName());
-            if (field.isEol()) {
-                if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-                    line.append(String.valueOf(pagination));
-                } else {
-                    line.append(getGlobalFieldValue(rgm, field));
-                }
-                line.append(field.getDelimiter());
-                line.append(getEol());
-            } else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
-                    (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
-                if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
-                    line.append("0012");
-                    line.append(field.getDelimiter());
-                }else{
-                    line.append("CHINA BANK SAVINGS");
-                    line.append(field.getDelimiter());
-                }
-        }else {
-            line.append(getGlobalFieldValue(rgm, field));
-            line.append(field.getDelimiter());
-        }
-    }
-        line.append(getEol());
-        rgm.writeLine(line.toString().getBytes());
-    }
 }
