@@ -69,8 +69,10 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		logger.debug("In ATMTransactionListIssuer.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_MNEM + "}", "AND CBA.CBA_MNEM != '" + rgm.getInstitution() + "'"));
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
+			
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}

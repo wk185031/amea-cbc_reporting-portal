@@ -89,10 +89,13 @@ public final class ReportConstants {
 	public static final String PARAM_TOTAL_DAY = "Total_Day";
 	public static final String PARAM_TXN_END_DATE = "Txn_End_Date";
 	public static final String PARAM_DOWN_REASON = "DOWN_REASON";
+	public static final String PARAM_TXN_TIME = "Txn_Time";
+	public static final String PARAM_BANK_MNEM = "Bank_Mnem";
 	
 	public static final String VALUE_DEO_NAME = "V_Deo_Name";
 	public static final String VALUE_ISSUER_NAME = "V_Iss_Name";
 	public static final String VALUE_INTER_ISSUER_NAME = "V_IE_Iss_Name";
+	public static final String VALUE_ACQUIRER_NAME = "V_Acq_Name";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
