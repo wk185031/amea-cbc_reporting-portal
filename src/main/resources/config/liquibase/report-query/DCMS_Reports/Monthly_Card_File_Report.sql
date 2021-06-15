@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-672 	15-JUN-2021		NY		Initial from UAT env
+-- CBCAXUPISSLOG-672 	15-JUN-2021		NY		Replace hardcoded dblink/db schema to parameterized string
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -24,30 +25,30 @@ select
                 report_summary.CLOSED_CARDS as CLOSED_CARDS,
                 (select report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS from dual) AS TOTAL_COUNT from
                 (SELECT
-                        (SELECT BRN_CODE FROM DCMSADM.MASTER_BRANCHES@DCMSUAT WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
-                        (SELECT BRN_NAME FROM DCMSADM.MASTER_BRANCHES@DCMSUAT WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
+                        (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
+                        (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
                         (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
-                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_ACTIVE
+                          FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_ACTIVE
                           WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
                           AND trunc(CRD_ACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                           )AS ACTIVE_CARDS,
 
                         (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_INACTIVE
+                          FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
                           WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
                           AND trunc(CRD_INACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                          )AS INACTIVE_CARDS,
 
-                        (SELECT COUNT(*) FROM DCMSADM.SUPPORT_CARD_RENEWAL@DCMSUAT RNWL
-                        INNER JOIN DCMSADM.ISSUANCE_CLIENT_CARD_MAPPING@DCMSUAT CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
-                        INNER JOIN DCMSADM.ISSUANCE_CARD@DCMSUAT SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
+                        (SELECT COUNT(*) FROM {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} RNWL
+                        INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} CCM ON RNWL.CRN_CCM_ID = CCM.CCM_ID
+                        INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} SUB_CRD ON CCM.CCM_CRD_ID = SUB_CRD.CRD_ID
                         WHERE SUB_CRD.CRD_BRN_ID = CRD.CRD_BRN_ID AND RNWL.CRN_STS_ID = 1
                          ) AS RENEWED_CARDS,
 
                     (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_INACTIVE
+                          FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
                           WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
                           AND trunc(CRD_INACTIVE.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
@@ -55,14 +56,14 @@ select
 
 
                                 (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
-                          FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD_CLOSED
+                          FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_CLOSED
                           WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 74
                           AND trunc(CRD_CLOSED.crd_created_ts)
                           between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
                           ) AS CLOSED_CARDS
 
 
-                    FROM DCMSADM.ISSUANCE_CARD@DCMSUAT CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
+                    FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD WHERE CRD.CRD_PRS_ID = 3 AND CRD.CRD_INS_ID = 1
                     GROUP BY CRD.CRD_BRN_ID
                     ORDER BY BRANCH_CODE) report_summary
 	');

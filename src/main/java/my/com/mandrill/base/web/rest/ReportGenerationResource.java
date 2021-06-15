@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -464,7 +465,7 @@ public class ReportGenerationResource {
 					.withDayOfMonth(txnStartDate.toLocalDate().lengthOfMonth());
 			rgm.setTxnStartDate(firstDayOfMonth.atStartOfDay());
 			rgm.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
-			rgm.setReportTxnEndDate(txnEndDate);
+			rgm.setReportTxnEndDate(YearMonth.from(txnEndDate).atEndOfMonth().atTime(LocalTime.MAX));
 		}
 	}
 
