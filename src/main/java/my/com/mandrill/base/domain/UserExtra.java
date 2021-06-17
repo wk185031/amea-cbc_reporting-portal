@@ -1,6 +1,7 @@
 package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -62,6 +63,13 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
     @Size(max = 20)
     @Column(name = "contact_other", length = 20)
     private String contactOther;
+    
+	@Size(max = 1)
+    @Column(name = "login_flag", length = 1)
+    private String loginFlag;
+    
+    @Column(name = "last_login_ts")
+    private Timestamp lastLoginTs;
 
     @OneToOne(optional = false)
     @NotNull
@@ -232,6 +240,22 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
 
 	public void setBranches(Set<Branch> branches) {
 		this.branches = branches;
+	}
+	
+	public String getLoginFlag() {
+		return loginFlag;
+	}
+
+	public void setLoginFlag(String loginFlag) {
+		this.loginFlag = loginFlag;
+	}
+
+	public Timestamp getLastLoginTs() {
+		return lastLoginTs;
+	}
+
+	public void setLastLoginTs(Timestamp lastLoginTs) {
+		this.lastLoginTs = lastLoginTs;
 	}
 
 	@Override

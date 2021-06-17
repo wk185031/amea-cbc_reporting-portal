@@ -6,6 +6,9 @@ import { SERVER_API_URL } from '../../app.constants';
 
 @Injectable()
 export class AuthServerProvider {
+
+    private logoutApi = SERVER_API_URL + 'api/logout';
+
     constructor(
         private http: HttpClient,
         private $localStorage: LocalStorageService,
@@ -54,11 +57,22 @@ export class AuthServerProvider {
     }
 
     logout(): Observable<any> {
-
         return new Observable((observer) => {
             this.$localStorage.clear('authenticationToken');
             this.$sessionStorage.clear('authenticationToken');
             observer.complete();
         });
+    }
+
+    logoutUpdate(): Observable<any> {
+        const token = {
+            id_token: this.getToken(),
+        };
+        return this.http.post(SERVER_API_URL + 'api/logout', token, {observe : 'response'}).map(logoutSuccess.bind(this));
+
+        function logoutSuccess(resp) {
+            console.log('logout success');
+            return null;
+        }
     }
 }

@@ -4,6 +4,9 @@ public final class ReportConstants {
 
 	private ReportConstants() {
 	}
+	
+	// System Configuration
+	public static final String ALLOW_CONCURRENT_LOGIN = "spring.application.allow-concurrent-login";
 
 	// DB Configuration
 	public static final String DB_URL = "spring.datasource.url";

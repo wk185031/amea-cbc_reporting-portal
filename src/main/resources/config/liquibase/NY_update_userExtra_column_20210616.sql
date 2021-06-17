@@ -1,0 +1,6 @@
+BEGIN
+
+	UPDATE USER_EXTRA SET LOGIN_FLAG = 'N', LAST_LOGIN_TS = current_timestamp;
+
+END;
+/
