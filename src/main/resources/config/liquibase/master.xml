@@ -78,4 +78,6 @@
 	<include file="config/liquibase/changelog/NY_20210615000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/NY_20210616000001_add_userExtra_column.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/NY_20210616000002_update_userExtra_column.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210617000001_add_deo_table.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210617000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
