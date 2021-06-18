@@ -84,14 +84,16 @@
             "validate": {
                 "newpassword": {
                     "required": "Your password is required.",
-                    "minlength": "Your password is required to be at least 4 characters.",
+                    "minlength": "Your password is required to be at least 8 characters.",
                     "maxlength": "Your password cannot be longer than 50 characters.",
-                    "strength": "Password strength:"
+                    "strength": "Password strength:",
+                    "pattern": "Your password is required to have alphanumeric value, at least 1 upper/lower case each, at least  1 special character and at least 1 number.."
                 },
                 "confirmpassword": {
                     "required": "Your confirmation password is required.",
-                    "minlength": "Your confirmation password is required to be at least 4 characters.",
-                    "maxlength": "Your confirmation password cannot be longer than 50 characters."
+                    "minlength": "Your confirmation password is required to be at least 8 characters.",
+                    "maxlength": "Your confirmation password cannot be longer than 50 characters.",
+                    "pattern": "Confirmed password does not match."
                 },
                 "email": {
                     "required": "Your email is required.",

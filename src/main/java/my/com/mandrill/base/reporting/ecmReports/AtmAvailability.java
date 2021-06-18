@@ -19,6 +19,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
+import my.com.mandrill.base.web.rest.ReportGenerationResource;
 
 public class AtmAvailability extends CsvReportProcessor {
 
@@ -149,6 +150,27 @@ public class AtmAvailability extends CsvReportProcessor {
 				break;
 			}
 			line.append(field.getDelimiter());
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	protected void writeHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In AtmAvailability.writeHeader()");
+		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {		
+			if (null != field.getFieldName() && field.getFieldName().equalsIgnoreCase("ATM AVAILABILITY REPORT")){		 
+				line.append(ReportGenerationResource.getUserInsId() + " " + getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());		          
+			} else {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
+			}
+			
+			if (field.isEol()) {
+				line.append(getEol());
+			}
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());

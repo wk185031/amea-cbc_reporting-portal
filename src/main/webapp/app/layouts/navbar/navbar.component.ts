@@ -155,7 +155,7 @@ export class NavbarComponent implements OnInit {
 
     logout() {
         this.collapseNavbar();
-        this.loginService.logout();
+        this.loginService.logoutNavBar();
         this.account = null;
         this.selectedInstitution = null;
         this.appPermissionService.permissions = null;
