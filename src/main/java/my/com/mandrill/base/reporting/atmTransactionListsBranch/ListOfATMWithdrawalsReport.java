@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,8 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
+	private static final DecimalFormat FORMATTER = new DecimalFormat("#,##0.00");
+	private Long totalAmt = new Long ("0");
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -97,6 +100,14 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 						pageHeight += 1;
 					}
 				}
+				
+				contentStream.newLineAtOffset(pageSize.getWidth()/2, -leading);
+				contentStream.showText("TOTAL");
+
+				contentStream.showText(String.format("%1$20s", ""));
+				
+				contentStream.showText(FORMATTER.format(totalAmt).toString());
+				
 				contentStream.endText();
 				contentStream.close();
 
@@ -176,6 +187,14 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 					}
 				}
 			}
+			
+			contentStream.newLineAtOffset(pageSize.getWidth()/2, -leading);
+			contentStream.showText("TOTAL");
+
+			contentStream.showText(String.format("%1$20s", ""));
+			
+			contentStream.showText(FORMATTER.format(totalAmt).toString());
+			
 			contentStream.endText();
 			contentStream.close();
 
@@ -252,6 +271,8 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		String query = getBodyQuery(rgm);
 		String txnQualifier = null;
 		String voidCode = null;
+		totalAmt = new Long ("0");
+		long amount = 0;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -299,6 +320,10 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 							} else if (key.equalsIgnoreCase(ReportConstants.VOID_CODE)) {
 								voidCode = result.toString();
 								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.AMOUNT)) {
+								field.setValue(result.toString());
+								amount = Long.parseLong(result.toString());
+								totalAmt += amount;
 							} else {
 								field.setValue(result.toString());
 							}
