@@ -14,9 +14,14 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="NY_20210608000001_update_report_definition" author="ny">
-        <validCheckSum>any</validCheckSum>
+    <changeSet id="NY_20210622000001_update_report_definition" author="ny">
+    	<validCheckSum>any</validCheckSum>
 		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Bills_Payment.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_E-load.sql"
                  splitStatements="false" 

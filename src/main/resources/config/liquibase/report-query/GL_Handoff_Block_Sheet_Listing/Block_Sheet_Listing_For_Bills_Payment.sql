@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-644	22-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-644	23-JUN-2021		NY 		Fix wrong CBS GL account print in report
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -32,6 +33,7 @@ SELECT
 	WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
+      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
@@ -70,6 +72,7 @@ SELECT
 	WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
+      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
@@ -92,7 +95,7 @@ SELECT
       GLE.GLE_CREDIT_DESCRIPTION DESC
 	END
 	');
-	i_TRAILER_QUERY CLOB := TO_CLOB('
+	i_TRAILER_QUERY := TO_CLOB('
    SELECT
       SUM(TXN.TRL_AMT_TXN) "TOTAL DEBIT",
       0 AS "TOTAL CREDIT"
@@ -105,6 +108,7 @@ SELECT
 	WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
+      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
@@ -130,6 +134,7 @@ SELECT
 	WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
+      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
