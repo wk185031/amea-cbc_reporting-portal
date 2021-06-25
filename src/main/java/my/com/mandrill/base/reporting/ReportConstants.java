@@ -154,6 +154,7 @@ public final class ReportConstants {
 	public static final String CHANNEL = "CHANNEL";
 	public static final String CARD_PRODUCT = "CARD PRODUCT";
 	public static final String GL_ACCOUNT_NUMBER = "GL ACCOUNT NUMBER";
+	public static final int GL_ACCOUNT_NUMBER_MAX_LENGTH = 14;
 	public static final String GL_ACCOUNT_NAME = "GL ACCOUNT NAME";
 	public static final String CODE = "CODE";
 	public static final String DESCRIPTION = "DESCRIPTION";

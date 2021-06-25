@@ -375,7 +375,7 @@ public class GLHandoffBlocksheetRecycler extends TxtReportProcessor {
 		ReportGenerationFields glAccountField = fields.stream()
 				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
 		String account = getFieldValue(rgm, glAccountField, fieldsMap);
-		if (account.trim().length() < 14) {
+		if (account.trim().length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
 			formattedGlAccount = String.format("%1$" + glAccountField.getCsvTxtLength() + "s", (branchCode + account.trim()));
 		} else {
 			formattedGlAccount = account;
