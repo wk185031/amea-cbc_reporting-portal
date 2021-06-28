@@ -277,8 +277,13 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap)));
+				if(getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap)));
+				} else {				
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap)));
+				}			
 				break;
 			case ReportConstants.GL_ACCOUNT_NAME:
 				line.append(String.format("%1$5s", "")
@@ -342,8 +347,14 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap)));
+				if(getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap)));
+				} else {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
+							getFieldValue(field, fieldsMap)));
+				}
+				
 				break;
 			case ReportConstants.GL_ACCOUNT_NAME:
 				contentStream.showText(String.format("%1$5s", "")

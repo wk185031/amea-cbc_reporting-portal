@@ -56,8 +56,8 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		this.setFileFormatTmp(this.getFileFormat());
 		
 		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
-		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME));
-		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME));
+		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST));
+		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST));
 		
 		setFixBodyQuery(getBodyQuery());
 		setFixTrailerQuery(getTrailerQuery());
