@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -44,13 +45,14 @@ FROM
 WHERE
       TXN.TRL_TQU_ID = ''F''
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Issuer'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 )
@@ -95,13 +97,14 @@ FROM
 WHERE
       TXN.TRL_TQU_ID = ''F''
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Issuer'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 )

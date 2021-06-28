@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -56,6 +57,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''On-Us'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
 )
@@ -113,6 +116,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''On-Us'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
 )

@@ -70,7 +70,7 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 
 			String institution = rgm.getInstitution() == null ? "'CBC'" : rgm.getInstitution();
 			rgm.setBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
-					ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME));
+					ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST));
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());

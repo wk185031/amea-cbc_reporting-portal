@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -39,6 +40,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''ATM''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -80,6 +82,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''ATM''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -117,6 +120,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''ATM''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -141,6 +145,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''ATM''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY

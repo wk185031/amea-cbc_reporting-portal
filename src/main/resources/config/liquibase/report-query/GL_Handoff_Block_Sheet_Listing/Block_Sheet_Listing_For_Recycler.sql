@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-685	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-685	25-JUN-2021		NY		Fix CBS GL account printed in CBC GL report
+-- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -45,7 +46,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-	AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+	  AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -81,7 +82,7 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -116,7 +117,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -152,7 +153,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -189,7 +190,7 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -227,7 +228,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -262,7 +263,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -298,7 +299,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -337,7 +338,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -366,7 +367,7 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -394,7 +395,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -423,7 +424,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -457,7 +458,7 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -494,7 +495,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -522,7 +523,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
@@ -551,7 +552,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Iss_Name}
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}

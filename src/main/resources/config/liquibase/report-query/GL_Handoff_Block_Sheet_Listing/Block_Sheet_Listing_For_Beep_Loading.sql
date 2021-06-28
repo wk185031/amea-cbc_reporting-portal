@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -37,6 +38,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Beep Loading'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -74,6 +77,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Beep Loading'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -108,6 +113,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Beep Loading'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
@@ -131,6 +138,8 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Beep Loading'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 GROUP BY
