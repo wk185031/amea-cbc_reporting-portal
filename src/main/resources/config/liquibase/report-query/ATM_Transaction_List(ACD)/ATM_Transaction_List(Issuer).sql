@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-688	29-JUN-2021		WY		Initial config from UAT environment
 -- CBCAXUPISSLOG-688	30-JUN-2021		NY		Update query following excel spec
+-- CBCAXUPISSLOG-688	01-JUL-2021		NY		Remove filter by BNT channel, to catch inter-entity accordingly
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -46,7 +47,6 @@ SELECT
 	WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-	  AND TXNC.TRL_ORIGIN_CHANNEL = ''BNT''
 	  AND CBA.CBA_MNEM != {V_Acq_Name}
       AND {Bank_Code}
       AND {Txn_Date}
