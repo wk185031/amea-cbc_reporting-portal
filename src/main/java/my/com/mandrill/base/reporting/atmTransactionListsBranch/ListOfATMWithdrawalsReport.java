@@ -76,16 +76,19 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 				contentStream.newLineAtOffset(startX, startY);
 
 				branchCode = branchCodeMap.getKey();
+				
+				writePdfHeader(rgm, contentStream, leading, pagination);
+				
 				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal);
-					writePdfHeader(rgm, contentStream, leading, pagination);
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 4;
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
+						contentStream.newLineAtOffset(0, -leading);
 						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
 						contentStream.newLineAtOffset(0, -leading);
 						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
@@ -98,15 +101,15 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 								startY, pdfFont, fontSize);
 						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
+						
+						contentStream.showText(String.format("%1$84s", ""));
+						contentStream.showText("TOTAL");
+
+						contentStream.showText(String.format("%1$20s", ""));
+						contentStream.showText(FORMATTER.format(totalAmt).toString());
+						pageHeight += 1;
 					}
 				}
-				
-				contentStream.newLineAtOffset(pageSize.getWidth()/2, -leading);
-				contentStream.showText("TOTAL");
-
-				contentStream.showText(String.format("%1$20s", ""));
-				
-				contentStream.showText(FORMATTER.format(totalAmt).toString());
 				
 				contentStream.endText();
 				contentStream.close();
@@ -158,6 +161,8 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
+			
+			writePdfHeader(rgm, contentStream, leading, pagination);
 
 			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
 					rgm).entrySet()) {
@@ -166,12 +171,12 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 						.entrySet()) {
 					branchName = branchNameMap.getKey();
 					preProcessing(rgm, branchCode, terminal);
-					writePdfHeader(rgm, contentStream, leading, pagination);
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 4;
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
+						contentStream.newLineAtOffset(0, -leading);
 						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
 						contentStream.newLineAtOffset(0, -leading);
 						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
@@ -184,16 +189,17 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 								startY, pdfFont, fontSize);
 						contentStream.newLineAtOffset(0, -leading);
 						pageHeight += 1;
+						
+						contentStream.showText(String.format("%1$84s", ""));
+						contentStream.showText("TOTAL");
+
+						contentStream.showText(String.format("%1$20s", ""));
+						contentStream.showText(FORMATTER.format(totalAmt).toString());
+						pageHeight += 1;
+						
 					}
 				}
 			}
-			
-			contentStream.newLineAtOffset(pageSize.getWidth()/2, -leading);
-			contentStream.showText("TOTAL");
-
-			contentStream.showText(String.format("%1$20s", ""));
-			
-			contentStream.showText(FORMATTER.format(totalAmt).toString());
 			
 			contentStream.endText();
 			contentStream.close();
