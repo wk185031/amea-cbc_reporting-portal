@@ -394,9 +394,45 @@ public class ReportGenerationResource {
 		}
 		logger.debug("Process {} reports", aList.size());
 		for (ReportDefinition reportDefinition : aList) {
-			populateReportDetails(reportGenerationMgr, reportDefinition, directory, txnStartDateTime, txnEndDateTime);
-			runReport(reportGenerationMgr);
 
+			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
+			reportGenerationMgr.setFileName(reportDefinition.getName());
+			reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
+			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
+			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
+			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
+			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
+			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
+			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
+			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
+
+			String dayPrefix = null; 
+
+			if (reportGenerationMgr.getFrequency().contains(ReportConstants.DAILY)) {
+				dayPrefix = StringUtils.leftPad(String.valueOf(txnStartDateTime.getDayOfMonth()), 2, "0");
+				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
+				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
+						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
+				reportGenerationMgr.setTxnStartDate(txnStartDateTime);
+				reportGenerationMgr.setTxnEndDate(txnEndDateTime.plusMinutes(1L));
+				reportGenerationMgr.setReportTxnEndDate(txnEndDateTime);
+				runReport(reportGenerationMgr);
+			} 
+
+			if (reportGenerationMgr.getFrequency().contains(ReportConstants.MONTHLY)) {
+				dayPrefix = "00";
+				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
+				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
+						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
+				LocalDate firstDayOfMonth = txnStartDateTime.toLocalDate().withDayOfMonth(1);
+				LocalDate lastDayOfMonth = txnStartDateTime.toLocalDate()
+						.withDayOfMonth(txnStartDateTime.toLocalDate().lengthOfMonth());
+				reportGenerationMgr.setTxnStartDate(firstDayOfMonth.atStartOfDay());
+				reportGenerationMgr.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
+				reportGenerationMgr.setReportTxnEndDate(YearMonth.from(txnEndDateTime).atEndOfMonth().atTime(LocalTime.MAX));
+				runReport(reportGenerationMgr);
+			}
 		}
 		return ResponseUtil
 				.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
@@ -429,44 +465,6 @@ public class ReportGenerationResource {
 		}
 
 		return branchCode;
-	}
-
-	private void populateReportDetails(ReportGenerationMgr rgm, ReportDefinition def, String reportPath,
-			LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
-		rgm.setReportCategory(def.getReportCategory().getName());
-		rgm.setFileName(def.getName());
-		rgm.setFileNamePrefix(def.getFileNamePrefix());
-		rgm.setFileFormat(def.getFileFormat());
-		rgm.setProcessingClass(def.getProcessingClass());
-		rgm.setHeaderFields(def.getHeaderFields());
-		rgm.setBodyFields(def.getBodyFields());
-		rgm.setTrailerFields(def.getTrailerFields());
-		rgm.setBodyQuery(def.getBodyQuery());
-		rgm.setTrailerQuery(def.getTrailerQuery());
-		rgm.setFrequency(def.getFrequency());
-
-		String dayPrefix = rgm.getFrequency().contains(ReportConstants.DAILY)
-				? StringUtils.leftPad(String.valueOf(txnStartDate.getDayOfMonth()), 2, "0")
-				: "00";
-
-		if (rgm.getFrequency().contains(ReportConstants.DAILY)) {
-			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
-			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
-					+ File.separator + def.getReportCategory().getName() + File.separator);
-			rgm.setTxnStartDate(txnStartDate);
-			rgm.setTxnEndDate(txnEndDate.plusMinutes(1L));
-			rgm.setReportTxnEndDate(txnEndDate);
-		} else if (rgm.getFrequency().contains(ReportConstants.MONTHLY)) {
-			rgm.setFileBaseDirectory(reportPath + File.separator + dayPrefix);
-			rgm.setFileLocation(reportPath + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
-					+ File.separator + def.getReportCategory().getName() + File.separator);
-			LocalDate firstDayOfMonth = txnStartDate.toLocalDate().withDayOfMonth(1);
-			LocalDate lastDayOfMonth = txnStartDate.toLocalDate()
-					.withDayOfMonth(txnStartDate.toLocalDate().lengthOfMonth());
-			rgm.setTxnStartDate(firstDayOfMonth.atStartOfDay());
-			rgm.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
-			rgm.setReportTxnEndDate(YearMonth.from(txnEndDate).atEndOfMonth().atTime(LocalTime.MAX));
-		}
 	}
 
 	@GetMapping("/report-get-generated/{institutionId}/{reportDate}/{reportCategoryId}")

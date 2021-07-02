@@ -109,7 +109,7 @@ public class ReportService {
 
 		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ institutionId + File.separator
-				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_06).format(lastDayOfMonth) + File.separator
+				+ DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_06).format(firstDayOfMonth) + File.separator
 				+ "00" + File.separator;
 
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
