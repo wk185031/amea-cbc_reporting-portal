@@ -72,7 +72,11 @@ public class GLHandoffEload extends BatchProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffEload.preProcessing()");
 		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", ""));
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
+					.replace("\"" + "Value Date" + "\",", "")
+					.replace("\"" + "Third Party Tran Description" + "\",", "\"" + "Third Party Tran Description" + "\"")
+					.replace("\"" + "TRAN_DATE" + "\"", "")
+					.replace("TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, 'MM-DD-YYYY')", ""));
 		}
 
 		if (rgm.isGenerate() == true) {

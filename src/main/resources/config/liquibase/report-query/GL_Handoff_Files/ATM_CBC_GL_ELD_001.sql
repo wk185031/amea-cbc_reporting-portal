@@ -1,6 +1,7 @@
--- Tracking				Date			Name	Description
--- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
--- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Tracking				        Date			Name	Description
+-- CBCAXUPISSLOG-742	        25-JUN-2021		NY		Initial config from UAT environment
+-- CBCAXUPISSLOG-645	        28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Eload Reports Specification	02-JUL-2021		GS		Modify and restructure the logic of GL Files Eload Reports
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -42,14 +43,16 @@ FROM
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
+      JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND NVL(CPD.CPD_CODE,0) NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -92,15 +95,17 @@ FROM
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
+      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
+      JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND NVL(CPD.CPD_CODE,0) NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLA.GLA_NAME NOT IN (''ACD Eload SVC Charge Bridge'', ''Accts. Payable - Bancnet Eload Tfee'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -117,7 +122,7 @@ GROUP BY
     "TRAN_DATE"
 ORDER BY
      "Tran Particular" DESC
-END		
+END
 	');	
 	i_TRAILER_QUERY := null;
 	
