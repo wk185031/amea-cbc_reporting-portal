@@ -842,20 +842,16 @@ public class ReportGenerationFields {
 	}
 
 	public String formatTxtTrailerValue(String tempValue) {
-		if (tempValue.trim().length() == 0) {
-			tempValue = String.format("%1$" + csvTxtLength + "s", "");
+		if (leftJustified) {
+			return formatLeftJustifiedTxtValue(tempValue);
 		} else {
-			if (leftJustified) {
-				tempValue = String.format("%1$-" + csvTxtLength + "s", tempValue);
+			if (fieldName.contains(ReportConstants.LINE)) {
+				return String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
 			} else {
-				if (fieldName.contains(ReportConstants.LINE)) {
-					tempValue = String.format("%" + csvTxtLength + "s", " ").replace(' ', tempValue.charAt(0));
-				} else {
-					tempValue = String.format("%1$" + csvTxtLength + "s", tempValue);
-				}
+				return formatRightJustifiedTxtValue(tempValue);
 			}
 		}
-		return tempValue;
+
 	}
 
 	public String formatRightJustifiedTxtValue(String tempValue) {
