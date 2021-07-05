@@ -17,6 +17,9 @@ public class CriteriaParamsUtil {
 				if (ReportConstants.VALUE_INTER_ISSUER_NAME.equals(p)) {
 					String ieInst = "CBC".equals(institution) ? "CBS" : "CBC";
 					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + ieInst + "'");
+				} else if (ReportConstants.VALUE_ACQR_INST_ID.equals(p)) {
+					String acqrInstId = "CBC".equals(institution) ? "0000000010" : "0000000112";
+					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + acqrInstId + "'");
 				} else {
 					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + institution + "'");
 				}	
