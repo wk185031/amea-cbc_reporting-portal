@@ -100,6 +100,7 @@ public final class ReportConstants {
 	public static final String VALUE_INTER_ISSUER_NAME = "V_IE_Iss_Name";
 	public static final String VALUE_ACQUIRER_NAME = "V_Acq_Name";
 	public static final String VALUE_GLA_INST = "V_Gla_Inst";
+	public static final String VALUE_ACQR_INST_ID = "V_Acqr_Inst_Id";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
