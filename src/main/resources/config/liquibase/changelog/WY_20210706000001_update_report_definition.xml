@@ -21,5 +21,10 @@
                  path="config/liquibase/report-query/Extract_Files/Finacle_360.sql"
                  splitStatements="false" 
                  stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Transactions/Daily_Payment_Transaction_Report_by_Acquirer_Issuer_Branch.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>
