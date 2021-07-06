@@ -27,9 +27,9 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 			}
 
 			if (rgm.errors == 0) {

@@ -25,15 +25,19 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 	@Override
 	public void processTxtRecord(ReportGenerationMgr rgm) {
 		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.processTxtRecord()");
+		if (getEncryptionService() == null) {
+			setEncryptionService(rgm.getEncryptionService());
+		}
+		
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_04));
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 			}
 
 			if (rgm.errors == 0) {
@@ -64,10 +68,10 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 			addBatchPreProcessingFieldsToGlobalMap(rgm);
 			executeBodyQuery(rgm);
 			addPostProcessingFieldsToGlobalMap(rgm);
-			writeTrailer(rgm);
+			executeTrailerQuery(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+		} catch (IOException e) {
 			rgm.errors++;
 			logger.error("Error in generating TXT file", e);
 		} finally {

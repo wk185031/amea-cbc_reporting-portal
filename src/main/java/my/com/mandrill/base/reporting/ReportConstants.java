@@ -66,6 +66,7 @@ public final class ReportConstants {
 	public static final String PARAM_BRANCH_CODE = "Branch_Code";
 	public static final String PARAM_BRANCH_NAME = "Branch_Name";
 	public static final String PARAM_BANK_CODE = "Bank_Code";
+	public static final String PARAM_ACQ_BANK_CODE = "Acq_Bank_Code";
 	public static final String PARAM_TERMINAL = "Terminal";
 	public static final String PARAM_CARD_PRODUCT = "Card_Product";
 	public static final String PARAM_GL_DESCRIPTION = "GL_Description";
@@ -96,10 +97,14 @@ public final class ReportConstants {
 	public static final String PARAM_BANK_MNEM = "Bank_Mnem";
 	
 	public static final String VALUE_DEO_NAME = "V_Deo_Name";
+	public static final String VALUE_INTER_DEO_NAME = "V_IE_Deo_Name";
 	public static final String VALUE_ISSUER_NAME = "V_Iss_Name";
 	public static final String VALUE_INTER_ISSUER_NAME = "V_IE_Iss_Name";
 	public static final String VALUE_ACQUIRER_NAME = "V_Acq_Name";
+	public static final String VALUE_INTER_ACQUIRER_NAME = "V_IE_Acq_Name";
 	public static final String VALUE_GLA_INST = "V_Gla_Inst";
+	public static final String VALUE_ACQR_INST_ID = "V_Acqr_Inst_Id";
+	public static final String VALUE_INTER_ACQR_INST_ID = "V_IE_Acqr_Inst_Id";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
@@ -178,7 +183,9 @@ public final class ReportConstants {
 	public static final String BP_BILLER_MNEM = "BILLER MNEM";
 	public static final String BP_BILLER_NAME = "BILLER NAME";
 	public static final String BANK_CODE = "BANK CODE";
+	public static final String BANK_CODE_ACQ = "BANK CODE ACQ";
 	public static final String BANK_NAME = "BANK NAME";
+	public static final String BANK_NAME_ACQ = "BANK NAME ACQ";
 	public static final String ACQUIRER_BANK_MNEM = "ACQUIRER BANK MNEM";
 	public static final String AMOUNT = "AMOUNT";
 	public static final String REV_AMOUNT = "REV AMOUNT";
