@@ -20,6 +20,9 @@ public class CriteriaParamsUtil {
 				} else if (ReportConstants.VALUE_ACQR_INST_ID.equals(p)) {
 					String acqrInstId = "CBC".equals(institution) ? "0000000010" : "0000000112";
 					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + acqrInstId + "'");
+				} else if (ReportConstants.VALUE_INTER_ACQR_INST_ID.equals(p)) {
+					String interAcqrInstId = "CBC".equals(institution) ? "0000000112" : "0000000010";
+					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + interAcqrInstId + "'");
 				} else {
 					replaceString = replaceString.replaceAll(paramPlaceholder, "'" + institution + "'");
 				}	
