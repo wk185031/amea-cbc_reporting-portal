@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -156,5 +157,62 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 				}
 			}
 		}
+	}
+	
+	protected SortedMap<String, String> filterCriteriaByBank(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.filterCriteriaByBank()");
+		String bankCode = null;
+		String bankName = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedMap<String, String> criteriaMap = new TreeMap<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter bank code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE_ACQ)) {
+								bankCode = result.toString();
+							}
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME_ACQ)) {
+								bankName = result.toString();
+							}
+						}
+					}
+					criteriaMap.put(bankCode, bankName);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return criteriaMap;
 	}
 }

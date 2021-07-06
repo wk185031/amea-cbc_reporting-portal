@@ -5,6 +5,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- CBCAXUPISSLOG-690	05-JUL-2021		NY		Populate 'to account type' with biller mnem if it is bill payment, network provider codes mnem if it is FT
 -- CBCAXUPISSLOG-762	05-JUL-2021		NY		Bank Code Column in EFDLY002 must display the bank mnemonic of the issuing card
+-- CBCAXUPISSLOG-762	05-JUL-2021		NY		Correct issuing bank mnem
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -21,14 +22,15 @@ BEGIN
 	i_BODY_QUERY := TO_CLOB('
 SELECT
       TXN.TRL_TQU_ID "TXN QUALIFIER",
-      CBA.CBA_NAME "BANK NAME",
+      CBA_ACQ.CBA_NAME "BANK NAME ACQ",
       CONCAT(LPAD(CBA.CBA_CODE, 4, ''0''),  TXN.TRL_CARD_ACPT_TERMINAL_IDENT) "ATM CODE",
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_DEST_STAN "SEQ NUMBER",
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE",
+      LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE ACQ",
+      SUBSTR({V_Acqr_Inst_Id},-4) "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       CASE WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",

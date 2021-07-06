@@ -6,6 +6,7 @@
 -- CBCAXUPISSLOG-688	01-JUL-2021		NY		Fix redundant row, catch inter-entity txn accordingly
 -- CBCAXUPISSLOG-688	05-JUL-2021		NY		Fix recycler txn not showing on verification
 -- CBCAXUPISSLOG-765	05-JUL-2021		NY		Fix wrong acquirer/issuer records
+-- CBCAXUPISSLOG-766	07-JUL-2021		NY		Exclude IBFT/Eload request ie 44/52 from acquirer/onus report, include IBFT withdrawal 01
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -65,6 +66,7 @@ FROM
 	  LEFT JOIN CBC_BILLER CBL ON CBL.CBL_CODE = TXNC.TRL_BILLER_CODE
 WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_FRD_REV_INST_ID IS NULL OR (TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_TSC_CODE = 1))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
@@ -102,6 +104,7 @@ FROM
 	  LEFT JOIN CBC_BILLER CBL ON CBL.CBL_CODE = TXNC.TRL_BILLER_CODE
 WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_FRD_REV_INST_ID IS NULL OR (TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_TSC_CODE = 1))
       AND TXN.TRL_ISS_NAME != {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
