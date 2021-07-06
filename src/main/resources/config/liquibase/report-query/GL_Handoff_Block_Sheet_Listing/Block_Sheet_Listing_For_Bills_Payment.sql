@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-644	22-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-644	23-JUN-2021		NY 		Fix wrong CBS GL account print in report
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Report Revise		06-JUL-2021		NY		Revise report based on specification
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -31,17 +32,18 @@ SELECT
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
       JOIN CBC_BILLER BIL ON TXNC.TRL_BILLER_CODE = BIL.CBL_CODE
-	WHERE
+     WHERE
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -77,10 +79,11 @@ SELECT
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -113,10 +116,11 @@ SELECT
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -139,10 +143,11 @@ SELECT
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY

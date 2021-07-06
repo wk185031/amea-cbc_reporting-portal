@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Report Revise		06-JUL-2021		NY		Revise report based on specification
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -32,7 +33,6 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_ISS_NAME = ''CBC''
       AND NVL(CPD.CPD_CODE,0) NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -41,6 +41,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 GROUP BY
@@ -66,7 +68,6 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_ISS_NAME = ''CBC''
       AND NVL(CPD.CPD_CODE,0) NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -75,6 +76,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 GROUP BY

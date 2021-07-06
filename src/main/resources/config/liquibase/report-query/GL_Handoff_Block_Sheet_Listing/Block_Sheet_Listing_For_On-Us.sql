@@ -44,6 +44,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 ORDER BY
@@ -78,6 +80,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 ORDER BY
@@ -108,6 +112,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 ORDER BY
@@ -135,6 +141,8 @@ WHERE
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 ORDER BY

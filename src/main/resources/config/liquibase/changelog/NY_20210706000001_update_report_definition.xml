@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="NY_20210706000001_update_report_definition" author="ny">
+    	<validCheckSum>any</validCheckSum>
+		<!-- GL Handoff Files -->
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Acquirer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Bills_Payment.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Issuer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_On-Us.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+				 
+		<!-- GL Handoff Block Sheet Listing -->		 
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_ACQ_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_BP_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_ISS_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_ONUS_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+				 
+		<!-- GL Handoff Final Proof Sheets -->
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Acquirer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Bills_Payment.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Issuer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_On-Us.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+				 
+    </changeSet>
+</databaseChangeLog>

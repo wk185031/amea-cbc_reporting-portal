@@ -1,6 +1,8 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Report Revise		06-JUL-2021		NY		Revise report based on specification
+-- CBCAXUPISSLOG-742	06-JUL-2021		NY		Sort debit/credit accordingly
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -23,9 +25,7 @@ SELECT
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 FROM(
 SELECT
       ABR.ABR_CODE "BRANCH CODE",
@@ -35,27 +35,29 @@ SELECT
       TXN.TRL_AMT_TXN "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description"
 FROM
       TRANSACTION_LOG TXN
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
+      JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND TXN.TRL_ISS_NAME != {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Acquirer'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 )
@@ -66,9 +68,7 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 ORDER BY
       "BRANCH CODE"
 START SELECT
@@ -79,9 +79,7 @@ START SELECT
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 FROM(
 SELECT
       ABR.ABR_CODE "BRANCH CODE",
@@ -91,27 +89,29 @@ SELECT
       TXN.TRL_AMT_TXN "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description"
 FROM
       TRANSACTION_LOG TXN
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
       JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
+      JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND TXN.TRL_ISS_NAME != {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Acquirer'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND AST.AST_TERMINAL_TYPE NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 )
@@ -122,9 +122,7 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 ORDER BY
       "BRANCH CODE"
 END		
