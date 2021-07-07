@@ -64,7 +64,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 				institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, 
 				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_INTER_ACQUIRER_NAME,
 				ReportConstants.VALUE_GLA_INST, ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID));
-		
+	
 		setFixBodyQuery(getBodyQuery());
 		setFixTrailerQuery(getTrailerQuery());
 

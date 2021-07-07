@@ -3,9 +3,11 @@ package my.com.mandrill.base.reporting.billsPaymentTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,8 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
+	private static final String DELIMITER = ";";
+	private static final DecimalFormat AMOUNT_FORMATTER = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT);
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -322,90 +326,98 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 
-			if (rgm.getBodyQuery() != null) {
-				setAcqBodyQuery(rgm.getBodyQuery());
-				setIssBodyQuery(rgm.getBodyQuery());
-			}
-
-			if (rgm.getTrailerQuery() != null) {
-				setAcqTrailerQuery(rgm.getTrailerQuery());
-				setIssTrailerQuery(rgm.getTrailerQuery());
-			}
-
-			preProcessing(rgm, "acquiring");
-			for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-				branchCodesList.add(acquiringBranchCodeMap.getKey());
-			}
-
-			preProcessing(rgm, "issuing");
-			for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-				branchCodesList.add(issuingBranchCodeMap.getKey());
-			}
-
-			for (String branchCodes : branchCodesList) {
-				preProcessing(rgm, "acquiring");
-				for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-					if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-						acquiring = true;
-					}
-				}
-
-				preProcessing(rgm, "issuing");
-				for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-					if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
-						issuing = true;
-					}
-				}
-
-				if (acquiring && issuing) {
-					preProcessing(rgm, "acquiring");
-					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-							pagination++;
-							branchCode = acquiringBranchCodeMap.getKey();
-							branchName = acquiringBranchCodeMap.getValue();
-							writeHeader(rgm, pagination, branchCode, branchName);
-							writeBodyHeader(rgm);
-							branchAsAcquiringDetails(rgm, branchCode, false);
-						}
-					}
-					preProcessing(rgm, "issuing");
-					for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-						branchCode = issuingBranchCodeMap.getKey();
-						branchName = issuingBranchCodeMap.getValue();
-						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
-							branchAsIssuingDetails(rgm, branchCode, true);
-						}
-					}
-				} else if (acquiring) {
-					preProcessing(rgm, "acquiring");
-					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
-						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
-							pagination++;
-							branchCode = acquiringBranchCodeMap.getKey();
-							branchName = acquiringBranchCodeMap.getValue();
-							writeHeader(rgm, pagination, branchCode, branchName);
-							writeBodyHeader(rgm);
-							branchAsAcquiringDetails(rgm, branchCode, false);
-						}
-					}
-				} else if (issuing) {
-					preProcessing(rgm, "issuing");
-					for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
-						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
-							pagination++;
-							branchCode = issuingBranchCodeMap.getKey();
-							branchName = issuingBranchCodeMap.getValue();
-							writeHeader(rgm, pagination, branchCode, branchName);
-							writeBodyHeader(rgm);
-							branchAsIssuingDetails(rgm, branchCode, true);
-						}
-					}
-				}
-			}
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
-		} catch (IOException | JSONException e) {
+			executeBodyQuery(rgm);
+			//TODO
+			
+			
+			
+			
+			
+//			
+//			if (rgm.getBodyQuery() != null) {
+//				setAcqBodyQuery(rgm.getBodyQuery());
+//				setIssBodyQuery(rgm.getBodyQuery());
+//			}
+//
+//			if (rgm.getTrailerQuery() != null) {
+//				setAcqTrailerQuery(rgm.getTrailerQuery());
+//				setIssTrailerQuery(rgm.getTrailerQuery());
+//			}
+//
+//			preProcessing(rgm, "acquiring");
+//			for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//				branchCodesList.add(acquiringBranchCodeMap.getKey());
+//			}
+//
+//			preProcessing(rgm, "issuing");
+//			for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//				branchCodesList.add(issuingBranchCodeMap.getKey());
+//			}
+//
+//			for (String branchCodes : branchCodesList) {
+//				preProcessing(rgm, "acquiring");
+//				for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//					if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
+//						acquiring = true;
+//					}
+//				}
+//
+//				preProcessing(rgm, "issuing");
+//				for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//					if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
+//						issuing = true;
+//					}
+//				}
+//
+//				if (acquiring && issuing) {
+//					preProcessing(rgm, "acquiring");
+//					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
+//							pagination++;
+//							branchCode = acquiringBranchCodeMap.getKey();
+//							branchName = acquiringBranchCodeMap.getValue();
+//							writeHeader(rgm, pagination, branchCode, branchName);
+//							writeBodyHeader(rgm);
+//							branchAsAcquiringDetails(rgm, branchCode, false);
+//						}
+//					}
+//					preProcessing(rgm, "issuing");
+//					for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//						branchCode = issuingBranchCodeMap.getKey();
+//						branchName = issuingBranchCodeMap.getValue();
+//						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
+//							branchAsIssuingDetails(rgm, branchCode, true);
+//						}
+//					}
+//				} else if (acquiring) {
+//					preProcessing(rgm, "acquiring");
+//					for (SortedMap.Entry<String, String> acquiringBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//						if (acquiringBranchCodeMap.getKey().equals(branchCodes)) {
+//							pagination++;
+//							branchCode = acquiringBranchCodeMap.getKey();
+//							branchName = acquiringBranchCodeMap.getValue();
+//							writeHeader(rgm, pagination, branchCode, branchName);
+//							writeBodyHeader(rgm);
+//							branchAsAcquiringDetails(rgm, branchCode, false);
+//						}
+//					}
+//				} else if (issuing) {
+//					preProcessing(rgm, "issuing");
+//					for (SortedMap.Entry<String, String> issuingBranchCodeMap : filterByBranch(rgm).entrySet()) {
+//						if (issuingBranchCodeMap.getKey().equals(branchCodes)) {
+//							pagination++;
+//							branchCode = issuingBranchCodeMap.getKey();
+//							branchName = issuingBranchCodeMap.getValue();
+//							writeHeader(rgm, pagination, branchCode, branchName);
+//							writeBodyHeader(rgm);
+//							branchAsIssuingDetails(rgm, branchCode, true);
+//						}
+//					}
+//				}
+//			}
+//			rgm.fileOutputStream.flush();
+//			rgm.fileOutputStream.close();
+		} catch (IOException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -734,8 +746,17 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
 		String channel = null;
-		logger.info("Query for body line export: {}", query);
+		logger.debug("Query for body line export: {}", query);
 
+		SummaryCount acquiringSummary = new SummaryCount();
+		SummaryCount issuingSummary = new SummaryCount();
+		boolean isIssuing = false;
+		String settlementType = null;
+		BigDecimal amount = BigDecimal.ZERO;
+		boolean writeAcquiringSummary = false;
+		String lastBranchCode = null;
+		String currentBranchCode = null;
+		String currentBranchName = null;
 		if (query != null && !query.isEmpty()) {
 			try {
 				ps = rgm.connection.prepareStatement(query);
@@ -750,6 +771,17 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						Object result;
 						try {
 							result = rs.getObject(field.getSource());
+							if ("IS ISSUING".equals(field.getFieldName())) {
+								if ("1".equals(result.toString())) {
+									isIssuing = true;
+								} else {
+									isIssuing = false;
+								}
+								//Interim solution to hide the display of this field
+								field.setValue("");
+								continue;	
+							}
+							
 						} catch (SQLException e) {
 							rgm.errors++;
 							logger.error("An error was encountered when trying to write a line", e);
@@ -772,9 +804,60 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						} else {
 							field.setValue("");
 						}
+						if ("BRANCH CODE".equals(field.getFieldName())) {
+							currentBranchCode = field.getValue();
+						}
+						if ("BRANCH NAME".equals(field.getFieldName())) {
+							currentBranchName = field.getValue();
+						}
+						if ("MN".equals(field.getFieldName())) {
+							settlementType = field.getValue();
+						}
+						if ("AMOUNT".equals(field.getFieldName())) {
+							amount = field.getValue() == null ? BigDecimal.ZERO : new BigDecimal(field.getValue());
+						}
 					}
+					
+					if (lastBranchCode == null) {
+						logger.debug("Start of the page. Write header.");
+						lastBranchCode = currentBranchCode;
+						writeHeader(rgm, pagination, currentBranchCode, currentBranchName);
+						writeBodyHeader(rgm);
+					} else if (!currentBranchCode.equals(lastBranchCode)) {
+						logger.debug("Change branch from {} to {}. Write header.", lastBranchCode, currentBranchCode);						
+						if (!writeAcquiringSummary) {
+							writeSummary(rgm, false, acquiringSummary);
+						}				
+						writeSummary(rgm, true, issuingSummary);
+						rgm.writeLine(getEol().getBytes());
+						rgm.writeLine(getEol().getBytes());
+						writeHeader(rgm, pagination, currentBranchCode, currentBranchName);
+						writeBodyHeader(rgm);
+						//reset all count
+						lastBranchCode = currentBranchCode;
+						acquiringSummary = new SummaryCount();
+						issuingSummary = new SummaryCount();
+						lastBranchCode = currentBranchCode;
+					} else {
+						if (isIssuing && !writeAcquiringSummary) {
+							writeSummary(rgm, false, acquiringSummary);
+							writeAcquiringSummary = true;
+						}
+					}
+					
+					if (isIssuing) {
+						issuingSummary.add(settlementType, amount);
+					} else {
+						acquiringSummary.add(settlementType, amount);
+					}
+
 					writeBody(rgm, lineFieldsMap, channel);
 				}
+				if (!writeAcquiringSummary) {
+					writeSummary(rgm, false, acquiringSummary);
+				}				
+				writeSummary(rgm, true, issuingSummary);
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
@@ -787,6 +870,29 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 					logger.error("Error closing DB resources", e);
 				}
 			}
+		}
+	}
+
+	private void writeSummary(ReportGenerationMgr rgm, boolean isIssuing, SummaryCount summaryCount) {
+		logger.debug("writeSummary: isIssuing={}", isIssuing);
+		StringBuilder line = new StringBuilder();
+		try {
+			line.append(getEol());
+			line.append("BRANCH AS ").append(isIssuing ? "ISSUER" : "ACQUIRER");
+			line.append(getEol());
+			line.append("FOR THIS BRANCH");
+			line.append(getEol());
+			line.append("AP").append(DELIMITER).append(summaryCount.apCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.apTotalAmount));
+			line.append(getEol());
+			line.append("WS").append(DELIMITER).append(summaryCount.wsCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wsTotalAmount));
+			line.append(getEol());
+			line.append("WOS").append(DELIMITER).append(summaryCount.wosCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wosTotalAmount));
+			line.append(getEol());
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+		} catch (IOException e) {
+			rgm.errors++;
+			logger.error("Error in writeSummary", e);
 		}
 	}
 
@@ -853,5 +959,27 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			}
 		}
 		return false;
+	}
+	
+	private class SummaryCount {
+		public int apCount = 0;
+		public BigDecimal apTotalAmount = BigDecimal.ZERO;
+		public int wsCount = 0;
+		public BigDecimal wsTotalAmount = BigDecimal.ZERO;
+		public int wosCount = 0;
+		public BigDecimal wosTotalAmount = BigDecimal.ZERO;
+		
+		public void add(String settlementType, BigDecimal amount) {
+			if ("AP".equals(settlementType)) {
+				apCount++;
+				apTotalAmount = apTotalAmount.add(amount);
+			} else if ("WS".equals(settlementType)) {
+				wsCount++;
+				wsTotalAmount = apTotalAmount.add(amount);
+			} else if ("WOS".equals(settlementType)) {
+				wosCount++;
+				wosTotalAmount = apTotalAmount.add(amount);
+			}	
+		}
 	}
 }

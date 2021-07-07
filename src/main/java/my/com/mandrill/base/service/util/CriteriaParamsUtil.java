@@ -30,6 +30,5 @@ public class CriteriaParamsUtil {
 			}
 		}
 		return replaceString;
-	}
-	
+	}	
 }
