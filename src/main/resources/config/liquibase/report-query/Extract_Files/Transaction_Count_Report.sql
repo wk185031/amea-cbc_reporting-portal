@@ -7,6 +7,7 @@
 -- CBCAXUPISSLOG-688	05-JUL-2021		NY		Fix recycler txn not showing on verification
 -- CBCAXUPISSLOG-765	05-JUL-2021		NY		Fix wrong acquirer/issuer records
 -- CBCAXUPISSLOG-766	07-JUL-2021		NY		Exclude IBFT/Eload request ie 44/52 from acquirer/onus report, include IBFT withdrawal 01
+-- CBCAXUPISSLOG-546	07-JUL-2021		NY		Correct tran mnem for IBFT withdrawal BTD/BTR
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
