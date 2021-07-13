@@ -2,6 +2,8 @@
 -- Eload Reports Specification	02-JUL-2021		GS		Modify and restructure the logic of Eload Reports
 -- CBCAXUPISSLOG-527 			05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 
+-- SHOULD NOT USED THIS ANYMORE! USE INDIVIDUAL SCRIPT.
+
 DECLARE
 
 	i_BODY_FIELDS CLOB;
