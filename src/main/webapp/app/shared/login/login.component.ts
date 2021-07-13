@@ -2,6 +2,8 @@ import { Component, AfterViewInit, Renderer, ElementRef } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { JhiEventManager } from 'ng-jhipster';
+import * as CryptoJS from 'crypto-js';
+import { E2E_KEY } from '..';
 
 import { LoginService } from './login.service';
 import { StateStorageService } from '../auth/state-storage.service';
@@ -52,8 +54,8 @@ export class JhiLoginModalComponent implements AfterViewInit {
 
     login() {
         this.loginService.login({
-            username: this.username,
-            password: this.password,
+            username: CryptoJS.AES.encrypt(this.username, E2E_KEY).toString(),
+            password: CryptoJS.AES.encrypt(this.password, E2E_KEY).toString(),
             rememberMe: this.rememberMe
         }).then(() => {
             this.authenticationError = false;

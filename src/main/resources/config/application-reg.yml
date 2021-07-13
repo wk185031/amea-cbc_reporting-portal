@@ -198,3 +198,4 @@ application:
         path : /reporting-portal/resources
     reportDir:
         path: /reporting-portal/reports
+    e2eKey: 0+4*LjOrxdic|>1L

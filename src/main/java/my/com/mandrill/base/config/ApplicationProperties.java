@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationProperties {
     private boolean selfRegistration;
     private boolean languageSelection;
+    private String e2eKey;
 
     private final AbsolutePath imageAttachmentBasePath = new AbsolutePath();
 
@@ -41,7 +42,15 @@ public class ApplicationProperties {
         return reportDir;
     }
 
-    public static class AbsolutePath {
+    public String isE2eKey() {
+		return e2eKey;
+	}
+
+	public void setE2eKey(String e2eKey) {
+		this.e2eKey = e2eKey;
+	}
+
+	public static class AbsolutePath {
 
         private String path;
 

@@ -1,35 +1,36 @@
 package my.com.mandrill.base.web.rest;
 
-import my.com.mandrill.base.domain.UserExtra;
-import my.com.mandrill.base.reporting.ReportConstants;
-import my.com.mandrill.base.repository.UserExtraRepository;
-import my.com.mandrill.base.security.jwt.JWTConfigurer;
-import my.com.mandrill.base.security.jwt.TokenProvider;
-import my.com.mandrill.base.web.rest.vm.LoginVM;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
 
-import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.Valid;
 
-import io.github.jhipster.config.JHipsterProperties;
-import io.github.jhipster.web.util.ResponseUtil;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.Valid;
+import io.github.jhipster.config.JHipsterProperties;
+import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.repository.UserExtraRepository;
+import my.com.mandrill.base.security.jwt.JWTConfigurer;
+import my.com.mandrill.base.security.jwt.TokenProvider;
+import my.com.mandrill.base.service.util.E2eEncryptionUtil;
+import my.com.mandrill.base.web.rest.vm.LoginVM;
 
 /**
  * Controller to authenticate users.
@@ -60,13 +61,16 @@ public class UserJWTController {
     @Timed
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
 
+    	String username = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), loginVM.getUsername());
+    	String password = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), loginVM.getPassword());
+
         UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(loginVM.getUsername(), loginVM.getPassword());
+            new UsernamePasswordAuthenticationToken(username, password);
         
         // check if concurrent login allowed
         if(env.getProperty(ReportConstants.ALLOW_CONCURRENT_LOGIN).equalsIgnoreCase("true")) {
         	// check if userExtra loginFlag is Y       
-            List<UserExtra> userExtraList = userExtraRepository.findByUserLogin(loginVM.getUsername());      
+            List<UserExtra> userExtraList = userExtraRepository.findByUserLogin(username);      
             UserExtra userExtra = userExtraList.get(0);
             
             LocalDateTime lastLoginPlusTokenValidityPeriod = userExtra.getLastLoginTs().toLocalDateTime().plusSeconds(jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds());
