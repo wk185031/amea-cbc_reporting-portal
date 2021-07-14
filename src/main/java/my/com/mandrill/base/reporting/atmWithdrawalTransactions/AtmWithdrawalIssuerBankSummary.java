@@ -32,64 +32,64 @@ public class AtmWithdrawalIssuerBankSummary extends PdfReportProcessor {
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 
-	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalIssuerBankSummary.processPdfRecord()");
-		PDDocument doc = null;
-		pagination = 1;
-		try {
-			doc = new PDDocument();
-			PDPage page = new PDPage();
-			doc.addPage(page);
-			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.COURIER;
-			float fontSize = 6;
-			float leading = 1.5f * fontSize;
-			PDRectangle pageSize = page.getMediaBox();
-			float margin = 30;
-			float width = pageSize.getWidth() - 2 * margin;
-			float startX = pageSize.getLowerLeftX() + margin;
-			float startY = pageSize.getUpperRightY() - margin;
-
-			preProcessingInstitution(rgm);
-			addReportPreProcessingFieldsToGlobalMap(rgm);
-
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
-
-			writePdfHeader(rgm, contentStream, leading, pagination);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 4;
-			writePdfBodyHeader(rgm, contentStream, leading);
-			pageHeight += 2;
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize);
-			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
-			pageHeight += 1;
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
-
-			contentStream.endText();
-			contentStream.close();
-
-			saveFile(rgm, doc);
-		} catch (Exception e) {
-			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
-		} finally {
-			if (doc != null) {
-				try {
-					doc.close();
-					rgm.exit();
-				} catch (IOException e) {
-					rgm.errors++;
-					logger.error("Error in closing PDF file", e);
-				}
-			}
-		}
-	}
+//	@Override
+//	public void executePdf(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmWithdrawalIssuerBankSummary.processPdfRecord()");
+//		PDDocument doc = null;
+//		pagination = 1;
+//		try {
+//			doc = new PDDocument();
+//			PDPage page = new PDPage();
+//			doc.addPage(page);
+//			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+//			PDFont pdfFont = PDType1Font.COURIER;
+//			float fontSize = 6;
+//			float leading = 1.5f * fontSize;
+//			PDRectangle pageSize = page.getMediaBox();
+//			float margin = 30;
+//			float width = pageSize.getWidth() - 2 * margin;
+//			float startX = pageSize.getLowerLeftX() + margin;
+//			float startY = pageSize.getUpperRightY() - margin;
+//
+//			preProcessingInstitution(rgm);
+//			addReportPreProcessingFieldsToGlobalMap(rgm);
+//
+//			contentStream.setFont(pdfFont, fontSize);
+//			contentStream.beginText();
+//			contentStream.newLineAtOffset(startX, startY);
+//
+//			writePdfHeader(rgm, contentStream, leading, pagination);
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 4;
+//			writePdfBodyHeader(rgm, contentStream, leading);
+//			pageHeight += 2;
+//			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+//					pdfFont, fontSize);
+//			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
+//			pageHeight += 1;
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
+//
+//			contentStream.endText();
+//			contentStream.close();
+//
+//			saveFile(rgm, doc);
+//		} catch (Exception e) {
+//			rgm.errors++;
+//			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+//		} finally {
+//			if (doc != null) {
+//				try {
+//					doc.close();
+//					rgm.exit();
+//				} catch (IOException e) {
+//					rgm.errors++;
+//					logger.error("Error in closing PDF file", e);
+//				}
+//			}
+//		}
+//	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {

@@ -1,0 +1,78 @@
+-- Tracking				Date			Name	Description
+-- Revised Report		06-JULY-2021	WY		Revised reports based on spec
+
+DECLARE
+	i_HEADER_FIELDS CLOB;
+    i_BODY_FIELDS CLOB;
+    i_TRAILER_FIELDS CLOB;
+	i_BODY_QUERY CLOB;
+	i_TRAILER_QUERY CLOB;
+BEGIN 
+	
+	i_BODY_QUERY := TO_CLOB('				
+SELECT
+      "BRANCH CODE",
+      "BRANCH NAME",
+      "TERMINAL",
+      SUM("A/R PER TERMINAL") "A/R PER TERMINAL",
+      COUNT("ITEMS") "ITEMS",
+      SUM("A/R PER TERMINAL") "TOTAL A/R AMOUNT"
+FROM (
+SELECT
+      ABR.ABR_CODE "BRANCH CODE",
+      ABR.ABR_NAME "BRANCH NAME",
+      SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
+      TXN.TRL_AMT_TXN "A/R PER TERMINAL",
+      TXN.TRL_ID "ITEMS"
+FROM
+      TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL_ID
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
+      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+WHERE
+      TXN.TRL_TSC_CODE IN (1, 128)
+      AND TXN.TRL_TQU_ID IN (''F'',''R'')
+	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+	  AND TXN.TRL_ISS_NAME IS NULL
+      AND {Branch_Code}
+      AND {Terminal}
+      AND {Txn_Date}
+)
+GROUP BY
+      "BRANCH CODE",
+      "BRANCH NAME",
+      "TERMINAL"
+ORDER BY
+      "BRANCH CODE" ASC,
+      "TERMINAL" ASC		
+	');	
+	
+	i_TRAILER_QUERY := TO_CLOB('SELECT
+      SUM(TXN.TRL_AMT_TXN) "A/R PER TERMINAL",
+      COUNT(TXN.TRL_ID) "ITEMS"
+FROM
+      TRANSACTION_LOG TXN
+      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL_ID
+      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
+      JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
+      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+WHERE
+      TXN.TRL_TSC_CODE IN (1, 128)
+      AND TXN.TRL_TQU_ID IN (''F'',''R'')
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+	  AND TXN.TRL_ISS_NAME IS NULL
+      AND {Txn_Date}
+	  ');
+	  
+	  i_TRAILER_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Filler","csvTxtLength":"5","pdfLength":"5","fieldType":"String","delimiter":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"defaultValue":"9999"},{"sequence":2,"sectionName":"2","fieldName":"Filler","csvTxtLength":"46","pdfLength":"46","fieldType":"String","delimiter":"","defaultValue":"TOTAL OF ALL BRANCHES","firstField":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"A/R PER TERMINAL","csvTxtLength":"16","pdfLength":"16","fieldType":"Decimal","delimiter":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true,"fieldFormat":"#,##0.00"}]');
+	
+	UPDATE REPORT_DEFINITION SET 
+		RED_TRAILER_FIELDS = i_TRAILER_FIELDS,
+		RED_BODY_QUERY = i_BODY_QUERY,
+		RED_TRAILER_QUERY = i_TRAILER_QUERY
+	WHERE RED_NAME = 'BNOB File';
+	
+END;
+/
