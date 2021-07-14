@@ -7,6 +7,8 @@
 -- CBCAXUPISSLOG-762	05-JUL-2021		NY		Bank Code Column in EFDLY002 must display the bank mnemonic of the issuing card
 -- CBCAXUPISSLOG-762	05-JUL-2021		NY		Correct issuing bank mnem
 -- CBCAXUPISSLOG-546	07-JUL-2021		NY		Correct tran mnem for IBFT withdrawal BTD/BTR
+-- CBCAXUPISSLOG-762	13-JUL-2021		NY		Use issuing bank code, instead of bank mnem
+-- CBCAXUPISSLOG-803	14-JUL-2021  	NY		Issuer credit transaction for other bank card at other bank atm should not include in master list
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -33,7 +35,7 @@ SELECT
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
       LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE ACQ",
-      SUBSTR({V_Acqr_Inst_Id},-4) "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_SYSTEM_TIMESTAMP "TIMESTAMP",
@@ -82,7 +84,7 @@ SELECT
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
       LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE ACQ",
-      SUBSTR({V_Acqr_Inst_Id},-4) "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_SYSTEM_TIMESTAMP "TIMESTAMP",
@@ -130,7 +132,7 @@ SELECT
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
       LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE ACQ",
-      SUBSTR({V_Acqr_Inst_Id},-4) "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_SYSTEM_TIMESTAMP "TIMESTAMP",
@@ -182,7 +184,7 @@ SELECT
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
       LPAD(CBA_ACQ.CBA_CODE, 4, ''0'') "BANK CODE ACQ",
-      SUBSTR({V_Acqr_Inst_Id},-4) "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_SYSTEM_TIMESTAMP "TIMESTAMP",
@@ -217,6 +219,7 @@ SELECT
       AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+      AND CBA.CBA_MNEM = {V_Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
 	)
