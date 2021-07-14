@@ -37,123 +37,123 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 	private boolean branchDetails = false;
 	private boolean bankDetails = false;
 
-	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
-		logger.debug("In AtmWithdrawalAcquirerBankSummary.processPdfRecord()");
-		PDDocument doc = null;
-		pagination = 1;
-		try {
-			doc = new PDDocument();
-			PDPage page = new PDPage();
-			doc.addPage(page);
-			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-			PDFont pdfFont = PDType1Font.COURIER;
-			float fontSize = 6;
-			float leading = 1.5f * fontSize;
-			PDRectangle pageSize = page.getMediaBox();
-			float margin = 30;
-			float width = pageSize.getWidth() - 2 * margin;
-			float startX = pageSize.getLowerLeftX() + margin;
-			float startY = pageSize.getUpperRightY() - margin;
-			String branchCode = null;
-			String branchName = null;
-			String terminal = null;
-			String location = null;
-
-			preProcessingInstitution(rgm);
-			separateQuery(rgm);
-			preProcessing(rgm);
-
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
-
-			bankDetails = false;
-			writePdfHeader(rgm, contentStream, leading, pagination);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 4;
-			writeBranchPdfBodyHeader(rgm, contentStream, leading);
-			pageHeight += 2;
-
-			rgm.setBodyQuery(getCriteriaQuery());
-			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
-					rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
-					branchDetails = true;
-					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, terminal);
-					rgm.setBodyQuery(getBranchDetailBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
-					pageHeight += 1;
-					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
-						terminal = terminalMap.getKey();
-						location = terminalMap.getValue();
-						branchDetails = false;
-						rgm.setBodyQuery(getBranchBodyQuery());
-						preProcessing(rgm, branchCode, terminal);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
-						pageHeight += 1;
-					}
-				}
-			}
-			rgm.setTrailerQuery(getBranchTrailerQuery());
-			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
-					bankDetails);
-			pageHeight += 1;
-			contentStream.newLineAtOffset(0, -leading);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
-			contentStream.endText();
-			contentStream.close();
-
-			bankDetails = true;
-			pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-			page = new PDPage();
-			doc.addPage(page);
-			pagination++;
-			contentStream = new PDPageContentStream(doc, page);
-			contentStream.setFont(pdfFont, fontSize);
-			contentStream.beginText();
-			contentStream.newLineAtOffset(startX, startY);
-			writePdfHeader(rgm, contentStream, leading, pagination);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 4;
-			writeBankPdfBodyHeader(rgm, contentStream, leading);
-			pageHeight += 2;
-			rgm.setBodyQuery(getBankBodyQuery());
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
-			rgm.setTrailerQuery(getBankTrailerQuery());
-			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
-					bankDetails);
-			pageHeight += 1;
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
-			contentStream.endText();
-			contentStream.close();
-
-			saveFile(rgm, doc);
-		} catch (Exception e) {
-			rgm.errors++;
-			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
-		} finally {
-			if (doc != null) {
-				try {
-					doc.close();
-					rgm.exit();
-				} catch (IOException e) {
-					rgm.errors++;
-					logger.error("Error in closing PDF file", e);
-				}
-			}
-		}
-	}
+//	@Override
+//	public void executePdf(ReportGenerationMgr rgm) {
+//		logger.debug("In AtmWithdrawalAcquirerBankSummary.processPdfRecord()");
+//		PDDocument doc = null;
+//		pagination = 1;
+//		try {
+//			doc = new PDDocument();
+//			PDPage page = new PDPage();
+//			doc.addPage(page);
+//			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+//			PDFont pdfFont = PDType1Font.COURIER;
+//			float fontSize = 6;
+//			float leading = 1.5f * fontSize;
+//			PDRectangle pageSize = page.getMediaBox();
+//			float margin = 30;
+//			float width = pageSize.getWidth() - 2 * margin;
+//			float startX = pageSize.getLowerLeftX() + margin;
+//			float startY = pageSize.getUpperRightY() - margin;
+//			String branchCode = null;
+//			String branchName = null;
+//			String terminal = null;
+//			String location = null;
+//
+//			preProcessingInstitution(rgm);
+//			separateQuery(rgm);
+//			preProcessing(rgm);
+//
+//			contentStream.setFont(pdfFont, fontSize);
+//			contentStream.beginText();
+//			contentStream.newLineAtOffset(startX, startY);
+//
+//			bankDetails = false;
+//			writePdfHeader(rgm, contentStream, leading, pagination);
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 4;
+//			writeBranchPdfBodyHeader(rgm, contentStream, leading);
+//			pageHeight += 2;
+//
+//			rgm.setBodyQuery(getCriteriaQuery());
+//			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+//					rgm).entrySet()) {
+//				branchCode = branchCodeMap.getKey();
+//				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+//						.entrySet()) {
+//					branchDetails = true;
+//					branchName = branchNameMap.getKey();
+//					preProcessing(rgm, branchCode, terminal);
+//					rgm.setBodyQuery(getBranchDetailBodyQuery());
+//					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+//							startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
+//					pageHeight += 1;
+//					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+//						terminal = terminalMap.getKey();
+//						location = terminalMap.getValue();
+//						branchDetails = false;
+//						rgm.setBodyQuery(getBranchBodyQuery());
+//						preProcessing(rgm, branchCode, terminal);
+//						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+//								startY, pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
+//						pageHeight += 1;
+//					}
+//				}
+//			}
+//			rgm.setTrailerQuery(getBranchTrailerQuery());
+//			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
+//					bankDetails);
+//			pageHeight += 1;
+//			contentStream.newLineAtOffset(0, -leading);
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
+//			contentStream.endText();
+//			contentStream.close();
+//
+//			bankDetails = true;
+//			pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+//			page = new PDPage();
+//			doc.addPage(page);
+//			pagination++;
+//			contentStream = new PDPageContentStream(doc, page);
+//			contentStream.setFont(pdfFont, fontSize);
+//			contentStream.beginText();
+//			contentStream.newLineAtOffset(startX, startY);
+//			writePdfHeader(rgm, contentStream, leading, pagination);
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 4;
+//			writeBankPdfBodyHeader(rgm, contentStream, leading);
+//			pageHeight += 2;
+//			rgm.setBodyQuery(getBankBodyQuery());
+//			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+//					pdfFont, fontSize, branchDetails, bankDetails, branchName, location);
+//			rgm.setTrailerQuery(getBankTrailerQuery());
+//			executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize,
+//					bankDetails);
+//			pageHeight += 1;
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//			contentStream.showText(String.format("%1$56s", "") + "*** END OF REPORT ***");
+//			contentStream.endText();
+//			contentStream.close();
+//
+//			saveFile(rgm, doc);
+//		} catch (Exception e) {
+//			rgm.errors++;
+//			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+//		} finally {
+//			if (doc != null) {
+//				try {
+//					doc.close();
+//					rgm.exit();
+//				} catch (IOException e) {
+//					rgm.errors++;
+//					logger.error("Error in closing PDF file", e);
+//				}
+//			}
+//		}
+//	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
