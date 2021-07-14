@@ -30,6 +30,26 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Eload_Transactions/Eload_Issuer.sql"
                  splitStatements="false" 
-                 stripComments="true" />		 
+                 stripComments="true" />
+         <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Transactions/By_Acquirer_Issuer_Branch.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Transactions/Summary_By_Utility_Company.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Transactions/By_Utility_Company.sql"
+                 splitStatements="false" 
+                 stripComments="true" />		
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Extract_Files/Bills_Payment_Extract_Files_Summary.sql"
+                 splitStatements="false" 
+                 stripComments="true" />        	 
     </changeSet>
 </databaseChangeLog>

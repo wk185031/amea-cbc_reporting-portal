@@ -838,12 +838,13 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						acquiringSummary = new SummaryCount();
 						issuingSummary = new SummaryCount();
 						lastBranchCode = currentBranchCode;
-					} else {
-						if (isIssuing && !writeAcquiringSummary) {
-							writeSummary(rgm, false, acquiringSummary);
-							writeAcquiringSummary = true;
-						}
+					} 
+					
+					if (isIssuing && !writeAcquiringSummary) {
+						writeSummary(rgm, false, acquiringSummary);
+						writeAcquiringSummary = true;
 					}
+
 					
 					if (isIssuing) {
 						issuingSummary.add(settlementType, amount);
@@ -975,10 +976,10 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				apTotalAmount = apTotalAmount.add(amount);
 			} else if ("WS".equals(settlementType)) {
 				wsCount++;
-				wsTotalAmount = apTotalAmount.add(amount);
+				wsTotalAmount = wsTotalAmount.add(amount);
 			} else if ("WOS".equals(settlementType)) {
 				wosCount++;
-				wosTotalAmount = apTotalAmount.add(amount);
+				wosTotalAmount = wosTotalAmount.add(amount);
 			}	
 		}
 	}
