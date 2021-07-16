@@ -34,6 +34,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
+	String[] CASH_CARD_PRODUCTS = new String[] {"EMV CASH CARD", "EMV CASH CARD-CORP"};
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -105,15 +106,22 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 								contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " AT " + location);
 								pageHeight += 1;
 								contentStream.newLineAtOffset(0, -leading);
-								contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProduct);
-								pageHeight += 1;
-								contentStream.newLineAtOffset(0, -leading);
-								writePdfBodyHeader(rgm, contentStream, leading);
-								pageHeight += 2;
-								preProcessing(rgm, branchCode, terminal, cardProduct);
-								contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
-										startX, startY, pdfFont, fontSize);
-								pageHeight += 1;
+								float initialPageHeight = pageHeight;
+								for (String cardProd : CASH_CARD_PRODUCTS) {
+									contentStream.showText(ReportConstants.CARD_PRODUCT + " - " + cardProd);
+									pageHeight += 1;
+									contentStream.newLineAtOffset(0, -leading);
+									writePdfBodyHeader(rgm, contentStream, leading);
+									pageHeight += 2;
+									preProcessing(rgm, branchCode, terminal, cardProd);
+									contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+											startX, startY, pdfFont, fontSize);
+									if (pageHeight <= initialPageHeight) {
+										contentStream.showText("** NO RECORDS FOUND **");
+										contentStream.newLineAtOffset(0, -leading);
+									}
+									pageHeight += 1;
+								}	
 							}
 						}
 					}
@@ -145,6 +153,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		String terminal = null;
 		String location = null;
 		String cardProduct = null;
+		
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 0;
@@ -164,22 +173,28 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 							.entrySet()) {
 						terminal = terminalMap.getKey();
 						for (SortedMap.Entry<String, String> locationMap : terminalMap.getValue().entrySet()) {
-							StringBuilder line = new StringBuilder();
+							
 							location = locationMap.getKey();
 							cardProduct = locationMap.getValue();
-							line.append(ReportConstants.TERMINAL + " " + terminal).append(";").append(" AT " + location)
-									.append(";");
-							line.append(getEol());
-							line.append(ReportConstants.CARD_PRODUCT + " - ").append(";").append(cardProduct)
-									.append(";");
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
-							writeBodyHeader(rgm);
-							preProcessing(rgm, branchCode, terminal, cardProduct);
-							executeBodyQuery(rgm);
-							line = new StringBuilder();
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
+							
+							for (String cardProd : CASH_CARD_PRODUCTS) {
+								StringBuilder line = new StringBuilder();
+								line.append(ReportConstants.TERMINAL + " " + terminal).append(";")
+										.append(" AT " + location).append(";");
+								line.append(ReportConstants.CARD_PRODUCT + " - ").append(";").append(cardProd)
+										.append(";");
+								line.append(getEol());
+								rgm.writeLine(line.toString().getBytes());
+								writeBodyHeader(rgm);
+								preProcessing(rgm, branchCode, terminal, cardProd);
+								int count = executeBodyQueryWithCount(rgm);
+								if (count == 0) {
+									rgm.writeLine("** NO RECORDS FOUND **".getBytes());
+									rgm.writeLine(getEol().getBytes());	
+								}
+								rgm.writeLine(getEol().getBytes());
+								rgm.writeLine(getEol().getBytes());	
+							}	
 						}
 					}
 				}
@@ -214,6 +229,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		String query = getBodyQuery(rgm);
 		logger.info("Query for body line export: {}", query);
 
+		int i = 0;
 		if (query != null && !query.isEmpty()) {
 			try {
 				ps = rgm.connection.prepareStatement(query);
@@ -222,6 +238,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
 				while (rs.next()) {
+					i++;
 					if (pageHeight > totalHeight) {
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 						contentStream.endText();
