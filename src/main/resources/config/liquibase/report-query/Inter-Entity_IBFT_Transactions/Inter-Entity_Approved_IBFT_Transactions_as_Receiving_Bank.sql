@@ -37,8 +37,10 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
+	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
 	ORDER BY
@@ -59,8 +61,10 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
+	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Txn_Date}
 	GROUP BY
       CBA.CBA_CODE,
@@ -81,8 +85,10 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
+	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}
+       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
 	START SELECT
@@ -94,8 +100,10 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (42, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
+	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}
+       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Txn_Date}
 	GROUP BY
       TXN.TRL_AMT_TXN,
