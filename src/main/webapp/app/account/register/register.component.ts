@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewInit, Renderer, ElementRef } from '@angular
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { JhiLanguageService } from 'ng-jhipster';
+import * as CryptoJS from 'crypto-js';
+import { E2E_KEY } from '../../shared';
 
 import { Register } from './register.service';
 import { LoginModalService, EMAIL_ALREADY_USED_TYPE, LOGIN_ALREADY_USED_TYPE } from '../../shared';
@@ -22,7 +24,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     registerAccount: any;
     success: boolean;
     modalRef: NgbModalRef;
-
+   E2EregisterPassword: string;
     isSelfRegistration: boolean;
 
     constructor(
@@ -49,6 +51,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
 
     register() {
+        this.E2EregisterPassword = CryptoJS.AES.encrypt(this.registerAccount.password, E2E_KEY).toString();
         if (this.registerAccount.password !== this.confirmPassword) {
             this.doNotMatch = 'ERROR';
         } else {
@@ -56,6 +59,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             this.error = null;
             this.errorUserExists = null;
             this.errorEmailExists = null;
+            this.registerAccount.password = this.E2EregisterPassword;
             this.languageService.getCurrent().then((key) => {
                 this.registerAccount.user.langKey = key;
                 this.registerService.saveExtra(this.registerAccount).subscribe(() => {

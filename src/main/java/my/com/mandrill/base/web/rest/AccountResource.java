@@ -8,6 +8,7 @@ import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.MailService;
 import my.com.mandrill.base.service.UserService;
 import my.com.mandrill.base.service.dto.UserDTO;
+import my.com.mandrill.base.service.util.E2eEncryptionUtil;
 import my.com.mandrill.base.web.rest.errors.*;
 import my.com.mandrill.base.web.rest.vm.KeyAndPasswordVM;
 import my.com.mandrill.base.web.rest.vm.ManagedUserExtraVM;
@@ -184,10 +185,12 @@ public class AccountResource {
     @PostMapping(path = "/account/change-password")
     @Timed
     public void changePassword(@RequestBody String password) {
-        if (!checkPasswordLength(password)) {
+    	
+    	String password1 = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), password);
+        if (!checkPasswordLength(password1)) {
             throw new InvalidPasswordException();
         }
-        userService.changePassword(password);
+        userService.changePassword(password1);
    }
 
     /**
@@ -215,11 +218,13 @@ public class AccountResource {
     @PostMapping(path = "/account/reset-password/finish")
     @Timed
     public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
-        if (!checkPasswordLength(keyAndPassword.getNewPassword())) {
+    	String NewKey = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
+    	String NewPassword = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), keyAndPassword.getNewPassword());
+        if (!checkPasswordLength(NewPassword)) {
             throw new InvalidPasswordException();
         }
         Optional<User> user =
-            userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
+            userService.completePasswordReset(NewPassword, NewKey);
 
         if (!user.isPresent()) {
             throw new InternalServerErrorException("No user was found for this reset key");
