@@ -97,17 +97,18 @@ public class AccountResource {
     @Timed
     @ResponseStatus(HttpStatus.CREATED)
     public void registerAccountExtra(@Valid @RequestBody ManagedUserExtraVM managedUserExtraVM) {
+    	String password = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getPassword());
         if (!SELF_REGISTRATION) {
             throw new SelfRegistrationNotAllowedException();
         }
 
-        if (!checkPasswordLength(managedUserExtraVM.getPassword())) {
+        if (!checkPasswordLength(password)) {
             throw new InvalidPasswordException();
         }
 
         userRepository.findOneByLogin(managedUserExtraVM.getUser().getLogin().toLowerCase()).ifPresent(u -> {throw new LoginAlreadyUsedException();});
         userRepository.findOneByEmailIgnoreCase(managedUserExtraVM.getUser().getEmail()).ifPresent(u -> {throw new EmailAlreadyUsedException();});
-        User user = userService.registerUser(managedUserExtraVM, managedUserExtraVM.getPassword());
+        User user = userService.registerUser(managedUserExtraVM, password);
         mailService.sendActivationEmail(user);
     }
 
