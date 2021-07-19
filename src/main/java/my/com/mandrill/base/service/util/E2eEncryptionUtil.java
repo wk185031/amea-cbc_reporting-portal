@@ -14,14 +14,14 @@ public class E2eEncryptionUtil {
 
 	public static String encryptEcb(String clearKey, String token) {
     	try {
-        	byte[] bToken = token.getBytes(StandardCharsets.UTF_8);
+        	byte[] bToken = token.getBytes();
 
-        	SecretKeySpec key = new SecretKeySpec(clearKey.getBytes(StandardCharsets.UTF_8), "AES");        	//IvParameterSpec iv = new IvParameterSpec(keyAndIV[1]);
+        	SecretKeySpec key = new SecretKeySpec(clearKey.getBytes(), "AES");
 
         	Cipher aesCBC = Cipher.getInstance("AES");
         	aesCBC.init(Cipher.ENCRYPT_MODE, key);
         	byte[] encryptedData = aesCBC.doFinal(bToken);
-        	String b64ncryptedText = Base64.getEncoder().encodeToString(encryptedData);
+        	String b64ncryptedText = new String(Base64.getEncoder().encode(encryptedData));
         	
         	return b64ncryptedText;
     	} catch (Exception e) {
@@ -114,11 +114,14 @@ public class E2eEncryptionUtil {
 	
 	public static void main(String[] args) {
 		String key = "0+4*LjOrxdic|>1L";
+		String plainText = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYmNvcGVyYXRvciIsImF1dGgiOiJST0xFX1VTRVIiLCJleHAiOjE2MjY2OTEzODV9.2vgRHnuxFTiZHDJq3zLsPv4UEYBm7rm3XwZmz5aVdy2UVW4_OZLoQYzqc1wSe9P46gNlteiCBEr_iGmw4JwpTg";
+		//String encryptedStr = "jA2gE+eI4W9RMuWx1tQVSSDFj4M9xXFV3FvYzhjQISgjM7vhvNXufRLDrAYOpdxZEbbZBvnViLr/W9RHhJ5lLje5cIsJHZCovXtnlY/ZSiPw2qWvL2151QZsnGFhsYmGBi5gevCTcnaOMu340pEfWobr7BnkGQgY5hw9ye51VhMWcCQHScF90UP6HsDgyCTU4CA03AKIrKJu337KipJRTDR2JyrhATZ2CjLJIRqUm0hE+BePGIw5Sl2PoE9Fz0Y8";
+		String encryptedStr = "U2FsdGVkX1/U34COYyD9yAorCzkRxnQWu6ErhSPiN0HqnWScyYAq4erQ2k/LMdWjTgl5nULYJ8KH6TQVYExcd8YjLUxIAkYSpb4TeacGsQ6j6r3CBmpP4jz1LRbvzYJbzzu5gibCQg6oCZ+VcqgxDwHLCbyRvDEOYQgk07DeBkqOB+u3DsA4JDyag3b03DnTMyH8rdJa+BIHNCtGR0VDDC2awuqrYE6Y6zU8/KbzktBS1V+nYhuNRRlXrvzdermnNx847HMVvmYwHlj1oMbjsw==";
+		System.out.println("b64Key="+Base64.getEncoder().encodeToString(key.getBytes()));
+		System.out.println(E2eEncryptionUtil.encryptEcb(key, plainText));
 		
-		System.out.println(E2eEncryptionUtil.encryptEcb(key, "cbcoperator"));
+		System.out.println("----"+E2eEncryptionUtil.decryptEcb(key, encryptedStr));
 		
-		String encrypted = "blzEuqPPuv8y2VAECFSFVg==";
-		System.out.println("----"+E2eEncryptionUtil.decryptEcb(key, encrypted));
 		
 	}
 }

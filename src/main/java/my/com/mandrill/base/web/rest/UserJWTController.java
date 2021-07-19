@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +40,8 @@ import my.com.mandrill.base.web.rest.vm.LoginVM;
 @RestController
 @RequestMapping("/api")
 public class UserJWTController {
+	
+	private final Logger log = LoggerFactory.getLogger(UserJWTController.class);
 
     private final TokenProvider tokenProvider;
 
@@ -88,7 +92,12 @@ public class UserJWTController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         boolean rememberMe = (loginVM.isRememberMe() == null) ? false : loginVM.isRememberMe();        
         String jwt = tokenProvider.createToken(authentication, rememberMe);
+
         String encJwt = E2eEncryptionUtil.encryptEcb(env.getProperty("application.e2eKey"), jwt);
+        
+        log.debug("------------------jwt = {}", jwt);
+        log.debug("------------------encJwt = {}", encJwt);
+        
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + encJwt);
         return new ResponseEntity<>(new JWTToken(encJwt), httpHeaders, HttpStatus.OK);

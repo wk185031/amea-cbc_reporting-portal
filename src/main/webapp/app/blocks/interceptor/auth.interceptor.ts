@@ -20,10 +20,11 @@ export class AuthInterceptor implements HttpInterceptor {
 
         const token = this.localStorage.retrieve('authenticationToken') || this.sessionStorage.retrieve('authenticationToken');
         if (!!token) {
-        	const encToken = CryptoJS.AES.encrypt(token, E2E_KEY, {
+        	const key = CryptoJS.enc.Utf8.parse(E2E_KEY);
+        	const encToken = CryptoJS.AES.encrypt(token, key, {
         		mode: CryptoJS.mode.ECB,
 				padding: CryptoJS.pad.Pkcs7
-        	}).toString();
+        	});
             request = request.clone({
                 setHeaders: {
                     Authorization: 'Bearer ' + encToken

@@ -35,11 +35,13 @@ export class AuthServerProvider {
             const bearerToken = resp.headers.get('Authorization');
             if (bearerToken && bearerToken.slice(0, 7) === 'Bearer ') {
                 const jwt = bearerToken.slice(7, bearerToken.length);
-                const decToken = CryptoJS.AES.decrypt(jwt, E2E_KEY, {
+                const key = CryptoJS.enc.Utf8.parse(E2E_KEY);
+                const decToken = CryptoJS.AES.decrypt(jwt, key, {
         			mode: CryptoJS.mode.ECB,
 					padding: CryptoJS.pad.Pkcs7
-        		}).toString();
-                this.storeAuthenticationToken(decToken, credentials.rememberMe);
+        		});
+
+                this.storeAuthenticationToken(decToken.toString(CryptoJS.enc.Utf8), credentials.rememberMe);
                 return decToken;
             }
         }
@@ -71,8 +73,13 @@ export class AuthServerProvider {
     }
 
     logoutUpdate(): Observable<any> {
+    	const key = CryptoJS.enc.Utf8.parse(E2E_KEY);
+    	const encToken = CryptoJS.AES.encrypt(this.getToken(), key, {
+        	mode: CryptoJS.mode.ECB,
+			padding: CryptoJS.pad.Pkcs7
+        });
         const token = {
-            id_token: this.getToken(),
+            id_token: encToken,
         };
         return this.http.post(SERVER_API_URL + 'api/logout', token, {observe : 'response'}).map(logoutSuccess.bind(this));
 
