@@ -126,27 +126,6 @@ public class DailyPaymentTransactionReportTellerCardSummaryUtilityCompany extend
 		}
 	}
 
-	@Override
-	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
-		logger.debug("In DailyPaymentTransactionReportTellerCardSummaryUtilityCompany.writeBodyHeader()");
-		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			switch (field.getSequence()) {
-			case 1:
-			case 2:
-			case 3:
-				line.append(getGlobalFieldValue(rgm, field));
-				line.append(field.getDelimiter());
-				break;
-			default:
-				break;
-			}
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
