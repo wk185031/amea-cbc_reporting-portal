@@ -12,7 +12,38 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class E2eEncryptionUtil {
 
-	public static String decryptValue(String clearKey, String cipherText) {
+	public static String encryptEcb(String clearKey, String token) {
+    	try {
+        	byte[] bToken = token.getBytes(StandardCharsets.UTF_8);
+
+        	SecretKeySpec key = new SecretKeySpec(clearKey.getBytes(StandardCharsets.UTF_8), "AES");        	//IvParameterSpec iv = new IvParameterSpec(keyAndIV[1]);
+
+        	Cipher aesCBC = Cipher.getInstance("AES");
+        	aesCBC.init(Cipher.ENCRYPT_MODE, key);
+        	byte[] encryptedData = aesCBC.doFinal(bToken);
+        	String b64ncryptedText = Base64.getEncoder().encodeToString(encryptedData);
+        	
+        	return b64ncryptedText;
+    	} catch (Exception e) {
+    		throw new RuntimeException(e);
+    	}
+    }
+	
+	public static String decryptEcb(String clearKey, String token) {
+    	try {
+        	SecretKeySpec key = new SecretKeySpec(clearKey.getBytes(StandardCharsets.UTF_8), "AES");
+   
+        	Cipher aesCBC = Cipher.getInstance("AES");
+        	aesCBC.init(Cipher.DECRYPT_MODE, key);
+        	byte[] encryptedData = aesCBC.doFinal(Base64.getDecoder().decode(token));
+
+        	return new String(encryptedData);
+    	} catch (Exception e) {
+    		throw new RuntimeException(e);
+    	}
+    }
+	
+	public static String decryptToken(String clearKey, String cipherText) {
     	try {
         	byte[] cipherData = Base64.getDecoder().decode(cipherText);
         	byte[] saltData = Arrays.copyOfRange(cipherData, 8, 16);
@@ -80,4 +111,14 @@ public class E2eEncryptionUtil {
             Arrays.fill(generatedData, (byte)0);
         }
     }
+	
+	public static void main(String[] args) {
+		String key = "0+4*LjOrxdic|>1L";
+		
+		System.out.println(E2eEncryptionUtil.encryptEcb(key, "cbcoperator"));
+		
+		String encrypted = "blzEuqPPuv8y2VAECFSFVg==";
+		System.out.println("----"+E2eEncryptionUtil.decryptEcb(key, encrypted));
+		
+	}
 }

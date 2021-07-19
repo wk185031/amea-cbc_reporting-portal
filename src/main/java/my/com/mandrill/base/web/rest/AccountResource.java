@@ -97,9 +97,9 @@ public class AccountResource {
     @Timed
     @ResponseStatus(HttpStatus.CREATED)
     public void registerAccountExtra(@RequestBody ManagedUserExtraVM managedUserExtraVM) {
-    	String password = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getPassword());
-    	String email = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getUser().getEmail());
-    	String username = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getEncUsername());
+    	String password = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), managedUserExtraVM.getPassword());
+    	String email = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), managedUserExtraVM.getUser().getEmail());
+    	String username = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), managedUserExtraVM.getEncUsername());
     	
     	managedUserExtraVM.getUser().setLogin(username);
     	managedUserExtraVM.getUser().setEmail(email);
@@ -194,7 +194,7 @@ public class AccountResource {
     @Timed
     public void changePassword(@RequestBody String password) {
     	
-    	String password1 = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), password);
+    	String password1 = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), password);
         if (!checkPasswordLength(password1)) {
             throw new InvalidPasswordException();
         }
@@ -226,8 +226,8 @@ public class AccountResource {
     @PostMapping(path = "/account/reset-password/finish")
     @Timed
     public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
-    	String NewKey = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
-    	String NewPassword = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), keyAndPassword.getNewPassword());
+    	String NewKey = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
+    	String NewPassword = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), keyAndPassword.getNewPassword());
         if (!checkPasswordLength(NewPassword)) {
             throw new InvalidPasswordException();
         }

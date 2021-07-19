@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { LocalStorageService, SessionStorageService } from 'ngx-webstorage';
 import { SERVER_API_URL } from '../../app.constants';
+import * as CryptoJS from 'crypto-js';
+import { E2E_KEY } from '..';
 
 @Injectable()
 export class AuthServerProvider {
@@ -33,8 +35,12 @@ export class AuthServerProvider {
             const bearerToken = resp.headers.get('Authorization');
             if (bearerToken && bearerToken.slice(0, 7) === 'Bearer ') {
                 const jwt = bearerToken.slice(7, bearerToken.length);
-                this.storeAuthenticationToken(jwt, credentials.rememberMe);
-                return jwt;
+                const decToken = CryptoJS.AES.decrypt(jwt, E2E_KEY, {
+        			mode: CryptoJS.mode.ECB,
+					padding: CryptoJS.pad.Pkcs7
+        		}).toString();
+                this.storeAuthenticationToken(decToken, credentials.rememberMe);
+                return decToken;
             }
         }
     }

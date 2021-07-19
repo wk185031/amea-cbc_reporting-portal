@@ -61,8 +61,8 @@ public class UserJWTController {
     @Timed
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
 
-    	String username = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), loginVM.getUsername());
-    	String password = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), loginVM.getPassword());
+    	String username = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), loginVM.getUsername());
+    	String password = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), loginVM.getPassword());
 
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(username, password);
@@ -88,16 +88,18 @@ public class UserJWTController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         boolean rememberMe = (loginVM.isRememberMe() == null) ? false : loginVM.isRememberMe();        
         String jwt = tokenProvider.createToken(authentication, rememberMe);
+        String encJwt = E2eEncryptionUtil.encryptEcb(env.getProperty("application.e2eKey"), jwt);
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
-        return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
+        httpHeaders.add(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + encJwt);
+        return new ResponseEntity<>(new JWTToken(encJwt), httpHeaders, HttpStatus.OK);
     }
     
     @PostMapping("/logout")
     @Timed
     public ResponseEntity<JWTToken> logout(@Valid @RequestBody JWTToken jwtToken) {
 
-    	String token = jwtToken.getIdToken();
+    	String encToken = jwtToken.getIdToken();
+    	String token = E2eEncryptionUtil.decryptEcb(env.getProperty("application.e2eKey"), encToken);
     	Authentication authentication = tokenProvider.getAuthentication(token);
 
     	// check if concurrent login allowed

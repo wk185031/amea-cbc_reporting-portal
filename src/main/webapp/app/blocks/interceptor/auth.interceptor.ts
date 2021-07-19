@@ -2,6 +2,8 @@ import { Observable } from 'rxjs/Observable';
 import { LocalStorageService, SessionStorageService } from 'ngx-webstorage';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { SERVER_API_URL } from '../../app.constants';
+import * as CryptoJS from 'crypto-js';
+import { E2E_KEY } from '../../shared';
 
 export class AuthInterceptor implements HttpInterceptor {
 
@@ -18,9 +20,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
         const token = this.localStorage.retrieve('authenticationToken') || this.sessionStorage.retrieve('authenticationToken');
         if (!!token) {
+        	const encToken = CryptoJS.AES.encrypt(token, E2E_KEY, {
+        		mode: CryptoJS.mode.ECB,
+				padding: CryptoJS.pad.Pkcs7
+        	}).toString();
             request = request.clone({
                 setHeaders: {
-                    Authorization: 'Bearer ' + token
+                    Authorization: 'Bearer ' + encToken
                 }
             });
         }
