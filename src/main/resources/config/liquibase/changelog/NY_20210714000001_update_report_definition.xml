@@ -14,37 +14,27 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="WY_20210706000001_update_report_definition" author="wy">
+    <changeSet id="NY_20210714000001_update_report_definition" author="ny">
     	<validCheckSum>any</validCheckSum>
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Extract_Files/Finacle_360.sql"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM Transaction List(On-Us_Acquirer).sql"
                  splitStatements="false" 
                  stripComments="true" />
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Extract_Files/bnob.sql"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Issuer).sql"
                  splitStatements="false" 
                  stripComments="true" />
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank.sql"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Summary).sql"
                  splitStatements="false" 
                  stripComments="true" />
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank_Summary.sql"
+                 path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
                  splitStatements="false" 
-                 stripComments="true" />
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
-                 splitStatements="false" 
-                 stripComments="true" />
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank_Summary.sql"
-                 splitStatements="false" 
-                 stripComments="true" />
+                 stripComments="true" />				 
     </changeSet>
 </databaseChangeLog>
