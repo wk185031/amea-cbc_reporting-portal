@@ -96,10 +96,14 @@ public class AccountResource {
     @PostMapping("/registerExtra")
     @Timed
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccountExtra(@Valid @RequestBody ManagedUserExtraVM managedUserExtraVM) {
+    public void registerAccountExtra(@RequestBody ManagedUserExtraVM managedUserExtraVM) {
     	String password = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getPassword());
     	String email = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getUser().getEmail());
-    	String username = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getUser().getLogin());
+    	String username = E2eEncryptionUtil.decryptValue(env.getProperty("application.e2eKey"), managedUserExtraVM.getEncUsername());
+    	
+    	managedUserExtraVM.getUser().setLogin(username);
+    	managedUserExtraVM.getUser().setEmail(email);
+    	managedUserExtraVM.setPassword(password);
     	
         if (!SELF_REGISTRATION) {
             throw new SelfRegistrationNotAllowedException();

@@ -57,7 +57,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.E2EregisterPassword = CryptoJS.AES.encrypt(this.registerAccount.password, E2E_KEY).toString();
         this.E2EregisterEmail = CryptoJS.AES.encrypt(this.registerAccount.user.email, E2E_KEY).toString();
 
-
         if (this.registerAccount.password !== this.confirmPassword) {
             this.doNotMatch = 'ERROR';
         } else {
@@ -65,6 +64,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             this.error = null;
             this.errorUserExists = null;
             this.errorEmailExists = null;
+            this.registerAccount.encUsername = this.E2EregisterUserName;
             this.registerAccount.user.login = this.E2EregisterUserName;
             this.registerAccount.password = this.E2EregisterPassword;
             this.registerAccount.user.email= this.E2EregisterEmail;

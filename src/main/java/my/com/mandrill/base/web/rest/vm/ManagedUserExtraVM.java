@@ -13,6 +13,8 @@ public class ManagedUserExtraVM extends UserExtraDTO {
 
     public static final int PASSWORD_MAX_LENGTH = 100;
 
+    private String encUsername;
+    
     @Size(min = PASSWORD_MIN_LENGTH, max = PASSWORD_MAX_LENGTH)
     private String password;
 
@@ -27,8 +29,16 @@ public class ManagedUserExtraVM extends UserExtraDTO {
     public void setPassword(String password) {
         this.password = password;
     }
+    
+    public String getEncUsername() {
+		return encUsername;
+	}
 
-    @Override
+	public void setEncUsername(String encUsername) {
+		this.encUsername = encUsername;
+	}
+
+	@Override
     public String toString() {
         return "ManagedUserExtraVM{" +
             "} " + super.toString();
