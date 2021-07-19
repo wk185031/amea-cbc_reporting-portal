@@ -25,6 +25,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     success: boolean;
     modalRef: NgbModalRef;
    E2EregisterPassword: string;
+   E2EregisterUserName: string;
+   E2EregisterEmail: string;
     isSelfRegistration: boolean;
 
     constructor(
@@ -51,7 +53,11 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
 
     register() {
+        this.E2EregisterUserName = CryptoJS.AES.encrypt(this.registerAccount.user.login, E2E_KEY).toString();
         this.E2EregisterPassword = CryptoJS.AES.encrypt(this.registerAccount.password, E2E_KEY).toString();
+        this.E2EregisterEmail = CryptoJS.AES.encrypt(this.registerAccount.user.email, E2E_KEY).toString();
+
+
         if (this.registerAccount.password !== this.confirmPassword) {
             this.doNotMatch = 'ERROR';
         } else {
@@ -59,7 +65,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             this.error = null;
             this.errorUserExists = null;
             this.errorEmailExists = null;
+            this.registerAccount.user.login = this.E2EregisterUserName;
             this.registerAccount.password = this.E2EregisterPassword;
+            this.registerAccount.user.email= this.E2EregisterEmail;
             this.languageService.getCurrent().then((key) => {
                 this.registerAccount.user.langKey = key;
                 this.registerService.saveExtra(this.registerAccount).subscribe(() => {
