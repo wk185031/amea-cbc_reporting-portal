@@ -4,6 +4,9 @@
 
 DECLARE
     i_BODY_FIELDS CLOB;
+    i_BODY_QUERY CLOB;
+    i_TRAILER_QUERY CLOB;
+    
 BEGIN 
 
 -- Inter-Entity Approved IBFT Transactions as Transmitting Bank
