@@ -77,34 +77,35 @@ export class NavbarComponent implements OnInit {
         this.isBranchExist = false;
         this.principal.identity().then((account) => {
             this.account = account;
-        });
+            if (account) {
+              //retrieve Branch for companies
+              this.appService.queryBranchesForUser().subscribe((res: HttpResponse<Branch[]>) => {
+                  if (res.body[0].id != undefined) {
+                      this.isBranchExist = true;
+                      this.branches = res.body;
+                      this.allBranches = this.branches;
+                      this.changeBranch(this.branches[0].id);
+                  }
+              });
 
-        //retrieve Branch for companies
-        this.appService.queryBranchesForUser().subscribe((res: HttpResponse<Branch[]>) => {
-            if (res.body[0].id != undefined) {
-                this.isBranchExist = true;
-                this.branches = res.body;
-                this.allBranches = this.branches;
-                this.changeBranch(this.branches[0].id);
+              // retrieve all the companies accessible by this user
+              // TODO
+              this.appService.queryInstitutionsForUser().subscribe((res: HttpResponse<Institution[]>) => {
+                  this.institutions = res.body;
+                  this.allInstitutions = this.institutions;
+                  this.changeInstitution(this.institutions[0].id);
+              });
+
+              // retrieve permissions granted for this user
+              this.appService.queryPermissionsForUser().subscribe((res: HttpResponse<AppResource[]>) => {
+                  this.appResources = res.body;
+                  // store permissions to global service, kept at the client
+                  this.appPermissionService.permissions = this.appResources;
+                  this.appResources.forEach((resource: AppResource) => console.log('Granted permission:' + resource.code));
+              });
+
             }
         });
-
-        // retrieve all the companies accessible by this user
-        // TODO
-        this.appService.queryInstitutionsForUser().subscribe((res: HttpResponse<Institution[]>) => {
-            this.institutions = res.body;
-            this.allInstitutions = this.institutions;
-            this.changeInstitution(this.institutions[0].id);
-        });
-
-        // retrieve permissions granted for this user
-        this.appService.queryPermissionsForUser().subscribe((res: HttpResponse<AppResource[]>) => {
-            this.appResources = res.body;
-            // store permissions to global service, kept at the client
-            this.appPermissionService.permissions = this.appResources;
-            this.appResources.forEach((resource: AppResource) => console.log('Granted permission:' + resource.code));
-        });
-
     }
 
     changeBranch(id: number) {

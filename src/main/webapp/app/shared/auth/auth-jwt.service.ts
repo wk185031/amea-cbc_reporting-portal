@@ -76,10 +76,10 @@ export class AuthServerProvider {
     	const key = CryptoJS.enc.Utf8.parse(E2E_KEY);
     	const encToken = CryptoJS.AES.encrypt(this.getToken(), key, {
         	mode: CryptoJS.mode.ECB,
-			padding: CryptoJS.pad.Pkcs7
+			    padding: CryptoJS.pad.Pkcs7
         });
         const token = {
-            id_token: encToken,
+            id_token: encToken.toString(),
         };
         return this.http.post(SERVER_API_URL + 'api/logout', token, {observe : 'response'}).map(logoutSuccess.bind(this));
 
