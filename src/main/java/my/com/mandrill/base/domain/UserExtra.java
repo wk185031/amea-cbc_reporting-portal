@@ -2,10 +2,13 @@ package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -99,6 +102,14 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
                joinColumns = @JoinColumn(name="user_extra_id", referencedColumnName="id"),
                inverseJoinColumns = @JoinColumn(name="branch_id", referencedColumnName="brc_code"))
     private Set<Branch> branches = new HashSet<>();
+    
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @NotNull
+    @JoinTable(name = "user_extra_password_history",
+               joinColumns = @JoinColumn(name="user_extra_id", referencedColumnName="id"),
+               inverseJoinColumns = @JoinColumn(name="password_history_id", referencedColumnName="id"))
+    private List<PasswordHistory> passwordHistories = new ArrayList<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -240,6 +251,14 @@ public class UserExtra extends AbstractAuditingEntity implements Serializable {
 
 	public void setBranches(Set<Branch> branches) {
 		this.branches = branches;
+	}
+	
+	public List<PasswordHistory> getPasswordHistories() {
+		return passwordHistories;
+	}
+
+	public void setPasswordHistories(List<PasswordHistory> passwordHistories) {
+		this.passwordHistories = passwordHistories;
 	}
 	
 	public String getLoginFlag() {

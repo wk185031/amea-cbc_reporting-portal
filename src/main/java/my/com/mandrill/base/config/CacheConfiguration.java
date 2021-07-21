@@ -46,6 +46,7 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".roles", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".institutions", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".branches", jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.UserExtra.class.getName() + ".passwordHistories", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.RoleExtra.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.RoleExtra.class.getName() + ".permissions", jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.AppResource.class.getName(), jcacheConfiguration);
@@ -68,6 +69,7 @@ public class CacheConfiguration {
             cm.createCache(my.com.mandrill.base.domain.TaskGroup.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.Task.class.getName(), jcacheConfiguration);
             cm.createCache(my.com.mandrill.base.domain.TxnLogCustom.class.getName(), jcacheConfiguration);
+            cm.createCache(my.com.mandrill.base.domain.PasswordHistory.class.getName(), jcacheConfiguration);
         };
     }
 }

@@ -2,7 +2,10 @@ package my.com.mandrill.base.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 
+import my.com.mandrill.base.domain.PasswordHistory;
 import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.repository.UserRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.MailService;
@@ -19,11 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing the current user's account.
@@ -36,6 +44,10 @@ public class AccountResource {
 
     private final UserRepository userRepository;
 
+    private final UserExtraRepository userExtraRepository;
+    
+    private final PasswordEncoder passwordEncoder;
+    
     private final UserService userService;
 
     private final MailService mailService;
@@ -45,12 +57,15 @@ public class AccountResource {
     private boolean SELF_REGISTRATION = false;
     private boolean LANGUAGE_SELECTION = false;
 
-    public AccountResource(UserRepository userRepository, UserService userService, MailService mailService, Environment env) {
+    public AccountResource(UserRepository userRepository, UserExtraRepository userExtraRepository, 
+    		UserService userService, MailService mailService, Environment env, PasswordEncoder passwordEncoder) {
 
         this.userRepository = userRepository;
         this.userService = userService;
+        this.userExtraRepository = userExtraRepository;
         this.mailService = mailService;
         this.env = env;
+        this.passwordEncoder = passwordEncoder;
 
         if (this.env.getProperty("application.selfRegistration") != null) {
         	SELF_REGISTRATION = Boolean.parseBoolean(this.env.getProperty("application.selfRegistration"));
@@ -195,6 +210,30 @@ public class AccountResource {
     public void changePassword(@RequestBody String password) {
     	
     	String password1 = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), password);
+    	
+    	// check password history to not same of recent 5 old password
+    	final Optional<User> isUser = userService.getUserWithAuthorities();
+
+		if (isUser.isPresent()) {
+			User user = isUser.get();
+			UserExtra userExtra = userExtraRepository.findByUser(user.getId());
+			
+			List<PasswordHistory> recentFivePasswordHistories = userExtra.getPasswordHistories().stream()
+					.sorted(Comparator.comparing(PasswordHistory::getPasswordChangeTs).reversed()).limit(5)
+					.collect(Collectors.toList());
+			
+			String newPasswordHash = passwordEncoder.encode(password1);
+			for(PasswordHistory ph: recentFivePasswordHistories) {
+				if(passwordEncoder.matches(password1, ph.getPasswordHash())) {
+					log.debug("New password matched recent 5 password histories.");
+					throw new InvalidPasswordException();
+				}
+			}
+			
+			userExtra.getPasswordHistories().add(createNewPasswordHistory(newPasswordHash));
+			userExtraRepository.save(userExtra);				
+		}
+    	
         if (!checkPasswordLength(password1)) {
             throw new InvalidPasswordException();
         }
@@ -237,6 +276,22 @@ public class AccountResource {
         if (!user.isPresent()) {
             throw new InternalServerErrorException("No user was found for this reset key");
         }
+        
+        // first password reset need to insert into password_history and user_extra_password_history table
+        UserExtra userExtra = userExtraRepository.findByUser(user.get().getId());
+		
+		List<PasswordHistory> passwordHistories = userExtra.getPasswordHistories();
+		passwordHistories.add(createNewPasswordHistory(passwordEncoder.encode(NewPassword)));
+		
+		userExtraRepository.save(userExtra);
+    }
+    
+    private PasswordHistory createNewPasswordHistory(String passwordHash) {
+    	PasswordHistory pwHistory = new PasswordHistory();
+		pwHistory.setPasswordHash(passwordHash);
+		pwHistory.setPasswordChangeTs(Timestamp.valueOf(LocalDateTime.now()));
+		
+		return pwHistory;
     }
 
     private static boolean checkPasswordLength(String password) {
