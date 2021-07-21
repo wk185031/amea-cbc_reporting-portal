@@ -90,6 +90,8 @@ public final class ReportConstants {
 	public static final String PARAM_TO_DATE = "To_Date";
 	public static final String PARAM_DCMS_DB_SCHEMA = "DCMS_Schema";
 	public static final String PARAM_DB_LINK_DCMS = "DB_LINK_DCMS";
+    public static final String PARAM_AUTH_DB_SCHEMA = "AUTH_Schema";
+    public static final String PARAM_DB_LINK_AUTH = "DB_LINK_AUTH";
 	public static final String PARAM_TOTAL_DAY = "Total_Day";
 	public static final String PARAM_TXN_END_DATE = "Txn_End_Date";
 	public static final String PARAM_DOWN_REASON = "DOWN_REASON";

@@ -74,6 +74,8 @@ public class ReportService {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+        reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+        reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
         reportGenerationMgr.setReportTxnEndDate(transactionDate.atTime(LocalTime.MAX));
 
@@ -120,6 +122,8 @@ public class ReportService {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+        reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+        reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 		reportGenerationMgr.setReportTxnEndDate(YearMonth.from(transactionDate).atEndOfMonth().atTime(LocalTime.MAX));
 

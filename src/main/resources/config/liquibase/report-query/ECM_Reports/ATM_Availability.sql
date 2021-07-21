@@ -37,7 +37,6 @@ FROM
     LEFT JOIN nonExistsStation NES on AST.AST_ID = NES.ASH_AST_ID and NES.RN = 1
 WHERE
 	DEO.DEO_NAME = {V_Deo_Name}
-	AND AST.AST_ACO_ID NOT IN (1722,1723)
     AND AST_ID NOT IN (
       select distinct(ATD_AST_ID) from ATM_DOWNTIME ATD WHERE {Txn_Date}
     )

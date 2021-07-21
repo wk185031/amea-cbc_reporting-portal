@@ -209,6 +209,8 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
@@ -250,6 +252,8 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
@@ -374,6 +378,8 @@ public class ReportGenerationResource {
 		reportGenerationMgr.setFileDate(txnStartDateTime.toLocalDate());
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 
 		String yearMonth = txnStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));

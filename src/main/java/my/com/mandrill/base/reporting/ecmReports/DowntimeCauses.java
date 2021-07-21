@@ -3,11 +3,15 @@ package my.com.mandrill.base.reporting.ecmReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,68 +27,62 @@ import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 public class DowntimeCauses extends CsvReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(DowntimeCauses.class);
-	private long hour = 0L;
-	private long minute = 0L;
-	private long second = 0L;
-	private long totalHour = 0L;
-	private long totalMinute = 0L;
-	private long totalSecond = 0L;
-	private double totalPercentage = 0.00;
+	private Double hour = 0.00;
+	private Double minute = 0.00;
+	private Double second = 0.00;
+	private Double totalHour = 0.00;
+	private Double totalMinute = 0.00;
+	private Double totalSecond = 0.00;
+	private static final double TOTAL_PERCENTAGE = 100.00;
+	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,##0.00");
+	private static final DecimalFormat DECIMAL_FORMAT_WITHOUT_DECIMAL = new DecimalFormat("##0");
 
-	public long getHour() {
+	public Double getHour() {
 		return hour;
 	}
 
-	public void setHour(long hour) {
+	public void setHour(Double hour) {
 		this.hour = hour;
 	}
 
-	public long getMinute() {
+	public Double getMinute() {
 		return minute;
 	}
 
-	public void setMinute(long minute) {
+	public void setMinute(Double minute) {
 		this.minute = minute;
 	}
 
-	public long getSecond() {
+	public Double getSecond() {
 		return second;
 	}
 
-	public void setSecond(long second) {
+	public void setSecond(Double second) {
 		this.second = second;
 	}
 
-	public long getTotalHour() {
+	public Double getTotalHour() {
 		return totalHour;
 	}
 
-	public void setTotalHour(long totalHour) {
+	public void setTotalHour(Double totalHour) {
 		this.totalHour = totalHour;
 	}
 
-	public long getTotalMinute() {
+	public Double getTotalMinute() {
 		return totalMinute;
 	}
 
-	public void setTotalMinute(long totalMinute) {
+	public void setTotalMinute(Double totalMinute) {
 		this.totalMinute = totalMinute;
 	}
 
-	public long getTotalSecond() {
+	public Double getTotalSecond() {
 		return totalSecond;
 	}
 
-	public void setTotalSecond(long totalSecond) {
+	public void setTotalSecond(Double totalSecond) {
 		this.totalSecond = totalSecond;
-	}
-
-	public double getTotalPercentage() {
-		return totalPercentage;
-	}
-
-	public void setTotalPercentage(double totalPercentage) {
-		this.totalPercentage = totalPercentage;
 	}
 
 	@Override
@@ -95,10 +93,11 @@ public class DowntimeCauses extends CsvReportProcessor {
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm);
 			writeBodyHeader(rgm);
+			getTotalSecondAndHour(rgm);
 			executeBodyQuery(rgm);
 			StringBuilder line = new StringBuilder();
-			line.append(";").append(totalSecond).append(";").append(totalHour + ":" + totalMinute).append(";")
-					.append(formatter.format(totalPercentage) + "%").append(";");
+			line.append(";").append(DECIMAL_FORMAT_WITHOUT_DECIMAL.format(totalSecond)).append(";").append(totalHour.toString().replace(".", ":")).append(";")
+					.append(formatter.format(TOTAL_PERCENTAGE) + "%").append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			rgm.fileOutputStream.flush();
@@ -119,26 +118,6 @@ public class DowntimeCauses extends CsvReportProcessor {
 		}
 	}
 
-//	@Override
-//	protected void addReportPreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
-//		logger.debug("In DowntimeCauses.addPreProcessingFieldsToGlobalMap()");
-//
-//		String txnStart = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01));
-//		String txnEnd = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01));
-//		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
-//				ReportGenerationFields.TYPE_STRING,
-//				"ASH.ASH_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
-//						+ "') AND ASH.ASH_TIMESTAMP < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE
-//						+ "')");
-//		ReportGenerationFields fromDateValue = new ReportGenerationFields(ReportConstants.FROM_DATE,
-//				ReportGenerationFields.TYPE_DATE, rgm.getTxnStartDate().toLocalDate().toString());
-//		ReportGenerationFields toDateValue = new ReportGenerationFields(ReportConstants.TO_DATE,
-//				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().toString());
-//
-//		getGlobalFileFieldsMap().put(txnDate.getFieldName(), txnDate);
-//		getGlobalFileFieldsMap().put(fromDateValue.getFieldName(), fromDateValue);
-//		getGlobalFileFieldsMap().put(toDateValue.getFieldName(), toDateValue);
-//	}
 
 	@Override
 	protected String getTransactionDateRangeFieldName() {
@@ -172,27 +151,16 @@ public class DowntimeCauses extends CsvReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.SECOND:
-				ZonedDateTime second = ZonedDateTime.ofInstant(
-						Instant.ofEpochMilli(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue())),
-						ZoneId.systemDefault());
-				setSecond(second.getSecond());
-				line.append(second.getSecond());
-				totalSecond += getSecond();
+				setSecond(Double.parseDouble(getFieldValue(rgm, field, fieldsMap)));
+				line.append(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.HOUR:
-				ZonedDateTime hour = ZonedDateTime.ofInstant(
-						Instant.ofEpochMilli(Long.parseLong(fieldsMap.get(field.getFieldName()).getValue())),
-						ZoneId.systemDefault());
-				setHour(hour.getHour());
-				setMinute(hour.getMinute());
-				line.append(getHour() + ":" + getMinute());
-				totalHour += getHour();
-				totalMinute += getMinute();
+				setHour(Double.parseDouble(getFieldValue(rgm, field, fieldsMap)));
+				line.append(getFieldValue(rgm, field, fieldsMap).replace(".", ":"));
 				break;
 			case ReportConstants.PERCENTAGE:
-				fieldsMap.get(field.getFieldName()).setValue(String.valueOf(getSecond() / getHour()));
-				line.append(getFieldValue(rgm, field, fieldsMap) + "%");
-				totalPercentage += (getSecond() / getHour());
+				Double percentage = (getSecond() / totalSecond) * 100;
+				line.append(DECIMAL_FORMAT.format(percentage));
 				break;
 			default:
 				line.append(getFieldValue(rgm, field, fieldsMap));
@@ -202,5 +170,46 @@ public class DowntimeCauses extends CsvReportProcessor {
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	protected void getTotalSecondAndHour(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.executeTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+
+				while (rs.next()) {
+					try {
+						totalSecond = rs.getDouble("SECOND");
+						totalHour = rs.getDouble("HOUR");
+					} catch (SQLException e) {
+						rgm.errors++;
+						logger.error("An error was encountered when trying to write a line", e);
+						continue;
+					}
+
+				}
+
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 }

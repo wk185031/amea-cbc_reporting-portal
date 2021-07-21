@@ -79,6 +79,8 @@ public class ReportGenerationFields {
 	private String institution;
 	private String dcmsDbSchema;
 	private String dblink;
+    private String authenticDbSchema;
+    private String authenticDbLink;
 	private boolean group = false;
 	private boolean sumAmount = false;
 	private LocalDateTime reportTxnEndDate;
@@ -475,6 +477,23 @@ public class ReportGenerationFields {
 	public void setDbLink(String dblink) {
 		this.dblink = dblink;
 	}
+	
+    public String getAuthenticDbSchema() {
+        return authenticDbSchema;
+    }
+
+    public void setAuthenticDbSchema(String authenticDbSchema) {
+        this.authenticDbSchema = authenticDbSchema;
+    }
+
+    public String getAuthenticDbLink() {
+        return authenticDbLink;
+    }
+
+    public void setAuthenticDbLink(String authenticDbLink) {
+        this.authenticDbLink = authenticDbLink;
+    }
+
 
 	public boolean isGroup() {
 		return group;
