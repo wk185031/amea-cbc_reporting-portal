@@ -195,6 +195,18 @@
   resolved "https://registry.yarnpkg.com/@ng-bootstrap/ng-bootstrap/-/ng-bootstrap-1.0.0.tgz#8f2ae70db2fe1dcbf5e0acb49dc2b1bbba2be8d2"
   integrity sha1-jyrnDbL+Hcv14Ky0ncKxu7or6NI=
 
+"@ng-idle/core@^2.0.0-beta.15":
+  version "2.0.0-beta.15"
+  resolved "https://registry.yarnpkg.com/@ng-idle/core/-/core-2.0.0-beta.15.tgz#c99049405e96aa28e56c2d281dc370ded9c4984c"
+  integrity sha512-iBbCMlWDR59dajQKFxkncdJ/JEVaV+8pF2fD3dRIF1FcH8IlNckUJaeQpE444bf5TkyKIIxGA20+jVna7XwzsA==
+
+"@ng-idle/keepalive@^11.0.3":
+  version "11.0.3"
+  resolved "https://registry.yarnpkg.com/@ng-idle/keepalive/-/keepalive-11.0.3.tgz#0868480f58e9017b9d3d7f7699a16e259d66d5d2"
+  integrity sha512-etnPYnDua/uaFQebDHfC40iBb22KwPVkbt24/9IJBH9A4TGZa6zBrb+8DoRiRJm8I/WBuXdCDeaWzVHElfc9pg==
+  dependencies:
+    tslib "^2.0.0"
+
 "@ngtools/json-schema@1.1.0", "@ngtools/json-schema@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ngtools/json-schema/-/json-schema-1.1.0.tgz#c3a0c544d62392acc2813a42c8a0dc6f58f86922"
@@ -11112,6 +11124,11 @@ tslib@^1.7.1, tslib@^1.8.1, tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
+
+tslib@^2.0.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
+  integrity sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==
 
 tslint-loader@3.5.3:
   version "3.5.3"
