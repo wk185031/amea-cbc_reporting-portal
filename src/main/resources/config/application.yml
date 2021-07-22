@@ -130,9 +130,6 @@ liquibase:
 # ===================================================================
 server:
     port: 8080
-    servlet:
-        session:
-            timeout: 600 # session timeout set to 10 minutes
 
 info:
     project:

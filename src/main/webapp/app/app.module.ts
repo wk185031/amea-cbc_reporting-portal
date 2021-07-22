@@ -38,6 +38,7 @@ import { ReportConfigDefinitionModule } from './reporting/report-config-definiti
 import { GenerateReportModule } from './reporting/generate-report/generate-report.module';
 import { DatabaseSynchronizationModule } from './reporting/database-synchronization/database-synchronization.module';
 import { BranchService } from './entities/branch';
+import { NgIdleKeepaliveModule } from '@ng-idle/keepalive'; 
 
 @NgModule({
     imports: [
@@ -56,7 +57,8 @@ import { BranchService } from './entities/branch';
         ReportConfigDefinitionModule,
         // DashboardModule,
         GenerateReportModule,
-        DatabaseSynchronizationModule
+        DatabaseSynchronizationModule,
+        NgIdleKeepaliveModule.forRoot()
     ],
     declarations: [
         JhiMainComponent,
