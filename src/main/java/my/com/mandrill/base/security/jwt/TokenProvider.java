@@ -34,12 +34,12 @@ public class TokenProvider {
     private long tokenValidityInMillisecondsForRememberMe;
 
     private final JHipsterProperties jHipsterProperties;
-    
-    @Autowired
-	private Environment env;
 
-    public TokenProvider(JHipsterProperties jHipsterProperties) {
+	private final Environment env;
+
+    public TokenProvider(JHipsterProperties jHipsterProperties, Environment env) {
         this.jHipsterProperties = jHipsterProperties;
+        this.env = env;
     }
 
     @PostConstruct

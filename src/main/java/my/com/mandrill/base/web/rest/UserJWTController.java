@@ -50,15 +50,15 @@ public class UserJWTController {
     private final UserExtraRepository userExtraRepository;
     
     private final JHipsterProperties jHipsterProperties;
-    
-    @Autowired
-	private Environment env;
 
-    public UserJWTController(TokenProvider tokenProvider, AuthenticationManager authenticationManager, UserExtraRepository userExtraRepository, JHipsterProperties jHipsterProperties) {
+	private final Environment env;
+
+    public UserJWTController(TokenProvider tokenProvider, AuthenticationManager authenticationManager, UserExtraRepository userExtraRepository, JHipsterProperties jHipsterProperties, Environment env) {
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.userExtraRepository = userExtraRepository;
         this.jHipsterProperties = jHipsterProperties;
+        this.env = env;
     }
 
     @PostMapping("/authenticate")
