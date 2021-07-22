@@ -282,6 +282,8 @@ public class AccountResource {
 		
 		List<PasswordHistory> passwordHistories = userExtra.getPasswordHistories();
 		passwordHistories.add(createNewPasswordHistory(passwordEncoder.encode(NewPassword)));
+		userExtra.setLoginFlag("N");
+        userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now().minusHours(1L)));
 		
 		userExtraRepository.save(userExtra);
     }
