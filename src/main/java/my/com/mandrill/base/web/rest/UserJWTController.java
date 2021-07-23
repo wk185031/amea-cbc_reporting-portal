@@ -77,12 +77,14 @@ public class UserJWTController {
             List<UserExtra> userExtraList = userExtraRepository.findByUserLogin(username);      
             UserExtra userExtra = userExtraList.get(0);
             
-            LocalDateTime lastLoginPlusTokenValidityPeriod = userExtra.getLastLoginTs().toLocalDateTime().plusSeconds(jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds());
-            
-            if (null != userExtra && null != userExtra.getLoginFlag() && (userExtra.getLoginFlag().equalsIgnoreCase("Y") && LocalDateTime.now().isBefore(lastLoginPlusTokenValidityPeriod))) {
-            	return new ResponseEntity<>(HttpStatus.CONFLICT);
+            if (null != userExtra.getLastLoginTs()) {
+            	LocalDateTime lastLoginPlusTokenValidityPeriod = userExtra.getLastLoginTs().toLocalDateTime().plusSeconds(jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds());
+                
+                if (null != userExtra && null != userExtra.getLoginFlag() && (userExtra.getLoginFlag().equalsIgnoreCase("Y") && LocalDateTime.now().isBefore(lastLoginPlusTokenValidityPeriod))) {
+                	return new ResponseEntity<>(HttpStatus.CONFLICT);
+                }
             }
-            
+                     
             userExtra.setLoginFlag("Y");
             userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now()));
             userExtraRepository.save(userExtra);
