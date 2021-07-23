@@ -25,6 +25,9 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     @Query("select r from ReportDefinition r where to_char(r.scheduleTime, 'HH24:MI') = ?1")
     List<ReportDefinition> findReportDefinitionByTime(String time);
     
+    @Query("select r from ReportDefinition r where r.institutionId = ?1 order by r.name") 
+    List<ReportDefinition> findReportDefinitionByInstitution(Long instId);
+    
     List<ReportDefinition> findAllByCategoryId(Long categoryId);
 
 }

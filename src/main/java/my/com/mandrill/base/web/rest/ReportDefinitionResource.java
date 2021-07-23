@@ -51,11 +51,14 @@ import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.domain.TreeStructure;
 import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
+import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.repository.search.ReportDefinitionSearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.AppService;
+import my.com.mandrill.base.service.UserService;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.base.web.rest.util.PaginationUtil;
@@ -74,6 +77,10 @@ public class ReportDefinitionResource {
 	private final ReportCategoryRepository reportCategoryRepository;
 
 	private final ReportDefinitionRepository reportDefinitionRepository;
+	
+	private final UserService userService;
+	
+	private final UserExtraRepository userExtraRepository;
 
 	//private final ReportDefinitionSearchRepository reportDefinitionSearchRepository;
 	
@@ -87,12 +94,14 @@ public class ReportDefinitionResource {
 			ReportDefinitionRepository reportDefinitionRepository,
 			//ReportDefinitionSearchRepository reportDefinitionSearchRepository,
 			ApplicationProperties applicationProperties,
-			AppService appService) {
+			AppService appService, UserService userService, UserExtraRepository userExtraRepository) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		//this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
 		this.applicationProperties = applicationProperties;
 		this.appService = appService;
+		this.userService = userService;
+		this.userExtraRepository = userExtraRepository;
 	}
 
 	/**
@@ -183,11 +192,9 @@ public class ReportDefinitionResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
 			+ "')")
-	public ResponseEntity<List<ReportDefinition>> getAllReportDefinitionNoPaging() {
-		// log.debug("User: {}, REST request to all ReportDefinition without paging",
-		// SecurityUtils.getCurrentUserLogin().orElse(""));
-		List<ReportDefinition> reportDefinition = reportDefinitionRepository.findAll();
-		reportDefinition.sort(Comparator.comparing(ReportDefinition::getName));
+	public ResponseEntity<List<ReportDefinition>> getAllReportDefinitionNoPaging() {		
+		List<ReportDefinition> reportDefinition = reportDefinitionRepository.findReportDefinitionByInstitution(getInstitutionId());
+		
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
 
@@ -286,6 +293,24 @@ public class ReportDefinitionResource {
 //				"/api/_search/reportDefinition");
 //		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 //	}
+	
+	private Long getInstitutionId() {
+		final Optional<User> isUser = userService.getUserWithAuthorities();
+		
+		List<ReportDefinition> reportDefinition = new ArrayList<>();
+		
+		Long instId = 0L;
+		
+		if (isUser.isPresent()) {
+			User user = isUser.get();
+			// get user extra from given user
+			UserExtra userExtra = userExtraRepository.findByUser(user.getId());
+			
+			instId = userExtra.getInstitutions().iterator().next().getId();
+		}
+		
+		return instId;
+	}
 
 	//Previous query without branch filter
 	@GetMapping("/reportDefinition-structures")
@@ -298,7 +323,7 @@ public class ReportDefinitionResource {
 		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByNameAsc());
 		List<ReportDefinition> children = null;
 		//HQ User branch ID
-		children = reportDefinitionRepository.findAll(orderByNameAsc());
+		children = reportDefinitionRepository.findReportDefinitionByInstitution(getInstitutionId());
 		List<TreeStructure> structures = new ArrayList<>();
 		Long incrementNumber = new Long(1);
 		for (ReportCategory parent : parents) {
