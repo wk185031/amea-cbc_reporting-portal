@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Revised Report		06-JULY-2021	WY		Revised reports based on spec
+-- Report revision		23-JUL-2021		NY		Update based on excel spec
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -41,9 +42,9 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TRL_MCC_ID = ''6011''
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND TXN.TRL_TQU_ID IN (''F'',''R'')
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Terminal}

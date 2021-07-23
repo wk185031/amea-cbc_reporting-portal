@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Revised Report		06-JULY-2021	WY		Revised reports based on spec
+-- Report revision		23-JUL-2021		NY		Update based on excel spec
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -39,13 +40,12 @@ FROM
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = LPAD(CBA.CBA_CODE, 10, ''0'')
       JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
 WHERE
-      TXN.TRL_TSC_CODE IN (1, 128)
+      TXN.TRL_TSC_CODE = 1 
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
 	  AND TXN.TRL_MCC_ID = ''6011''
       AND TXN.TRL_TQU_ID IN (''F'',''R'')
-      AND TXN.TRL_DEO_NAME IS NULL
-	  AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY

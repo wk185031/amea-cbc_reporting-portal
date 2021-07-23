@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Revised Report		06-JULY-2021	WY		Revised reports based on spec
+-- Report revision		23-JUL-2021		NY		Update based on excel spec
 
 DECLARE
     i_BODY_QUERY CLOB;
@@ -25,13 +26,14 @@ FROM
       JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = LPAD(CBA.CBA_CODE, 10, ''0'')
 WHERE
-      TXN.TRL_TSC_CODE IN (1, 128)
-      AND TXN.TRL_TQU_ID IN (''F'',''R'')
-	  AND TXN.TRL_MCC_ID = ''6011''
+      TXN.TRL_TSC_CODE = 1
+      AND TXN.TRL_TQU_ID = ''F''
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0    
+	  AND TXN.TRL_MCC_ID = ''6011''      	
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_DEO_NAME IS NULL
-	  AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})    
       AND {Txn_Date}
 	)
 GROUP BY
@@ -54,13 +56,14 @@ FROM
       JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND TXNC.TRL_ORIGIN_CHANNEL = CTR.CTR_CHANNEL
       JOIN CBC_BANK CBA ON LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = LPAD(CBA.CBA_CODE, 10, ''0'')
 WHERE
-      TXN.TRL_TSC_CODE IN (1, 128)
-      AND TXN.TRL_TQU_ID IN (''F'',''R'')
-	  AND TXN.TRL_MCC_ID = ''6011''
+      TXN.TRL_TSC_CODE = 1
+      AND TXN.TRL_TQU_ID = ''F''
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0    
+	  AND TXN.TRL_MCC_ID = ''6011''      	
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_DEO_NAME IS NULL
-	  AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND {Txn_Date})');
 	
 	UPDATE REPORT_DEFINITION set 

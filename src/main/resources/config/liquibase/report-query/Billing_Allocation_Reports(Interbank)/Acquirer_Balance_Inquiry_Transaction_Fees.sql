@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Report revision		16-JUL-2021		NY		Initial from UAT environment
+-- Report revision		23-JUL-2021		NY		Revised reports based on spec
 
 DECLARE
     i_HEADER_FIELDS CLOB;
@@ -37,6 +38,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
 GROUP BY
       ABR.ABR_CODE,
@@ -67,6 +69,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
 	');
 	

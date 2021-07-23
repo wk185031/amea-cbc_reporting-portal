@@ -1,5 +1,6 @@
 -- Tracking					Date			Name	Description
 -- CBCAXUPISSLOG-686		18-JUN-2021		WY		Filter out IBFT tran from tran code 1
+-- Report revision			23-JUL-2021		NY		Revised reports based on spec
 
 DECLARE
 
@@ -45,12 +46,12 @@ FROM
       TRANSACTION_LOG TXN
       JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 WHERE
-      (TXN.TRL_TSC_CODE IN (128, 40, 42, 43, 44, 45, 50, 52) OR (TXN.TRL_TSC_CODE = 1 AND 
-      (TXN.TRL_FRD_REV_INST_ID IS NULL OR TXN.TRL_FRD_REV_INST_ID IN (''8882'', ''0000008882''))))
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      TXN.TRL_TQU_ID IN (''F'', ''R'')
+	  AND TXN.TRL_TSC_CODE NOT IN (31, 122, 145, 146, 246)
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') NOT IN (''0000000010'', ''0000000112'')
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Txn_Date}
 ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,

@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Report revision		15-JUL-2021		NY		Initial from UAT environment
+-- Report revision		23-JUL-2021		NY		Update based on excel spec
 
 DECLARE
     i_HEADER_FIELDS CLOB;
@@ -54,9 +55,11 @@ BEGIN
       TXN.TRL_TSC_CODE IN (1, 128, 31)
       AND TXN.TRL_TQU_ID = ''F''
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND (TXN.TRL_ISS_NAME = {V_Iss_Name} AND TXN.TRL_DEO_NAME = {V_Deo_Name})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -111,9 +114,11 @@ BEGIN
       TXN.TRL_TSC_CODE IN (1, 128, 31)
       AND TXN.TRL_TQU_ID = ''F'' 
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND (TXN.TRL_ISS_NAME = {V_Iss_Name} AND TXN.TRL_DEO_NAME = {V_Deo_Name})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}

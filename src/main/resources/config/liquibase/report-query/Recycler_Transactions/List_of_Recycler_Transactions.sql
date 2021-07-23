@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Report revision		15-JUL-2021		NY		Initial from UAT environment
+-- Report revision		23-JUL-2021		NY		Update based on excel spec
 
 DECLARE
     i_HEADER_FIELDS CLOB;
@@ -60,11 +61,10 @@ select
 	  LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	  JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
 	where 
-	  TXN.TRL_TQU_ID = ''F''
-	  AND TXN.TRL_ACTION_RESPONSE_CODE < 100
-          AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+	  TXN.TRL_TQU_ID in (''F'', ''R'')
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-          AND (TRL_AMT_TXN > 0 OR NVL(TRL_ISS_CHARGE_AMT, NVL(TRL_ACQ_CHARGE_AMT,0)) > 0 ) 
+      AND (TRL_AMT_TXN > 0 OR NVL(TRL_ISS_CHARGE_AMT, NVL(TRL_ACQ_CHARGE_AMT,0)) > 0 ) 
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND {Txn_Date}
 	order by ABR_CODE, TERMINAL, "TRANSACTION GROUP", "TRANSACTION TYPE", "DATE", "TIME"	
 	');	
