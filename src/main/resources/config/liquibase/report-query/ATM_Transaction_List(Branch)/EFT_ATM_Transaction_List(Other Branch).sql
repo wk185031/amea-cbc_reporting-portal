@@ -2,9 +2,17 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Report revision		25-JUL-2021		NY	 	Initial query, separate CBC/CBS report definition update
+-- Report revision		25-JUL-2021		NY		Update based on excel spec
 
 DECLARE
-    i_BODY_FIELDS CLOB;
+    i_HEADER_FIELDS_CBC CLOB;
+    i_BODY_FIELDS_CBC CLOB;
+    i_TRAILER_FIELDS_CBC CLOB;
+    i_HEADER_FIELDS_CBS CLOB;
+    i_BODY_FIELDS_CBS CLOB;
+    i_TRAILER_FIELDS_CBS CLOB;
+	i_BODY_QUERY CLOB;
+	i_TRAILER_QUERY CLOB;
 BEGIN 
 
 -- EFT - ATM Transaction List (Other Branch)
@@ -49,13 +57,14 @@ BEGIN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 	WHERE
-      TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
-      AND (TXN.TRL_ISS_NAME = {V_Iss_Name} AND TXN.TRL_DEO_NAME = {V_Deo_Name})
+      TXN.TRL_TSC_CODE IN (1, 128, 31, 142, 143)
+      AND TXN.TRL_TQU_ID IN (''F'', ''R'') 
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND ABR.ABR_CODE != TXNC.TRL_CARD_BRANCH
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
