@@ -71,6 +71,8 @@ public class UserJWTController {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(username, password);
         
+        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+        
         // check if concurrent login allowed
         if(env.getProperty(ReportConstants.ALLOW_CONCURRENT_LOGIN).equalsIgnoreCase("true")) {
         	// check if userExtra loginFlag is Y       
@@ -89,8 +91,7 @@ public class UserJWTController {
             userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now()));
             userExtraRepository.save(userExtra);
         }        
-
-        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+        
         SecurityContextHolder.getContext().setAuthentication(authentication);
         boolean rememberMe = (loginVM.isRememberMe() == null) ? false : loginVM.isRememberMe();        
         String jwt = tokenProvider.createToken(authentication, rememberMe);
