@@ -107,6 +107,8 @@ public final class ReportConstants {
 	public static final String VALUE_GLA_INST = "V_Gla_Inst";
 	public static final String VALUE_ACQR_INST_ID = "V_Acqr_Inst_Id";
 	public static final String VALUE_INTER_ACQR_INST_ID = "V_IE_Acqr_Inst_Id";
+	public static final String VALUE_RECV_INST_ID = "V_Recv_Inst_Id";
+	public static final String VALUE_INTER_RECV_INST_ID = "V_IE_Recv_Inst_Id";
 
 	// Report Definition Section
 	public static final String SECTION_NAME = "name";
