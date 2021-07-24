@@ -1,0 +1,24 @@
+update CBC_TRAN_CODE set CTR_CHANNEL='I-ATM' where CTR_CHANNEL='CBS A';
+update CBC_TRAN_CODE set CTR_CHANNEL='I-CDM' where CTR_CHANNEL='CBS C';
+update CBC_TRAN_CODE set CTR_CHANNEL='I-IVR' where CTR_CHANNEL='CBS I';
+update CBC_TRAN_CODE set CTR_CHANNEL='I-MBK' where CTR_CHANNEL='CBS M';
+update CBC_TRAN_CODE set CTR_CHANNEL='I-EBK' where CTR_CHANNEL='CBS E';
+
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'ATM', 'AXD', 'AXX', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'ATM', 'ACC', 'ARC', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'CDM', 'CXD', 'CXX', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'CDM', 'CCC', 'CCF', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'IVR', 'TXD', 'TXX', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'IVR', 'TCC', 'TRC', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'MBK', 'MXD', 'MXX', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 45, 'MBK', 'MCC', 'MRC', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'ATM', 'ADI', 'ARI', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'ATM', 'ACI', 'ARR', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'EBK', 'EDI', 'ERI', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'EBK', 'ECI', 'ERR', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'IVR', 'TDI', 'TRI', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'IVR', 'TCI', 'TRR', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'MBK', 'MDI', 'MRI', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'MBK', 'MCI', 'MRR', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'CDM', 'CDI', 'CRI', 'DEBIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'CDM', 'CCI', 'CRR', 'CREDIT', current_timestamp);
