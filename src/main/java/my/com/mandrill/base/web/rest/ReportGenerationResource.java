@@ -416,8 +416,6 @@ public class ReportGenerationResource {
 			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
 			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
 			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
 			
 			if(reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY) && noOfDaysBetween > 0) {
@@ -429,6 +427,8 @@ public class ReportGenerationResource {
 			String dayPrefix = null; 
 
 			if (reportGenerationMgr.getFrequency().contains(ReportConstants.DAILY)) {
+				reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+				reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 				dayPrefix = StringUtils.leftPad(String.valueOf(txnStartDateTime.getDayOfMonth()), 2, "0");
 				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
 				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
@@ -440,6 +440,8 @@ public class ReportGenerationResource {
 			} 
 
 			if (reportGenerationMgr.getFrequency().contains(ReportConstants.MONTHLY)) {
+				reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+				reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 				dayPrefix = "00";
 				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
 				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
