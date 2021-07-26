@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Report revision		24-JUL-2021		NY	 	Initial query, separate CBC/CBS report definition update
+-- Report revision		26-JUL-2021		NY		Revised reports based on spec
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -62,10 +63,10 @@ BEGIN
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
+      AND TXN.TRL_TQU_ID IN (''F'', ''R'') 
       AND TXN.TRL_ISS_NAME IS NULL
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
