@@ -74,7 +74,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		boolean receiving = false;
 		TreeSet<String> branchCodesList = new TreeSet<>();
 		Set<String> toAccountList = new TreeSet<>();
-		String toAccountNumber = null;
+		String toAccountNumber = "";
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			separateQuery(rgm);
@@ -187,6 +187,11 @@ public class IbftTransactionFees extends CsvReportProcessor {
 								}
 								
 							}
+							
+							if(toAccountNumber == "") {
+								toAccountNumber = "'0'";
+							}
+							
 							ReportGenerationFields toAccountNo = new ReportGenerationFields(
 									ReportConstants.PARAM_TO_ACCOUNT, ReportGenerationFields.TYPE_STRING,
 									"TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
@@ -367,6 +372,11 @@ public class IbftTransactionFees extends CsvReportProcessor {
 							toAccountNumber += "'" + toAccountNo + "'";
 						}
 					}
+					
+					if(toAccountNumber == "") {
+						toAccountNumber = "'0'";
+					}
+					
 					ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
 							ReportGenerationFields.TYPE_STRING,
 							"TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");

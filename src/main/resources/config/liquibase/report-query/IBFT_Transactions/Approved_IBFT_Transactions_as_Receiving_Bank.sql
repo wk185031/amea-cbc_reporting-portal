@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- JIRA 786				14-JUL-2021		WY		Fix report to display receiving bank as CBC or CBS accounts
+-- Report revision		26-JUL-2021		NY		Revised reports based on spec
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -37,8 +38,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 41
       AND TXN.TRL_TQU_ID IN (''F'')
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Acqr_Inst_Id}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Recv_Inst_Id}
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -59,8 +61,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 41
       AND TXN.TRL_TQU_ID IN (''F'')
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Acqr_Inst_Id}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Recv_Inst_Id}
       AND {Txn_Date}
 GROUP BY
       CBA.CBA_CODE,
@@ -80,8 +83,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 41
       AND TXN.TRL_TQU_ID IN (''F'')
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Acqr_Inst_Id}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Recv_Inst_Id}
       AND {Bank_Code}
       AND {Txn_Date}
 START SELECT
@@ -96,8 +100,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 41
       AND TXN.TRL_TQU_ID IN (''F'')
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Acqr_Inst_Id}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID,10,''0'') = {V_Recv_Inst_Id}
       AND {Txn_Date}
 GROUP BY
       TXN.TRL_AMT_TXN,

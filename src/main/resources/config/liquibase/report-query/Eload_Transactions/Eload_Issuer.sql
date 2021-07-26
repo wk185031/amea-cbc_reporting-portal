@@ -2,6 +2,7 @@
 -- Eload Reports Specification	02-JUL-2021		GS		Modify and restructure the logic of Eload Reports
 -- CBCAXUPISSLOG-527 			05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- 								14-JUL-2021		KW		Split into OnUs Acq Iss
+-- Report revision				26-JUL-2021		NY		Revised reports based on spec
 
 DECLARE
 
@@ -46,7 +47,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND TXN.TRL_FRD_REV_INST_ID = 8882
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Bank_Code}
       AND {Txn_Date}
@@ -78,7 +79,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND TXN.TRL_FRD_REV_INST_ID = 8882
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 )
@@ -107,7 +108,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL 
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND TXN.TRL_FRD_REV_INST_ID = 8882
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Bank_Code}
       AND {Txn_Date}
@@ -127,7 +128,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND TXN.TRL_FRD_REV_INST_ID = 8882
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 END
