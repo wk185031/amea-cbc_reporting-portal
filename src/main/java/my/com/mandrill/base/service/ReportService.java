@@ -132,7 +132,13 @@ public class ReportService {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
-				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+				
+				if(reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY)) {
+					reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
+				}else {
+					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+				}
+				
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
 				reportGenerationMgr.setFileBaseDirectory(directory);
 				reportGenerationMgr.setFileLocation(
