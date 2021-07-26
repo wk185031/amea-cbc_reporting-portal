@@ -329,4 +329,9 @@ public final class ReportConstants {
 	public static final String SEPARATOR = ",";
 	
 	public static final String SECUREFIELD = "secure-field";
+	
+	// Report Name
+	public static final String ATM_DAILY_TRANSACTION_SUMMARY = "ATM Daily Transaction Summary";
+	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
+	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
 }

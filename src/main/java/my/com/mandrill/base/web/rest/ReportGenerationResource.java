@@ -18,6 +18,7 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -260,7 +261,6 @@ public class ReportGenerationResource {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
-				reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
 				reportGenerationMgr.setFileFormat(reportDefinitionList.getFileFormat());
 				reportGenerationMgr.setFileBaseDirectory(directory);
 				reportGenerationMgr.setFileLocation(directory + File.separator + ReportConstants.MAIN_PATH
@@ -272,6 +272,12 @@ public class ReportGenerationResource {
 				reportGenerationMgr.setTrailerFields(reportDefinitionList.getTrailerFields());
 				reportGenerationMgr.setBodyQuery(reportDefinitionList.getBodyQuery());
 				reportGenerationMgr.setTrailerQuery(reportDefinitionList.getTrailerQuery());
+				
+				if(reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY)) {
+					reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
+				}else {
+					reportGenerationMgr.setFileNamePrefix(reportDefinitionList.getFileNamePrefix());
+				}
 
 				runReport(reportGenerationMgr);
 
@@ -370,6 +376,8 @@ public class ReportGenerationResource {
 
 		LocalDateTime txnStartDateTime = LocalDateTime.parse(startDateTime, formatter);
 		LocalDateTime txnEndDateTime = LocalDateTime.parse(endDateTime, formatter);
+		
+		long noOfDaysBetween = ChronoUnit.DAYS.between(txnStartDateTime, txnEndDateTime);
 
 		String instShortCode = findInstitutionCode(institutionId);
 
@@ -403,13 +411,18 @@ public class ReportGenerationResource {
 
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
-			reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
 			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
 			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
 			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
 			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
 			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
 			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
+			
+			if(reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY) && noOfDaysBetween > 0) {
+				reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
+			}else {
+				reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
+			}
 
 			String dayPrefix = null; 
 
