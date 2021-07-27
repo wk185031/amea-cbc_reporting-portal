@@ -109,14 +109,6 @@ public class AtmWithdrawalAcquirerBank extends CsvReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.DR_AMOUNT:
-			case ReportConstants.CR_AMOUNT:
-				if (!voidCode.equals("0")) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				}
-				line.append(field.getDelimiter());
-				break;
 			case ReportConstants.COMMENT:
 				if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(rgm, field, fieldsMap));
