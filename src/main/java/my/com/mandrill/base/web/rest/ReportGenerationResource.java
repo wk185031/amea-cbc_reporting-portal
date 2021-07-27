@@ -214,7 +214,7 @@ public class ReportGenerationResource {
 	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 
-		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findReportDefinitionByInstitution(institutionId)) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
@@ -257,7 +257,7 @@ public class ReportGenerationResource {
 	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
 		reportGenerationMgr.setEncryptionService(encryptionService);
 
-		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findAll(orderByIdAsc())) {
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findReportDefinitionByInstitution(institutionId)) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
@@ -397,9 +397,9 @@ public class ReportGenerationResource {
 		List<ReportDefinition> aList = new ArrayList<>();
 
 		if (reportCategoryId == 0) {
-			aList = reportDefinitionRepository.findAll();
+			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
 		} else if (reportId == 0) {
-			aList = reportDefinitionRepository.findAllByCategoryId(reportCategoryId);
+			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
 		} else {
 			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
 			if (reportDefinition != null) {
