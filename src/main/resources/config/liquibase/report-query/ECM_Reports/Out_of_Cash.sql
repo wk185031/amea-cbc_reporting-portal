@@ -3,13 +3,89 @@
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
+	i_BODY_QUERY CLOB;
    
 BEGIN 
 
 	i_HEADER_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"fieldName":"Out Of Cash Report","eol":true,"defaultValue":"Out Of Cash Report"},{"sequence":2,"sectionName":"2","fieldName":"Start Date","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"Start Date","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"From Date","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"dd/MM/yyyy","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"End Date","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"End Date","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Report To Date","csvTxtLength":"10","pdfLength":"10","fieldType":"Date","delimiter":";","fieldFormat":"dd/MM/yyyy","eol":true,"leftJustified":true,"padFieldLength":0}]');
 	
+	i_BODY_QUERY := TO_CLOB('SELECT
+      AST.AST_ARE_NAME "REGION",
+      AST.AST_TERMINAL_ID "TERMINAL",
+      AST.AST_ALO_LOCATION_ID "LOCATION",
+	    "CASS 1 POSITION",
+	    "CASS 2 POSITION",
+	    "CASS 3 POSITION",
+      CASE WHEN "CASS 1 DATE DOWN" IS NOT NULL THEN "CASS 1 DATE DOWN"
+           WHEN "CASS 2 DATE DOWN" IS NOT NULL THEN "CASS 2 DATE DOWN"
+           WHEN "CASS 3 DATE DOWN" IS NOT NULL THEN "CASS 3 DATE DOWN"
+      END AS "DATE DOWN",
+      CASE WHEN "CASS 1 TIME DOWN" IS NOT NULL THEN "CASS 1 TIME DOWN"
+           WHEN "CASS 2 TIME DOWN" IS NOT NULL THEN "CASS 2 TIME DOWN"
+           WHEN "CASS 3 TIME DOWN" IS NOT NULL THEN "CASS 3 TIME DOWN"
+      END AS "TIME DOWN",
+      CASE WHEN "CASS 1 DATE UP" IS NOT NULL THEN "CASS 1 DATE UP"
+           WHEN "CASS 2 DATE UP" IS NOT NULL THEN "CASS 2 DATE UP"
+           WHEN "CASS 3 DATE UP" IS NOT NULL THEN "CASS 3 DATE UP"
+      END AS "DATE UP",
+      CASE WHEN "CASS 1 TIME UP" IS NOT NULL THEN "CASS 1 TIME UP"
+           WHEN "CASS 2 TIME UP" IS NOT NULL THEN "CASS 2 TIME UP"
+           WHEN "CASS 3 TIME UP" IS NOT NULL THEN "CASS 3 TIME UP"
+      END AS "TIME UP",
+      '''' "TOTAL DOWN TIME"
+FROM
+      ATM_STATIONS AST
+	  JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
+JOIN
+(SELECT
+      ADS_AST_ID,
+      ADS_LAST_UPDATE_TS,
+      (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) "CASS 1 POSITION",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 1 DATE DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 1 TIME DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 1 DATE UP",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 1 TIME UP"
+      FROM ATM_DEVICE_STATUS
+      WHERE
+      ADS_DEVICE_ID = ''Cassette 1''
+) ADS ON ADS.ADS_AST_ID = AST.AST_ID
+JOIN
+(SELECT
+      ADS_AST_ID,
+      ADS_LAST_UPDATE_TS,
+      (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) "CASS 2 POSITION",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 2 DATE DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 2 TIME DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 2 DATE UP",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 2 TIME UP"
+      FROM ATM_DEVICE_STATUS
+      WHERE
+      ADS_DEVICE_ID = ''Cassette 2''
+) ADS ON ADS.ADS_AST_ID = AST.AST_ID
+JOIN
+(SELECT
+      ADS_AST_ID,
+      ADS_LAST_UPDATE_TS,
+      (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) "CASS 3 POSITION",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 3 DATE DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) < 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 3 TIME DOWN",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 3 DATE UP",
+      CASE WHEN (ADS_DEVICE_ADDITIONAL_DATA - ADS_DEVICE_DATA) > 0 THEN ADS_LAST_UPDATE_TS END AS "CASS 3 TIME UP"
+      FROM ATM_DEVICE_STATUS
+      WHERE
+      ADS_DEVICE_ID = ''Cassette 3''
+) ADS ON ADS.ADS_AST_ID = AST.AST_ID
+WHERE
+      {Txn_Date}
+	  AND DEO.DEO_NAME = {V_Deo_Name}
+ORDER BY
+      AST.AST_ARE_NAME ASC,
+      AST.AST_TERMINAL_ID ASC,
+      AST.AST_ALO_LOCATION_ID ASC');
+	
 	UPDATE REPORT_DEFINITION set 
-		RED_HEADER_FIELDS = i_HEADER_FIELDS
+		RED_HEADER_FIELDS = i_HEADER_FIELDS,
+		RED_BODY_QUERY = i_BODY_QUERY
 	where RED_NAME = 'Out of Cash';
 	
 END;

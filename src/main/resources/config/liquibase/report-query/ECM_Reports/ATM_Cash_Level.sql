@@ -92,7 +92,7 @@ left join (
 ) ATNC on ATNC.ADS_AST_ID = AST.AST_ID
 where 
 	DEO.DEO_NAME = {V_Deo_Name}
-	AND AST.AST_ACO_ID NOT IN (1722,1723) AND DVT.rn = 1
+	AND DVT.rn = 1
 ORDER BY 
     "REGION" ASC,
     "TERMINAL" ASC,

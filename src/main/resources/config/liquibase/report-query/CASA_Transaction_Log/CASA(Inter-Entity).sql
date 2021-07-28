@@ -1,5 +1,6 @@
 -- Tracking					Date			Name	Description
 -- CBCAXUPISSLOG-686		18-JUN-2021		WY		Filter out IBFT tran from tran code 1
+-- Revise report			25-JULY-2021	WY		Revise IE reports based on spec
 
 DECLARE
 
@@ -48,8 +49,8 @@ WHERE
       (TXN.TRL_FRD_REV_INST_ID IS NULL OR TXN.TRL_FRD_REV_INST_ID IN (''8882'', ''0000008882''))))
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_ISS_NAME = ''CBC''
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = ''0000000112''
+     AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
       AND {Txn_Date}
 ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,

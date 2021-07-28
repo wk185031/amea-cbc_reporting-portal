@@ -22,3 +22,4 @@ insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'MBK', 'MD
 insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'MBK', 'MCI', 'MRR', 'CREDIT', current_timestamp);
 insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'CDM', 'CDI', 'CRI', 'DEBIT', current_timestamp);
 insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 48, 'CDM', 'CCI', 'CRR', 'CREDIT', current_timestamp);
+insert into CBC_TRAN_CODE values (CBC_TRAN_CODE_SEQUENCE.nextVal, 31, 'I-ATM', 'INQ', 'INQ', 'DEBIT', current_timestamp);
