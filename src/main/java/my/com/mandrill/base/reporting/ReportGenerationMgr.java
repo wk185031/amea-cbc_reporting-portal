@@ -13,9 +13,11 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
@@ -66,7 +68,10 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_INTER_ACQUIRER_NAME,
 				ReportConstants.VALUE_GLA_INST, ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
 				ReportConstants.VALUE_RECV_INST_ID, ReportConstants.VALUE_INTER_RECV_INST_ID));
-	
+
+		setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(getBodyQuery(), institution));
+		setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(getTrailerQuery(), institution));
+
 		setFixBodyQuery(getBodyQuery());
 		setFixTrailerQuery(getTrailerQuery());
 

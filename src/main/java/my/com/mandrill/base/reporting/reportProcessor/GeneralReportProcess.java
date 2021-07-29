@@ -2,12 +2,16 @@ package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.persistence.Query;
+import javax.persistence.EntityManager;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONException;
@@ -20,10 +24,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import my.com.mandrill.base.domain.Branch;
+import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.SpringContext;
 import my.com.mandrill.base.reporting.security.SecurePANField;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
 import my.com.mandrill.base.service.EncryptionService;
 
 @Service
@@ -414,6 +422,8 @@ public class GeneralReportProcess {
 	protected String getAtmDownTimeEndDateRangeFieldName() {
 		return "ATD.ATD_END_TIMESTAMP";
 	}
+	
+	
 
 	public String getBranchCode(String toAccountNumber, String toAccountNoEkyId) {
 		int ekyId = Integer.parseInt(toAccountNoEkyId);
@@ -540,5 +550,25 @@ public class GeneralReportProcess {
 		this.encryptionService = encryptionService;
 	}
 	
-	
+	public List<Branch> getAllBranchByInstitution(String institutionCode) {
+		SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
+		String configName = institutionCode.toLowerCase().concat(".branch.prefix");
+		SystemConfiguration config = configRepo.findByName(configName);
+		
+		if (config != null) {
+			StringBuilder stmtBuilder = new StringBuilder();
+			for (String prefix : config.getConfig().split(",")) {
+				if (stmtBuilder.length() > 0) {
+					stmtBuilder.append(" OR");
+				}
+				stmtBuilder.append(" id like '%").append(prefix).append("'");
+			}
+			
+			EntityManager em = SpringContext.getBean(EntityManager.class);
+			Query q = em.createQuery("select b from branch b where" + stmtBuilder.toString());
+			return q.getResultList();		
+		}
+		return new ArrayList<>();
+	}
+
 }

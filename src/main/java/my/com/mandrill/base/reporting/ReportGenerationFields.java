@@ -572,7 +572,13 @@ public class ReportGenerationFields {
 			break;
 		case ReportGenerationFields.TYPE_STRING:			
 			if (isDecrypt() && decryptionKey != null && NumberUtils.isParsable(decryptionKey)) {
-				tempValue = SecurePANField.fromDatabase(value, Integer.parseInt(decryptionKey)).getClear();
+				try {
+					tempValue = SecurePANField.fromDatabase(value, Integer.parseInt(decryptionKey)).getClear();
+				} catch (Exception e) {
+					logger.error("Failed to decrypt: field={}, value={}, decryptionKey={}", fieldName, value, decryptionKey);
+					tempValue = value;
+				}
+				
 			} else {
 				tempValue = value;
 			}

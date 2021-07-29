@@ -65,7 +65,7 @@ public class PosSummary extends PdfReportProcessor {
 		logger.debug("In PosSummary.writeTotal()");
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		StringBuilder line = new StringBuilder();
-		line.append(";").append("GRAND TOTAL : ").append(";").append(String.format("%,d", txnCount)).append(";")
+		line.append(";;").append("GRAND TOTAL : ").append(";").append(String.format("%,d", txnCount)).append(";")
 				.append(formatter.format(total)).append(";").append(";").append(formatter.format(totalCommission))
 				.append(";").append(formatter.format(totalNetSettAmt)).append(";");
 		line.append(getEol());
@@ -105,54 +105,36 @@ public class PosSummary extends PdfReportProcessor {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					total += txnAmt;
 				} else {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					total += txnAmt;
 				}
-			}
-			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
 					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap));
 				}
-			}
-
-			switch (field.getFieldName()) {
-			case ReportConstants.POS_COMMISSION:
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					line.append(extractCommission(customData) + "%");
-				} else {
-					line.append("0.00%");
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.POS_COMMISSION_AMOUNT:
-				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					commission = Double.parseDouble(extractCommission(customData));
-					commission = txnAmt * commission / 100;
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_COMMISSION_AMOUNT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					commission = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 					totalCommission += commission;
-					line.append(formatter.format(commission));
 				} else {
+					commission = Double.parseDouble(getFieldValue(field, fieldsMap));
 					totalCommission += commission;
-					line.append(formatter.format(commission));
 				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.POS_NET_SETT_AMT:
-				DecimalFormat amtFormatter = new DecimalFormat(field.getFieldFormat());
-				netSettAmt = txnAmt - commission;
-				totalNetSettAmt += netSettAmt;
-				line.append(amtFormatter.format(netSettAmt));
-				line.append(field.getDelimiter());
-				break;
-			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				line.append(field.getDelimiter());
-				break;
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_NET_SETT_AMT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					totalNetSettAmt += netSettAmt;
+				} else {
+					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+					totalNetSettAmt += netSettAmt;
+				}
 			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
+			line.append(field.getDelimiter());
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -222,25 +204,5 @@ public class PosSummary extends PdfReportProcessor {
 			}
 		}
 
-	}
-
-	private String extractCommission(String customData) {
-		if(customData != null) {
-			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-			Matcher matcher = pattern.matcher(customData);
-			Map<String, String> map = new HashMap<>();
-
-			while (matcher.find()) {
-				String xmlElem = matcher.group();
-				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-				map.put(key, value);
-				if (map.get(ReportConstants.COMMISSION) != null) {
-					return map.get(ReportConstants.COMMISSION);
-				}
-			}
-		}
-		
-		return "";
 	}
 }

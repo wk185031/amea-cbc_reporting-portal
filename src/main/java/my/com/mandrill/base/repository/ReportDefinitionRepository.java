@@ -29,5 +29,9 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     List<ReportDefinition> findReportDefinitionByInstitution(Long instId);
     
     List<ReportDefinition> findAllByCategoryId(Long categoryId);
+    
+    List<ReportDefinition> findAllByInstitutionId(Long institutionId);
+    
+    List<ReportDefinition> findAllByCategoryIdAndInstitutionId(Long categoryId, Long institutionId);
 
 }

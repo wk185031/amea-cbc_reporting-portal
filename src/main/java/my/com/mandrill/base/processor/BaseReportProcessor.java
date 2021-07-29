@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
+import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.writer.CsvWriter;
 
@@ -43,7 +45,10 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 
 	private final Logger logger = LoggerFactory.getLogger(BaseReportProcessor.class);
 	private static final String ENCRYPTION_KEY_SUFFIX = "_ENCKEY";
-
+	
+	@Autowired
+	private EncryptionService encryptionService;
+	
 	@Autowired
 	private CsvWriter csvWriter;
 
@@ -53,8 +58,6 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 	@Override
 	public void process(ReportGenerationMgr rgm) {
 		FileOutputStream out = null;
-		/*File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
-				(rgm.isGenerate() ? rgm.getFileDate() : rgm.getYesterdayDate()));*/
 
         File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
             rgm.getTxnStartDate(), rgm.getTxnEndDate());
@@ -74,6 +77,10 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 					ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_INTER_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST, 
 					ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID, ReportConstants.VALUE_RECV_INST_ID,
 					ReportConstants.VALUE_INTER_RECV_INST_ID));
+
+			rgm.setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
+			rgm.setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
+
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
 			logger.debug("Execute query: {}", currentContext.getQuery());
@@ -339,6 +346,29 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 	protected String getFormattedFieldValue(ReportGenerationFields field, ReportContext context) {
 		if (field.getDefaultValue() != null && !field.getDefaultValue().isEmpty()) {
 			return field.getDefaultValue();
+		} else if (field.isDecrypt() && field.getDecryptionKey() != null && !field.getDecryptionKey().isEmpty()) {
+			int ekyId = Integer.parseInt(field.getDecryptionKey());
+			if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
+				logger.debug("original custom data: {}", field.getValue());
+				String decryptedCustomData = encryptionService
+						.decryptAuthenticTag(field.getValue(), ekyId);
+				logger.debug("decrypted custom data: {}", decryptedCustomData);
+				
+				if (field.getTagValue() != null) {
+					field.setValue(getTaggedData(decryptedCustomData, field.getFieldName()));
+					logger.debug("decrypted tag data: name={}, value={}", field.getFieldName(), field.getValue());
+				} else {
+					field.setValue(decryptedCustomData);
+				}
+				//Already decrypt. Set to false
+				field.setDecrypt(false);
+				return field.format();
+			} else {
+				String value = encryptionService.decryptAuthenticField(field.getValue(), ekyId);
+				field.setValue(value);
+				field.setDecrypt(false);
+				return field.format();
+			}
 		} else if (field.getValue() != null && !field.getValue().isEmpty()) {
 			return field.format();
 		} else if (context.getPredefinedFieldMap() != null
@@ -383,5 +413,31 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 	protected void writeReportTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
 			FileOutputStream out) {
 
+	}
+	
+	public String getTaggedData(String customData, String tag) {
+		if (customData == null || tag == null) {
+			return null;
+		}
+
+		if (customData.contains(ReportConstants.SECUREFIELD)) {
+			customData = customData.replace(" " + ReportConstants.SECUREFIELD + "=\"Y\"", "");
+		}
+
+		String xmlTag = "<" + tag + ">";
+		int beginIndex = customData.indexOf(xmlTag) + xmlTag.length();
+
+		if (beginIndex < xmlTag.length()) {
+			return null;
+		}
+
+		int endIndex = customData.indexOf("<", beginIndex);
+
+		if (beginIndex >= endIndex) {
+			return "";
+		} else {
+			String beforeValue = customData.substring(beginIndex, endIndex);
+			return StringEscapeUtils.unescapeXml(beforeValue);
+		}
 	}
 }

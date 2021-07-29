@@ -825,10 +825,14 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						writeBodyHeader(rgm);
 					} else if (!currentBranchCode.equals(lastBranchCode)) {
 						logger.debug("Change branch from {} to {}. Write header.", lastBranchCode, currentBranchCode);						
+
 						if (!writeAcquiringSummary) {
 							writeSummary(rgm, false, acquiringSummary);
-						}				
+						}
+						
 						writeSummary(rgm, true, issuingSummary);
+						writeAcquiringSummary = false;
+
 						rgm.writeLine(getEol().getBytes());
 						rgm.writeLine(getEol().getBytes());
 						writeHeader(rgm, pagination, currentBranchCode, currentBranchName);
@@ -837,6 +841,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						lastBranchCode = currentBranchCode;
 						acquiringSummary = new SummaryCount();
 						issuingSummary = new SummaryCount();
+						
 						lastBranchCode = currentBranchCode;
 					} 
 					
@@ -844,8 +849,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 						writeSummary(rgm, false, acquiringSummary);
 						writeAcquiringSummary = true;
 					}
-
-					
+	
 					if (isIssuing) {
 						issuingSummary.add(settlementType, amount);
 					} else {
@@ -856,6 +860,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				}
 				if (!writeAcquiringSummary) {
 					writeSummary(rgm, false, acquiringSummary);
+					writeAcquiringSummary = true;
 				}				
 				writeSummary(rgm, true, issuingSummary);
 				

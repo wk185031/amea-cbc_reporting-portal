@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.domain.Amount;
+import my.com.mandrill.base.domain.Branch;
 import my.com.mandrill.base.domain.builder.AmountBuilder;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
@@ -47,44 +48,122 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String branchCode = null;
 		String branchName = null;
-		String merchantName = null;
+		String bankCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			preProcessing(rgm);
-			for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchCodeMap : filterByBranches(
-					rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, Map<String, TreeSet<String>>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
-					branchName = branchNameMap.getKey();
-					pagination++;
-					writeHeader(rgm, pagination, branchCode, branchName);
-					writeBodyHeader(rgm);
-					for (SortedMap.Entry<String, TreeSet<String>> merchantMap : branchNameMap.getValue().entrySet()) {
-						merchantName = merchantMap.getKey();
-						for (String customData : merchantMap.getValue()) {
-							txnCount = 0;
-							totalAmount = 0.00;
-							totalCommission = 0.00;
-							preProcessing(rgm, branchCode, merchantName);
+	
+			ResultSet rs = null;
+			PreparedStatement ps = null;
+			
+			writeHeader(rgm, pagination, branchCode, branchName);
+			
+			for (Branch branch : getAllBranchByInstitution(rgm.getInstitution())) {
+				preProcessing(rgm, branch.getId());
+				boolean bodyHeaderWritten = false;
+				
+				try {
+					HashMap<String, ReportGenerationFields> fieldsMap = null;
+					HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+					ps = rgm.connection.prepareStatement(getBodyQuery(rgm));
+					rs = ps.executeQuery();	
+					fieldsMap = rgm.getQueryResultStructure(rs);
+					
+					if (!rs.next()) {
+						continue;
+					} else {
+						do {
+							if (!bodyHeaderWritten) {
+								writeBodyHeader(rgm);
+							}
+							lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 							
-							executeBodyQuery(rgm, customData);
+							for (String key : lineFieldsMap.keySet()) {
+								ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+								Object result;
+								try {
+									result = rs.getObject(field.getSource());
+								} catch (SQLException e) {
+									rgm.errors++;
+									logger.error("An error was encountered when trying to write a line", e);
+									continue;
+								}
+								if (result != null) {
+									if (result instanceof Date) {
+										field.setValue(Long.toString(((Date) result).getTime()));
+									} else if (result instanceof oracle.sql.TIMESTAMP) {
+										field.setValue(
+												Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+									} else if (result instanceof oracle.sql.DATE) {
+										field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+									} else {
+										field.setValue(result.toString());
+									}
+								} else {
+									field.setValue("");
+								}
+							}
 							
-							Map<String, LineItem> summaryItemMap = new HashMap<String, PosTransactionsCardholderBranch.LineItem>();
-							summaryItemMap.put(LINE_ITEM_PURCHASE, new LineItem(LINE_ITEM_PURCHASE));
-							summaryItemMap.put(LINE_ITEM_REVERSAL, new LineItem(LINE_ITEM_REVERSAL));
-							summaryItemMap.put(LINE_ITEM_NET, new LineItem(LINE_ITEM_NET));
-							
-							executeTrailerQuery(rgm, customData, summaryItemMap);
-							writeLineItem(rgm, merchantName, summaryItemMap.get(LINE_ITEM_PURCHASE));
-							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_REVERSAL));
-							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_NET));
-							rgm.writeLine(getEol().getBytes());
-							//writeMerchantTotal(rgm, merchantName, txnCount, totalAmount, totalCommission);
+							writeBody(rgm, lineFieldsMap, branchCode);
+						} while (rs.next());	
+					}
+					
+				} catch (Exception e) {
+					rgm.errors++;
+					logger.error("Error trying to execute the body query", e);
+				} finally {
+					try {
+						if (ps != null) {
+							ps.close();
 						}
+						if (rs != null) {
+							rs.close();
+						}					
+					} catch (SQLException e) {
+						rgm.errors++;
+						logger.error("Error closing DB resources", e);
 					}
 				}
+				
 			}
+			
+			
+			
+			
+//			preProcessing(rgm);
+//			for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchCodeMap : filterByBranches(
+//					rgm).entrySet()) {
+//				branchCode = branchCodeMap.getKey();
+//				for (SortedMap.Entry<String, Map<String, TreeSet<String>>> branchNameMap : branchCodeMap.getValue()
+//						.entrySet()) {
+//					branchName = branchNameMap.getKey();
+//					pagination++;
+//					writeHeader(rgm, pagination, branchCode, branchName);
+//					writeBodyHeader(rgm);
+//					for (SortedMap.Entry<String, TreeSet<String>> bankMap : branchNameMap.getValue().entrySet()) {
+//						bankCode = bankMap.getKey();
+//						for (String bankName : bankMap.getValue()) {
+//							txnCount = 0;
+//							totalAmount = 0.00;
+//							totalCommission = 0.00;
+//							preProcessing(rgm, branchCode, bankCode);
+//							
+//							executeBodyQuery(rgm, bankCode);
+//							
+//							Map<String, LineItem> summaryItemMap = new HashMap<String, PosTransactionsCardholderBranch.LineItem>();
+//							summaryItemMap.put(LINE_ITEM_PURCHASE, new LineItem(LINE_ITEM_PURCHASE));
+//							summaryItemMap.put(LINE_ITEM_REVERSAL, new LineItem(LINE_ITEM_REVERSAL));
+//							summaryItemMap.put(LINE_ITEM_NET, new LineItem(LINE_ITEM_NET));
+//							
+//							executeTrailerQuery(rgm, bankCode, summaryItemMap);
+//							writeLineItem(rgm, bankName, summaryItemMap.get(LINE_ITEM_PURCHASE));
+//							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_REVERSAL));
+//							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_NET));
+//							rgm.writeLine(getEol().getBytes());
+//							//writeMerchantTotal(rgm, merchantName, txnCount, totalAmount, totalCommission);
+//						}
+//					}
+//				}
+//			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -108,8 +187,8 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		logger.debug("In PosTransactionsCardholderBranch.filterByBranches()");
 		String branchCode = null;
 		String branchName = null;
-		String merchantName = null;
-		String customData = null;
+		String bankName = null;
+		//String customData = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -143,50 +222,50 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 							if (key.equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 								branchName = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.MERCHANT_NAME)) {
-								merchantName = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.CUSTOM_DATA)) {
-								customData = result.toString();
-							}
+//							if (key.equalsIgnoreCase(ReportConstants.CUSTOM_DATA)) {
+//								customData = result.toString();
+//							}
 						}
 					}
-					if (criteriaMap.get(branchCode) == null) {
-						Map<String, Map<String, TreeSet<String>>> branchNameMap = new HashMap<>();
-						Map<String, TreeSet<String>> merchantMap = new HashMap<>();
-						TreeSet<String> customDataList = new TreeSet<>();
-						if (customData != null) {
-							customDataList.add(customData);
-						}
-						merchantMap.put(merchantName, customDataList);
-
-						branchNameMap.put(branchName, merchantMap);
-						criteriaMap.put(branchCode, branchNameMap);
-					} else {
-						Map<String, Map<String, TreeSet<String>>> branchNameMap = criteriaMap.get(branchCode);
-						if (branchNameMap.get(branchName) == null) {
-							Map<String, TreeSet<String>> merchantMap = new HashMap<>();
-							TreeSet<String> customDataList = new TreeSet<>();
-							if (customData != null) {
-								customDataList.add(customData);
-							}
-								merchantMap.put(merchantName, customDataList);	
-							branchNameMap.put(branchName, merchantMap);
-						} else {
-							Map<String, TreeSet<String>> merchantMap = branchNameMap.get(branchName);
-							if (customData != null) {
-								if (merchantMap.get(merchantName) == null) {
-									TreeSet<String> customDataList = new TreeSet<>();
-									customDataList.add(customData);
-									merchantMap.put(merchantName, customDataList);
-								} else {
-									Set<String> customDataList = merchantMap.get(merchantName);
-									customDataList.add(customData);
-								}
-							}
-							
-						}
-					}
+//					if (criteriaMap.get(branchCode) == null) {
+//						Map<String, Map<String, TreeSet<String>>> branchNameMap = new HashMap<>();
+//						Map<String, TreeSet<String>> merchantMap = new HashMap<>();
+//						TreeSet<String> customDataList = new TreeSet<>();
+//						if (customData != null) {
+//							customDataList.add(customData);
+//						}
+//						merchantMap.put(merchantName, customDataList);
+//
+//						branchNameMap.put(branchName, merchantMap);
+//						criteriaMap.put(branchCode, branchNameMap);
+//					} else {
+//						Map<String, Map<String, TreeSet<String>>> branchNameMap = criteriaMap.get(branchCode);
+//						if (branchNameMap.get(branchName) == null) {
+//							Map<String, TreeSet<String>> merchantMap = new HashMap<>();
+//							TreeSet<String> customDataList = new TreeSet<>();
+//							if (customData != null) {
+//								customDataList.add(customData);
+//							}
+//								merchantMap.put(merchantName, customDataList);	
+//							branchNameMap.put(branchName, merchantMap);
+//						} else {
+//							Map<String, TreeSet<String>> merchantMap = branchNameMap.get(branchName);
+//							if (customData != null) {
+//								if (merchantMap.get(merchantName) == null) {
+//									TreeSet<String> customDataList = new TreeSet<>();
+//									customDataList.add(customData);
+//									merchantMap.put(merchantName, customDataList);
+//								} else {
+//									Set<String> customDataList = merchantMap.get(merchantName);
+//									customDataList.add(customData);
+//								}
+//							}
+//							
+//						}
+//					}
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -210,23 +289,23 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_MERCHANT + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByMerchantName)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In PosTransactionsCardholderBranch.preProcessing()");
 		rgm.setBodyQuery(rgm.getTmpBodyQuery());
-		if (filterByBranchCode != null && filterByMerchantName != null) {
+		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
-			ReportGenerationFields merchant = new ReportGenerationFields(ReportConstants.PARAM_MERCHANT,
-					ReportGenerationFields.TYPE_STRING, "TRIM(MER.MER_NAME) = '" + filterByMerchantName + "'");
+//			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
+//					ReportGenerationFields.TYPE_STRING, "CBA_CODE = '" + filterByBankCode + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			getGlobalFileFieldsMap().put(merchant.getFieldName(), merchant);
+//			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
 	
@@ -311,7 +390,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 				line.append(StringUtils.wrap(formattedAmount, "\""));
 				line.append(field.getDelimiter());
 				break;
-			case ReportConstants.POS_COMMISSION:
+			case ReportConstants.POS_COMMISSION_AMOUNT:
 				BigDecimal commission = txnAmount.calculateFee(extractCommission(customData));
 				String formattedCommission = new DecimalFormat(field.getFieldFormat()).format(commission);
 				if ("R".equals(qualifier)) {

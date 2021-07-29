@@ -94,6 +94,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private static final String BILLERCODE_TAG = "BILLERCODE";
 	private static final String BILL_PAYMENT_TSC_CODE = "50";
+	private static final String BILL_PAYMENT_TSC_CODE_DEPOSIT = "250";
 	private static final String ORIGIN_CHANNEL = "A026";
 	private static final String ORIGIN_CHANNEL_OLD = "ORIG_CHAN";
 	private static final String CASH_CARD_CORPORATE_PRODUCT_CODE = "83";
@@ -991,7 +992,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			TxnLogCustom o = new TxnLogCustom();
 			o.setTrlId(id);
 
-			if (BILL_PAYMENT_TSC_CODE.equals(tscCode)) {
+			if (BILL_PAYMENT_TSC_CODE.equals(tscCode) || BILL_PAYMENT_TSC_CODE_DEPOSIT.equals(tscCode)) {
 				o.setBillerCode(customDataMap.get(BILLERCODE_TAG));
 			} else {
 				o.setBillerCode(null);

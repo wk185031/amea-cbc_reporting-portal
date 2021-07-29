@@ -76,7 +76,6 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 		}
 		line.append(CsvWriter.EOL);
 		csvWriter.writeLine(out, line.toString());
-
 	}
 
 }

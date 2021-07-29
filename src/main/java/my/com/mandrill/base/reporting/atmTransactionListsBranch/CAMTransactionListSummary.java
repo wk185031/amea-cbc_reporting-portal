@@ -142,6 +142,8 @@ public class CAMTransactionListSummary extends PdfReportProcessor {
 			String branchName = null;
 			String terminal = null;
 			String location = null;
+			
+			logger.debug("------------------------" + rgm.getTrailerQuery());
 
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			preProcessing(rgm);

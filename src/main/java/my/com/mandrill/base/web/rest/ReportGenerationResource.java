@@ -397,9 +397,9 @@ public class ReportGenerationResource {
 		List<ReportDefinition> aList = new ArrayList<>();
 
 		if (reportCategoryId == 0) {
-			aList = reportDefinitionRepository.findAll();
+			aList = reportDefinitionRepository.findAllByInstitutionId(institutionId);
 		} else if (reportId == 0) {
-			aList = reportDefinitionRepository.findAllByCategoryId(reportCategoryId);
+			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
 		} else {
 			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
 			if (reportDefinition != null) {

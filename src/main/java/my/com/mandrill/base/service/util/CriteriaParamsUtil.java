@@ -1,9 +1,39 @@
 package my.com.mandrill.base.service.util;
 
+import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.SpringContext;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
 
 public class CriteriaParamsUtil {
 
+	public static String replaceBranchFilterCriteria(String originalString, String institution) {
+		if (originalString != null && originalString.contains(ReportConstants.PARAM_BRANCH_INST_FILTER)) {
+			SystemConfigurationRepository repo = SpringContext.getBean(SystemConfigurationRepository.class);
+			String configName = institution.toLowerCase() + ".branch.prefix";
+			SystemConfiguration branchPrefix = repo.findByName(configName);
+			
+			if (branchPrefix == null) {
+				return originalString.replace(ReportConstants.PARAM_BRANCH_INST_FILTER, "");
+			}
+			
+			StringBuilder likeStatement = new StringBuilder();
+			String[] prefixes = branchPrefix.getConfig().split(",");
+			
+			for (String prefix : prefixes) {
+				if (likeStatement.length() == 0) {
+					likeStatement.append(" AND");	
+				} else {
+					likeStatement.append(" OR");	
+				}
+				likeStatement.append(" CBA_CODE like '%").append(prefix).append("'");	
+			}
+			
+			return originalString.replace(ReportConstants.PARAM_BRANCH_INST_FILTER, likeStatement.toString());
+		}
+		return originalString;
+	}	
+	
 	public static String replaceInstitution(String originalString, String institution, String... params) {
 		if (originalString == null || originalString.trim().isEmpty()) {
 			return originalString;

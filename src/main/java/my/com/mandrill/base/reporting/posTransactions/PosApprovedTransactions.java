@@ -9,11 +9,8 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -35,24 +32,24 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		String merchantName = null;
-		String customData = null;
+		String bankCode = null;
+		String bankName = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination++;
 			preProcessing(rgm);
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> merchantMap : filterByMerchant(rgm).entrySet()) {
-				merchantName = merchantMap.getKey();
-				customData = merchantMap.getValue();
+			for (SortedMap.Entry<String, String> bankMap : filterByBank(rgm).entrySet()) {
+				bankCode = bankMap.getKey();
+				bankName = bankMap.getValue();
 				txnCount = 0;
 				total = 0.00;
 				totalCommission = 0.00;
 				totalNetSettAmt = 0.00;
-				preProcessing(rgm, merchantName);
-				writeMerchantHeader(rgm, merchantName, customData);
+				preProcessing(rgm, bankCode);
+				writeMerchantHeader(rgm, bankCode, bankName);
 				writeBodyHeader(rgm);
-				executeBodyQuery(rgm, customData);
+				executeBodyQuery(rgm, bankCode);
 				writeMerchantTotal(rgm, txnCount, total, totalCommission, totalNetSettAmt);
 			}
 			rgm.fileOutputStream.flush();
@@ -74,17 +71,17 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 		}
 	}
 
-	private SortedMap<String, String> filterByMerchant(ReportGenerationMgr rgm) {
-		logger.debug("In PosApprovedTransactions.filterByMerchant()");
-		String merchantName = null;
-		String customData = null;
+	private SortedMap<String, String> filterByBank(ReportGenerationMgr rgm) {
+		logger.debug("In PosApprovedTransactions.filterByBank()");
+		String bankCode = null;
+		String bankName = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		SortedMap<String, String> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
-		logger.info("Query for filter merchant: {}", query);
+		logger.info("Query for filter bank: {}", query);
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -105,15 +102,15 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 							continue;
 						}
 						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.MERCHANT_NAME)) {
-								merchantName = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+								bankCode = result.toString();
 							}
-							if (key.equalsIgnoreCase(ReportConstants.CUSTOM_DATA)) {
-								customData = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+								bankName = result.toString();
 							}
 						}
 					}
-					criteriaMap.put(merchantName, customData);
+					criteriaMap.put(bankCode, bankName);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -136,29 +133,28 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 		logger.debug("In PosApprovedTransactions.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_MERCHANT + "}", ""));
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByMerchantName)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In PosApprovedTransactions.preProcessing()");
-		if (filterByMerchantName != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
-			ReportGenerationFields merchant = new ReportGenerationFields(ReportConstants.PARAM_MERCHANT,
-					ReportGenerationFields.TYPE_STRING, "TRIM(MER.MER_NAME) = '" + filterByMerchantName + "'");
+			ReportGenerationFields merchant = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
+					ReportGenerationFields.TYPE_STRING, "CBA_CODE = '" + filterByBankCode + "'");
 			getGlobalFileFieldsMap().put(merchant.getFieldName(), merchant);
 		}
 	}
 
-	private void writeMerchantHeader(ReportGenerationMgr rgm, String merchantName, String customData)
+	private void writeMerchantHeader(ReportGenerationMgr rgm, String bankCode, String bankName)
 			throws IOException {
 		logger.debug("In PosApprovedTransactions.writeMerchantHeader()");
 		StringBuilder line = new StringBuilder();
-		line.append("MERCHANT NAME : ").append(";").append(merchantName).append(";").append("COMMISSION : ").append(";")
-				.append(extractCommission(customData) + "%").append(";").append(getEol()).append(";").append(";")
-				.append("DEPOSITORY BANK : ").append(";").append(extractDepositoryBank(customData));
+		line.append("BANK NAME : ").append(";").append(bankCode).append(" ").append(bankName).append(";").append("COMMISSION : ").append(";")
+				.append("30%").append(";");
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
@@ -198,7 +194,7 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String customData)
+			String bankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -213,81 +209,73 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					total += txnAmt;
 				} else {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					total += txnAmt;
+				}
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_COMMISSION)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					commission = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					totalCommission += commission;
+				} else {
+					commission = Double.parseDouble(getFieldValue(field, fieldsMap));
+					totalCommission += commission;
+				}
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_NET_SETT_AMT)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					totalNetSettAmt += netSettAmt;
+				} else {
+					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+					totalNetSettAmt += netSettAmt;
 				}
 			}
 
-			switch (field.getFieldName()) {
-			case ReportConstants.POS_COMMISSION:
-				DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-				if (extractCommission(customData) != null && extractCommission(customData).trim().length() > 0) {
-					commission = Double.parseDouble(extractCommission(customData));
-					commission = txnAmt * commission / 100;
-					totalCommission += commission;
-					line.append(formatter.format(commission));
-				} else {
-					totalCommission += commission;
-					line.append(formatter.format(commission));
-				}
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.POS_NET_SETT_AMT:
-				DecimalFormat amtFormatter = new DecimalFormat(field.getFieldFormat());
-				netSettAmt = txnAmt - commission;
-				totalNetSettAmt += netSettAmt;
-				line.append(amtFormatter.format(netSettAmt));
-				line.append(field.getDelimiter());
-				break;
-			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				line.append(field.getDelimiter());
-				break;
-			}
+			line.append(getFieldValue(rgm, field, fieldsMap));
+			line.append(field.getDelimiter());
 		}
 		txnCount++;
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private String extractCommission(String customData) {
-		if (customData != null) {
-			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-			Matcher matcher = pattern.matcher(customData);
-			Map<String, String> map = new HashMap<>();
+//	private String extractCommission(String customData) {
+//		if (customData != null) {
+//			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
+//			Matcher matcher = pattern.matcher(customData);
+//			Map<String, String> map = new HashMap<>();
+//
+//			while (matcher.find()) {
+//				String xmlElem = matcher.group();
+//				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
+//				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
+//				map.put(key, value);
+//				if (map.get(ReportConstants.COMMISSION) != null) {
+//					return map.get(ReportConstants.COMMISSION);
+//				}
+//			}
+//		}
+//		return "";
+//	}
 
-			while (matcher.find()) {
-				String xmlElem = matcher.group();
-				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-				map.put(key, value);
-				if (map.get(ReportConstants.COMMISSION) != null) {
-					return map.get(ReportConstants.COMMISSION);
-				}
-			}
-		}
-		return "";
-	}
-
-	private String extractDepositoryBank(String customData) {
-		if (customData != null) {
-			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
-			Matcher matcher = pattern.matcher(customData);
-			Map<String, String> map = new HashMap<>();
-
-			while (matcher.find()) {
-				String xmlElem = matcher.group();
-				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
-				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
-				map.put(key, value);
-				if (map.get(ReportConstants.DEPOSITORY_BANK) != null) {
-					return map.get(ReportConstants.DEPOSITORY_BANK);
-				}
-			}
-		}
-		
-		return "";
-	}
+//	private String extractDepositoryBank(String customData) {
+//		if (customData != null) {
+//			Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
+//			Matcher matcher = pattern.matcher(customData);
+//			Map<String, String> map = new HashMap<>();
+//
+//			while (matcher.find()) {
+//				String xmlElem = matcher.group();
+//				String key = xmlElem.substring(1, xmlElem.indexOf('>'));
+//				String value = xmlElem.substring(xmlElem.indexOf('>') + 1, xmlElem.lastIndexOf('<'));
+//				map.put(key, value);
+//				if (map.get(ReportConstants.DEPOSITORY_BANK) != null) {
+//					return map.get(ReportConstants.DEPOSITORY_BANK);
+//				}
+//			}
+//		}
+//		
+//		return "";
+//	}
 }

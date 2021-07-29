@@ -1,6 +1,7 @@
 -- Tracking					Date			Name	Description
 -- Report Revise			04-JUL-2021		KW		Revise report based on specification
 -- 							14-JUL-2021		KW		Solve duplicate due to multiple biller with same code
+-- Rel-20210730				28-JUL-2021		KW		Revise Acq and Iss condition after confirmation from CBC
 
 DECLARE
 	i_HEADER_FIELD CLOB;
@@ -47,7 +48,7 @@ BEGIN
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''   
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10) = {V_Acqr_Inst_Id})
-	  AND (TXN.TRL_ISS_NAME IS NULL OR ABR.ABR_CODE != TXNC.TRL_CARD_BRANCH)
+	  AND TXN.TRL_ISS_NAME IS NULL
       AND {Txn_Date}
     UNION
     SELECT
@@ -80,7 +81,8 @@ BEGIN
       TXN.TRL_TSC_CODE = 50
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''   
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''  
+      AND TXNC.TRL_ORIGIN_CHANNEL = 'BNT' 
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND  {Txn_Date}
     )
