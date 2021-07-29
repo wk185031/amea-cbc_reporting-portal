@@ -1,5 +1,6 @@
 -- Tracking					Date			Name	Description
 -- CBCAXUPISSLOG-686		18-JUN-2021		WY		Filter out IBFT tran from tran code 1
+-- Revise report			25-JULY-2021	WY		Revise IE reports based on spec
 
 DECLARE
 
@@ -48,8 +49,8 @@ WHERE
 	  AND TRL_MCC_ID = ''6011'' AND TXN.TRL_AMT_TXN - FLOOR(TXN.TRL_AMT_TXN) = 0))
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_ISS_NAME =  {V_IE_Acqr_Inst_Id}
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}
+      AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
 UNION
 	SELECT
@@ -92,8 +93,8 @@ WHERE
 	  AND TRL_MCC_ID = ''6011'' AND TXN.TRL_AMT_TXN - FLOOR(TXN.TRL_AMT_TXN) = 0))
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXN.TRL_ISS_NAME =  {V_Iss_Name}
-      AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}
+      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
       AND {Txn_Date})
 ORDER BY
        "EDP TIME" ASC,

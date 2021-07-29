@@ -107,4 +107,5 @@
     <include file="config/liquibase/changelog/NY_20210723000001_add_cbs_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210725000001_update_report_definition.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/NY_20210726000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/WY_20210726000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

@@ -86,12 +86,22 @@
         <!-- Acquirer -->
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Banks).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_Other_Banks.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
                  path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank.sql"
                  splitStatements="false" 
                  stripComments="true" />
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank_Summary.sql"
+                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank_Summary.sql"
                  splitStatements="false" 
                  stripComments="true" />
         <sqlFile dbms="oracle" 

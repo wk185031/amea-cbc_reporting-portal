@@ -79,8 +79,7 @@ public class ReportService {
 		reportGenerationMgr.setEncryptionService(encryptionService);
         reportGenerationMgr.setReportTxnEndDate(transactionDate.atTime(LocalTime.MAX));
 
-		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
-				.findAllByInstitutionId(institutionId)) {
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findReportDefinitionByInstitution(institutionId)) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.DAILY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());
@@ -127,8 +126,7 @@ public class ReportService {
 		reportGenerationMgr.setEncryptionService(encryptionService);
 		reportGenerationMgr.setReportTxnEndDate(YearMonth.from(transactionDate).atEndOfMonth().atTime(LocalTime.MAX));
 
-		for (ReportDefinition reportDefinitionList : reportDefinitionRepository
-				.findAllByInstitutionId(institutionId)) {
+		for (ReportDefinition reportDefinitionList : reportDefinitionRepository.findReportDefinitionByInstitution(institutionId)) {
 			if (reportDefinitionList.getFrequency().contains(ReportConstants.MONTHLY)) {
 				reportGenerationMgr.setReportCategory(reportDefinitionList.getReportCategory().getName());
 				reportGenerationMgr.setFileName(reportDefinitionList.getName());

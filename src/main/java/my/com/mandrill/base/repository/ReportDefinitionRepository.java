@@ -28,10 +28,11 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     @Query("select r from ReportDefinition r where r.institutionId = ?1 order by r.name") 
     List<ReportDefinition> findReportDefinitionByInstitution(Long instId);
     
+    @Query("select r from ReportDefinition r where r.category.id = ?1 and r.institutionId = ?2 order by r.name") 
+    List<ReportDefinition> findAllByCategoryIdAndInstitutionId(Long categoryId, Long instId);
+    
     List<ReportDefinition> findAllByCategoryId(Long categoryId);
     
     List<ReportDefinition> findAllByInstitutionId(Long institutionId);
-    
-    List<ReportDefinition> findAllByCategoryIdAndInstitutionId(Long categoryId, Long institutionId);
 
 }
