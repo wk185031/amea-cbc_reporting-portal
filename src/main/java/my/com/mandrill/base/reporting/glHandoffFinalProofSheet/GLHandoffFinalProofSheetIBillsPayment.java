@@ -246,7 +246,7 @@ public class GLHandoffFinalProofSheetIBillsPayment extends TxtReportProcessor {
 		switch (filterByGlDescription) {
 		case ReportConstants.ATM_BILLS_PAYMENT:
 			ReportGenerationFields channelAtm = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'ATM'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXNC.TRL_BILLER_CODE, 3, '0') NOT IN ('019','063','067','065')");
 			getGlobalFileFieldsMap().put(channelAtm.getFieldName(), channelAtm);
 			break;
 		case ReportConstants.BIR_REMITTANCE:

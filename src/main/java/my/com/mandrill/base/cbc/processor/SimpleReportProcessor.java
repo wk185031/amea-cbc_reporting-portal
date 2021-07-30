@@ -17,7 +17,7 @@ import my.com.mandrill.base.writer.CsvWriter;
 public class SimpleReportProcessor extends BaseReportProcessor {
 
 	@Autowired
-	private CsvWriter csvWriter;
+	protected CsvWriter csvWriter;
 
 	@Override
 	protected void preProcessBodyHeader(ReportContext context, List<ReportGenerationFields> bodyFields,
@@ -35,13 +35,13 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 	protected void handleGroupFieldInBody(ReportContext context, ReportGenerationFields field, StringBuilder bodyLine) {
 
 		if (!context.getCurrentGroupMap().containsKey(field.getFieldName())) {
-			bodyLine.append(field.getValue()).append(CsvWriter.DEFAULT_DELIMITER);
+			bodyLine.append(field.getValue()).append(getDelimiter());
 			context.getCurrentGroupMap().put(field.getFieldName(), field.getValue());
 		} else if (!context.getCurrentGroupMap().get(field.getFieldName()).equals(field.getValue())) {
-			bodyLine.append(field.getValue()).append(CsvWriter.DEFAULT_DELIMITER);
+			bodyLine.append(field.getValue()).append(getDelimiter());
 			context.getCurrentGroupMap().put(field.getFieldName(), field.getValue());
 		} else {
-			bodyLine.append(CsvWriter.DEFAULT_DELIMITER);
+			bodyLine.append(getDelimiter());
 		}
 	}
 
@@ -57,7 +57,7 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 					// Write the total label before the first subtotal column
 					line = new StringBuilder(line.toString().substring(1));
 					line.append("OVER-ALL TOTAL");
-					line.append(CsvWriter.DEFAULT_DELIMITER);
+					line.append(getDelimiter());
 					labelWritten = true;
 				}
 
@@ -72,10 +72,14 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 				}
 				line.append("\"" + formattedAmount + "\"");
 			}
-			line.append(CsvWriter.DEFAULT_DELIMITER);
+			line.append(getDelimiter());
 		}
 		line.append(CsvWriter.EOL);
 		csvWriter.writeLine(out, line.toString());
+	}
+	
+	protected String getDelimiter() {
+		return CsvWriter.DEFAULT_DELIMITER;
 	}
 
 }

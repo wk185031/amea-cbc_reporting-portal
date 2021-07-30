@@ -30,7 +30,7 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetBillsPayment.class);
 	private float pageHeight = 0;
-	private float totalHeight = PDRectangle.A4.getHeight();
+	private float totalHeight = PDRectangle.A4.getHeight() / 11;
 	private int pagination = 0;
 	private boolean firstRecord = false;
 	private boolean newGroup = false;
@@ -121,13 +121,13 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 //					} else {
 						rgm.setBodyQuery(getDebitBodyQuery());
 						rgm.setTrailerQuery(getDebitTrailerQuery());
-						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
-						pageHeight = 0;
+						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);						
 						if (executeQuery(rgm)) {
 							if (contentStream == null || endGroup) {
 								contentStream = newPage(doc, pageSize, margin);
 								endGroup = false;
 							}
+							pageHeight = 0;
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
 									pdfFont, fontSize);
 						}
@@ -140,11 +140,10 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 								contentStream = newPage(doc, pageSize, margin);
 							}
 							
-//							pageHeight = 0;
+							pageHeight = 0;
 //							page = new PDPage();
 //							doc.addPage(page);
 							firstRecord = true;
-							pagination++;
 //							contentStream = new PDPageContentStream(doc, page);
 							contentStream = newPage(doc, pageSize, margin);
 							contentStream.setFont(pdfFont, fontSize);
@@ -205,7 +204,7 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 		try {
 			writePdfHeader(rgm, contentStream, leading, pagination);
 			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 4;
+			pageHeight +=  4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
@@ -587,20 +586,23 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 
 				while (rs.next()) {
 					if (pageHeight > totalHeight && !endGroup) {
-						endGroup = false;
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
+//						endGroup = false;
+//						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+//						page = new PDPage();
+//						doc.addPage(page);
+//						pagination++;
 						contentStream.endText();
 						contentStream.close();
-						contentStream = new PDPageContentStream(doc, page);
+//						contentStream = new PDPageContentStream(doc, page);
+//						contentStream.setFont(pdfFont, fontSize);
+//						contentStream.beginText();
+//						contentStream.newLineAtOffset(startX, startY);
+						contentStream = newPage(doc, pageSize, 30);
 						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
 						writePdfHeader(rgm, contentStream, leading, pagination);
+						writePdfBodyHeader(rgm, contentStream, leading);
 						contentStream.newLineAtOffset(0, -leading);
-						pageHeight += 4;
+						pageHeight = 6;
 					}
 					for (String key : lineFieldsMap.keySet()) {
 						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
@@ -628,7 +630,7 @@ public class GLHandoffBlocksheetBillsPayment extends TxtReportProcessor {
 						}
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					pageHeight++;
+					pageHeight += 1;
 				}
 				pageHeight += 1;
 				executePdfTrailerQuery(rgm, doc, contentStream, pageSize, leading, startX, startY, pdfFont, fontSize);
