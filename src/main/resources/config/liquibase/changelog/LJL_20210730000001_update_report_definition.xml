@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="LJL_20210730000001_update_report_definition" author="LJL">
+    	<validCheckSum>any</validCheckSum>
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/InstaPay_Transactions/Approved_InstaPay_Transactions_As_Transmitting_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/InstaPay_Transactions/Summary_of_Net_Settlement_Approved_InstaPay_Transactions.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Pesonet_Transactions/Approved_Pesonet_Transactions_As_Transmitting_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Pesonet_Transactions/Summary_of_Net_Settlement_Approved_Pesonet_Transactions.sql"
+                 splitStatements="false" 
+                 stripComments="true" />	
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/RFID_Transactions/Daily_Summary_of_RFID_Channel_Payments.sql"
+                 splitStatements="false" 
+                 stripComments="true" />					 
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/RFID_Transactions/List_of_RFID_Payments.sql"
+                 splitStatements="false" 
+                 stripComments="true" />	
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/RFID_Transactions/Monthly_Summary_of_RFID_Channel_Payments.sql"
+                 splitStatements="false" 
+                 stripComments="true" />					 
+    </changeSet>
+</databaseChangeLog>

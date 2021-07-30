@@ -235,7 +235,7 @@ public class MonthlySummaryRfidChannelPayments extends CsvReportProcessor {
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			} else {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
+						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			}
 		}
