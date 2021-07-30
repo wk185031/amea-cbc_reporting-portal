@@ -215,7 +215,7 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
-			case 12:
+			case 16:
 				break;
 			default:
 				if (field.isEol()) {
@@ -245,9 +245,9 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 3:
-			case 11:
+			case 15:
 				break;
-			case 12:
+			case 16:
 				line.append(field.getDelimiter());
 				break;
 			default:
@@ -301,6 +301,10 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 			case 22:
 			case 23:
 			case 24:
+			case 25:
+			case 26:
+			case 27:
+			case 28:
 				if (field.isEol()) {
 					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());

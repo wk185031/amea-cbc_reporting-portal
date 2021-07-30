@@ -57,7 +57,7 @@ public class ListRfidPayments extends CsvReportProcessor {
 						for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 							terminal = terminalMap.getKey();
 							location = terminalMap.getValue();
-							preProcessing(rgm, branchCode, terminal);
+							preProcessing(rgm, branchCode, terminal,channel);
 							line = new StringBuilder();
 							line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 									.append(location).append(";");
@@ -98,23 +98,26 @@ public class ListRfidPayments extends CsvReportProcessor {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "").replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByChannel)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmListBeepPayments.preProcessing()");
-		if (filterByBranchCode != null && filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
+		if (filterByBranchCode != null && filterByTerminal != null && filterByChannel!= null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+			ReportGenerationFields channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = '" + filterByChannel + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
+			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
 		}
 	}
 }

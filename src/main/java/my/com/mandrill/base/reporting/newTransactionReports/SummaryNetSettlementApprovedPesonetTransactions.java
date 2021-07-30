@@ -27,29 +27,14 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 	private final Logger logger = LoggerFactory.getLogger(SummaryNetSettlementApprovedPesonetTransactions.class);
 	public static final String SUBSTRING_START_ISSUING = "START ISSUING";
 	public static final String SUBSTRING_END_ISSUING = "END ISSUING";
-	public static final String SUBSTRING_START_RECEIVING = "START RECEIVING";
-	public static final String SUBSTRING_END_RECEIVING = "END RECEIVING";
 	private int pagination = 0;
 	private int transmittingCount = 0;
-	private int receivingCount = 0;
 	private double transmittingTotal = 0.00;
-	private double receivingTotal = 0.00;
 	private double overallTransmittingTotal = 0.00;
-	private double overallReceivingTotal = 0.00;
-	private String receivingBankCode = null;
-
-	public String getReceivingBankCode() {
-		return receivingBankCode;
-	}
-
-	public void setReceivingBankCode(String receivingBankCode) {
-		this.receivingBankCode = receivingBankCode;
-	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		boolean issuing = false;
-		boolean receiving = false;
 		SortedMap<String, String> bankCodesMap = new TreeMap<>();
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
@@ -68,11 +53,6 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 				bankCodesMap.put(bankCodeMap.getValue(), bankCodeMap.getKey());
 			}
 
-			preProcessing(rgm, "receiving");
-			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
-				bankCodesMap.put(bankCodeMap.getValue(), bankCodeMap.getKey());
-			}
-
 			for (SortedMap.Entry<String, String> allBankCodesMap : bankCodesMap.entrySet()) {
 				preProcessing(rgm, "issuing");
 				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
@@ -81,48 +61,22 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 					}
 				}
 
-				preProcessing(rgm, "receiving");
-				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
-					if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
-						receiving = true;
-					}
-				}
-
 				if (issuing) {
 					preProcessing(rgm, "issuing");
 					for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 						if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
 							transmittingTotal = 0.00;
-							receivingTotal = 0.00;
 							ReportGenerationFields bankCode = new ReportGenerationFields(
 									ReportConstants.PARAM_BANK_CODE, ReportGenerationFields.TYPE_STRING,
 									"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + allBankCodesMap.getValue()
 											+ "', 10, '0')");
 							getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
-							setReceivingBankCode(bankCodeMap.getKey());
 							rgm.setBodyQuery(getIssuingBodyQuery());
 							executeBodyQuery(rgm, allBankCodesMap.getValue());
 						}
 					}
 				}
 
-				if (receiving) {
-					preProcessing(rgm, "receiving");
-					for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
-						if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())
-								&& !bankCodeMap.getKey().equals(getReceivingBankCode())) {
-							transmittingTotal = 0.00;
-							receivingTotal = 0.00;
-							ReportGenerationFields bankCode = new ReportGenerationFields(
-									ReportConstants.PARAM_BANK_CODE, ReportGenerationFields.TYPE_STRING,
-									"LPAD(CBA.CBA_CODE, 10, '0') = LPAD('" + allBankCodesMap.getValue()
-											+ "', 10, '0')");
-							getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
-							rgm.setBodyQuery(getReceivingBodyQuery());
-							executeBodyQuery(rgm, allBankCodesMap.getValue());
-						}
-					}
-				}
 			}
 
 			writeTrailer(rgm);
@@ -150,9 +104,6 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 		if (rgm.getBodyQuery() != null) {
 			setIssuingBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_ISSUING) + 13,
 					rgm.getBodyQuery().indexOf(SUBSTRING_END_ISSUING)));
-			setReceivingBodyQuery(
-					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(SUBSTRING_START_RECEIVING) + 15,
-							rgm.getBodyQuery().indexOf(SUBSTRING_END_RECEIVING)));
 		}
 	}
 
@@ -160,9 +111,7 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 		logger.debug("In SummaryNetSettlementApprovedPesonetTransactions.preProcessing()");
 		if (indicator.equalsIgnoreCase("issuing")) {
 			rgm.setBodyQuery(getIssuingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
-		} else {
-			rgm.setBodyQuery(getReceivingBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
-		}
+		} 
 	}
 
 	@Override
@@ -218,40 +167,8 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 				}
 				overallTransmittingTotal += transmittingTotal;
 				break;
-			case ReportConstants.RECEIVING_COUNT:
-				if (filterByBankCode != null) {
-					ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
-							ReportGenerationFields.TYPE_STRING,
-							"LPAD(CBA.CBA_CODE, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
-					getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
-				}
-
-				rgm.setBodyQuery(getReceivingBodyQuery());
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, ReportConstants.RECEIVING_COUNT, null));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				receivingCount += Integer.parseInt(getFieldValue(field, fieldsMap));
-				break;
-			case ReportConstants.RECEIVING_TOTAL:
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, null, ReportConstants.RECEIVING_TOTAL));
-				line.append(getFieldValue(rgm, field, fieldsMap) + " CR");
-
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					receivingTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					receivingTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				overallReceivingTotal += receivingTotal;
-				break;
-			case ReportConstants.NET_SETTLEMENT:
-				if (receivingTotal > transmittingTotal) {
-					line.append(formatter.format(receivingTotal - transmittingTotal) + " CR");
-				} else {
-					line.append(formatter.format(transmittingTotal - receivingTotal) + " DR");
-				}
-				break;
 			default:
 				line.append(getFieldValue(rgm, field, fieldsMap));
-				line.append(field.getDelimiter());
 				break;
 			}
 			line.append(field.getDelimiter());
@@ -274,22 +191,6 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 				break;
 			case ReportConstants.TRANSMITTING_TOTAL:
 				line.append(formatter.format(overallTransmittingTotal) + " DR");
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.RECEIVING_COUNT:
-				line.append(receivingCount);
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.RECEIVING_TOTAL:
-				line.append(formatter.format(overallReceivingTotal) + " CR");
-				line.append(field.getDelimiter());
-				break;
-			case ReportConstants.NET_SETTLEMENT:
-				if (overallReceivingTotal > overallTransmittingTotal) {
-					line.append(formatter.format(overallReceivingTotal - overallTransmittingTotal) + " CR");
-				} else {
-					line.append(formatter.format(overallTransmittingTotal - overallReceivingTotal) + " DR");
-				}
 				line.append(field.getDelimiter());
 				break;
 			default:
