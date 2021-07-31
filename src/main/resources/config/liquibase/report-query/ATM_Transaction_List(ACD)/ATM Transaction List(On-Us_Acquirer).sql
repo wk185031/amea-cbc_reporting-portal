@@ -12,6 +12,7 @@
 -- CBCAXUPISSLOG-766	14-JUL-2021		NY 		Fix 44 tran code mnem not printed
 -- CBCAXUPISSLOG-773	27-JUL-2021		NY		Get onus cheque book amount from TRL_ISS_CHARGE_AMT
 -- Master report		30-JUL-2021		NY		Work on various jira related to master report
+-- Master report		31-JUL-2021		NY		Fix RFID records print individual report not in master reports
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -74,7 +75,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'') 
       AND TXN.TRL_FRD_REV_INST_ID IS NULL 
-      AND TXN.TRL_TSC_CODE NOT IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND TXN.TRL_TSC_CODE NOT IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
@@ -133,7 +134,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (1, 40, 42, 43, 45, 46, 47, 48, 49, 51)
+      AND TXN.TRL_TSC_CODE IN (1, 40, 42, 43, 45, 46, 47, 48, 49)
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
@@ -193,7 +194,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_TSC_CODE NOT IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND TXN.TRL_TSC_CODE NOT IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
       AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
@@ -251,7 +252,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
