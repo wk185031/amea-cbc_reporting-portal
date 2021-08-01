@@ -114,4 +114,5 @@
 	<include file="config/liquibase/changelog/NY_20210730000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/NY_20210731000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210730000002_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20210730000003_cbc_cbs_branch_prefix.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
