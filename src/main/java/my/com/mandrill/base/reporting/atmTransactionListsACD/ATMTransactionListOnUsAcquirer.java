@@ -100,7 +100,7 @@ public class ATMTransactionListOnUsAcquirer extends CsvReportProcessor {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "(ABR.ABR_CODE = '" + filterByBranchCode + "' OR BRC.BRC_CODE = '" + filterByBranchCode + "')");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "(SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "' OR SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "')");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
