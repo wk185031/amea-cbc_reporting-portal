@@ -12,3 +12,4 @@ insert into branch values('1481','CBS UAT 3',current_timestamp);
 insert into branch values('5008','CBC 14tth floor',current_timestamp);
 insert into branch values('1398','Quezon Ave',current_timestamp);
 insert into branch values('1294','CBS Ayala',current_timestamp);
+commit;

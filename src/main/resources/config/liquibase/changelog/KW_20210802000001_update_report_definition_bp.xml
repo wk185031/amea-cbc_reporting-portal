@@ -66,5 +66,10 @@
                  path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Bills_Payment.sql"
                  splitStatements="false" 
                  stripComments="true" />
+           <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/purge-txnlog-20210802.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>
