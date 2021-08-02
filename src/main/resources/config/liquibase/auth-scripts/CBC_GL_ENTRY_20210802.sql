@@ -1,0 +1,1 @@
+insert into CBC_GL_ENTRY values((CBC_GL_ENTRY_SEQUENCE.nextVal,5,'ON-US','CDM',250,'Default','00','00',null,null,null,null,'ACD Bills Payment Bridge','ATM BILLS PAYMENT','Accts. Payable - Bancnet Bills Payment','ATM BILLS PAYMENT',null,null,null,'Y','N',null,current_timestamp);

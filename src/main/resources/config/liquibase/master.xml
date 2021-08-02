@@ -116,4 +116,5 @@
 	<include file="config/liquibase/changelog/KW_20210730000002_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210730000003_cbc_cbs_branch_prefix.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/LJL_20210802000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
+	<include file="config/liquibase/changelog/KW_20210802000001_update_report_definition_bp.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

@@ -890,6 +890,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
 						corporateCardRange, atmDummyCards);
+				log.debug("TRL_ID = {}", txnCustom.getTrlId() );
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
