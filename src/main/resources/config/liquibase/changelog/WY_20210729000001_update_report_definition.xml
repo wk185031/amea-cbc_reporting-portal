@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="WY_20210729000001_update_report_definition" author="wy">
+    	<validCheckSum>any</validCheckSum>
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Acquiring_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Receiving_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Transmitting_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity Summary of Approved IBFT Transactions Net Settlement.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Moving_Cash.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_MVC_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Moving_Cash.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    </changeSet>
+</databaseChangeLog>

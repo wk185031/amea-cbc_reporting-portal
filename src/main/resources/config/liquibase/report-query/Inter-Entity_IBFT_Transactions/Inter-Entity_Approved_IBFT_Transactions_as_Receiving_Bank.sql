@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- JIRA 791				14-JUL-2021		WY		Fix report to display receiving bank as CBC or CBS accounts
+-- Revise report		29-JULY-2021	WY		Revise report based on spec
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -35,11 +36,11 @@ BEGIN
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 	WHERE
-      TXN.TRL_TSC_CODE IN (42, 45, 48)
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-	  AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+	  AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
 	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
@@ -59,11 +60,11 @@ BEGIN
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 	WHERE
-      TXN.TRL_TSC_CODE IN (42, 45, 48)
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
 	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Txn_Date}
 	GROUP BY
@@ -73,8 +74,7 @@ BEGIN
       CBA.CBA_CODE ASC
 	END');
 	
-	i_TRAILER_QUERY := TO_CLOB('
-	SELECT
+	i_TRAILER_QUERY := TO_CLOB('SELECT
       COUNT(TXN.TRL_ID) "TOTAL TRAN",
       SUM(TXN.TRL_AMT_TXN) "TOTAL"
 	FROM
@@ -83,11 +83,11 @@ BEGIN
       JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 	WHERE
-      TXN.TRL_TSC_CODE IN (42, 45, 48)
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
 	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Bank_Code}
       AND {Txn_Date}
@@ -98,11 +98,11 @@ BEGIN
 	FROM
       TRANSACTION_LOG TXN
 	WHERE
-      TXN.TRL_TSC_CODE IN (42, 45, 48)
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID = ''F''
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Iss_Name}
+       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
 	  AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
       AND {Txn_Date}
 	GROUP BY
@@ -115,6 +115,10 @@ BEGIN
 		RED_BODY_QUERY = i_BODY_QUERY,
 		RED_TRAILER_QUERY = i_TRAILER_QUERY
 	where RED_NAME = 'Inter-Entity Approved IBFT Transactions as Receiving Bank';
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity Approved IBFT Transactions as Receiving Bank' AND red_ins_id = 2;
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, '0010', '0112') WHERE RED_NAME = 'Inter-Entity Approved IBFT Transactions as Receiving Bank' AND red_ins_id = 2;
 	
 END;
 /

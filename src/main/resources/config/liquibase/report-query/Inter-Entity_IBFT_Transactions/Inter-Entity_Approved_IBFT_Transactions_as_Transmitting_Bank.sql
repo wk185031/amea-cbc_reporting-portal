@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
+-- Revise report		29-JULY-2021	WY		Revise report based on spec
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -35,12 +36,12 @@ FROM
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'')
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Recv_Inst_Id}
       AND {IBFT_Criteria}
       AND {Bank_Code}
       AND {Txn_Date}
@@ -67,11 +68,11 @@ SELECT
 FROM
       TRANSACTION_LOG TXN
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'')
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Recv_Inst_Id}
       AND {IBFT_Criteria}
       AND {Txn_Date}
 )
@@ -89,12 +90,12 @@ END');
 FROM
       TRANSACTION_LOG TXN
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'')
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Recv_Inst_Id}
       AND {IBFT_Criteria}
       AND {Bank_Code}
       AND {Txn_Date}
@@ -108,12 +109,12 @@ START SELECT
 FROM
       TRANSACTION_LOG TXN
 WHERE
-      TXN.TRL_TSC_CODE = 44
+      TXN.TRL_TSC_CODE IN (42, 44, 45, 48)
       AND TXN.TRL_TQU_ID IN (''F'')
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Iss_Name}
+	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_IE_Recv_Inst_Id}
       AND {IBFT_Criteria}
       AND {Txn_Date}
 GROUP BY
@@ -126,6 +127,10 @@ END');
 		RED_BODY_QUERY = i_BODY_QUERY,
 		RED_TRAILER_QUERY = i_TRAILER_QUERY
 	where RED_NAME = 'Inter-Entity Approved IBFT Transactions as Transmitting Bank';
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity Approved IBFT Transactions as Transmitting Bank' AND red_ins_id = 2;
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, '0010', '0112') WHERE RED_NAME = 'Inter-Entity Approved IBFT Transactions as Transmitting Bank' AND red_ins_id = 2;
 	
 END;
 /
