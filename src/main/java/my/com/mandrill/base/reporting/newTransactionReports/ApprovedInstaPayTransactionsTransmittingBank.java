@@ -219,15 +219,15 @@ public class ApprovedInstaPayTransactionsTransmittingBank extends IbftReportProc
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					} else {
-						line.append(getGlobalFieldValue(rgm, field));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
 					line.append(getGlobalFieldValue(rgm, field));
+					}
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -252,15 +252,15 @@ public class ApprovedInstaPayTransactionsTransmittingBank extends IbftReportProc
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					} else {
-						line.append(getGlobalFieldValue(rgm, field));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
 					line.append(getGlobalFieldValue(rgm, field));
+					}
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -470,7 +470,7 @@ public class ApprovedInstaPayTransactionsTransmittingBank extends IbftReportProc
 					line.append(getFieldValue(rgm, field, fieldsMap) + " DR");
 					break;
 				case ReportConstants.BANCNET_FEE:
-					line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					break;
 				default:
 					line.append(getFieldValue(rgm, field, fieldsMap));
@@ -537,7 +537,7 @@ public class ApprovedInstaPayTransactionsTransmittingBank extends IbftReportProc
 					line.append(field.getDelimiter());
 					break;
 				case ReportConstants.BANCNET_FEE:
-					line.append("(" + getFieldValue(rgm, field, fieldsMap) + ")");
+					line.append(getFieldValue(rgm, field, fieldsMap));
 					line.append(field.getDelimiter());
 					break;
 				default:

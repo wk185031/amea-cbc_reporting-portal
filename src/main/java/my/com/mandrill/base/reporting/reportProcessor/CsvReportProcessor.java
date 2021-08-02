@@ -775,7 +775,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			} else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
 		              (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
 		          if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
-		              line.append("0012");
+		              line.append("0112");
 		              line.append(field.getDelimiter());
 		          }else{
 		              line.append("CHINA BANK SAVINGS");

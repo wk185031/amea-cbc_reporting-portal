@@ -219,15 +219,15 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					} else {
-						line.append(getGlobalFieldValue(rgm, field));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
 					line.append(getGlobalFieldValue(rgm, field));
+					}
 					line.append(field.getDelimiter());
 				}
 				break;
@@ -252,15 +252,15 @@ public class ApprovedPesonetTransactionsTransmittingBank extends IbftReportProce
 				break;
 			default:
 				if (field.isEol()) {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					} else {
-						line.append(getGlobalFieldValue(rgm, field));
-					}
+					line.append(getGlobalFieldValue(rgm, field));
 					line.append(field.getDelimiter());
 					line.append(getEol());
 				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
 					line.append(getGlobalFieldValue(rgm, field));
+					}
 					line.append(field.getDelimiter());
 				}
 				break;
