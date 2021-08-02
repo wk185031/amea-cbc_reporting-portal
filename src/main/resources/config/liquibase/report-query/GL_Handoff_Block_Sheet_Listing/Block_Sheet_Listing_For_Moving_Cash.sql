@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
+-- Revise report		29-JULY-2021	WY		Revise report based on spec
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -31,7 +32,7 @@ FROM
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
 WHERE
-      TXN.TRL_TSC_CODE IN (46, 142, 143)
+      TXN.TRL_TSC_CODE IN (142, 143)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -39,7 +40,6 @@ WHERE
       AND {Branch_Code}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Moving Cash'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -74,7 +74,7 @@ FROM
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
 WHERE
-      TXN.TRL_TSC_CODE IN (46, 142, 143)
+      TXN.TRL_TSC_CODE IN (142, 143)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -82,7 +82,6 @@ WHERE
       AND {Branch_Code}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Moving Cash'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -113,7 +112,7 @@ FROM
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
 WHERE
-      TXN.TRL_TSC_CODE IN (46, 142, 143)
+      TXN.TRL_TSC_CODE IN (142, 143)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -121,7 +120,6 @@ WHERE
       AND {Branch_Code}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Moving Cash'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -140,7 +138,7 @@ FROM
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
 WHERE
-      TXN.TRL_TSC_CODE IN (46, 142, 143)
+      TXN.TRL_TSC_CODE IN (142, 143)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -148,7 +146,6 @@ WHERE
       AND {Branch_Code}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Moving Cash'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -168,6 +165,10 @@ END
 		RED_BODY_QUERY = i_BODY_QUERY,
 		RED_TRAILER_QUERY = i_TRAILER_QUERY
 	WHERE RED_NAME = 'Block Sheet Listing For Moving Cash';
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Block Sheet Listing For Moving Cash' AND red_ins_id = 2;
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, '0010', '0112') WHERE RED_NAME = 'Block Sheet Listing For Moving Cash' AND red_ins_id = 2;
 	
 END;
 /

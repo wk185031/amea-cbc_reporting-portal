@@ -53,7 +53,7 @@ FROM
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
       JOIN CBC_BILLER BIL ON TXNC.TRL_BILLER_CODE = BIL.CBL_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 50
+      TXN.TRL_TSC_CODE IN (50, 250)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -63,8 +63,8 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
+      AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
+      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
       AND {GL_Description}
       AND {Txn_Date}
 )
@@ -103,7 +103,7 @@ FROM
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
       JOIN CBC_BILLER BIL ON TXNC.TRL_BILLER_CODE = BIL.CBL_CODE
 WHERE
-      TXN.TRL_TSC_CODE = 50
+      TXN.TRL_TSC_CODE IN (50, 250)
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -113,8 +113,8 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
+      AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
+      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
       AND {GL_Description}
       AND {Txn_Date}
 ORDER BY
