@@ -65,12 +65,12 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			for (int i = 0; i < 6; i++) {
-				preProcessing(rgm, i);
+			//for (int i = 0; i < 6; i++) {
+			//	preProcessing(rgm, i);
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
 						pdfFont, fontSize);
 				pageHeight += 1;
-			}
+			//}
 			contentStream.endText();
 			contentStream.close();
 
@@ -230,20 +230,20 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.CHANNEL:
-					if (channelCount > 0) {
-						fieldsMap.get(field.getFieldName()).setValue("");
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					channelCount++;
-					break;
-				default:
+//				switch (field.getFieldName()) {
+//				case ReportConstants.CHANNEL:
+//					if (channelCount > 0) {
+//						fieldsMap.get(field.getFieldName()).setValue("");
+//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					} else {
+//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					}
+//					channelCount++;
+//					break;
+//				default:
 					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
-				}
+//					break;
+//				}
 			}
 		}
 	}
@@ -258,6 +258,7 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
 		logger.info("Query for body line export: {}", query);
+		String channel = null;
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -303,6 +304,13 @@ public class CashCardSuccessfulTransactions extends PdfReportProcessor {
 							}
 						} else {
 							field.setValue("");
+						}
+						if ("CHANNEL".equals(field.getFieldName())) {
+							if (channel == null || !channel.equals(field.getValue())) {
+								channel = field.getValue();
+							} else {
+								field.setValue("");
+							}
 						}
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
