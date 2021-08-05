@@ -211,7 +211,9 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		logger.debug("In EftAtmTransactionListCashCard.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+			rgm.setBodyQuery(rgm.getBodyQuery()
+					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
+							getBranchQueryStatement(rgm.getInstitution(),"ABR.ABR_CODE"))
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_CARD_PRODUCT + "}", ""));
 		}
@@ -224,7 +226,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		if (rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");		
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
 			ReportGenerationFields cardProduct = new ReportGenerationFields(ReportConstants.PARAM_CARD_PRODUCT,
