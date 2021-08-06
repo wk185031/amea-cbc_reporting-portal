@@ -561,7 +561,7 @@ public class GeneralReportProcess {
 				if (stmtBuilder.length() > 0) {
 					stmtBuilder.append(" OR");
 				}
-				stmtBuilder.append(" id like '%").append(prefix).append("'");
+				stmtBuilder.append(" id like '").append(prefix).append("%'");
 			}
 			
 			EntityManager em = SpringContext.getBean(EntityManager.class);
@@ -569,6 +569,26 @@ public class GeneralReportProcess {
 			return q.getResultList();		
 		}
 		return new ArrayList<>();
+	}
+	
+	public String getBranchQueryStatement(String institutionCode, String fieldName) {
+		SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
+		String configName = institutionCode.toLowerCase().concat(".branch.prefix");
+		SystemConfiguration config = configRepo.findByName(configName);
+		logger.debug("Find branch prefix: institutionCode={}, fieldName={}, configName={}, config={}", institutionCode,
+				fieldName, configName, config == null ? "" : config.getConfig());
+		String statement = "";
+		if (config != null) {
+			StringBuilder stmtBuilder = new StringBuilder();
+			for (String prefix : config.getConfig().split(",")) {
+				if (stmtBuilder.length() > 0) {
+					stmtBuilder.append(" OR");
+				}
+				stmtBuilder.append(fieldName).append(" like '").append(prefix).append("%' ");
+			}
+			statement = stmtBuilder.toString();
+		}
+		return statement;
 	}
 
 }

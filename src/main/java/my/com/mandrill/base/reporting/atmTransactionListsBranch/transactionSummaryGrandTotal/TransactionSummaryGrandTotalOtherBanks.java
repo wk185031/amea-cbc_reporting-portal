@@ -205,7 +205,9 @@ public class TransactionSummaryGrandTotalOtherBanks extends PdfReportProcessor {
 		logger.debug("In TransactionSummaryGrandTotalOtherBanks.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+			rgm.setBodyQuery(rgm.getBodyQuery()
+					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
+							getBranchQueryStatement(rgm.getInstitution(), "ABR.ABR_CODE"))
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
