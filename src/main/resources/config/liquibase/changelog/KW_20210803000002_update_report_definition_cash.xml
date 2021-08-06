@@ -31,5 +31,15 @@
                  path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Successful.sql"
                  splitStatements="false" 
                  stripComments="true" />
+         <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Cash Card).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+          <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_CashCard.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>

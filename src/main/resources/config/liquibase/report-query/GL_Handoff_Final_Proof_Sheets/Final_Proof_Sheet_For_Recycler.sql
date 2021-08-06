@@ -54,7 +54,7 @@ BEGIN
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
       AND {Branch_Code}
       AND {Txn_Date}
 	GROUP BY
@@ -91,7 +91,7 @@ BEGIN
       AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
       AND {Branch_Code}
       AND {Txn_Date}
 	GROUP BY
@@ -128,7 +128,7 @@ BEGIN
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
       AND {Branch_Code}
       AND {Txn_Date}
 	GROUP BY

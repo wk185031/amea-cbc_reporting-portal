@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -31,21 +33,20 @@ public class GLHandoffPos extends BatchProcessor {
 
 	@Override
 	protected void execute(File file, ReportGenerationMgr rgm) {
+		String branchCode = null;
 		try {
-			String tranParticular = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
 			separateQuery(rgm);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			Iterator<String> tranParticularItr = filterByGlDescription(rgm).iterator();
-			while (tranParticularItr.hasNext()) {
-				tranParticular = tranParticularItr.next();
-				preProcessing(rgm, tranParticular, ReportConstants.DEBIT_IND);
+			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			while (branchCodeItr.hasNext()) {
+				branchCode = branchCodeItr.next();
+				preProcessing(rgm, branchCode);
 				rgm.setBodyQuery(getDebitBodyQuery());
-				executeBodyQuery(rgm);
-				preProcessing(rgm, tranParticular, ReportConstants.CREDIT_IND);
+				executeBodyQuery(rgm, branchCode);
 				rgm.setBodyQuery(getCreditBodyQuery());
-				executeBodyQuery(rgm);
+				executeBodyQuery(rgm, branchCode);
 			}
 			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
@@ -70,9 +71,9 @@ public class GLHandoffPos extends BatchProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffPos.preProcessing()");
+		logger.debug("In GLHandoffOnUs.preProcessing()");
 		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", ""));
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
 
 		if (rgm.isGenerate() == true) {
@@ -83,23 +84,13 @@ public class GLHandoffPos extends BatchProcessor {
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String indicator)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffPos.preProcessing()");
-		if (filterByGlDescription != null && getDebitBodyQuery() != null
-				&& indicator.equals(ReportConstants.DEBIT_IND)) {
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING,
-					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
-		}
-
-		if (filterByGlDescription != null && getCreditBodyQuery() != null
-				&& indicator.equals(ReportConstants.CREDIT_IND)) {
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING,
-					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
+		logger.debug("In GLHandoffOnUs.preProcessing()");
+		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "TLC.TRL_CARD_BRANCH = '" + filterByBranchCode + "'");
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
 
@@ -124,15 +115,17 @@ public class GLHandoffPos extends BatchProcessor {
 	}
 
 	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.AC_NUMBER:
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
-				String glAccNo = getFieldValue(field, fieldsMap);
+				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+						branchCode + getFieldValue(field, fieldsMap)));
+				String glAccNo = branchCode + getFieldValue(field, fieldsMap);
 				int[] glAccNoArray = new int[glAccNo.length()];
 				for (int i = 0; i < glAccNoArray.length; i++) {
 					glAccNoArray[i] = glAccNo.charAt(i);
@@ -187,8 +180,8 @@ public class GLHandoffPos extends BatchProcessor {
 	}
 
 	@Override
-	protected void executeBodyQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffPos.executeBodyQuery()");
+	protected void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
+		logger.debug("In GLHandoffOnUs.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -230,7 +223,7 @@ public class GLHandoffPos extends BatchProcessor {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap);
+					writeBody(rgm, lineFieldsMap, branchCode);
 					success++;
 				}
 			} catch (Exception e) {
@@ -246,5 +239,60 @@ public class GLHandoffPos extends BatchProcessor {
 				}
 			}
 		}
+	}
+	
+	@Override
+	protected SortedSet<String> filterByBranchCode(ReportGenerationMgr rgm) {
+		logger.debug("In BatchProcessor.filterByCriteria()");
+		String branchCode = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedSet<String> branchCodeList = new TreeSet<>();
+		rgm.setBodyQuery(getCriteriaQuery());
+		String query = getBodyQuery(rgm);
+		logger.info("Query for filter branch code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
+							}
+						}
+					}
+					branchCodeList.add(branchCode);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return branchCodeList;
 	}
 }
