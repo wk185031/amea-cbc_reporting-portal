@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -110,5 +111,34 @@ public class AtmListBeepPayments extends CsvReportProcessor {
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
+	}
+	@Override
+	protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
+		logger.debug("In DailySummaryRfidChannelPayments.writeRetailHeader()");
+		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getSequence()) {
+			case 4:
+			case 16:
+				break;
+			default:
+				if (field.isEol()) {
+					line.append(getGlobalFieldValue(rgm, field));
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
+					line.append(getGlobalFieldValue(rgm, field));
+					}
+					line.append(field.getDelimiter());
+				}
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
 	}
 }

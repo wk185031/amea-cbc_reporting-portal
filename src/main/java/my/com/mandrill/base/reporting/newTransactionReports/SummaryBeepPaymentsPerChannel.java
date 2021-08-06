@@ -122,7 +122,35 @@ public class SummaryBeepPaymentsPerChannel extends CsvReportProcessor {
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
-
+	@Override
+	protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
+		logger.debug("In DailySummaryRfidChannelPayments.writeRetailHeader()");
+		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getSequence()) {
+			case 4:
+			case 16:
+				break;
+			default:
+				if (field.isEol()) {
+					line.append(getGlobalFieldValue(rgm, field));
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					}else {
+					line.append(getGlobalFieldValue(rgm, field));
+					}
+					line.append(field.getDelimiter());
+				}
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			String location)
