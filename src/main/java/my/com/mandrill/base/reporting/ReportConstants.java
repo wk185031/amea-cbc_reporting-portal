@@ -256,6 +256,7 @@ public final class ReportConstants {
 	public static final String PRODUCT_NAME = "PRODUCT_NAME";
 	public static final String CAUSE = "CAUSE";
 	public static final String CAUSE_TERMINAL_TOTAL = "SUB TOTAL";
+	public static final String TRAN_MNEM = "TRAN MNEM";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";

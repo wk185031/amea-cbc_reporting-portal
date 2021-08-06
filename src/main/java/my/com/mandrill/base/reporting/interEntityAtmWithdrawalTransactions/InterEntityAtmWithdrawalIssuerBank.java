@@ -42,6 +42,7 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
+				totalTran = 0;
 				netSettlement = 0.00;
 				StringBuilder line = new StringBuilder();
 				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankCode + " ").append(";")
@@ -53,6 +54,10 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 				line = new StringBuilder();
 				line.append(getEol());
 				line.append("SUBTOTAL FOR ACQUIRER BANK - ").append(";").append(bankName).append(";");
+				line.append(getEol());
+				line.append("TRAN").append(";").append("NET").append("NET").append(";");
+				line.append(getEol());
+				line.append("MNEM").append(";").append("COUNT").append(";").append("SETTLEMENT").append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 				executeTrailerQuery(rgm);
@@ -67,10 +72,11 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			line.append("*** END OF REPORT ***");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
-			
+
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
+				| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -98,15 +104,6 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			}
 
 			switch (field.getFieldName()) {
-			case ReportConstants.DR_AMOUNT:
-			case ReportConstants.CR_AMOUNT:
-				if (!voidCode.equals("0")) {
-					line.append("");
-				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				}
-				line.append(field.getDelimiter());
-				break;
 			case ReportConstants.COMMENT:
 				if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
 					line.append(getFieldValue(rgm, field, fieldsMap));
@@ -132,19 +129,36 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 	protected void writeTrailer(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In InterEntityAtmWithdrawalIssuerBank.writeTrailer()");
+		String mnem = null;
+
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_MNEM)) {
+				mnem = getFieldValue(rgm, field, fieldsMap);
+			}
+
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_TRAN)) {
-				totalTran += Integer.parseInt(getFieldValue(field, fieldsMap));
+				if (mnem != null && mnem.endsWith("I")) {
+					totalTran += Integer.parseInt(getFieldValue(field, fieldsMap));
+				} else {
+					totalTran -= Integer.parseInt(getFieldValue(field, fieldsMap));
+				}
 			}
 
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.NET_SETTLEMENT)) {
-				if (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1) {
-					netSettlement += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+
+				String netSettlementValue = (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1)
+						? getFieldValue(field, fieldsMap).replace(",", "")
+						: getFieldValue(field, fieldsMap);
+
+				if (mnem != null && mnem.endsWith("I")) {
+					netSettlement += Double.parseDouble(netSettlementValue);
 				} else {
-					netSettlement += Double.parseDouble(getFieldValue(field, fieldsMap));
+					netSettlement -= Double.parseDouble(netSettlementValue);
 				}
+
 			}
 
 			if (field.isEol()) {
@@ -156,7 +170,7 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 				line.append(field.getDelimiter());
 			}
 		}
-		line.append(getEol());
+		
 		rgm.writeLine(line.toString().getBytes());
 	}
 
@@ -228,18 +242,24 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			}
 		}
 	}
-	
+
 	private void preProcessingInstitution(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmWithdrawalAcquirerBankSummary.preProcessingInstitution()");
 		if (rgm.getBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
-					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
+			rgm.setBodyQuery(rgm.getBodyQuery()
+					.replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}",
+							"AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}",
+							"AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
-			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}", "AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
-					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
+			rgm.setTrailerQuery(rgm.getTrailerQuery()
+					.replace("AND {" + ReportConstants.PARAM_DEO_NAME + "}",
+							"AND TXN.TRL_DEO_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBS" : "CBC") + "'")
+					.replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}",
+							"AND TXN.TRL_ISS_NAME = '" + (rgm.getInstitution().equals("CBC") ? "CBC" : "CBS") + "'"));
 		}
 	}
 }
