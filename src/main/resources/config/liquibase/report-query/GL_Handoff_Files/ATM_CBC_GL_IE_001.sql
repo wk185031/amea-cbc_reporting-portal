@@ -24,9 +24,7 @@ BEGIN
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 FROM(
 SELECT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
@@ -36,9 +34,10 @@ SELECT
       CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      
       GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+	  txn.trl_id
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -65,9 +64,10 @@ UNION SELECT
       CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      
       GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+	  txn.trl_id
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -94,9 +94,7 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 ORDER BY
      "BRANCH CODE" ASC,
      "Tran Particular" DESC
@@ -108,9 +106,7 @@ START SELECT
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 FROM(
 SELECT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
@@ -120,9 +116,10 @@ SELECT
       CASE WHEN GLE.GLE_CREDIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      
       GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+	  txn.trl_id
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -149,9 +146,10 @@ UNION SELECT
       CASE WHEN GLE.GLE_CREDIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      
       GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+	  txn.trl_id
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -178,9 +176,7 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 ORDER BY
      "BRANCH CODE" ASC,
      "Tran Particular" DESC
