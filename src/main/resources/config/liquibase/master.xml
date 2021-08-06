@@ -118,6 +118,7 @@
 	<include file="config/liquibase/changelog/LJL_20210802000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 	<include file="config/liquibase/changelog/KW_20210802000001_update_report_definition_bp.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210729000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
+	<include file="config/liquibase/changelog/LJL_20210806000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210806000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 	<!--  
 	<include file="config/liquibase/changelog/KW_20210803000001_update_report_definition.xml" relativeToChangelogFile="false"/>	 
