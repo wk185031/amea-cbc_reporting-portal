@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 -- Revise report		29-JULY-2021	WY		Revise report based on spec
+-- JIRA-742				06-AUG-2021		WY		Fix incorrect GL sequence
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -24,9 +25,9 @@ SELECT
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      
+      "Third Party Tran Description"
+      
 FROM(
 SELECT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
@@ -36,9 +37,9 @@ SELECT
       CASE WHEN GLA.GLA_NAME = ''ACD Inter-Entity IBFT SVC Bridge'' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      
+      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description"
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -65,9 +66,9 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    
+    "Third Party Tran Description"
+    
 ORDER BY
      "BRANCH CODE" ASC,
      "Tran Particular" DESC
@@ -79,9 +80,9 @@ START SELECT
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      
+      "Third Party Tran Description"
+      
 FROM(
 SELECT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
@@ -91,9 +92,9 @@ SELECT
       CASE WHEN GLA.GLA_NAME = ''Accts. Payable - Inter-Entity IBFT TFee'' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      
+      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description"
+      
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
@@ -120,9 +121,9 @@ GROUP BY
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    
+    "Third Party Tran Description"
+    
 ORDER BY
      "BRANCH CODE" ASC,
      "Tran Particular" DESC

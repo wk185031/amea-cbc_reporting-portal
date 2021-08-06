@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 -- Revise report		25-JULY-2021	WY		Revise IE reports based on spec
+-- JIRA-742				06-AUG-2021		WY		Fix incorrect GL sequence
 
 DECLARE
 	i_HEADER_FIELDS CLOB;

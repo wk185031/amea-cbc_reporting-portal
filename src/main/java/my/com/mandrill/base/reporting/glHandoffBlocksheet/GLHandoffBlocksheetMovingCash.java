@@ -35,6 +35,7 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 	private boolean firstRecord = false;
 	private boolean newGroup = false;
 	private boolean endGroup = false;
+	private String ie_ins_id = "0000000112";
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -59,6 +60,11 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 			preProcessing(rgm);
 
 			rgm.setBodyQuery(getCriteriaQuery());
+			
+			if(rgm.getInstitution().equalsIgnoreCase("CBS")) {
+                ie_ins_id = "0000000010";
+            }
+			
 			if (!executeQuery(rgm)) {
 				page = new PDPage();
 				doc.addPage(page);
@@ -408,7 +414,7 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 		case ReportConstants.ATM_PAY_TO_MOBILE_WITHDRAWAL:
 		case ReportConstants.ATM_EMERGENCY_CASH_WITHDRAWAL:
 			ReportGenerationFields channelEC = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME like 'NDC%'");
 			getGlobalFileFieldsMap().put(channelEC.getFieldName(), channelEC);
 			break;
 		case ReportConstants.MBK_PAY_TO_MOBILE_OB_DEPOSIT:
@@ -419,7 +425,7 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000112'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
