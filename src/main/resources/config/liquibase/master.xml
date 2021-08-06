@@ -124,4 +124,5 @@
 	<include file="config/liquibase/changelog/KW_20210803000001_update_report_definition.xml" relativeToChangelogFile="false"/>	 
 	<include file="config/liquibase/changelog/KW_20210803000002_update_report_definition_cash.xml" relativeToChangelogFile="false"/>	
 	-->
+	<include file="config/liquibase/changelog/NY_20210805000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 </databaseChangeLog>

@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -215,4 +217,69 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		}
 		return criteriaMap;
 	}
+	
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			String txnQualifier, String voidCode)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		
+		String prepaidBillerCode = null;
+		String decryptValue = null;
+		
+		// need to cater for reverse list, as we need to take decrypt account number first to get the prepaid biller code
+		Collections.reverse(fields);
+		
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+				decryptValue = getFieldValue(rgm, field, fieldsMap);
+				
+				// check if decrypt value is prepaid biller code account
+				if(field.getFieldName().equals(ReportConstants.TO_ACCOUNT_NO)) {
+					if (decryptValue.substring(0, 5).equals("00010")) {
+						prepaidBillerCode = "GLOBE";
+					} else if (decryptValue.substring(0, 5).equals("00020")) {
+						prepaidBillerCode = "SMART";
+					} else if (decryptValue.substring(0, 5).equals("00030")) {
+						prepaidBillerCode = "SUN";
+					}
+				}								
+			}
+			
+			if (null != prepaidBillerCode && field.getFieldName().equals(ReportConstants.TO_ACCOUNT_TYPE)) {
+				field.setValue(prepaidBillerCode);
+			}
+		}
+		
+		// reverse back to original sequence
+		Collections.reverse(fields);
+		
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			switch (field.getFieldName()) {
+			case ReportConstants.COMMENT:
+				if (!getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
+					line.append(getFieldValue(rgm, field, fieldsMap));
+				} else if (txnQualifier.equals("R")
+						&& getFieldValue(rgm, field, fieldsMap).equalsIgnoreCase(ReportConstants.APPROVED)) {
+					line.append(ReportConstants.FULL_REVERSAL);
+				} else {
+					line.append("");
+				}
+				line.append(field.getDelimiter());
+				break;
+			default:
+				line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
+				line.append(field.getDelimiter());
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
 }

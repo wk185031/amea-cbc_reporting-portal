@@ -277,6 +277,9 @@ public class GeneralReportProcess {
 	protected String getFieldValue(ReportGenerationMgr rgm, ReportGenerationFields field,
 			HashMap<String, ReportGenerationFields> fieldsMap) {
 		String fieldValue = "";
+		if (null != field.getValue()) {
+			return field.getValue();
+		}
 		if (field.getDefaultValue() != null && field.getDefaultValue().trim().length() != 0) {
 			fieldValue = field.getDefaultValue();
 		} else if (globalFileFieldsMap.containsKey(field.getFieldName())) {

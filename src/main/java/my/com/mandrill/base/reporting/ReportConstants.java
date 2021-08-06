@@ -174,6 +174,7 @@ public final class ReportConstants {
 	public static final String FROM_ACCOUNT_NO = "FROM ACCOUNT NO";
 	public static final String TO_ACCOUNT_NO = "TO ACCOUNT NO";
 	public static final String TO_ACCOUNT_NO_EKY_ID = "TRL_ACCOUNT_2_ACN_ID_EKY_ID";
+	public static final String TO_ACCOUNT_TYPE = "TO ACC TYPE";
 	public static final String SEQ_NUMBER = "SEQ NUMBER";
 	public static final String TRACE_NUMBER = "TRACE NUMBER";
 	public static final String COMMENT = "COMMENT";

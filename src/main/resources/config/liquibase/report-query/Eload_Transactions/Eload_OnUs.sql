@@ -3,6 +3,8 @@
 -- CBCAXUPISSLOG-527 			05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- 								14-JUL-2021		KW		Split into OnUs Acq Iss
 -- Report revision				26-JUL-2021		NY		Revised reports based on spec
+-- CBCAXUPISSLOG-849			06-AUG-2021		NY		Exclude reversal as report dont have mnemonic to distinguish thoses
+-- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -42,7 +44,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND TXN.TRL_TQU_ID = ''F''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -67,7 +69,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND TXN.TRL_TQU_ID = ''F''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -95,7 +97,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND TXN.TRL_TQU_ID = ''F''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
@@ -111,7 +113,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND TXN.TRL_TQU_ID = ''F''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0

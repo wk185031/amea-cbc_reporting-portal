@@ -83,11 +83,19 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 						amount = amount.replace(' ', '0').concat("00");
 					}
 					line.append(amount);
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)) {
+					String value = getFieldValue(rgm, field, fieldsMap);
+					
+					if(null != value && value.length()>16) {
+						value = value.substring(value.length() - 16);
+					}
+					
+					line.append(value);
 				} else {
 					line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0'));
 				}
 			} else {
-				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(getFieldValue(rgm, field, fieldsMap));							
 			}
 		}
 		line.append(getEol());
