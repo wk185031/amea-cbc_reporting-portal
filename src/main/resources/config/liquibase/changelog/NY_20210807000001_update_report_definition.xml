@@ -37,6 +37,11 @@
         <!-- Onus -->
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(On-Us).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
                  path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_OnUs.sql"
                  splitStatements="false" 
                  stripComments="true" />
