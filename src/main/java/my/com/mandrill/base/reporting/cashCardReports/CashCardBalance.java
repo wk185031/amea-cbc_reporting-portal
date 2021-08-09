@@ -403,19 +403,20 @@ public class CashCardBalance extends PdfReportProcessor {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.CUSTOMER_NAME:
-				if (getFieldValue(field, fieldsMap).length() > 37) {
-					contentStream
-							.showText(getFieldValue(field, fieldsMap).substring(0, 37) + String.format("%1$3s", ""));
-					accNameValue = getFieldValue(field, fieldsMap).substring(37,
-							getFieldValue(field, fieldsMap).length());
-					accName = true;
+				if (getFieldValue(field, fieldsMap).length() > 50) {
+//					contentStream
+//							.showText(getFieldValue(field, fieldsMap).substring(0, 37) + String.format("%1$3s", ""));
+//					accNameValue = getFieldValue(field, fieldsMap).substring(37,
+//							getFieldValue(field, fieldsMap).length());
+//					accName = true;
+					field.setValue(getFieldValue(field, fieldsMap).substring(0, 50));
+					contentStream.showText(field.format(rgm, isHeader(), isBodyHeader(), isBody(), isTrailer()));
 				} else {
 					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				}
 				break;
 			case ReportConstants.CARD_PRODUCT:
-				contentStream
-						.showText(String.format(String.format("%1$7s", "") + getFieldValue(rgm, field, fieldsMap)));
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.BALANCE:
 				String amountStr = getFieldValue(field, fieldsMap);
@@ -440,12 +441,12 @@ public class CashCardBalance extends PdfReportProcessor {
 			}
 
 		}
-		if (accName) {
-			accName = false;
-			contentStream.showText(String.format("%1$" + (fieldLength + accNameValue.length()) + "s", accNameValue));
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-		}
+//		if (accName) {
+//			accName = false;
+//			contentStream.showText(String.format("%1$" + (fieldLength + accNameValue.length()) + "s", accNameValue));
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//		}
 	}
 
 	protected SortedMap<String, TreeMap<String, String>> filterByCardProduct(ReportGenerationMgr rgm) {

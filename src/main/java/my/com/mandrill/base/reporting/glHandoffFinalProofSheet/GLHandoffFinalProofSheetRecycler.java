@@ -277,17 +277,14 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				if(getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
-				} else {				
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							getFieldValue(field, fieldsMap)));
-				}			
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
+				}
+				line.append(field.format(rgm, false, false, true, false));
 				break;
-			case ReportConstants.GL_ACCOUNT_NAME:
-				line.append(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
+			case ReportConstants.DEBITS:
+			case ReportConstants.CREDITS:
+				line.append(field.format(rgm, false, false, true, false));
 				break;
 			default:
 				line.append(getFieldValue(rgm, field, fieldsMap));
@@ -347,18 +344,14 @@ public class GLHandoffFinalProofSheetRecycler extends TxtReportProcessor {
 
 			switch (field.getFieldName()) {
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				if(getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
-				} else {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							getFieldValue(field, fieldsMap)));
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
 				}
-				
+				contentStream.showText(field.format(rgm, false, false, true, false));
 				break;
-			case ReportConstants.GL_ACCOUNT_NAME:
-				contentStream.showText(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap)));
+			case ReportConstants.DEBITS:
+			case ReportConstants.CREDITS:
+				contentStream.showText(field.format(rgm, false, false, true, false));
 				break;
 			default:
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));

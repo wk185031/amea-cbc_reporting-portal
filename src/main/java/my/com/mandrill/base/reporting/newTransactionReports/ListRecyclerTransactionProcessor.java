@@ -50,7 +50,12 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 
 				if (ReportGenerationFields.TYPE_NUMBER.equals(field.getFieldType())
 						|| ReportGenerationFields.TYPE_DECIMAL.equals(field.getFieldType())) {
-					line.append("\"" + fieldValue + "\"");
+					if ("TRANS AMOUNT".equals(field.getFieldName()) && fieldValue.startsWith("-")) {
+						line.append("\"" + fieldValue.substring(1) + "\"");					
+					} else {
+						line.append("\"" + fieldValue + "\"");
+					}
+					
 					ReportGenerationFields responseCode = bodyFields.stream().filter(f -> "REMARKS".equals(f.getFieldName())).findFirst().orElse(null);
 					if (responseCode != null ) {
 						if (responseCode.getValue().startsWith("0")) {

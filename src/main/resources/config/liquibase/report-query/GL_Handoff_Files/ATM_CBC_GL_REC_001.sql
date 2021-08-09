@@ -26,7 +26,7 @@ BEGIN
 
 	
 	i_BODY_QUERY := TO_CLOB('
-	SELECT
+		SELECT
       SUM("Tran Amount") "Tran Amount",
       "BRANCH CODE",
       "A/C Number",
@@ -34,34 +34,30 @@ BEGIN
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 	FROM(
 	SELECT
       ABR.ABR_CODE "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''D'' AS "Part Tran Indicator",
-      SUM(TXN.TRL_AMT_TXN) "Tran Amount",
+      TXN.TRL_AMT_TXN "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description"
 	FROM
       TRANSACTION_LOG TXN
       JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE 
          AND GLE.GLE_TRAN_CHANNEL=''CDM''
          AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Recycler'')
+		 AND GLE.GLE_MAIN_DIRECTION = ''ACQUIRER''
          AND GLE.GLE_SVC_ENABLED is null
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
       LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
       LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND CTR.CTR_CHANNEL = ''CDM''
 	WHERE
       TXN.TRL_TQU_ID = ''F''
       AND TRL_TSC_CODE in (1,128) 
@@ -71,59 +67,10 @@ BEGIN
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+	  AND NVL(TXN.TRL_ISS_NAME, '' '') != {V_IE_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
-	GROUP BY 
-      ABR.ABR_CODE,
-      GLA.GLA_NUMBER,
-      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END,
-      GLE.GLE_DEBIT_DESCRIPTION,
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'')
-	UNION
-	SELECT
-      ABR.ABR_CODE "BRANCH CODE",
-      GLA.GLA_NUMBER "A/C Number",
-      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
-      ''D'' AS "Part Tran Indicator",
-      SUM(COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT)) "Tran Amount",
-      GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
-      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
-	FROM
-      TRANSACTION_LOG TXN
-      JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
-      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE 
-         AND GLE.GLE_TRAN_CHANNEL=''CDM''
-         AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Recycler'')
-         AND GLE.GLE_SVC_ENABLED = ''Y''
-      LEFT JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
-      LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
-      LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
-      LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
-      JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND CTR.CTR_CHANNEL = ''CDM''
-	WHERE
-      TXN.TRL_TQU_ID = ''F''
-      AND TRL_TSC_CODE in (1,128) 
-	  AND TRL_FRD_REV_INST_ID is null
-      AND NVL(CPD.CPD_CODE,0) NOT IN (''80'',''81'',''82'',''83'')
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
-      AND COALESCE(TXN.TRL_ISS_CHARGE_AMT, TXN.TRL_ACQ_CHARGE_AMT) is not null
-      AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
-      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND {Branch_Code}
-      AND {Txn_Date}
-	GROUP BY 
-      ABR.ABR_CODE,
-      GLA.GLA_NUMBER,
-      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END,
-      GLE.GLE_DEBIT_DESCRIPTION,
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'')
 	)
 	GROUP BY
     "BRANCH CODE",
@@ -132,9 +79,7 @@ BEGIN
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 	ORDER BY
       "BRANCH CODE"
 	START SELECT
@@ -145,27 +90,24 @@ BEGIN
       "Part Tran Indicator",
       "Tran Particular",
       "Reference Currency Code",
-      "Value Date",
-      "Third Party Tran Description",
-      "TRAN_DATE"
+      "Third Party Tran Description"
 	FROM(
 	SELECT
       ABR.ABR_CODE "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''C'' AS "Part Tran Indicator",
-      SUM(TXN.TRL_AMT_TXN) "Tran Amount",
+      TXN.TRL_AMT_TXN "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
-      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description"
 	FROM
       TRANSACTION_LOG TXN
       JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE 
          AND GLE.GLE_TRAN_CHANNEL=''CDM''
          AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Recycler'')
+		 AND GLE.GLE_MAIN_DIRECTION = ''ACQUIRER''
          AND GLE.GLE_SVC_ENABLED is null
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
       LEFT JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID
@@ -182,15 +124,10 @@ BEGIN
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXNC.TRL_ORIGIN_CHANNEL IN (''CDM'',''BRM'')
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+	  AND NVL(TXN.TRL_ISS_NAME, '' '') != {V_IE_Iss_Name}
       AND {Branch_Code}
       AND {Txn_Date}
-	GROUP BY 
-      ABR.ABR_CODE,
-      GLA.GLA_NUMBER,
-      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END,
-      GLE.GLE_CREDIT_DESCRIPTION,
-      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'')
 	)
 	GROUP BY
     "BRANCH CODE",
@@ -199,12 +136,10 @@ BEGIN
     "Part Tran Indicator",
     "Tran Particular",
     "Reference Currency Code",
-    "Value Date",
-    "Third Party Tran Description",
-    "TRAN_DATE"
+    "Third Party Tran Description"
 	ORDER BY
       "BRANCH CODE"
-	END	
+	END		
 	');	
 	
 	i_TRAILER_QUERY := null;
