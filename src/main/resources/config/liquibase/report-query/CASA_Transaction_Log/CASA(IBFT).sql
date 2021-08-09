@@ -2,6 +2,7 @@
 -- Report revision		23-JUL-2021		NY		Initial
 -- Report revision		26-JUL-2021		NY		Revised reports based on spec
 -- IBFT					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- IBFT					09-AUG-2021		NY		Fix empty mnem for txn code 41, use mnem from TPS
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -76,6 +77,8 @@ SELECT
            WHEN TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_FRD_REV_INST_ID NOT IN (''8882'', ''0000008882'') AND TXN.TRL_TQU_ID = ''R'' THEN ''IBC''
            WHEN TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_FRD_REV_INST_ID IN (''8882'', ''0000008882'') AND TXN.TRL_TQU_ID = ''F'' THEN ''ELD''
            WHEN TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_FRD_REV_INST_ID IN (''8882'', ''0000008882'') AND TXN.TRL_TQU_ID = ''R'' THEN ''ELC''
+		   WHEN TXN.TRL_TSC_CODE = 41 AND TXN.TRL_TQU_ID = ''F'' THEN ''BXC''
+		   WHEN TXN.TRL_TSC_CODE = 41 AND TXN.TRL_TQU_ID = ''R'' THEN ''BXR''
 		   WHEN TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_TQU_ID = ''F'' THEN ''CWD''
            WHEN TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_TQU_ID = ''R'' THEN ''CWC''
            WHEN TXN.TRL_TSC_CODE IN (40, 42, 43, 45) AND TXN.TRL_TQU_ID = ''F'' THEN ''TFR''

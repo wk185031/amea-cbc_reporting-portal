@@ -59,13 +59,23 @@
                  path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_Issuer.sql"
                  splitStatements="false" 
                  stripComments="true" />
-                     	                                                                                                                                                                                               
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(Issuer).sql"
+                 splitStatements="false" 
+                 stripComments="true" />         
+                                     	                                                                                                                                                                                               
         <!-- IBFT -->  
  		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/IBFT_Transactions/Interbank_Fund_Transfer_Report(ATM)_Rejected_Transaction.sql"
                  splitStatements="false" 
-                 stripComments="true" />	
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(IBFT).sql"
+                 splitStatements="false" 
+                 stripComments="true" />		
         
          <!-- Eload --> 
  		<sqlFile dbms="oracle" 

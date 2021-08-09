@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-686		18-JUN-2021		WY		Filter out IBFT tran from tran code 1
 -- Report revision			23-JUL-2021		NY		Revised reports based on spec
 -- Issuer					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- Issuer					09-AUG-2021		NY		Use TPS mnem if its not in SWIT/CASA mnem from file format
 
 DECLARE
 
@@ -32,6 +33,7 @@ BEGIN
            WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') IN (''0000008883'', ''0000009997'') AND TXN.TRL_TQU_ID = ''R'' THEN ''SLR''
            WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = ''0000009991'' AND TXN.TRL_TQU_ID = ''F'' THEN ''ESH''
            WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = ''0000009991'' AND TXN.TRL_TQU_ID = ''R'' THEN ''ESC''
+           WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM
       END AS "TRANSACTION CODE",
       TXN.TRL_AMT_TXN "AMOUNT",
       TXN.TRL_DEST_STAN "TRACE NUMBER",
@@ -46,6 +48,7 @@ BEGIN
 FROM
       TRANSACTION_LOG TXN
       LEFT JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
+      LEFT JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND (CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = ''BRM'' THEN ''CDM'' ELSE TXNC.TRL_ORIGIN_CHANNEL END) = CTR.CTR_CHANNEL
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
