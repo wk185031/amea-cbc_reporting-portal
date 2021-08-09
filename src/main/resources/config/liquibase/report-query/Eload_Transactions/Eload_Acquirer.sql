@@ -4,6 +4,7 @@
 -- 								14-JUL-2021		KW		Split into OnUs Acq Iss
 -- CBCAXUPISSLOG-849			06-AUG-2021		NY		Exclude reversal as report dont have mnemonic to distinguish thoses
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- Eload 						07-AUG-2021		NY		Fix empty report
 
 DECLARE
 
@@ -44,7 +45,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN = ''F''
+      AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
@@ -67,7 +68,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN = ''F''
+      AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
@@ -93,7 +94,7 @@ FROM
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 52
-      AND TXN.TRL_TQU_ID IN = ''F''
+      AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
