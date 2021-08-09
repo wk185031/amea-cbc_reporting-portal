@@ -28,6 +28,20 @@
                  path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        
+        <!-- Onus -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_OnUs.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        
+        <!-- Acquirer -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_Acquirer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
                  
         <!-- Issuer --> 
         <sqlFile dbms="oracle" 
@@ -35,7 +49,12 @@
                  path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
                  splitStatements="false" 
                  stripComments="true" />
-    	                                                                                                                                                                                               
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_Issuer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+                     	                                                                                                                                                                                               
         <!-- IBFT -->  
  		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
@@ -48,6 +67,8 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Eload_Transactions/Eload_Acquirer.sql"
                  splitStatements="false" 
-                 stripComments="true" />  					 
+                 stripComments="true" /> 
+                 
+          					 
     </changeSet>
 </databaseChangeLog>

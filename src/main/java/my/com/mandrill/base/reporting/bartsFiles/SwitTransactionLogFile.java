@@ -86,11 +86,13 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)) {
 					String value = getFieldValue(rgm, field, fieldsMap);
 					
-					if(null != value && value.length()>16) {
+					if(value.length() > 16) {
 						value = value.substring(value.length() - 16);
+					} else if (value.length() < 16) {
+						value = ("00000000000" + value).substring(value.length());
 					}
 					
-					line.append(value);
+					line.append(value.replace(' ', '0'));
 				} else {
 					line.append(getFieldValue(rgm, field, fieldsMap).replace(' ', '0'));
 				}

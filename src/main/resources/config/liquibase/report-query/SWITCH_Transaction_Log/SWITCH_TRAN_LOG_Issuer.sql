@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-686		18-JUN-2021		WY		Filter out IBFT tran from tran code 1
 -- Report revision			23-JUL-2021		NY		Revised reports based on spec
 -- Issuer					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- Issuer					09-AUG-2021		NY		Left join to CBC_BANK table give null value of bank name/bank code
 
 DECLARE
 
@@ -47,7 +48,7 @@ FROM
       TRANSACTION_LOG TXN
       LEFT JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
       LEFT JOIN CBC_BIN CBI ON CBI.CBI_ID = (SELECT MIN(CBI_ID) FROM CBC_BIN WHERE CBI_BIN = TXNC.TRL_CARD_BIN)
-      LEFT JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
+      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_TSC_CODE NOT IN (31, 122, 145, 146, 246)
