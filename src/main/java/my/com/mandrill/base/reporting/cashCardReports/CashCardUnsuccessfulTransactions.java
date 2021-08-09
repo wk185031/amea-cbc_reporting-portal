@@ -71,12 +71,9 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			pageHeight += 4;
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			for (int i = 0; i < 6; i++) {
-				preProcessing(rgm, i);
-				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
 						pdfFont, fontSize);
-				pageHeight += 1;
-			}
+			pageHeight += 1;
 			contentStream.endText();
 			contentStream.close();
 
@@ -106,14 +103,10 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			for (int i = 0; i < 6; i++) {
-				preProcessing(rgm, i);
-				executeBodyQuery(rgm);
-			}
+			executeBodyQuery(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -129,209 +122,209 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 		}
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, int i)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In CashCardUnsuccessfulTransactions.preProcessing()");
-		ReportGenerationFields txnCriteria = null;
-		ReportGenerationFields channel = null;
-		ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_TYPE,
-				ReportGenerationFields.TYPE_STRING, "TSC.TSC_DESCRIPTION");
-		getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
+//	private void preProcessing(ReportGenerationMgr rgm, int i)
+//			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+//		logger.debug("In CashCardUnsuccessfulTransactions.preProcessing()");
+//		ReportGenerationFields txnCriteria = null;
+//		ReportGenerationFields channel = null;
+//		ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_TYPE,
+//				ReportGenerationFields.TYPE_STRING, "TSC.TSC_DESCRIPTION");
+//		getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
+//
+//		switch (i) {
+//		case 0:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.CHINABANK_ATM + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		case 1:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.BANCNET_ATM + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING,
+//					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID NOT IN ('9990', '0000009990')");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		case 2:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.CHINABANK_EBK + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'EBK'");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		case 3:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.BANCNET_EBK + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING,
+//					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID IN ('9990', '0000009990')");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		case 4:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.CHINABANK_MBK + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'MBK'");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		case 5:
+//			channelCount = 0;
+//			txnCount = 0;
+//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
+//					"'" + ReportConstants.CHINABANK_IVR + "'");
+//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
+//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'IVR'");
+//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
+//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
+//			break;
+//		default:
+//			break;
+//		}
+//	}
 
-		switch (i) {
-		case 0:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.CHINABANK_ATM + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		case 1:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.BANCNET_ATM + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID NOT IN ('9990', '0000009990')");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		case 2:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.CHINABANK_EBK + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'EBK'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		case 3:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.BANCNET_EBK + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID IN ('9990', '0000009990')");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		case 4:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.CHINABANK_MBK + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'MBK'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		case 5:
-			channelCount = 0;
-			txnCount = 0;
-			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-					"'" + ReportConstants.CHINABANK_IVR + "'");
-			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'IVR'");
-			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-			break;
-		default:
-			break;
-		}
-	}
+//	@Override
+//	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+//			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+//		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+//		StringBuilder line = new StringBuilder();
+//		for (ReportGenerationFields field : fields) {
+//			switch (field.getFieldName()) {
+//			case ReportConstants.CHANNEL:
+//				if (channelCount > 0) {
+//					fieldsMap.get(field.getFieldName()).setValue("");
+//					line.append(getFieldValue(rgm, field, fieldsMap));
+//				} else {
+//					line.append(getFieldValue(rgm, field, fieldsMap));
+//				}
+//				channelCount++;
+//				break;
+//			case ReportConstants.TRANSACTION_TYPE:
+//				if (txnCount > 0) {
+//					if (getFieldValue(field, fieldsMap).equals(getTxnType())) {
+//						fieldsMap.get(field.getFieldName()).setValue("");
+//						line.append(getFieldValue(rgm, field, fieldsMap));
+//					} else {
+//						setTxnType(getFieldValue(field, fieldsMap));
+//						line.append(getFieldValue(rgm, field, fieldsMap));
+//					}
+//				} else {
+//					setTxnType(getFieldValue(field, fieldsMap));
+//					line.append(getFieldValue(rgm, field, fieldsMap));
+//				}
+//				txnCount++;
+//				break;
+//			default:
+//				line.append(getFieldValue(rgm, field, fieldsMap));
+//				break;
+//			}
+//			line.append(field.getDelimiter());
+//		}
+//		line.append(getEol());
+//		rgm.writeLine(line.toString().getBytes());
+//	}
 
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		for (ReportGenerationFields field : fields) {
-			switch (field.getFieldName()) {
-			case ReportConstants.CHANNEL:
-				if (channelCount > 0) {
-					fieldsMap.get(field.getFieldName()).setValue("");
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				}
-				channelCount++;
-				break;
-			case ReportConstants.TRANSACTION_TYPE:
-				if (txnCount > 0) {
-					if (getFieldValue(field, fieldsMap).equals(getTxnType())) {
-						fieldsMap.get(field.getFieldName()).setValue("");
-						line.append(getFieldValue(rgm, field, fieldsMap));
-					} else {
-						setTxnType(getFieldValue(field, fieldsMap));
-						line.append(getFieldValue(rgm, field, fieldsMap));
-					}
-				} else {
-					setTxnType(getFieldValue(field, fieldsMap));
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				}
-				txnCount++;
-				break;
-			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				break;
-			}
-			line.append(field.getDelimiter());
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
-	@Override
-	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		int fieldLength = 0;
-		boolean txnType = false;
-		boolean reason = false;
-		String txnTypeValue = null;
-		String reasonValue = null;
-		for (ReportGenerationFields field : fields) {
-			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -leading);
-			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.CHANNEL:
-					if (channelCount > 0) {
-						fieldsMap.get(field.getFieldName()).setValue("");
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					fieldLength += field.getPdfLength();
-					channelCount++;
-					break;
-				case ReportConstants.TRANSACTION_TYPE:
-					if (txnCount > 0) {
-						if (getFieldValue(field, fieldsMap).equals(getTxnType())) {
-							fieldsMap.get(field.getFieldName()).setValue("");
-							contentStream.showText(getFieldValue(rgm, field, fieldsMap) + String.format("%1$5s", ""));
-						} else {
-							setTxnType(getFieldValue(field, fieldsMap));
-							contentStream.showText(getFieldValue(rgm, field, fieldsMap) + String.format("%1$5s", ""));
-						}
-					} else {
-						setTxnType(getFieldValue(field, fieldsMap));
-						if (getFieldValue(field, fieldsMap).length() > 27) {
-							contentStream.showText(
-									getFieldValue(field, fieldsMap).substring(0, 27) + String.format("%1$3s", ""));
-							txnTypeValue = getFieldValue(field, fieldsMap).substring(27,
-									getFieldValue(field, fieldsMap).length());
-							txnType = true;
-						} else {
-							contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-						}
-					}
-					txnCount++;
-					break;
-				case ReportConstants.REASON:
-					if (getFieldValue(field, fieldsMap).length() > 30) {
-						contentStream.showText(getFieldValue(field, fieldsMap).substring(0, 30));
-						reasonValue = getFieldValue(field, fieldsMap).substring(30,
-								getFieldValue(field, fieldsMap).length());
-						reason = true;
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					break;
-				default:
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					break;
-				}
-			}
-		}
-		if (txnType && reason) {
-			txnType = false;
-			reason = false;
-			contentStream.showText(String.format("%1$" + (fieldLength + txnTypeValue.length()) + "s", txnTypeValue));
-			contentStream.showText(String.format("%1$4s", "") + String
-					.format("%1$" + (fieldLength + reasonValue.length() - txnTypeValue.length()) + "s", reasonValue));
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-		} else if (txnType) {
-			txnType = false;
-			contentStream.showText(String.format("%1$" + (fieldLength + txnTypeValue.length()) + "s", txnTypeValue));
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-		} else if (reason) {
-			reason = false;
-			contentStream.showText(String.format("%1$" + (fieldLength + reasonValue.length()) + "s", reasonValue));
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-		}
-	}
+//	@Override
+//	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+//			PDPageContentStream contentStream, float leading)
+//			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+//		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+//		int fieldLength = 0;
+//		boolean txnType = false;
+//		boolean reason = false;
+//		String txnTypeValue = null;
+//		String reasonValue = null;
+//		for (ReportGenerationFields field : fields) {
+//			if (field.isEol()) {
+//				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//				contentStream.newLineAtOffset(0, -leading);
+//			} else {
+//				switch (field.getFieldName()) {
+//				case ReportConstants.CHANNEL:
+//					if (channelCount > 0) {
+//						fieldsMap.get(field.getFieldName()).setValue("");
+//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					} else {
+//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					}
+//					fieldLength += field.getPdfLength();
+//					channelCount++;
+//					break;
+//				case ReportConstants.TRANSACTION_TYPE:
+//					if (txnCount > 0) {
+//						if (getFieldValue(field, fieldsMap).equals(getTxnType())) {
+//							fieldsMap.get(field.getFieldName()).setValue("");
+//							contentStream.showText(getFieldValue(rgm, field, fieldsMap) + String.format("%1$5s", ""));
+//						} else {
+//							setTxnType(getFieldValue(field, fieldsMap));
+//							contentStream.showText(getFieldValue(rgm, field, fieldsMap) + String.format("%1$5s", ""));
+//						}
+//					} else {
+//						setTxnType(getFieldValue(field, fieldsMap));
+//						if (getFieldValue(field, fieldsMap).length() > 27) {
+//							contentStream.showText(
+//									getFieldValue(field, fieldsMap).substring(0, 27) + String.format("%1$3s", ""));
+//							txnTypeValue = getFieldValue(field, fieldsMap).substring(27,
+//									getFieldValue(field, fieldsMap).length());
+//							txnType = true;
+//						} else {
+//							contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//						}
+//					}
+//					txnCount++;
+//					break;
+//				case ReportConstants.REASON:
+//					if (getFieldValue(field, fieldsMap).length() > 30) {
+//						contentStream.showText(getFieldValue(field, fieldsMap).substring(0, 30));
+//						reasonValue = getFieldValue(field, fieldsMap).substring(30,
+//								getFieldValue(field, fieldsMap).length());
+//						reason = true;
+//					} else {
+//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					}
+//					break;
+//				default:
+//					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+//					break;
+//				}
+//			}
+//		}
+//		if (txnType && reason) {
+//			txnType = false;
+//			reason = false;
+//			contentStream.showText(String.format("%1$" + (fieldLength + txnTypeValue.length()) + "s", txnTypeValue));
+//			contentStream.showText(String.format("%1$4s", "") + String
+//					.format("%1$" + (fieldLength + reasonValue.length() - txnTypeValue.length()) + "s", reasonValue));
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//		} else if (txnType) {
+//			txnType = false;
+//			contentStream.showText(String.format("%1$" + (fieldLength + txnTypeValue.length()) + "s", txnTypeValue));
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//		} else if (reason) {
+//			reason = false;
+//			contentStream.showText(String.format("%1$" + (fieldLength + reasonValue.length()) + "s", reasonValue));
+//			contentStream.newLineAtOffset(0, -leading);
+//			pageHeight += 1;
+//		}
+//	}
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
@@ -342,6 +335,8 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
+		String channel = null;
+		String transactionType = null;
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -389,6 +384,19 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 						} else {
 							field.setValue("");
 						}
+						if ("CHANNEL".equals(field.getFieldName())) {
+							if (channel == null || !channel.equals(field.getValue())) {
+								channel = field.getValue();
+							} else {
+								field.setValue("");
+							}
+						} else if ("TRANSACTION TYPE".equals(field.getFieldName())) {
+							if (transactionType == null || !transactionType.equals(field.getValue())) {
+								transactionType = field.getValue();
+							} else {
+								field.setValue("");
+							}
+						}
 					}
 					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
 					pageHeight++;
@@ -407,5 +415,80 @@ public class CashCardUnsuccessfulTransactions extends PdfReportProcessor {
 			}
 		}
 		return contentStream;
+	}
+	
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		String channel = null;
+		String transactionType = null;
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+						if ("CHANNEL".equals(field.getFieldName())) {
+							if (channel == null || !channel.equals(field.getValue())) {
+								channel = field.getValue();
+							} else {
+								field.setValue("");
+							}
+						} else if ("TRANSACTION TYPE".equals(field.getFieldName())) {
+							if (transactionType == null || !transactionType.equals(field.getValue())) {
+								transactionType = field.getValue();
+							} else {
+								field.setValue("");
+							}
+						}
+					}
+					writeBody(rgm, lineFieldsMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 }
