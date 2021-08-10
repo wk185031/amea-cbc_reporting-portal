@@ -4,13 +4,14 @@
 -- Issuer					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Issuer					09-AUG-2021		NY		Left join to CBC_BANK table give null value of bank name/bank code
 -- Issuer					09-AUG-2021		NY		Use TPS mnem if its not in SWIT/CASA mnem from file format
+-- Issuer					09-AUG-2021		NY		Exclude txn code 41 coming from EBK/MBK, or if its other@other>CBC scenario
 
 DECLARE
 
 	i_BODY_QUERY CLOB;
 
 BEGIN 
-	  
+	 
 	  i_BODY_QUERY := TO_CLOB('
 	SELECT
       CBA.CBA_CODE "ISSUER BANK CODE",
@@ -56,9 +57,11 @@ WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_TSC_CODE NOT IN (31, 122, 145, 146, 246)
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) NOT IN (''7001'', ''7002'', ''8553'', ''8551'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
 	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
+      AND CBA.CBA_MNEM = {V_Iss_Name}
       AND {Txn_Date}
 ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,
