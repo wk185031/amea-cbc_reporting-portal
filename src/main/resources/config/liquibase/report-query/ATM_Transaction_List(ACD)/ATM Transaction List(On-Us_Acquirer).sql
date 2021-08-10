@@ -16,6 +16,7 @@
 -- Master report		02-AUG-2021		NY		Fix Bill Payment wrong mnem/count, along with empty mnem in master reports
 -- Master report		02-AUG-2021		NY		Use left join to cbc_bin/cbc_bank so that we still pull data with no bin
 -- Master report		06-AUG-2021		NY		Various fix from cross checking finding and jira related issues
+-- Master report		10-AUG-2021		NY		Cater cash card fund transfer debit leg from EBK/MBK
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -61,6 +62,10 @@ SELECT
 		WHEN TXN.TRL_TSC_CODE = 126 THEN ''MAA'' 
 		WHEN TXN.TRL_TSC_CODE = 129 THEN ''LST'' 
         WHEN TXN.TRL_TSC_CODE = 131 THEN ''FPC'' 
+		WHEN TXN.TRL_TSC_CODE = 1 AND TXNC.TRL_ORIGIN_CHANNEL = ''EBK'' AND TXN.TRL_TQU_ID = ''R'' THEN ''ECR''
+		WHEN TXN.TRL_TSC_CODE = 1 AND TXNC.TRL_ORIGIN_CHANNEL = ''EBK'' AND TXN.TRL_TQU_ID = ''F'' THEN ''ECD''
+		WHEN TXN.TRL_TSC_CODE = 1 AND TXNC.TRL_ORIGIN_CHANNEL = ''MBK'' AND TXN.TRL_TQU_ID = ''R'' THEN ''MCR''
+		WHEN TXN.TRL_TSC_CODE = 1 AND TXNC.TRL_ORIGIN_CHANNEL = ''MBK'' AND TXN.TRL_TQU_ID = ''F'' THEN ''MCD''
 		WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",
       CASE WHEN TXN.TRL_ACCOUNT_TYPE_1_ATP_ID = 10 THEN ''SA'' WHEN TXN.TRL_ACCOUNT_TYPE_1_ATP_ID = 20 THEN ''CA'' ELSE '''' END AS "FROM ACC TYPE",
       TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
