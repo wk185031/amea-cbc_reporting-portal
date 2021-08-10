@@ -35,6 +35,9 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
 	private double total = 0.00;
+	private String ie_ins_name = "CBS";
+	private String ie_ins_id = "0000000112";
+	private String ins_id = "0000000010";
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -56,6 +59,12 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 			float startY = pageSize.getUpperRightY() - margin;
 			String glDescription = null;
 			String branchCode = null;
+			
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				ie_ins_name = "CBC";
+				ie_ins_id = "0000000010";
+				ins_id = "0000000112";
+			}
 
 			separateQuery(rgm);
 			preProcessing(rgm);
@@ -135,6 +144,12 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			separateQuery(rgm);
 			preProcessing(rgm);
+			
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				ie_ins_name = "CBC";
+				ie_ins_id = "0000000010";
+				ins_id = "0000000112";
+			}
 
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
@@ -284,26 +299,28 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
+					"TXN.TRL_TSC_CODE IN (1, 128) ");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
+					"TXN.TRL_TSC_CODE IN (1, 128) ");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 44 AND TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112'");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + 
+					"'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 44 AND TXN.TRL_ISS_NAME = 'CBS' AND LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000010'");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + 
+					"'  AND (TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			break;
 		default:

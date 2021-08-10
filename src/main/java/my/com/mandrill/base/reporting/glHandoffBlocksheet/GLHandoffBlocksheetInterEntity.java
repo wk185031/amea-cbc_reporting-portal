@@ -36,6 +36,9 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 	private boolean newGroup = false;
 	private boolean endGroup = false;
 	private boolean blankRecord = false;
+	private String ie_ins_name = "CBS";
+	private String ie_ins_id = "0000000112";
+	private String ins_id = "0000000010";
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -58,6 +61,12 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			doc = new PDDocument();
 			separateQuery(rgm);
 			preProcessing(rgm);
+
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				ie_ins_name = "CBC";
+				ie_ins_id = "0000000010";
+				ins_id = "0000000112";
+			}
 
 			rgm.setBodyQuery(getCriteriaQuery());
 			if (!executeQuery(rgm)) {
@@ -103,7 +112,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 									pdfDebitDetail(rgm, glDescription, branchCode, contentStream, doc, page, pageSize,
 											leading, startX, startY, pdfFont, fontSize);
 								}
-								
+
 								rgm.setBodyQuery(getAcquirerCreditBodyQuery());
 								rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
 								preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
@@ -189,7 +198,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 								} else {
 									blankRecord = true;
 								}
-								
+
 								rgm.setBodyQuery(getAcquirerCreditBodyQuery());
 								rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
 								preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
@@ -337,6 +346,12 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			separateQuery(rgm);
 			preProcessing(rgm);
+			
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				ie_ins_name = "CBC";
+				ie_ins_id = "0000000010";
+				ins_id = "0000000112";
+			}
 
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 			while (glDescriptionItr.hasNext()) {
@@ -478,33 +493,32 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_SERVICE_CHARGE:
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_TSC_CODE IN (1, 128) ");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND ((TXN.TRL_DEO_NAME = 'CBC' AND TXN.TRL_ISS_NAME = 'CBS') OR (TXN.TRL_DEO_NAME = 'CBS' AND TXN.TRL_ISS_NAME = 'CBC')) ");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_TSC_CODE IN (1, 128) ");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 44 AND TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112'");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + 
+					"'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 44 AND TXN.TRL_ISS_NAME = 'CBS' AND LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000010'");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + 
+					"'  AND (TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 31 ");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_TSC_CODE = 31 ");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -526,8 +540,9 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			setAcquirerCreditBodyQuery(getAcquirerCreditBodyQuery()
 					.replace(getAcquirerCreditBodyQuery().substring(getAcquirerCreditBodyQuery().indexOf("GROUP BY"),
 							getAcquirerCreditBodyQuery().indexOf("ORDER BY")), ""));
-			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
+			setDebitBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT ASC,", "")
 					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
@@ -562,8 +577,8 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setDebitTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+			setDebitTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			setCreditTrailerQuery(rgm.getTrailerQuery()
