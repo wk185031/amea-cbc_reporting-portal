@@ -130,6 +130,14 @@ export class GenerateReportTabComponent implements OnInit {
                 },
                 (res: HttpErrorResponse) => this.onError(this.failed));
     }
+    
+    disableDateSelection() {
+	    if (this.report) {
+	    	return this.report.name === 'Cash Card Balance';
+	    } else {
+	    	return false;
+	    }	
+    }
 
     resetDate(toReset) {
       if (toReset) {

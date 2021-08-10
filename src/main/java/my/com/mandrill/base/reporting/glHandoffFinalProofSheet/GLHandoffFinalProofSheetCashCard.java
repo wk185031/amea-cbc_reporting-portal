@@ -7,11 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -34,7 +35,8 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
-	private double total = 0.00;
+	private double debitTotal = 0.00;
+	private double creditTotal = 0.00;
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -54,7 +56,6 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 			float width = pageSize.getWidth() - 2 * margin;
 			float startX = pageSize.getLowerLeftX() + margin;
 			float startY = pageSize.getUpperRightY() - margin;
-			String glDescription = null;
 			String branchCode = null;
 
 			separateQuery(rgm);
@@ -70,35 +71,24 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 
-			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
+			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			
+			if(!branchCodeItr.hasNext()) {
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.newLineAtOffset(0, -leading);
+				contentStream.showText("**NO TRANSACTIONS FOR THE DAY**");
+				contentStream.newLineAtOffset(0, -leading);
+			}
 
-			while (glDescriptionItr.hasNext()) {
-				glDescription = glDescriptionItr.next();
-				if (glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-					while (branchCodeItr.hasNext()) {
-						branchCode = branchCodeItr.next();
-						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
-						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					}
-				} else {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
-				}
+			while (branchCodeItr.hasNext()) {
+				branchCode = branchCodeItr.next();
+				preProcessing(rgm, branchCode);
+				rgm.setBodyQuery(getDebitBodyQuery());
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize, branchCode);
+				rgm.setBodyQuery(getCreditBodyQuery());
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+						pdfFont, fontSize, branchCode);
 			}
 
 			writePdfTrailer(rgm, contentStream, leading);
@@ -125,12 +115,12 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
+		String branchCode = null;
 		try {
-			String glDescription = null;
-			String branchCode = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
-			total = 0.00;
+			debitTotal = 0.00;
+			creditTotal = 0.00;
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
 			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
 			separateQuery(rgm);
@@ -138,30 +128,23 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
-			while (glDescriptionItr.hasNext()) {
-				glDescription = glDescriptionItr.next();
-				if (glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-					while (branchCodeItr.hasNext()) {
-						branchCode = branchCodeItr.next();
-						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-						executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-						executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					}
-				} else {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-				}
+			Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
+			
+			if(!branchCodeItr.hasNext()) {
+				StringBuilder line = new StringBuilder();
+				line.append(getEol());
+				line.append("**NO TRANSACTIONS FOR THE DAY**");
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+			}
+			
+			while (branchCodeItr.hasNext()) {
+				branchCode = branchCodeItr.next();
+				preProcessing(rgm, branchCode);
+				rgm.setBodyQuery(getDebitBodyQuery());
+				executeBodyQuery(rgm, branchCode);
+				rgm.setBodyQuery(getCreditBodyQuery());
+				executeBodyQuery(rgm, branchCode);
 			}
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
@@ -184,17 +167,17 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 	}
 
 	@Override
-	protected List<String> filterByGlDescription(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.filterByGlDescription()");
-		String glDescription = null;
+	protected SortedSet<String> filterByBranchCode(ReportGenerationMgr rgm) {
+		logger.debug("In GLHandoffFinalProofSheetRecycler.filterByBranchCode()");
+		String branchCode = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		List<String> glDescriptionList = new ArrayList<>();
+		SortedSet<String> branchCodeList = new TreeSet<>();
 		rgm.setBodyQuery(getCriteriaQuery());
 		String query = getBodyQuery(rgm);
-		logger.info("Query to filter gl description: {}", query);
+		logger.info("Query for filter branch code: {}", query);
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -215,12 +198,12 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 							continue;
 						}
 						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.TRAN_PARTICULAR)) {
-								glDescription = result.toString();
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
 							}
 						}
 					}
-					glDescriptionList.add(glDescription);
+					branchCodeList.add(branchCode);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -235,135 +218,73 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 				}
 			}
 		}
-		return glDescriptionList;
+		return branchCodeList;
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.preProcessing()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.preProcessing()");
 		if (getCriteriaQuery() != null) {
-			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
+			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
-			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.preProcessing()");
-		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
-				&& indicator.equals(ReportConstants.DEBIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING,
-					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
-		}
-
-		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditBodyQuery() != null
-				&& indicator.equals(ReportConstants.CREDIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
-			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
-					ReportGenerationFields.TYPE_STRING,
-					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
-			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
-		}
-
-		switch (filterByGlDescription) {
-		case ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL:
-			ReportGenerationFields channelOnUs = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'NDC'");
-			getGlobalFileFieldsMap().put(channelOnUs.getFieldName(), channelOnUs);
-			break;
-		case ReportConstants.CASH_CARD_BANCNET_INQUIRY_CHARGE:
-			ReportGenerationFields bancnetInquiry = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 31 AND TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
-			getGlobalFileFieldsMap().put(bancnetInquiry.getFieldName(), bancnetInquiry);
-			break;
-		default:
-			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) AND TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange'");
-			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
-			break;
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In GLHandoffFinalProofSheetRecycler.preProcessing()");
+		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "CRDC.CRD_BRANCH_CODE = '" + filterByBranchCode + "'");
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
 
 	private void separateQuery(ReportGenerationMgr rgm) {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.separateQuery()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setAcquirerDebitBodyQuery(
-					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
-					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("\"BRANCH CODE\",", ""));
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
-					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("\"BRANCH CODE\",", ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
 
 	@Override
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String glDescription, String branchCode, String indicator)
+			String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.CREDITS)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
 			switch (field.getFieldName()) {
-			case ReportConstants.BRANCH_CODE:
-				if (!(glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
-						&& indicator.equals(ReportConstants.CREDIT_IND))) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", "5008"));
-				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
-				}
-				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				if (branchCode != null
-						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
-						&& indicator.equals(ReportConstants.CREDIT_IND)) {
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
-				} else {
-					line.append(getFieldValue(rgm, field, fieldsMap));
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
 				}
+				line.append(field.format(rgm, false, false, true, false));
 				break;
-			case ReportConstants.GL_ACCOUNT_NAME:
-				line.append(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
+			case ReportConstants.DEBITS:
+			case ReportConstants.CREDITS:
+				line.append(field.format(rgm, false, false, true, false));
 				break;
 			default:
 				line.append(getFieldValue(rgm, field, fieldsMap));
@@ -376,14 +297,14 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
 	private void writeTrailer(ReportGenerationMgr rgm)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.writeTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writeTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(creditTotal)));
 				} else {
 					line.append(getGlobalFieldValue(rgm, field));
 				}
@@ -391,7 +312,7 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(total)));
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", formatter.format(debitTotal)));
 				} else {
 					line.append(getGlobalFieldValue(rgm, field));
 				}
@@ -402,40 +323,35 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, String glDescription, String branchCode, String indicator)
+			PDPageContentStream contentStream, float leading, String branchCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.DEBITS)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
 				} else {
-					total += Double.parseDouble(getFieldValue(field, fieldsMap));
+					debitTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+			}
+			if (field.getFieldName().equalsIgnoreCase(ReportConstants.CREDITS)) {
+				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					creditTotal += Double.parseDouble(getFieldValue(field, fieldsMap));
 				}
 			}
 
 			switch (field.getFieldName()) {
-			case ReportConstants.BRANCH_CODE:
-				if (!(glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
-						&& indicator.equals(ReportConstants.CREDIT_IND))) {
-					contentStream.showText(String.format("%1$" + field.getCsvTxtLength() + "s", "5008"));
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				}
-				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
-				if (branchCode != null
-						&& glDescription.equalsIgnoreCase(ReportConstants.CASH_CARD_ON_US_INTRBRNCH_WITHDRAWAL)
-						&& indicator.equals(ReportConstants.CREDIT_IND)) {
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
-				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
 				}
+				contentStream.showText(field.format(rgm, false, false, true, false));
 				break;
-			case ReportConstants.GL_ACCOUNT_NAME:
-				contentStream.showText(String.format("%1$5s", "")
-						+ String.format("%1$-" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap)));
+			case ReportConstants.DEBITS:
+			case ReportConstants.CREDITS:
+				contentStream.showText(field.format(rgm, false, false, true, false));
 				break;
 			default:
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
@@ -447,13 +363,13 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
 	private void writePdfTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.writePdfTrailer()");
+		logger.debug("In GLHandoffFinalProofSheetRecycler.writePdfTrailer()");
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_CREDIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(creditTotal)));
 				} else {
 					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
@@ -461,7 +377,7 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 			} else {
 				if (field.getFieldName().contains(ReportConstants.TOTAL_DEBIT)) {
 					DecimalFormat formatter = new DecimalFormat(field.getFieldFormat());
-					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(total)));
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", formatter.format(debitTotal)));
 				} else {
 					contentStream.showText(getGlobalFieldValue(rgm, field));
 				}
@@ -471,8 +387,8 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize, String glDescription, String branchCode, String indicator) {
-		logger.debug("In GLHandoffFinalProofSheetCashCard.executePdfBodyQuery()");
+			PDFont pdfFont, float fontSize, String branchCode) {
+		logger.debug("In GLHandoffFinalProofSheetRecycler.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -527,7 +443,7 @@ public class GLHandoffFinalProofSheetCashCard extends TxtReportProcessor {
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading, glDescription, branchCode, indicator);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, branchCode);
 					pageHeight++;
 				}
 			} catch (Exception e) {

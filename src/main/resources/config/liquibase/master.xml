@@ -125,8 +125,7 @@
 	<include file="config/liquibase/changelog/KW_20210803000003_issuer_table.xml" relativeToChangelogFile="false"/>	
 	<include file="config/liquibase/changelog/NY_20210805000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 	<include file="config/liquibase/changelog/NY_20210807000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
-	<!--  
 	<include file="config/liquibase/changelog/KW_20210807000001_update_report_definition_recycler.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210807000002_update_report_definition_cash.xml" relativeToChangelogFile="false"/>
-	-->
+	<include file="config/liquibase/changelog/KW_20210807000003_update_report_definition_pos.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

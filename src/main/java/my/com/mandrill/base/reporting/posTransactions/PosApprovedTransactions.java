@@ -110,7 +110,11 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 							}
 						}
 					}
-					criteriaMap.put(bankCode, bankName);
+					if (bankCode == null) {
+						criteriaMap.put("-", "-");
+					} else {
+						criteriaMap.put(bankCode, bankName);
+					}					
 				}
 			} catch (Exception e) {
 				rgm.errors++;

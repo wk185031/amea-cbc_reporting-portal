@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -32,7 +31,6 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 	private float totalHeight = PDRectangle.A4.getHeight();
 	public String tmpChannel = null;
 	private int pagination = 0;
-	private int channelCount = 0;
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -112,83 +110,6 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 		}
 	}
 
-//	private void preProcessing(ReportGenerationMgr rgm, int i)
-//			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-//		logger.debug("In CashCardSuccessfulUnsuccessfulStatisticsPerChannel.preProcessing()");
-//		ReportGenerationFields txnCriteria = null;
-//		ReportGenerationFields channel = null;
-//		ReportGenerationFields txnType = new ReportGenerationFields(ReportConstants.PARAM_TXN_TYPE,
-//				ReportGenerationFields.TYPE_STRING, "CTR.CTR_MNEM");
-//		getGlobalFileFieldsMap().put(txnType.getFieldName(), txnType);
-//
-//		switch (i) {
-//		case 0:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.CHINABANK_ATM + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ORIGIN_ICH_NAME = 'NDC' AND CTR.CTR_CHANNEL = 'ATM'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		case 1:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.BANCNET_ATM + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING,
-//					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID NOT IN ('9990', '0000009990') AND CTR.CTR_CHANNEL = 'OB'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		case 2:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.CHINABANK_EBK + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'EBK' AND CTR.CTR_CHANNEL = 'EBK'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		case 3:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.BANCNET_EBK + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING,
-//					"TXN.TRL_ORIGIN_ICH_NAME = 'Bancnet_Interchange' AND TXN.TRL_ACQR_INST_ID IN ('9990', '0000009990') AND CTR.CTR_CHANNEL = 'OB'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		case 4:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.CHINABANK_MBK + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'MBK' AND CTR.CTR_CHANNEL = 'MBK'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		case 5:
-//			channelCount = 0;
-//			channel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL, ReportGenerationFields.TYPE_STRING,
-//					"'" + ReportConstants.CHINABANK_IVR + "'");
-//			txnCriteria = new ReportGenerationFields(ReportConstants.PARAM_TXN_CRITERIA,
-//					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_ORIGIN_CHANNEL = 'IVR' AND CTR.CTR_CHANNEL = 'IVR'");
-//
-//			getGlobalFileFieldsMap().put(channel.getFieldName(), channel);
-//			getGlobalFileFieldsMap().put(txnCriteria.getFieldName(), txnCriteria);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
-
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.executeBodyQuery()");
@@ -256,34 +177,6 @@ public class CashCardSuccessfulUnsuccessfulStatisticsPerChannel extends PdfRepor
 			}
 		}
 	}
-
-//	@Override
-//	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-//			PDPageContentStream contentStream, float leading)
-//			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-//		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-//		for (ReportGenerationFields field : fields) {
-//			if (field.isEol()) {
-//				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-//				contentStream.newLineAtOffset(0, -leading);
-//			} else {
-//				switch (field.getFieldName()) {
-//				case ReportConstants.CHANNEL:
-//					if (channelCount > 0) {
-//						fieldsMap.get(field.getFieldName()).setValue("");
-//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-//					} else {
-//						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-//					}
-//					channelCount++;
-//					break;
-//				default:
-//					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-//					break;
-//				}
-//			}
-//		}
-//	}
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,

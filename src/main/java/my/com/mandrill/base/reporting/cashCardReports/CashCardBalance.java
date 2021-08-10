@@ -95,20 +95,20 @@ public class CashCardBalance extends PdfReportProcessor {
 					preProcessing(rgm, cardProduct, branchCode);
 					contentStream = executePdfBodyQuery(rgm, doc, contentStream, leading);
 					contentStream.showText(String.format("%1$125s", "TOTAL: ")
-							+ String.format("%1$29s", formatter.format(balanceTotal)));
+							+ String.format("%1$22s", formatter.format(balanceTotal)));
 					overallTotal += balanceTotal;
 					pageHeight += 1;
 					contentStream.newLineAtOffset(0, -leading);
 					pageHeight += 1;
 					branchCount++;
 				}
-				contentStream.showText(String.format("%1$154s", "________________"));
+				contentStream.showText(String.format("%1$147s", "________________"));
 				contentStream.newLineAtOffset(0, -leading);
 				pageHeight += 1;
 				contentStream.showText(String.format("%-118s",
 						(ReportConstants.CARD_PRODUCT + " - " + cardProduct + " OVER-ALL TOTAL: "))
 						+ String.format("%-15s", "GRAND TOTAL: ")
-						+ String.format("%1$21s", formatter.format(overallTotal)));
+						+ String.format("%1$14s", formatter.format(overallTotal)));
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
@@ -151,6 +151,7 @@ public class CashCardBalance extends PdfReportProcessor {
 		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
 				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
 		pagination++;
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		writePdfHeader(rgm, contentStream, 1.5f * DEFAULT_FONT_SIZE, pagination);
 		return contentStream;
 	}
