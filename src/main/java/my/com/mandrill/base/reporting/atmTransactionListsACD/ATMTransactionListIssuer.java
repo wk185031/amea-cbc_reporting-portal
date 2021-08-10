@@ -248,7 +248,7 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 			}
 			
 			if (null != prepaidBillerCode && field.getFieldName().equals(ReportConstants.TO_ACCOUNT_TYPE)) {
-				field.setValue(prepaidBillerCode);
+				fieldsMap.get(field.getFieldName()).setValue(prepaidBillerCode);
 			}
 		}
 		
