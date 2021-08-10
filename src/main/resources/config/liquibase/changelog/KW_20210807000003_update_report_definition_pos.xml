@@ -21,6 +21,10 @@
                  path="config/liquibase/report-query/POS_Transactions/POS_Approved_Transactions.sql"
                  splitStatements="false" 
                  stripComments="true" />
-        
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Inter-Entity).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
 	</changeSet>
 </databaseChangeLog>
