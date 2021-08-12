@@ -2,7 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Revise report		25-JULY-2021	WY		Revise IE reports based on spec
--- CBCAXUPISSLOG-531	10-AUG-2021		KW		Only include transactions originate from terminals within same institution.
+-- CBCAXUPISSLOG-531	10-AUG-2021		KW		Only include acquiring and OnUs txn from terminal
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -47,6 +47,13 @@ BEGIN
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
+	ORDER BY
+      "BRANCH CODE" ASC,
+	  "BRANCH NAME" ASC,
+      "TERMINAL" ASC,
+      "DATE" ASC,
+	  "TIME" ASC,
+      "SEQ NUMBER" ASC
 	');
 	
 	UPDATE REPORT_DEFINITION set 

@@ -128,4 +128,5 @@
 	<include file="config/liquibase/changelog/KW_20210807000001_update_report_definition_recycler.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210807000002_update_report_definition_cash.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210807000003_update_report_definition_pos.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20210811000001_update_report_definition_recycler.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
