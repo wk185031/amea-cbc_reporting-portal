@@ -68,6 +68,7 @@ import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.EncryptionService;
+import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.service.UserService;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
@@ -88,6 +89,7 @@ public class ReportGenerationResource {
 	private final UserService userService;
 	private final UserExtraRepository userExtraRepository;
 	private final EncryptionService encryptionService;
+	private final ReportService reportService;
 	private final Environment env;
 	private Timer scheduleTimer = null;
 	private Calendar nextTime = null;
@@ -98,7 +100,7 @@ public class ReportGenerationResource {
 			ReportCategoryRepository reportCategoryRepository, JobRepository jobRepository,
 			JobHistoryRepository jobHistoryRepository, InstitutionRepository institutionRepository,
 			ReportProcessorLocator reportProcessLocator, EncryptionService encryptionService, Environment env,
-			UserService userService, UserExtraRepository userExtraRepository) {
+			UserService userService, UserExtraRepository userExtraRepository, ReportService reportService) {
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.jobRepository = jobRepository;
@@ -108,6 +110,7 @@ public class ReportGenerationResource {
 		this.userService = userService;
 		this.userExtraRepository = userExtraRepository;
 		this.encryptionService = encryptionService;
+		this.reportService = reportService;
 		this.env = env;
 	}
 
@@ -165,11 +168,15 @@ public class ReportGenerationResource {
 												instShortCode = "CBS";
 											}
 										}
+										reportService.autoGenerateAllReports(
+												LocalDate.now().minusDays(1L).atStartOfDay(),
+												LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(),
+												instShortCode, false);
 
-										generateDailyReport(institution.getId(), instShortCode);
-										if (yesterdayDate.equals(lastDayOfMonth)) {
-											generateMonthlyReport(institution.getId(), instShortCode);
-										}
+//										generateDailyReport(institution.getId(), instShortCode);
+//										if (yesterdayDate.equals(lastDayOfMonth)) {
+//											generateMonthlyReport(institution.getId(), instShortCode);
+//										}
 
 									}
 									executed = true;
@@ -374,89 +381,83 @@ public class ReportGenerationResource {
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-		LocalDateTime txnStartDateTime = LocalDateTime.parse(startDateTime, formatter);
-		LocalDateTime txnEndDateTime = LocalDateTime.parse(endDateTime, formatter);
+		LocalDateTime inputStartDateTime = LocalDateTime.parse(startDateTime, formatter);
+		LocalDateTime inputEndDateTime = LocalDateTime.parse(endDateTime, formatter);
 		
-		long noOfDaysBetween = ChronoUnit.DAYS.between(txnStartDateTime, txnEndDateTime);
+//		long noOfDaysBetween = ChronoUnit.DAYS.between(inputStartDateTime, inputEndDateTime);
 
 		String instShortCode = findInstitutionCode(institutionId);
 
-		reportGenerationMgr.setInstitution(instShortCode);
-		reportGenerationMgr.setGenerate(true);
-		reportGenerationMgr.setFileDate(txnStartDateTime.toLocalDate());
-		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
-		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
-		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
-	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
-		reportGenerationMgr.setEncryptionService(encryptionService);
-
-		String yearMonth = txnStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + yearMonth;
-
-		List<ReportDefinition> aList = new ArrayList<>();
-
-		if (reportCategoryId == 0) {
-			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
-		} else if (reportId == 0) {
-			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
-		} else {
-			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
-			if (reportDefinition != null) {
-				aList.add(reportDefinition);
-			}
-		}
-		logger.debug("Process {} reports", aList.size());
-		for (ReportDefinition reportDefinition : aList) {
-
-			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-			reportGenerationMgr.setFileName(reportDefinition.getName());
-			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
-			
-			if(reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY) && noOfDaysBetween > 0) {
-				reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
-			}else {
-				reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
-			}
-
-			String dayPrefix = null; 
-
-			if (reportGenerationMgr.getFrequency().contains(ReportConstants.DAILY)) {
-				reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-				reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-				dayPrefix = StringUtils.leftPad(String.valueOf(txnStartDateTime.getDayOfMonth()), 2, "0");
-				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
-				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
-						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
-				reportGenerationMgr.setTxnStartDate(txnStartDateTime);
-				reportGenerationMgr.setTxnEndDate(txnEndDateTime.plusMinutes(1L));
-				reportGenerationMgr.setReportTxnEndDate(txnEndDateTime);
-				runReport(reportGenerationMgr);
-			} 
-
-			if (reportGenerationMgr.getFrequency().contains(ReportConstants.MONTHLY)) {
-				reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-				reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-				dayPrefix = "00";
-				reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
-				reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + ReportConstants.MAIN_PATH
-						+ File.separator + reportDefinition.getReportCategory().getName() + File.separator);
-				LocalDate firstDayOfMonth = txnStartDateTime.toLocalDate().withDayOfMonth(1);
-				LocalDate lastDayOfMonth = txnStartDateTime.toLocalDate()
-						.withDayOfMonth(txnStartDateTime.toLocalDate().lengthOfMonth());
-				reportGenerationMgr.setTxnStartDate(firstDayOfMonth.atStartOfDay());
-				reportGenerationMgr.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
-				reportGenerationMgr.setReportTxnEndDate(YearMonth.from(txnEndDateTime).atEndOfMonth().atTime(LocalTime.MAX));
-				runReport(reportGenerationMgr);
-			}
-		}
+		reportService.generateReport(inputStartDateTime, inputEndDateTime, institutionId, instShortCode,
+				reportCategoryId, reportId, true, true);
+		
+//		reportGenerationMgr.setInstitution(instShortCode);
+//		reportGenerationMgr.setGenerate(true);
+//		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
+//		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+//		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+//		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+//	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
+//		reportGenerationMgr.setEncryptionService(encryptionService);
+//
+//		String yearMonth = inputStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+//		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+//				+ institutionId + File.separator + yearMonth;
+//
+//		List<ReportDefinition> aList = new ArrayList<>();
+//
+//		if (reportCategoryId == 0) {
+//			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
+//		} else if (reportId == 0) {
+//			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
+//		} else {
+//			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
+//			if (reportDefinition != null) {
+//				aList.add(reportDefinition);
+//			}
+//		}
+//		logger.debug("Process {} reports", aList.size());
+//		for (ReportDefinition reportDefinition : aList) {
+//
+//			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
+//			reportGenerationMgr.setFileName(reportDefinition.getName());
+//			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
+//			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
+//			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
+//			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
+//			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
+//			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
+//			
+//			if (reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY)
+//					&& noOfDaysBetween > 0) {
+//				reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
+//			} else {
+//				reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
+//			}
+//			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+//			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
+//			
+//			String[] frequencies = reportGenerationMgr.getFrequency().split(",");
+//			for (String freq : frequencies) {
+//				if (ReportConstants.DAILY.equals(freq)) {
+//					setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime, directory,
+//							reportDefinition.getReportCategory().getName());
+//					logger.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
+//							reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
+//					runReport(reportGenerationMgr);
+//				}
+//
+//				if (ReportConstants.MONTHLY.equals(freq)) {
+//					setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime, directory,
+//							reportDefinition.getReportCategory().getName());
+//					logger.debug("run monthly report: name={}, start date={}, end date={}", reportDefinition.getName(),
+//							reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
+//					runReport(reportGenerationMgr);
+//				}
+//			}
+//		}
 		return ResponseUtil
-				.wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null : aList.get(0)));
+				.wrapOrNotFound(Optional.ofNullable(new ReportDefinition()));
 	}
 
 	private String findInstitutionCode(Long institutionId) {
@@ -919,6 +920,31 @@ public class ReportGenerationResource {
 
 		logger.debug("REST finish request to download report");
 		return ResponseEntity.ok().body(resource);
+	}
+	
+	private void setTransactionDateRange(ReportGenerationMgr reportGenerationMgr, boolean isMonthly,
+			LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String directory, String reportCategory) {
+		if (isMonthly) {
+			String dayPrefix = "00";
+			reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
+			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator
+					+ ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
+			LocalDate firstDayOfMonth = inputStartDateTime.toLocalDate().withDayOfMonth(1);
+			LocalDate lastDayOfMonth = inputStartDateTime.toLocalDate()
+					.withDayOfMonth(inputStartDateTime.toLocalDate().lengthOfMonth());
+			reportGenerationMgr.setTxnStartDate(firstDayOfMonth.atStartOfDay());
+			reportGenerationMgr.setTxnEndDate(lastDayOfMonth.plusDays(1L).atStartOfDay());
+			reportGenerationMgr
+					.setReportTxnEndDate(YearMonth.from(inputEndDateTime).atEndOfMonth().atTime(LocalTime.MAX));
+		} else {
+			String dayPrefix = StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0");
+			reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
+			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator
+					+ ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
+			reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+			reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+			reportGenerationMgr.setReportTxnEndDate(inputEndDateTime);
+		}
 	}
 
 	private List<String> populateFilesList(File dir, List<String> filesListInDir) throws IOException {
