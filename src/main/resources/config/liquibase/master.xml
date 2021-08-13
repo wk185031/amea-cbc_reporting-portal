@@ -137,9 +137,10 @@
 	<include file="config/liquibase/changelog/WY_20210816000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 	<include file="config/liquibase/changelog/KW_20210813000002_update_report_definition_dcms.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20210816000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210818000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210819000001_remove_scheme_and_camBeep_reports.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20210813_business_date.xml" relativeToChangelogFile="false"/>
 	<!--  
 	<include file="config/liquibase/changelog/KW_20210820000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 	-->
-	<include file="config/liquibase/changelog/NY_20210818000001_update_report_definition.xml" relativeToChangelogFile="false"/>
-	<include file="config/liquibase/changelog/NY_20210819000001_remove_scheme_and_camBeep_reports.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

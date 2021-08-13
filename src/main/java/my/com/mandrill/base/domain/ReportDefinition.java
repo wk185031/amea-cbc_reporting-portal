@@ -122,6 +122,10 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	@NotNull
 	@JoinColumn(name="red_rec_id", nullable=false)
 	private ReportCategory category;
+	
+	@NotNull
+	@Column(name = "red_by_business_date", nullable = false)
+    private boolean byBusinessDate = false;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -417,6 +421,14 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 
 	public void setInstitutionId(Long institutionId) {
 		this.institutionId = institutionId;
+	}
+	
+	public boolean isByBusinessDate() {
+		return byBusinessDate;
+	}
+	
+	public void setByBusinessDate(boolean byBusinessDate) {
+		this.byBusinessDate = byBusinessDate;
 	}
 	
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and

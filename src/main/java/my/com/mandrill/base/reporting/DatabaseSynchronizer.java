@@ -286,8 +286,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_COMPLETED, user);
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
-		LocalDate transactionDate = LocalDate.now().minusDays(1L);
-
 		String instShortCode = null;
 
 		List<Institution> institutions = institutionRepository.findAll();
@@ -298,7 +296,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
 					instShortCode = "CBS";
 				}
-				reportService.generateAllReports(transactionDate, institution.getId(), instShortCode);
+				reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
+						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false);
 			}
 		}
 	}
