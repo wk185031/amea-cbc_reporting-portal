@@ -41,8 +41,7 @@ public class EftAtmTransactionListOtherBanks extends PdfReportProcessor {
 	}
 
 	private void generateBranchReport(ReportGenerationMgr rgm) {
-		logger.debug("In EftAtmTransactionListOtherBanks.generateBranchReport()");
-		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		logger.debug("In EftAtmTransactionListOtherBanks.generateBranchReport()");		
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
 		try {
@@ -51,6 +50,7 @@ public class EftAtmTransactionListOtherBanks extends PdfReportProcessor {
 			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
 					rgm).entrySet()) {
 				pagination = 1;
+				pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 				doc = new PDDocument();
 				PDPage page = new PDPage();
 				doc.addPage(page);

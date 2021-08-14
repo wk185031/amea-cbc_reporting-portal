@@ -205,6 +205,8 @@ public final class ReportConstants {
 	public static final String TRANSMITTING_TOTAL = "TRANSMITTING TOTAL";
 	public static final String RECEIVING_TOTAL = "RECEIVING TOTAL";
 	public static final String NET_SETTLEMENT = "NET SETTLEMENT";
+	public static final String NET_COUNT = "NET COUNT";
+	public static final String DEBIT_CREDIT = "DEBIT CREDIT";
 	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
 	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
 	public static final String SUBSCRIBER_ACCT_NUMBER = "SUBSCRIBER ACCT NUMBER";
@@ -330,6 +332,7 @@ public final class ReportConstants {
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
 	public static final String SEPARATOR = ",";
+	public static final String NO_RECORD = "**NO TRANSACTIONS FOR THE DAY**";
 	
 	public static final String SECUREFIELD = "secure-field";
 	
@@ -337,4 +340,6 @@ public final class ReportConstants {
 	public static final String ATM_DAILY_TRANSACTION_SUMMARY = "ATM Daily Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
+
+	
 }

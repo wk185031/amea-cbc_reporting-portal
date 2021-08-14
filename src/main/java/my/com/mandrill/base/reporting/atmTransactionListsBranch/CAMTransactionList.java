@@ -36,20 +36,24 @@ public class CAMTransactionList extends PdfReportProcessor {
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In CAMTransactionList.processPdfRecord()");
-		generateBranchReport(rgm);
-		generateMasterListReport(rgm);
+
+		rgm.setBodyQuery(rgm.getFixBodyQuery());
+		preProcessing(rgm);
+		SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords = filterCriteriaByBranch(rgm);
+		generateMasterListReport(rgm, branchRecords);
+		generateBranchReport(rgm, branchRecords);
 	}
 
-	private void generateBranchReport(ReportGenerationMgr rgm) {
+	private void generateBranchReport(ReportGenerationMgr rgm,
+			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) {
 		logger.debug("In CAMTransactionList.generateBranchReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
 		try {
-			preProcessing(rgm);
-
-			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
-					rgm).entrySet()) {
+			
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : branchRecords
+					.entrySet()) {
 				pagination = 1;
 				doc = new PDDocument();
 				PDPage page = new PDPage();
@@ -96,9 +100,9 @@ public class CAMTransactionList extends PdfReportProcessor {
 				}
 				contentStream.endText();
 				contentStream.close();
-
 				saveFile(rgm, doc, branchCode);
 			}
+
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -114,7 +118,8 @@ public class CAMTransactionList extends PdfReportProcessor {
 		}
 	}
 
-	private void generateMasterListReport(ReportGenerationMgr rgm) {
+	private void generateMasterListReport(ReportGenerationMgr rgm,
+			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) {
 		logger.debug("In CAMTransactionList.generateMasterListReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -138,40 +143,41 @@ public class CAMTransactionList extends PdfReportProcessor {
 			String terminal = null;
 			String location = null;
 
-			rgm.setBodyQuery(rgm.getFixBodyQuery());
-			preProcessing(rgm);
-
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
-
-			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
-					rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+			
+			if (branchRecords == null || branchRecords.isEmpty()) {
+				writeEmptyBodyPdf(rgm, contentStream, leading, pageHeight, pagination);
+			} else {
+				for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : branchRecords
 						.entrySet()) {
-					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, terminal);
-					writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
-					contentStream.newLineAtOffset(0, -leading);
-					pageHeight += 4;
-					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
-						terminal = terminalMap.getKey();
-						location = terminalMap.getValue();
-						contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + location);
-						pageHeight += 1;
-						contentStream.newLineAtOffset(0, -leading);
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
+					branchCode = branchCodeMap.getKey();
+					for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+							.entrySet()) {
+						branchName = branchNameMap.getKey();
 						preProcessing(rgm, branchCode, terminal);
-						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-								startY, pdfFont, fontSize);
-						pageHeight += 1;
+						writePdfHeader(rgm, contentStream, leading, pagination, branchCode, branchName);
+						contentStream.newLineAtOffset(0, -leading);
+						pageHeight += 4;
+						for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+							terminal = terminalMap.getKey();
+							location = terminalMap.getValue();
+							contentStream.showText(ReportConstants.TERMINAL + " " + terminal + " - " + location);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							preProcessing(rgm, branchCode, terminal);
+							contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading,
+									startX, startY, pdfFont, fontSize);
+							pageHeight += 1;
+						}
 					}
 				}
+				contentStream.endText();
+				contentStream.close();
 			}
-			contentStream.endText();
-			contentStream.close();
 
 			saveFile(rgm, doc);
 		} catch (Exception e) {
@@ -190,13 +196,11 @@ public class CAMTransactionList extends PdfReportProcessor {
 		}
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm) {
 		logger.debug("In CAMTransactionList.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery()
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}","")
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 //					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
 //							getBranchQueryStatement(rgm.getInstitution(), "ABR.ABR_CODE"))
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));

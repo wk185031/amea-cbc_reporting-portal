@@ -20,7 +20,6 @@ BEGIN
 	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"MERCHANT","csvTxtLength":"45","pdfLength":"45","fieldType":"String","eol":false,"delimiter":";","defaultValue":"MERCHANT","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"TOTAL TXN COUNT","csvTxtLength":"32","pdfLength":"32","fieldType":"String","delimiter":";","defaultValue":"TOTAL TXN COUNT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"TOTAL TXN AMT","csvTxtLength":"32","pdfLength":"32","fieldType":"String","delimiter":";","defaultValue":"TOTAL TXN AMT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"AVE TXN AMT","csvTxtLength":"30","pdfLength":"30","fieldType":"String","delimiter":";","defaultValue":"AVE TXN AMT","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"MERCHANT NAME","csvTxtLength":"30","pdfLength":"30","fieldType":"String","delimiter":";","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"TOTAL TXN COUNT","csvTxtLength":"30","pdfLength":"30","fieldType":"Number","delimiter":";","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TOTAL TXN AMT","csvTxtLength":"30","pdfLength":"30","fieldType":"Decimal","delimiter":";","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"AVE TXN AMT","csvTxtLength":"30","pdfLength":"30","fieldType":"Decimal","delimiter":";","eol":true,"fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
  	i_TRAILER_FIELDS_CBS := null;
  	    
-
   i_BODY_QUERY := TO_CLOB('
 	SELECT
   	  SUBSTR(TXN.TRL_CARD_ACPT_NAME_LOCATION, 1, 24) "MERCHANT NAME",
@@ -34,7 +33,8 @@ BEGIN
 	WHERE
 	    CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
   		AND TXN.TRL_MCC_ID = 6012
-                AND TXN.TRL_TSC_CODE = 0
+        AND TXN.TRL_TSC_CODE = 0
+        AND TXN.TRL_ISS_NAME = {V_Iss_Name}
   		AND TXN.TRL_TQU_ID = ''F''
 		AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
   		AND TXN.TRL_ACTION_RESPONSE_CODE = 0

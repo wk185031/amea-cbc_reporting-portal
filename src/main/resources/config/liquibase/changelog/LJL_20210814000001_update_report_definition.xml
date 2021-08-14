@@ -14,12 +14,13 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="NY_20210615000001_update_report_definition" author="ny">
+    <changeSet id="LJL_20210814000001_update_report_definition" author="LJL">
     	<validCheckSum>any</validCheckSum>
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/DCMS_Reports/Monthly_Card_File_Report.sql"
+                 path="config/liquibase/report-query/RFID_Transactions/List_of_RFID_Payments.sql"
                  splitStatements="false" 
                  stripComments="true" />
+				 
     </changeSet>
 </databaseChangeLog>

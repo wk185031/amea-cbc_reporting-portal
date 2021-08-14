@@ -39,19 +39,30 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 			pagination++;
 			preProcessing(rgm);
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankMap : filterByBank(rgm).entrySet()) {
-				bankCode = bankMap.getKey();
-				bankName = bankMap.getValue();
-				txnCount = 0;
-				total = 0.00;
-				totalCommission = 0.00;
-				totalNetSettAmt = 0.00;
-				preProcessing(rgm, bankCode);
-				writeMerchantHeader(rgm, bankCode, bankName);
-				writeBodyHeader(rgm);
-				executeBodyQuery(rgm, bankCode);
-				writeMerchantTotal(rgm, txnCount, total, totalCommission, totalNetSettAmt);
+			
+			SortedMap<String, String> bankList = filterByBank(rgm);
+			
+			if (bankList == null || bankList.size() == 0) {
+				StringBuilder line = new StringBuilder();
+				line.append(ReportConstants.NO_RECORD);
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+			} else {
+				for (SortedMap.Entry<String, String> bankMap : bankList.entrySet()) {
+					bankCode = bankMap.getKey();
+					bankName = bankMap.getValue();
+					txnCount = 0;
+					total = 0.00;
+					totalCommission = 0.00;
+					totalNetSettAmt = 0.00;
+					preProcessing(rgm, bankCode);
+					writeMerchantHeader(rgm, bankCode, bankName);
+					writeBodyHeader(rgm);
+					executeBodyQuery(rgm, bankCode);
+					writeMerchantTotal(rgm, txnCount, total, totalCommission, totalNetSettAmt);
+				}
 			}
+						
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
