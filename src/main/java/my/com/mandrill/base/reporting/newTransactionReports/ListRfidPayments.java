@@ -16,6 +16,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
+import my.com.mandrill.base.web.rest.ReportGenerationResource;
 
 public class ListRfidPayments extends CsvReportProcessor {
 
@@ -123,28 +124,30 @@ public class ListRfidPayments extends CsvReportProcessor {
 	}
 	@Override
 	protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In MonthlySummaryRfidChannelPayments.writeRetailHeader()");
+		logger.debug("In CsvReportProcessor.writeHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			switch (field.getSequence()) {
-			case 4:
-			case 16:
-				break;
-			default:
-				if (field.isEol()) {
-					line.append(getGlobalFieldValue(rgm, field));
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					}else {
-					line.append(getGlobalFieldValue(rgm, field));
-					}
-					line.append(field.getDelimiter());
+			if (field.isEol()) {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+					line.append(String.valueOf(pagination));{
 				}
-				break;
+				line.append(field.getDelimiter());
+			} else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
+		              (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
+		          if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
+		              line.append("0112");
+		              line.append(field.getDelimiter());
+		          }else{
+		              line.append("CHINA BANK SAVINGS");
+		              line.append(field.getDelimiter());
+		          }
+			} else {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
 			}
 		}
 		line.append(getEol());

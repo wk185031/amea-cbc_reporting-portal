@@ -297,7 +297,7 @@ public class GLHandoffBlocksheetBeep extends TxtReportProcessor {
 			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
 					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
 					.replace(
-							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN ('CBC BEEP LOADING') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT, 0) END AS \"DEBIT\",",
+							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN ('CBC BEEP LOADING', 'I/E BEEP LOADING') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT, 0) END AS \"DEBIT\",",
 							"")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "").replace("TXN.TRL_AMT_TXN,", "")

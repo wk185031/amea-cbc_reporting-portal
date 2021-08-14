@@ -19,6 +19,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
+import my.com.mandrill.base.web.rest.ReportGenerationResource;
 
 public class MonthlySummaryRfidChannelPayments extends CsvReportProcessor {
 
@@ -29,6 +30,8 @@ public class MonthlySummaryRfidChannelPayments extends CsvReportProcessor {
 	public static final String SUBSTRING_END_SECOND_PAGE = "END SECOND PAGE";
 	public static final String SUBSTRING_START_THIRD_PAGE = "START THIRD PAGE";
 	public static final String SUBSTRING_END_THIRD_PAGE = "END THIRD PAGE";
+	public static final String SUMMARY_OF_RFID_PAYMENTS_PER_CHANNEL_REPORT = "SUMMARY OF RFID PAYMENTS PER CHANNEL REPORT";
+	public static final String File_Name1 = "File Name1";
 	private String firstPageBodyQuery = null;
 	private String secondPageBodyQuery = null;
 	private String thirdPageBodyQuery = null;
@@ -100,7 +103,7 @@ public class MonthlySummaryRfidChannelPayments extends CsvReportProcessor {
 			secondPageDetails(rgm);
 
 			pagination++;
-			writeHeader(rgm, pagination);
+			writeThirdHeader(rgm, pagination);
 			thirdPageDetails(rgm);
 
 			rgm.fileOutputStream.flush();
@@ -242,28 +245,65 @@ public class MonthlySummaryRfidChannelPayments extends CsvReportProcessor {
 	}
 	@Override
 	protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In MonthlySummaryRfidChannelPayments.writeRetailHeader()");
+		logger.debug("In MonthlySummaryRfidCHannelPayments.writeHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			switch (field.getSequence()) {
-			case 4:
-			case 16:
-				break;
-			default:
-				if (field.isEol()) {
-					line.append(getGlobalFieldValue(rgm, field));
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-						line.append(String.valueOf(pagination));
-					}else {
-					line.append(getGlobalFieldValue(rgm, field));
-					}
-					line.append(field.getDelimiter());
+			if (field.isEol()) {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+					line.append(String.valueOf(pagination));{
 				}
-				break;
+				line.append(field.getDelimiter());
+			} else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
+		              (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
+		          if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
+		              line.append("0112");
+		              line.append(field.getDelimiter());
+		          }else{
+		              line.append("CHINA BANK SAVINGS");
+		              line.append(field.getDelimiter());
+		          }
+			} else {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	protected void writeThirdHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
+		logger.debug("In MonthlySummaryRfidCHannelPayments.writeThirdHeader()");
+		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isEol()) {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+					line.append(String.valueOf(pagination));{
+				}
+				line.append(field.getDelimiter());
+			} else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
+		              (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
+		          if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
+		              line.append("0112");
+		              line.append(field.getDelimiter());
+		          }else{
+		              line.append("CHINA BANK SAVINGS");
+		              line.append(field.getDelimiter());
+		          }
+			} else if(field.getFieldName().equalsIgnoreCase(File_Name1)) {
+				line.append(SUMMARY_OF_RFID_PAYMENTS_PER_CHANNEL_REPORT);
+				line.append(field.getDelimiter());
+			}
+			else {
+				line.append(getGlobalFieldValue(rgm, field));
+				line.append(field.getDelimiter());
 			}
 		}
 		line.append(getEol());
