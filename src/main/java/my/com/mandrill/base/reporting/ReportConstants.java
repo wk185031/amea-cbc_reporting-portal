@@ -332,6 +332,7 @@ public final class ReportConstants {
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
 	public static final String SEPARATOR = ",";
+	public static final String NO_RECORD = "**NO TRANSACTIONS FOR THE DAY**";
 	
 	public static final String SECUREFIELD = "secure-field";
 	
@@ -339,4 +340,6 @@ public final class ReportConstants {
 	public static final String ATM_DAILY_TRANSACTION_SUMMARY = "ATM Daily Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
+
+	
 }

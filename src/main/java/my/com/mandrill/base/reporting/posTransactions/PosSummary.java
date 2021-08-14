@@ -65,7 +65,7 @@ public class PosSummary extends PdfReportProcessor {
 		logger.debug("In PosSummary.writeTotal()");
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		StringBuilder line = new StringBuilder();
-		line.append(";;").append("GRAND TOTAL : ").append(";").append(String.format("%,d", txnCount)).append(";")
+		line.append(";").append("GRAND TOTAL : ").append(";").append(String.format("%,d", txnCount)).append(";")
 				.append(formatter.format(total)).append(";").append(";").append(formatter.format(totalCommission))
 				.append(";").append(formatter.format(totalNetSettAmt)).append(";");
 		line.append(getEol());
@@ -110,6 +110,10 @@ public class PosSummary extends PdfReportProcessor {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
 					total += txnAmt;
 				}
+				if (field.getValue().startsWith("-")) {
+					fieldsMap.get(field.getFieldName()).setValue(field.getValue().substring(1));
+				}
+				
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));

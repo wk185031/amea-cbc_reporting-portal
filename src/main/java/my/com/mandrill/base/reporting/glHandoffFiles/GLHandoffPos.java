@@ -88,7 +88,7 @@ public class GLHandoffPos extends BatchProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		if (filterByBranchCode != null && getDebitBodyQuery() != null && getCreditBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "TLC.TRL_CARD_BRANCH = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "CRDC.CRD_BRANCH_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
