@@ -42,7 +42,12 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 				rgm.writeLine(line.toString().getBytes());
 				preProcessing(rgm, bankCode);
 				writeBodyHeader(rgm);
-				executeBodyQuery(rgm);
+				executeBodyQuery(rgm);	
+				line = new StringBuilder();
+				line.append(getEol());
+				line.append("SUBTOTAL FOR ACQUIRER BANK - ").append(";").append(bankName + " ").append(";").append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+				executeTrailerQuery(rgm);
 				line = new StringBuilder();
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
@@ -180,6 +185,95 @@ public class AtmWithdrawalIssuerBank extends CsvReportProcessor {
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+	
+	protected void executeTrailerQuery(ReportGenerationMgr rgm) {
+		logger.debug("In AtmWithdrawalIssuerBank.executeTrailerQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getTrailerQuery(rgm);
+		logger.info("Query for trailer line export: {}", query);
+		double totalAmountDebit = 0.00;
+		double totalAmountCredit = 0.00;
+		double subtotalAmount = 0.00;
+		int totalCountDebit = 0;
+		int totalCountCredit = 0;
+		int subtotalCount = 0;
+		String tranMnem = null;
+		StringBuilder line = new StringBuilder();
+		line.append(ReportConstants.TRAN_MNEM).append(";").append(ReportConstants.NET_COUNT).append(";").append(ReportConstants.NET_SETTLEMENT).append(";").append(getEol());
+		
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+						
+					}
+					
+					tranMnem = lineFieldsMap.get(ReportConstants.TRAN_MNEM).getValue();
+					
+					// count total here than write to file after we loop the total accumulation
+					if(lineFieldsMap.get(ReportConstants.DEBIT_CREDIT).getValue().equals("DR")) {
+						totalAmountDebit += Double.parseDouble(lineFieldsMap.get(ReportConstants.NET_SETTLEMENT).getValue());
+						totalCountDebit += Integer.parseInt(lineFieldsMap.get(ReportConstants.NET_COUNT).getValue());
+						line.append(tranMnem).append(";").append(totalCountDebit).append(";").append(String.format("%.2f", totalAmountDebit) + " DR").append(";").append(getEol());
+					} else if (lineFieldsMap.get(ReportConstants.DEBIT_CREDIT).getValue().equals("CR")) {
+						totalAmountCredit += Double.parseDouble(lineFieldsMap.get(ReportConstants.NET_SETTLEMENT).getValue());
+						totalCountCredit += Integer.parseInt(lineFieldsMap.get(ReportConstants.NET_COUNT).getValue());
+						line.append(tranMnem).append(";").append(totalCountCredit).append(";").append(String.format("%.2f", totalAmountCredit) + " CR").append(";").append(getEol());
+					}					
+				}
+				
+				subtotalAmount = totalAmountDebit - totalAmountCredit;
+				subtotalCount = totalCountDebit - totalCountCredit;
+								
+				line.append("SUBTOTAL").append(";").append(subtotalCount).append(";").append(String.format("%.2f", subtotalAmount) + " DR").append(";").append(getEol());	
+
+				rgm.writeLine(line.toString().getBytes());								
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
 				try {
 					ps.close();
