@@ -276,7 +276,7 @@ public class ATMWithdrawalsSummaryReport extends PdfReportProcessor {
 				if (!field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
 						contentStream.showText(String.format("%1$4s", "")
-								+ String.format("%1$-" + field.getPdfLength() + "s", location));
+								+ String.format("%1$-" + field.getPdfLength() + "s", location.substring(0, Math.min(location.length(), field.getPdfLength()))));
 					} else {
 						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					}

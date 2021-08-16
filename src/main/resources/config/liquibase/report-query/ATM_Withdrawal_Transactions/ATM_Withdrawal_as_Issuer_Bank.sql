@@ -7,6 +7,7 @@
 -- Issuer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Issuer				07-AUG-2021		NY		Fix column not fully shown when open with excel 
 -- Issuer				14-AUG-2021		NY		Introduce trailer query for displaying subtotal
+-- Issuer				16-AUG-2021		NY		Update wrong condition in trailer that exlclude failed txn
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -101,7 +102,6 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1 
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND TXN.TRL_TQU_ID IN (''F'',''R'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})   
