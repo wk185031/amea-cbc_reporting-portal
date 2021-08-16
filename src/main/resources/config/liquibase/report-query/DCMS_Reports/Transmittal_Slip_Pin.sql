@@ -26,7 +26,7 @@ BEGIN
 	i_BODY_QUERY := TO_CLOB('
 select * from
       (SELECT
-      (SELECT CLT_FIRST_NAME || '' '' || CLT_MIDDLE_NAME || '' '' || CLT_LAST_NAME FROM DCMSADM.ISSUANCE_CLIENT@{DB_LINK_DCMS} WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
+      (SELECT CLT_FIRST_NAME || '' '' || CLT_MIDDLE_NAME || '' '' || CLT_LAST_NAME FROM {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
       ''NEW'' AS REMARKS,
       (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Name,
       (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Code,

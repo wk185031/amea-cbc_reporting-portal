@@ -4,6 +4,7 @@
 -- Issuer					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Issuer					09-AUG-2021		NY		Use TPS mnem if its not in SWIT/CASA mnem from file format
 -- Issuer					15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
+-- Issuer					16-AUG-2021		NY		IBFT txn not found in CASA Issuer
 
 DECLARE
 
@@ -53,9 +54,9 @@ FROM
       LEFT JOIN CBC_TRAN_CODE CTR ON TXN.TRL_TSC_CODE = CTR.CTR_CODE AND (CASE WHEN TXNC.TRL_ORIGIN_CHANNEL = ''BRM'' THEN ''CDM'' ELSE TXNC.TRL_ORIGIN_CHANNEL END) = CTR.CTR_CHANNEL
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_FRD_REV_INST_ID IS NULL
 	  AND TXN.TRL_TSC_CODE NOT IN (31, 122, 145, 146, 246)
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) NOT IN (''7001'', ''7002'', ''8553'', ''8551'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
 	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
