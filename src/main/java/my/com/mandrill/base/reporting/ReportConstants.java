@@ -69,6 +69,7 @@ public final class ReportConstants {
 	public static final String PARAM_ACQ_BANK_CODE = "Acq_Bank_Code";
 	public static final String PARAM_TERMINAL = "Terminal";
 	public static final String PARAM_CARD_PRODUCT = "Card_Product";
+	public static final String PARAM_TRANSACTION_GROUP = "Transaction_Group";
 	public static final String PARAM_GL_DESCRIPTION = "GL_Description";
 	public static final String PARAM_CHANNEL = "Channel";
 	public static final String PARAM_TXN_TYPE = "Txn_Type";
@@ -161,6 +162,7 @@ public final class ReportConstants {
 	public static final String BRANCH_NAME = "BRANCH NAME";
 	public static final String BRANCH = "BRANCH";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String TRANSACTION_GROUP = "TRANSACTION GROUP";
 	public static final String LOCATION = "LOCATION";
 	public static final String CHANNEL = "CHANNEL";
 	public static final String CARD_PRODUCT = "CARD PRODUCT";
