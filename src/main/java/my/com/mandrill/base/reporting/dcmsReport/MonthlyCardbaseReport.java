@@ -31,6 +31,11 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 public class MonthlyCardbaseReport extends PdfReportProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(MonthlyCardbaseReport.class);
+    private final PDFont DEFAULT_FONT = PDType1Font.COURIER;
+	private final PDRectangle DEFAULT_PAGE_LAYOUT = PDRectangle.A4;
+	private final float DEFAULT_FONT_SIZE = 6;
+	private final float DEFAULT_MARGIN = 30;
+    
     private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
     private float totalHeight = PDRectangle.A4.getHeight();
     private int pagination = 0;
@@ -166,17 +171,9 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                 while (rs.next()) {
                     lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
                     if (pageHeight > totalHeight) {
-                        pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-                        contentStream.endText();
-                        contentStream.close();
-                        page = new PDPage();
-                        doc.addPage(page);
-                        pagination++;
-                        contentStream = new PDPageContentStream(doc, page);
-                        contentStream.setFont(pdfFont, fontSize);
-                        contentStream.beginText();
-                        contentStream.newLineAtOffset(startX, startY);
-                    }
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream = newPage(rgm, doc, contentStream);
+					}
 
                     for (String key : lineFieldsMap.keySet()) {
                         ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
@@ -233,6 +230,10 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 
 
                 for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> productMap: productToLineFieldsMap.entrySet()) {
+                	if (pageHeight > totalHeight) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream = newPage(rgm, doc, contentStream);
+					}
                     preProcessingBodyHeader(rgm, productMap.getKey().split(",")[0], productMap.getKey().split(",")[1]);
                     writePdfBodyHeader(rgm, contentStream, leading);
                     pageHeight += 2;
@@ -247,7 +248,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 
                     for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
                         writePdfBody(rgm, m, contentStream, leading);
-
+                        pageHeight+=2;
                         grandTotalActive += Integer.parseInt(m.get("ACTIVE_CARDS").getValue());
                         grandTotalInactive += Integer.parseInt(m.get("INACTIVE_CARDS").getValue());
                         grandTotalRenewed += Integer.parseInt(m.get("RENEWED_CARDS").getValue());
@@ -279,6 +280,27 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
         }
         return contentStream;
     }
+    
+    private PDPageContentStream newPage(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream)
+			throws Exception {
+
+		if (contentStream != null) {
+			contentStream.endText();
+			contentStream.close();
+		}
+
+		PDPage page = new PDPage();
+		doc.addPage(page);
+		contentStream = new PDPageContentStream(doc, page);
+		contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+		contentStream.beginText();
+		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
+				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
+		pagination++;
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		writePdfHeader(rgm, contentStream, 1.5f * DEFAULT_FONT_SIZE, pagination);
+		return contentStream;
+	}
 
     protected void executeBodyQuery(ReportGenerationMgr rgm) {
         logger.debug("In CsvReportProcessor.executeBodyQuery()");
