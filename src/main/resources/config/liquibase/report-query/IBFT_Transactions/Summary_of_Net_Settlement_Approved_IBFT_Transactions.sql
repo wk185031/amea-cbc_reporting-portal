@@ -3,6 +3,7 @@
 -- Report revision		26-JUL-2021		NY		Revised reports based on spec
 -- CBCAXUPISSLOG-822	04-AUG-2021		NY		Fix IBFT transmitting not appear in report
 -- IBFT					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- IBFT					16-AUG-2021		NY		Undo left join to cbc_bank, give null branch code/branch name
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -68,7 +69,7 @@ FROM
       TRANSACTION_LOG TXN
       LEFT JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL_ID
       LEFT JOIN CBC_BIN CBI ON CBI.CBI_ID = (SELECT MIN(CBI_ID) FROM CBC_BIN WHERE CBI_BIN = TXNC.TRL_CARD_BIN)
-      LEFT JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
+      JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TSC_CODE = 41
       AND TXN.TRL_TQU_ID = ''F''

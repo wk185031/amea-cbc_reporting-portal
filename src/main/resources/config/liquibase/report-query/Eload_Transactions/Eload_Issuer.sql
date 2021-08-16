@@ -6,6 +6,7 @@
 -- CBCAXUPISSLOG-849			06-AUG-2021		NY		Exclude reversal as report dont have mnemonic to distinguish thoses
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Eload						12-AUG-2021		NY		Fix column not fully display in excel
+-- Eload						15-AUG-2021		NY		Get stan if dest_stan null, fix some wrong operator
 
 DECLARE
 
@@ -31,7 +32,7 @@ SELECT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "ISSUER BRANCH CODE",
       ABR.ABR_CODE "BRANCH CODE",
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) "TERMINAL",
-      TXN.TRL_DEST_STAN "SEQ NUMBER",
+      COALESCE(TXN.TRL_DEST_STAN, TXN.TRL_STAN, NULL) "SEQ NUMBER",
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
@@ -90,7 +91,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 )
@@ -119,7 +120,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL 
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Bank_Code}
       AND {Txn_Date}
@@ -139,7 +140,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') != ''0000008882''
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 END
