@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Revise report		19-JULY-2021	WY		Revise report according to the spec
+-- Revise report		13-AUG-2021		WY		Fix Bancnet report list to have same ATM list as ATM availability report
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -10,8 +11,8 @@ DECLARE
 BEGIN 
 
 
-	i_BODY_QUERY := TO_CLOB('				
-	SELECT
+	i_BODY_QUERY := TO_CLOB('SELECT * FROM(
+SELECT
      ABR.ABR_CODE "BRANCH CODE",
      SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
      AST.AST_ALO_LOCATION_ID "LOCATION",
@@ -36,11 +37,32 @@ GROUP BY
       ABR.ABR_CODE,
       AST.AST_TERMINAL_ID,
       AST.AST_ALO_LOCATION_ID
+UNION
+SELECT
+     ABR.ABR_CODE "BRANCH CODE",
+     SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
+     AST.AST_ALO_LOCATION_ID "LOCATION",
+     '''' "HOUR",
+     '''' "MINUTE",
+     0 AS "OUTAGE HOUR",
+     0 AS "OUTAGE MINUTE",
+     '''' "PERCENTATE"
+FROM
+      ATM_STATIONS AST
+      JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
+	  JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
+WHERE DEO.DEO_NAME = {V_Deo_Name}
+AND AST.AST_ID NOT IN (SELECT DISTINCT ASH.ASH_AST_ID FROM ATM_STATUS_HISTORY ASH WHERE
+      ASH.ASH_COMM_STATUS = ''Down''
+      AND ASH.ASH_SERVICE_STATE_REASON IN (''Comms Event'', ''In supervisor mode'', ''Power fail'',
+      ''Card reader faulty'', ''Cash dispenser faulty'', ''Encryptor faulty'', ''Cash dispenser faulty'',
+      ''Cash availability status change'', ''Operator request'')
+      AND {Txn_Date})
+)
 ORDER BY
-      ABR.ABR_CODE ASC,
-      AST.AST_TERMINAL_ID ASC,
-      AST.AST_ALO_LOCATION_ID ASC
-	');
+      "BRANCH CODE" ASC,
+      "TERMINAL" ASC,
+      "LOCATION" ASC');
 	
 	
 	UPDATE REPORT_DEFINITION set 
