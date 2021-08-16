@@ -5,13 +5,16 @@
 -- Issuer					09-AUG-2021		NY		Left join to CBC_BANK table give null value of bank name/bank code
 -- Issuer					09-AUG-2021		NY		Use TPS mnem if its not in SWIT/CASA mnem from file format
 -- Issuer					09-AUG-2021		NY		Exclude txn code 41 coming from EBK/MBK, or if its other@other>CBC scenario
+-- Issuer					15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
 
 DECLARE
 
+	i_BODY_FIELDS CLOB;
 	i_BODY_QUERY CLOB;
 
 BEGIN 
-	 
+	i_BODY_FIELDS := ('[{"sequence":1,"sectionName":"1","fieldName":"ISSUER BANK CODE","csvTxtLength":"4","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"DATE","csvTxtLength":"8","pdfLength":"","fieldType":"Date","fieldFormat":"MMddyyyy","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"TIME","csvTxtLength":"6","pdfLength":"","fieldType":"Date","fieldFormat":"HHmmss","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"TERMINAL","csvTxtLength":"4","pdfLength":"","fieldType":"String","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"FROM ACCOUNT NO","csvTxtLength":"16","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID"},{"sequence":6,"sectionName":"6","fieldName":"TRANSACTION CODE","csvTxtLength":"3","pdfLength":"","fieldType":"String","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"AMOUNT","csvTxtLength":"9","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"TRACE NUMBER","csvTxtLength":"6","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"RESPONSE CODE","csvTxtLength":"8","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"EDP TIME","csvTxtLength":"6","pdfLength":"","fieldType":"Date","fieldFormat":"HHmmss","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"RECEIVING BANK CODE","csvTxtLength":"4","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"TO ACCOUNT NO","csvTxtLength":"16","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"TRL_ACCOUNT_2_ACN_ID_EKY_ID"},{"sequence":13,"sectionName":"13","fieldName":"BILLER CODE","csvTxtLength":"4","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"SUBSCRIBER ACCT NUMBER","csvTxtLength":"16","pdfLength":"","fieldType":"Number","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"TRL_CUSTOM_DATA_EKY_ID","tagValue":"BILLERSUBN","eol":false},{"sequence":15,"sectionName":"15","fieldName":"BRANCH CODE","csvTxtLength":"4","pdfLength":"","fieldType":"String","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]'); 
+	
 	  i_BODY_QUERY := TO_CLOB('
 	SELECT
       CBA.CBA_CODE "ISSUER BANK CODE",
@@ -37,11 +40,11 @@ BEGIN
            WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM
 		END AS "TRANSACTION CODE",
       TXN.TRL_AMT_TXN "AMOUNT",
-      TXN.TRL_DEST_STAN "TRACE NUMBER",
+      COALESCE(TXN.TRL_DEST_STAN, TXN.TRL_STAN, NULL) "TRACE NUMBER",
       TXN.TRL_ACTION_RESPONSE_CODE "RESPONSE CODE",
       TXN.TRL_SYSTEM_TIMESTAMP "EDP TIME",
-      SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0''), -4) "RECEIVING BANK CODE",
-      TXN.TRL_ACCOUNT_2_ACN_ID "TO ACCOUNT NO",
+      CASE WHEN TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_FRD_REV_INST_ID NOT IN (''8882'', ''0000008882'') THEN SUBSTR(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0''), -4) ELSE ''0000'' END AS "RECEIVING BANK CODE",
+      CASE WHEN TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND TXN.TRL_FRD_REV_INST_ID NOT IN (''8882'', ''0000008882'') THEN TXN.TRL_ACCOUNT_2_ACN_ID ELSE NULL END AS "TO ACCOUNT NO",
       TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,
       CASE WHEN TXN.TRL_TSC_CODE = 50 THEN LPAD(TXNC.TRL_BILLER_CODE, 4, ''0'') END AS "BILLER CODE",
       TXN.TRL_CUSTOM_DATA "SUBSCRIBER ACCT NUMBER",
@@ -67,7 +70,10 @@ ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,
       TXN.TRL_DEST_STAN ASC');  
 	  
-	  UPDATE REPORT_DEFINITION SET RED_BODY_QUERY = i_BODY_QUERY WHERE RED_NAME = 'SWIT (Issuer)';
+	  UPDATE REPORT_DEFINITION SET 
+	  	RED_BODY_FIELDS = i_BODY_FIELDS,
+	  	RED_BODY_QUERY = i_BODY_QUERY 
+	  WHERE RED_NAME = 'SWIT (Issuer)';
 	  
 END;
 /

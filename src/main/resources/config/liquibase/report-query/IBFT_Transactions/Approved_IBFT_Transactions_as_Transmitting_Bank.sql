@@ -4,6 +4,7 @@
 -- JIRA 790				14-JUL-2021		WY		Fix report to display transmitting bank as CBC or CBS accounts
 -- Report revision		26-JUL-2021		NY		Revised reports based on spec
 -- CBCAXUPISSLOG-822	04-AUG-2021		NY		Fix IBFT transmitting not appear in report
+-- IBFT					15-AUG-2021		NY		Get stan if dest_stan null
 
 DECLARE
     i_BODY_FIELDS CLOB;
@@ -19,7 +20,7 @@ BEGIN
 	      BRC.BRC_CODE "ISSUER BRANCH CODE",
 	      SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
 	      SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) "TERMINAL",
-	      TXN.TRL_DEST_STAN "SEQ NUMBER",
+	      COALESCE(TXN.TRL_DEST_STAN, TXN.TRL_STAN, NULL) "SEQ NUMBER",
 	      SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
 	      TXN.TRL_PAN "ATM CARD NUMBER",
 	      TXN.TRL_PAN_EKY_ID,

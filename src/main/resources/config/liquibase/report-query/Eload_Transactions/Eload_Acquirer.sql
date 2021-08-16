@@ -6,6 +6,7 @@
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Eload 						07-AUG-2021		NY		Fix empty report
 -- Eload						12-AUG-2021		NY		Fix column not fully display in excel
+-- Eload						15-AUG-2021		NY		Parameterized acq bank
 
 DECLARE
 
@@ -35,7 +36,7 @@ SELECT
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      ''CBC'' AS "ACQUIRER BANK MNEM",
+      {V_Acq_Name} AS "ACQUIRER BANK MNEM",
       CBA.CBA_CODE AS "BANK CODE",
       CBA.CBA_NAME AS "BANK NAME",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
