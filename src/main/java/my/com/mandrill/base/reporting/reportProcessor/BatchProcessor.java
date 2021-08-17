@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -132,4 +133,16 @@ public class BatchProcessor extends TxtReportProcessor {
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
+	protected void addPostinDatePreProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
+		logger.debug("In GeneralReportProcess.addPostinDatePreProcessingFieldsToGlobalMap()");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
+		@SuppressWarnings("deprecation")
+		ReportGenerationFields postingDateValue = new ReportGenerationFields(ReportConstants.POSTING_DATE,
+				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toLocalDate().format(formatter).toString());
+
+		getGlobalFileFieldsMap().put(postingDateValue.getFieldName(), postingDateValue);
+
+
+	}
+
 }
