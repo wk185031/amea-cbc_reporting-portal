@@ -2,6 +2,7 @@ package my.com.mandrill.base.service;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -136,7 +137,7 @@ public class ReportService {
 	private List<LocalDate> getHolidayList() {
 		List<LocalDate> holidayList = new ArrayList<LocalDate>();
 		
-		Query q = em.createNativeQuery("select CEX_DATE from A5SWUAT.CALENDAR_EXCEPTION@A5SWUAT where cex_cgp_id in (select CGP_ID from A5SWUAT.CALENDAR_GROUP@A5SWUAT where CGP_NAME = ?)");
+		Query q = em.createNativeQuery("select CEX_DATE from ATM5ADM.CALENDAR_EXCEPTION@ATM5RPT2 where cex_cgp_id in (select CGP_ID from ATM5ADM.CALENDAR_GROUP@ATM5RPT2 where CGP_NAME = ?)");
 		q.setParameter(1, "Report Calendar");
 		for(Object d : q.getResultList()) {
 			holidayList.add(((java.sql.Timestamp) d).toLocalDateTime().toLocalDate());
@@ -164,26 +165,131 @@ public class ReportService {
 			reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix);
 			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator
 					+ ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
-			calculateTxnDateTime(reportGenerationMgr, inputStartDateTime, inputEndDateTime, byBusinessDate);
+			calculateTxnDateTime(reportGenerationMgr, inputStartDateTime, inputEndDateTime, byBusinessDate,false);
 			reportGenerationMgr.setReportTxnEndDate(inputEndDateTime);
 		}
 		log.debug("setTransactionDateRange: txnStartDateTime={}, txnEndDateTime={}", reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
 	}
 	
 	private void calculateTxnDateTime(ReportGenerationMgr reportGenerationMgr, LocalDateTime inputStartDateTime,
-			LocalDateTime inputEndDateTime, boolean byBusinessDate) {
+			LocalDateTime inputEndDateTime, boolean byBusinessDate, boolean isMonthly) {
+		List<LocalDate> holidays = getHolidayList();
 		if (byBusinessDate) {
-			
-			List<LocalDate> holidays = getHolidayList();
-			//TODO: Skip auto file generation on weekend or holiday
-			//TODO: Confirm with CBC on generation with date range
-			
-			// TODO: If inputStartDateTime is on Monday, set the txnStartDate to last Saturday
-			// eg: inputStartDate = Monday 00:00:00 -> txnStartDate = Sat 00:00:00, txnEndDate = Tue 00:00:00
-			// TODO: If previous day(s) is holiday, include previous day(s)
-			
-			reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-			reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+			LocalDate inputStartDate = inputStartDateTime.toLocalDate();
+			LocalDate inputEndtDate = inputEndDateTime.toLocalDate();
+			DayOfWeek DayOfWeekinputStartDateTimee = inputStartDateTime.getDayOfWeek();
+			DayOfWeek DayOfWeekinputEndDateTimee = inputEndDateTime.getDayOfWeek();
+
+			if (isMonthly == false) {
+				// 3.Date range selection (end date is a holiday)
+				for (LocalDate holidaydates : holidays) {
+					if (inputEndtDate.equals(holidaydates)) {
+						// If end date is a holiday and is a weekend
+						if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
+							reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+							reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2));
+						} else if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
+							reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+							reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L));
+						}
+
+						reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+						reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L));
+					}
+				}
+				// 2.Date range selection (end date is a weekend)
+				if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2));
+				} else if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1));
+
+				}
+				// 4. Date range selection (start date is a holiday, end date is working)
+				else if ((holidays.contains(inputStartDate))
+						& (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY
+								|| DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
+
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+
+				}
+				// 5. Date range selection (start date is a weekend, end date is working)
+				else if ((DayOfWeekinputStartDateTimee.name() == ReportConstants.SATURDAY
+						|| DayOfWeekinputStartDateTimee.name() == ReportConstants.SUNDAY)
+						& (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY
+								|| DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+
+				} else {
+					// 1.Date range selection (end date is a working day)
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+				}
+
+				// TODO: Skip auto file generation on weekend or holiday
+				// TODO: Confirm with CBC on generation with date range
+
+				// TODO: If inputStartDateTime is on Monday, set the txnStartDate to last
+				// Saturday
+				// eg: inputStartDate = Monday 00:00:00 -> txnStartDate = Sat 00:00:00,
+				// txnEndDate = Tue 00:00:00
+				// TODO: If previous day(s) is holiday, include previous day(s)
+//			DayOfWeek DayOfWeekinputStartDateTime = inputStartDateTime.getDayOfWeek();
+//			if(DayOfWeekinputStartDateTime.name() == ReportConstants.MONDAY) {
+//				reportGenerationMgr.setTxnStartDate(inputStartDateTime.minusDays(2));
+//				reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+//			}else {
+//				reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+//				reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+//			}
+
+			} else {
+				for (LocalDate holidaydates : holidays) {
+
+					if (inputEndtDate.equals(holidaydates)) {
+						if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
+							reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+							reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2));
+						} else if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
+							reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+							reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L));
+						}
+
+						reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+						reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L));
+					}
+				}
+
+				// 2.Date range selection (end date is a weekend)
+				if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.minusDays(1).plusMinutes(1L));
+				} else if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.minusDays(2).plusMinutes(1L));
+
+				} else if ((holidays.contains(inputStartDate))
+						& (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY
+								|| DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
+
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+
+				} else if ((DayOfWeekinputStartDateTimee.name() == ReportConstants.SATURDAY
+						|| DayOfWeekinputStartDateTimee.name() == ReportConstants.SUNDAY)
+						& (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY
+								|| DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+
+				} else {
+					reportGenerationMgr.setTxnStartDate(inputStartDateTime);
+					reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
+				}
+			}
 		} else {
 			reportGenerationMgr.setTxnStartDate(inputStartDateTime);
 			reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));

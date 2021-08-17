@@ -29,6 +29,10 @@ public final class ReportConstants {
 	public static final String DAILY = "Daily";
 	public static final String WEEKLY = "Weekly";
 	public static final String MONTHLY = "Monthly";
+	public static final String MONDAY = "MONDAY";
+	public static final String SATURDAY = "SATURDAY";
+	public static final String SUNDAY = "SUNDAY";
+
 
 	// Report Generation Time
 	public static final String START_TIME = "00:00:00";
@@ -139,6 +143,7 @@ public final class ReportConstants {
 	public static final String PAGE_NUMBER = "Page Number";
 	public static final String FROM_DATE = "From Date";
 	public static final String TO_DATE = "To Date";
+	public static final String POSTING_DATE = "Posting Date";
 	public static final String REPORT_TO_DATE = "Report To Date";
 	public static final String TODAYS_DATE_VALUE = "Todays Date Value";
 	public static final String AS_OF_DATE_VALUE = "As of Date Value";
