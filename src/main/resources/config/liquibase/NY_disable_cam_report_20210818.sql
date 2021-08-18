@@ -1,0 +1,3 @@
+DELETE FROM REPORT_DEFINITION WHERE RED_NAME = 'CAM List of Beep Payments';
+
+commit;
