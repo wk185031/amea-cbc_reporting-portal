@@ -39,6 +39,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 
 	protected final String GROUP_FIELD_TERMINAL = "TERMINAL";
 
+	private int lineCounter = 0;
+
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
 		List<String> writtenFilePath = new ArrayList<>();
@@ -109,8 +111,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 										field.setValue("");
 									}
 								}
-								writeRowData(rgm, lineFieldsMap, groupingField, b.getAbr_code(), masterStream,
-										branchStream);
+								writeRowData(rgm, masterDoc, branchDoc, lineFieldsMap, groupingField, b.getAbr_code(),
+										b.getAbr_name(), masterStream, branchStream);
 								noRecordFound = false;
 
 							} while (rs.next());
@@ -123,7 +125,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					if (!noRecordFound) {
 						String terminal = groupingField.get("TERMINAL").substring(0, 4);
 						logger.debug("Write summary for last terminal:{}", terminal);
-						writeTrailerSummary(rgm, groupingField, masterStream, branchStream);
+						writeTrailerSummary(rgm, masterDoc, branchDoc, groupingField, b.getAbr_code(), b.getAbr_name(),
+								masterStream, branchStream);
 					}
 
 					endDocument(branchStream);
@@ -175,7 +178,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
 				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
 
-		writeReportHeader(contentStream, doc, rgm, branchCode, branchName);
+		resetLineCounter();
+		writeReportHeader(rgm, doc, contentStream, branchCode, branchName);
 		return contentStream;
 	}
 
@@ -189,59 +193,77 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		}
 	}
 
-	protected void writeReportHeader(PDPageContentStream contentStream, PDDocument doc, ReportGenerationMgr rgm,
+	protected void writeReportHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
 			String branchCode, String branchName) throws Exception {
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					contentStream.showText(String.valueOf(doc.getNumberOfPages()));
+					contentStream = writeLine(rgm, doc, contentStream, String.valueOf(doc.getNumberOfPages()),
+							branchCode, branchName);
 				} else {
-					contentStream.showText(getGlobalFieldValue(rgm, field));
+					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+							branchName);
 				}
-				contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchCode));
+					contentStream = writeLine(rgm, doc, contentStream,
+							String.format("%1$-" + field.getPdfLength() + "s", branchCode), branchCode, branchName);
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					contentStream.showText(String.format("%1$-" + field.getPdfLength() + "s", branchName));
+					contentStream = writeLine(rgm, doc, contentStream,
+							String.format("%1$-" + field.getPdfLength() + "s", branchName), branchCode, branchName);
 				} else {
-					contentStream.showText(getGlobalFieldValue(rgm, field));
+					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+							branchName);
 				}
 			}
 		}
-		contentStream.newLineAtOffset(0, -1.5f * 6);
-		contentStream.newLineAtOffset(0, -1.5f * 6);
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
 	}
 
-	protected void writeBodyHeader(PDPageContentStream contentStream, ReportGenerationMgr rgm, String label,
-			String value, boolean skipColumnHeader) throws Exception {
-		contentStream.showText(label + " " + value);
-		contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-		
+	protected void writeBodyHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			String label, String value, String branchCode, String branchName, boolean skipColumnHeader)
+			throws Exception {
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeLine(rgm, doc, contentStream, label + " " + value, branchCode, branchName);
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+
 		if (!skipColumnHeader) {
-			writeColumnHeader(contentStream, rgm);
+			writeColumnHeader(rgm, doc, contentStream, branchCode, branchName);
 		}
 	}
 
-	protected void writeColumnHeader(PDPageContentStream contentStream, ReportGenerationMgr rgm) throws Exception {
+	protected void writeColumnHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			String branchCode, String branchName) throws Exception {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				contentStream.showText(getGlobalFieldValue(rgm, field));
-				contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+				contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+						branchName);
+				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
 				if (field.isFirstField()) {
-					contentStream.showText(String.format("%1$2s", "") + getGlobalFieldValue(rgm, field));
+					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+							branchName);
 				} else {
-					contentStream.showText(getGlobalFieldValue(rgm, field));
+					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+							branchName);
 				}
 			}
 		}
 	}
 
-	protected void writeTrailerSummary(ReportGenerationMgr rgm, Map<String, String> groupingField,
-			PDPageContentStream... streams) {
+	protected void writeTrailerSummary(ReportGenerationMgr rgm, PDDocument masterDoc, PDDocument branchDoc,
+			Map<String, String> groupingField, String branchCode, String branchName, PDPageContentStream masterStream,
+			PDPageContentStream branchStream) {
+
+		if (rgm.getTrailerQuery() == null || rgm.getTrailerQuery().trim().isEmpty()) {
+			logger.debug("No trailer query. Skip write trailer summary.");
+			return;
+		}
+
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -283,9 +305,10 @@ public class BranchReportProcessor extends PdfReportProcessor {
 							field.setValue("");
 						}
 					}
-					for (PDPageContentStream s : streams) {
-						writeBodyTrailer(rgm, s, lineFieldsMap, extractTrailerFields(rgm));
-					}
+					writeBodyTrailer(rgm, masterDoc, masterStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
+							branchName);
+					writeBodyTrailer(rgm, branchDoc, branchStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
+							branchName);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -302,58 +325,81 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		}
 	}
 
-	protected void writeRowData(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			Map<String, String> groupingField, String branchCode, PDPageContentStream... streams) throws Exception {
+	/**
+	 * The first contentStream must be masterStream, second is branchStream
+	 * 
+	 * @param rgm
+	 * @param masterDoc
+	 * @param branchDoc
+	 * @param fieldsMap
+	 * @param groupingField
+	 * @param branchCode
+	 * @param branchName
+	 * @param contentStream
+	 * @throws Exception
+	 */
+	protected void writeRowData(ReportGenerationMgr rgm, PDDocument masterDoc, PDDocument branchDoc,
+			HashMap<String, ReportGenerationFields> fieldsMap, Map<String, String> groupingField, String branchCode,
+			String branchName, PDPageContentStream masterStream, PDPageContentStream branchStream) throws Exception {
 
 		Map<String, String> groupFieldToUpdate = new HashMap<>();
-		for (PDPageContentStream contentStream : streams) {
-			
-			List<ReportGenerationFields> fields = extractBodyFields(rgm);
-			
-			for (Map.Entry<String, String> entry : groupingField.entrySet()) {
-				ReportGenerationFields result = fields.stream()
-						.filter(field -> entry.getKey().equals(field.getFieldName())).findAny().orElse(null);
-				
-				if (result != null) {
-					String value = getFieldValue(rgm, result, fieldsMap).trim();
-					logger.debug("-----field:{}", result.getFieldName());
-					logger.debug("-----------field value:{}", value);
-					logger.debug("group value:{}", entry.getValue());
-					if (value != null && !value.equals(entry.getValue())) {
-						logger.debug("write trailer summary.");
-						writeTrailerSummary(rgm, groupingField, contentStream);
-						break;
-					}
-				}		
+
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+
+		for (Map.Entry<String, String> entry : groupingField.entrySet()) {
+			ReportGenerationFields result = fields.stream().filter(field -> entry.getKey().equals(field.getFieldName()))
+					.findAny().orElse(null);
+
+			if (result != null) {
+				String value = getFieldValue(rgm, result, fieldsMap).trim();
+				if (value != null && !value.equals(entry.getValue())) {
+					logger.debug("write trailer summary.");
+					writeTrailerSummary(rgm, masterDoc, branchDoc, groupingField, branchCode, branchName, masterStream,
+							branchStream);
+					break;
+				}
 			}
-	
-			for (ReportGenerationFields field : fields) {
-				if (field.isGroup()) {
-					String value = getFieldValue(rgm, field, fieldsMap).trim();
-					if (groupingField.containsKey(field.getFieldName())
-							&& groupingField.get(field.getFieldName()).equals(value)) {
-						// Same group. Do nothing
-					} else {
-						if (getLowestLevelGroupField().equals(field.getFieldName())) {
-							writeBodyHeader(contentStream, rgm, field.getFieldName(), value, false);
-						} else {
-							writeBodyHeader(contentStream, rgm, field.getFieldName(), value, true);
-						}
+		}
 
-						groupFieldToUpdate.put(field.getFieldName(), value);
-					}
-
+		for (ReportGenerationFields field : fields) {
+			if (field.isGroup()) {
+				String value = getFieldValue(rgm, field, fieldsMap).trim();
+				if (groupingField.containsKey(field.getFieldName())
+						&& groupingField.get(field.getFieldName()).equals(value)) {
+					// Same group. Do nothing
 				} else {
-					if (field.isDecrypt()) {
-						decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+					if (getLowestLevelGroupField().equals(field.getFieldName())) {
+						writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value, branchCode,
+								branchName, false);
+						writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value, branchCode,
+								branchName, false);
+					} else {
+						writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value, branchCode,
+								branchName, true);
+						writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value, branchCode,
+								branchName, true);
 					}
 
-					if (field.isEol()) {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-						contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
+					groupFieldToUpdate.put(field.getFieldName(), value);
+				}
+
+			} else {
+				if (field.isDecrypt()) {
+					decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+				}
+
+				if (field.isEol()) {
+					masterStream = writeLine(rgm, masterDoc, masterStream, getFieldValue(rgm, field, fieldsMap),
+							branchCode, branchName);
+					branchStream = writeLine(rgm, branchDoc, branchStream, getFieldValue(rgm, field, fieldsMap),
+							branchCode, branchName);
+					masterStream = writeLine(rgm, masterDoc, masterStream, null, branchCode, branchName);
+					branchStream = writeLine(rgm, branchDoc, branchStream, null, branchCode, branchName);
+				} else {
+					masterStream = writeLine(rgm, masterDoc, masterStream, getFieldValue(rgm, field, fieldsMap),
+							branchCode, branchName);
+					branchStream = writeLine(rgm, branchDoc, branchStream, getFieldValue(rgm, field, fieldsMap),
+							branchCode, branchName);
 				}
 			}
 		}
@@ -361,20 +407,22 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		groupingField.putAll(groupFieldToUpdate);
 	}
 
-	protected void writeBodyTrailer(ReportGenerationMgr rgm, PDPageContentStream contentStream,
-			HashMap<String, ReportGenerationFields> fieldsMap, List<ReportGenerationFields> trailerFields)
-			throws Exception {
+	protected void writeBodyTrailer(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			HashMap<String, ReportGenerationFields> fieldsMap, List<ReportGenerationFields> trailerFields,
+			String branchCode, String branchName) throws Exception {
 		logger.debug("write body trailer.");
 		for (ReportGenerationFields field : trailerFields) {
 			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-				contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+				contentStream = writeLine(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
+						branchName);
+				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream = writeLine(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
+						branchName);
 			}
 		}
-		contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-		contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
 	}
 
 	protected void endDocument(PDPageContentStream contentStream) throws Exception {
@@ -437,8 +485,9 @@ public class BranchReportProcessor extends PdfReportProcessor {
 				value = value.substring(0, 4);
 				rgm.setTrailerQuery(rgm.getTrailerQuery().replace("{" + entry.getKey() + "}", "'" + value + "'"));
 			} else {
-				rgm.setTrailerQuery(rgm.getTrailerQuery().replace("{" + entry.getKey() + "}", "'" + entry.getValue() + "'"));
-			}			
+				rgm.setTrailerQuery(
+						rgm.getTrailerQuery().replace("{" + entry.getKey() + "}", "'" + entry.getValue() + "'"));
+			}
 		}
 		String updatedQuery = getTrailerQuery(rgm);
 		rgm.setTrailerQuery(originalQuery);
@@ -452,8 +501,34 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		return getBodyQuery(rgm);
 	}
 
+	protected PDPageContentStream writeLine(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+			String text, String branchCode, String branchName) throws Exception {
+		if (getLineCounter() >= 70) {			
+			contentStream = newPage(doc, contentStream, rgm, branchCode, branchName);			
+		}
+		if (text == null) {
+			contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+		} else {
+			contentStream.showText(text);
+		}
+		incrementLineCounter();
+		return contentStream;
+	}
+
 	protected String getLowestLevelGroupField() {
 		return GROUP_FIELD_TERMINAL;
+	}
+
+	protected void incrementLineCounter() {
+		lineCounter++;
+	}
+
+	protected void resetLineCounter() {
+		lineCounter = 0;
+	}
+
+	protected int getLineCounter() {
+		return lineCounter;
 	}
 
 }
