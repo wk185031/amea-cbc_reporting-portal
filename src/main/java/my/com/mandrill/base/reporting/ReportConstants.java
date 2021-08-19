@@ -73,6 +73,7 @@ public final class ReportConstants {
 	public static final String PARAM_ACQ_BANK_CODE = "Acq_Bank_Code";
 	public static final String PARAM_TERMINAL = "Terminal";
 	public static final String PARAM_CARD_PRODUCT = "Card_Product";
+	public static final String PARAM_TRANSACTION_GROUP = "Transaction_Group";
 	public static final String PARAM_GL_DESCRIPTION = "GL_Description";
 	public static final String PARAM_CHANNEL = "Channel";
 	public static final String PARAM_TXN_TYPE = "Txn_Type";
@@ -166,6 +167,7 @@ public final class ReportConstants {
 	public static final String BRANCH_NAME = "BRANCH NAME";
 	public static final String BRANCH = "BRANCH";
 	public static final String TERMINAL = "TERMINAL";
+	public static final String TRANSACTION_GROUP = "TRANSACTION GROUP";
 	public static final String LOCATION = "LOCATION";
 	public static final String CHANNEL = "CHANNEL";
 	public static final String CARD_PRODUCT = "CARD PRODUCT";
@@ -210,6 +212,8 @@ public final class ReportConstants {
 	public static final String TRANSMITTING_TOTAL = "TRANSMITTING TOTAL";
 	public static final String RECEIVING_TOTAL = "RECEIVING TOTAL";
 	public static final String NET_SETTLEMENT = "NET SETTLEMENT";
+	public static final String NET_COUNT = "NET COUNT";
+	public static final String DEBIT_CREDIT = "DEBIT CREDIT";
 	public static final String TXN_QUALIFIER = "TXN QUALIFIER";
 	public static final String ACQUIRER_BANK = "ACQUIRER BANK";
 	public static final String SUBSCRIBER_ACCT_NUMBER = "SUBSCRIBER ACCT NUMBER";
@@ -337,6 +341,7 @@ public final class ReportConstants {
 	public static final String DEBIT_IND = "debit";
 	public static final String CREDIT_IND = "credit";
 	public static final String SEPARATOR = ",";
+	public static final String NO_RECORD = "**NO TRANSACTIONS FOR THE DAY**";
 	
 	public static final String SECUREFIELD = "secure-field";
 	
@@ -344,4 +349,6 @@ public final class ReportConstants {
 	public static final String ATM_DAILY_TRANSACTION_SUMMARY = "ATM Daily Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
+
+	
 }

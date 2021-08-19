@@ -18,6 +18,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -576,5 +577,18 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 				}
 			}
 		}
+	}
+	
+	protected void writeEmptyBodyPdf(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading,
+			float pageHeight, int pagination) throws Exception {
+		writePdfHeader(rgm, contentStream, leading, pagination, "", "");
+		contentStream.newLineAtOffset(0, -leading);
+		pageHeight += 4;
+		contentStream.setFont(PDType1Font.COURIER, 10);
+		contentStream.newLineAtOffset(0, -1.5f * 6);
+		contentStream.showText(ReportConstants.NO_RECORD);
+
+		contentStream.endText();
+		contentStream.close();
 	}
 }

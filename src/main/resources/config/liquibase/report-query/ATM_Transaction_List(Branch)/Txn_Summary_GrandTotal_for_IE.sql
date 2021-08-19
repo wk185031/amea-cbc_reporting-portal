@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- Report revision		26-JUL-2021		WY		Revised reports based on spec
 -- CBCAXUPISSLOG-531	10-AUG-2021		KW		Only include acquiring and OnUs txn from terminal
+-- Report revision		14-AUG-2021		WY		Include reverse and failed txn
 
 DECLARE
 	i_BODY_QUERY CLOB;
@@ -45,8 +46,7 @@ BEGIN
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	WHERE
       (TXN.TRL_TSC_CODE IN (128, 31) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL))
-      AND TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
+      AND TXN.TRL_TQU_ID IN (''F'',''R'') 
       AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
@@ -100,8 +100,7 @@ BEGIN
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	WHERE
       (TXN.TRL_TSC_CODE IN (128, 31) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL))
-      AND TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
+      AND TXN.TRL_TQU_ID IN (''F'',''R'') 
       AND TXN.TRL_ISS_NAME = {V_IE_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}

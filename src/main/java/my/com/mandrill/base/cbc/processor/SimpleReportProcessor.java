@@ -57,7 +57,7 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 					// Write the total label before the first subtotal column
 					line = new StringBuilder(line.toString().substring(1));
 					line.append("OVER-ALL TOTAL");
-					line.append(getDelimiter());
+					line.append(field.getDelimiter());
 					labelWritten = true;
 				}
 
@@ -72,7 +72,7 @@ public class SimpleReportProcessor extends BaseReportProcessor {
 				}
 				line.append("\"" + formattedAmount + "\"");
 			}
-			line.append(getDelimiter());
+			line.append(field.getDelimiter());
 		}
 		line.append(CsvWriter.EOL);
 		csvWriter.writeLine(out, line.toString());

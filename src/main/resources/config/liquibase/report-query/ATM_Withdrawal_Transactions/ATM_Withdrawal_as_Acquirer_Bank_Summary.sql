@@ -3,6 +3,7 @@
 -- Report revision		23-JUL-2021		NY		Update based on excel spec
 -- Cross Checking		04-AUG-2021		NY		Fix cross checking to master not match
 -- Acquirer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master 
+-- Acquirer				13-AUG-2021		NY		Exclude inter-entity per specification update
 
 DECLARE
     i_BODY_QUERY CLOB;
@@ -41,7 +42,7 @@ BEGIN
       AND TXN.TRL_TQU_ID IN (''F'')
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
+      AND TXN.TRL_ISS_NAME IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Terminal}
@@ -83,7 +84,7 @@ BEGIN
       AND TXN.TRL_TQU_ID IN (''F'')
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
+      AND TXN.TRL_ISS_NAME IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
 	)
@@ -118,7 +119,7 @@ BEGIN
       AND TXN.TRL_TQU_ID IN (''F'')
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
+      AND TXN.TRL_ISS_NAME IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date})
 	START SELECT
@@ -144,7 +145,7 @@ BEGIN
       AND TXN.TRL_TQU_ID IN (''F'')
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
+      AND TXN.TRL_ISS_NAME IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date})
 	END');

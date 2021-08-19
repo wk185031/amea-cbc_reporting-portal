@@ -83,5 +83,9 @@ ORDER BY "TRAN MNEM"');
 		RED_TRAILER_QUERY = i_TRAILER_QUERY
 	where RED_NAME = 'Inter-Entity ATM Withdrawal as Issuer Bank';
 	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity ATM Withdrawal as Issuer Bank' AND red_ins_id = 2;
+	
+	update report_definition set red_header_fields = REPLACE(red_header_fields, '0010', '0112') WHERE RED_NAME = 'Inter-Entity ATM Withdrawal as Issuer Bank' AND red_ins_id = 2;
+	
 END;
 /

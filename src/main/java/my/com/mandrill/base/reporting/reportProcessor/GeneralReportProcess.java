@@ -108,6 +108,7 @@ public class GeneralReportProcess {
 			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]");
 			Matcher m = p.matcher(query);
 			while (m.find()) {
+				
 				String paramName = m.group().substring(1, m.group().length() - 1);
 				if (globalFileFieldsMap.containsKey(paramName)) {
 					String value = globalFileFieldsMap.get(paramName).format();
@@ -565,12 +566,12 @@ public class GeneralReportProcess {
 			}
 			
 			EntityManager em = SpringContext.getBean(EntityManager.class);
-			Query q = em.createQuery("select b from branch b where" + stmtBuilder.toString());
+			Query q = em.createQuery("select b from Branch b where" + stmtBuilder.toString() + " order by id");
 			return q.getResultList();		
 		}
 		return new ArrayList<>();
 	}
-	
+
 	public String getBranchQueryStatement(String institutionCode, String fieldName) {
 		SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
 		String configName = institutionCode.toLowerCase().concat(".branch.prefix");

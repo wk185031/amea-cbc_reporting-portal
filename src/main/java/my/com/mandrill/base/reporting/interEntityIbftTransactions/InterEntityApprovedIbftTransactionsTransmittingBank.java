@@ -262,8 +262,8 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
-			case 12:
-			case 13:
+			case 16:
+			case 17:
 				break;
 			default:
 				if (field.isEol()) {
@@ -292,8 +292,8 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
-			case 11:
-			case 13:
+			case 15:
+			case 17:
 				break;
 			default:
 				if (field.isEol()) {
@@ -323,8 +323,8 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 3:
-			case 11:
-			case 12:
+			case 15:
+			case 16:
 				break;
 			default:
 				if (field.isEol()) {
