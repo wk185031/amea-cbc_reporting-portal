@@ -7,17 +7,16 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
-import my.com.mandrill.base.repository.SystemConfigurationRepository;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
@@ -34,6 +33,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private String fixTrailerQuery;
 	private EncryptionService encryptionService;
 	private String lastGlAccount;
+	private LocalDate postingDate;
 
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
@@ -204,5 +204,12 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	public void setLastGlAccount(String lastGlAccount) {
 		this.lastGlAccount = lastGlAccount;
 	}
-	
+
+	public LocalDate getPostingDate() {
+		return postingDate;
+	}
+
+	public void setPostingDate(LocalDate postingDate) {
+		this.postingDate = postingDate;
+	}
 }

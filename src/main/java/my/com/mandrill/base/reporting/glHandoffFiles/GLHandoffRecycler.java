@@ -146,6 +146,7 @@ public class GLHandoffRecycler extends BatchProcessor {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			addPostingDateFieldsToGlobalMap(rgm);
 		}
 	}
 
