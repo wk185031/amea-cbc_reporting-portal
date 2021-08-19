@@ -3,6 +3,7 @@
 -- Report revision		23-JUL-2021		NY		Update based on excel spec
 -- Issuer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Issuer				13-AUG-2021		NY		Remove mcc id 6011 check to match EFDLY006/EFDLY002/CASA (issuer)/TRAN, refer 854
+-- Issuer				19-AUG-2021		NY		Exclude inter-entity per recent specification confirmation
 
 DECLARE
     i_BODY_QUERY CLOB;
@@ -34,7 +35,8 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0        	
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})    
+      AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}) 
+	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})   
       AND {Txn_Date}
 	)
 GROUP BY
@@ -64,6 +66,7 @@ WHERE
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Txn_Date})');
 	
 	UPDATE REPORT_DEFINITION set 
