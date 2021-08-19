@@ -5,6 +5,7 @@ import my.com.mandrill.base.BaseApp;
 import my.com.mandrill.base.domain.Authority;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.repository.AuthorityRepository;
+import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.repository.UserRepository;
 import my.com.mandrill.base.security.AuthoritiesConstants;
 import my.com.mandrill.base.service.MailService;
@@ -61,6 +62,9 @@ public class AccountResourceIntTest {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    UserExtraRepository userExtraRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -89,10 +93,10 @@ public class AccountResourceIntTest {
         MockitoAnnotations.initMocks(this);
         doNothing().when(mockMailService).sendActivationEmail(anyObject());
         AccountResource accountResource =
-            new AccountResource(userRepository, userService, mockMailService, environment);
+            new AccountResource(userRepository, userExtraRepository, userService, mockMailService, environment, null);
 
         AccountResource accountUserMockResource =
-            new AccountResource(userRepository, mockUserService, mockMailService, environment);
+            new AccountResource(userRepository, userExtraRepository, mockUserService, mockMailService, environment, null);
         this.restMvc = MockMvcBuilders.standaloneSetup(accountResource)
             .setMessageConverters(httpMessageConverters)
             .setControllerAdvice(exceptionTranslator)
