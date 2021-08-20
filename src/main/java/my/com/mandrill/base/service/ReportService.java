@@ -73,6 +73,7 @@ public class ReportService {
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(manualGenerate);
 		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
+		reportGenerationMgr.setYesterdayDate(LocalDate.now().minusDays(1L));
 		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
 		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
 		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
@@ -114,8 +115,9 @@ public class ReportService {
 
 			Optional<List<LocalDate>> holidays = getHolidayList();
 			if (!manualGenerate && reportDefinition.isByBusinessDate()
-					&& !BusinessDay.isWorkingDay(reportGenerationMgr.getTxnStartDate().toLocalDate(), holidays)) {
-				log.debug("Non working day. System will not auto generate report: {}", reportDefinition.getName());
+					&& !BusinessDay.isWorkingDay(inputStartDateTime.toLocalDate(), holidays)) {
+				log.debug("Non working day:{}. System will not auto generate report: {}",
+						inputStartDateTime.toLocalDate(), reportDefinition.getName());
 				continue;
 			} else {
 				String[] frequencies = reportGenerationMgr.getFrequency().split(",");
@@ -190,7 +192,8 @@ public class ReportService {
 			reportGenerationMgr.setReportTxnEndDate(inputEndDateTime);
 		}
 		log.debug("setTransactionDateRange: txnStartDateTime={}, txnEndDateTime={}, postingDate={}",
-				reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate(), reportGenerationMgr.getPostingDate());
+				reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate(),
+				reportGenerationMgr.getPostingDate());
 	}
 
 	private void calculateTxnDateTime(ReportGenerationMgr reportGenerationMgr, LocalDateTime inputStartDateTime,
