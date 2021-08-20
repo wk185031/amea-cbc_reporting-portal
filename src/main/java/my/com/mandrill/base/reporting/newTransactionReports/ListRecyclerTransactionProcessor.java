@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import my.com.mandrill.base.cbc.processor.ReportWithBodyHeaderTrailerProcessor;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
-import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.writer.CsvWriter;
 
 @Component

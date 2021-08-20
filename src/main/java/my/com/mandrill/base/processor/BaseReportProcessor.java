@@ -305,6 +305,7 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 				handleGroupFieldInBody(context, field, line);
 			} else {
 				String fieldValue = getFormattedFieldValue(field, context);
+				
 				if (ReportGenerationFields.TYPE_NUMBER.equals(field.getFieldType())
 						|| ReportGenerationFields.TYPE_DECIMAL.equals(field.getFieldType())) {
 					line.append("\"" + fieldValue + "\"");
@@ -361,19 +362,27 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 				}
 				//Already decrypt. Set to false
 				field.setDecrypt(false);
-				return field.format();
+				String value = field.format();
+				value = field.formatFixCsvValue(value, true);
+				return value;
 			} else {
 				String value = encryptionService.decryptAuthenticField(field.getValue(), ekyId);
 				field.setValue(value);
 				field.setDecrypt(false);
-				return field.format();
+				value = field.format();
+				value = field.formatFixCsvValue(value, true);
+				return value;
 			}
 		} else if (field.getValue() != null && !field.getValue().isEmpty()) {
-			return field.format();
+			String value = field.format();
+			value = field.formatFixCsvValue(value, true);
+			return value;
 		} else if (context.getPredefinedFieldMap() != null
 				&& context.getPredefinedFieldMap().containsKey(field.getFieldName())) {
 			field.setValue(context.getPredefinedFieldMap().get(field.getFieldName()).getValue());
-			return field.format();
+			String value = field.format();
+			value = field.formatFixCsvValue(value, true);
+			return value;
 		}
 		return field.getValue();
 	}
