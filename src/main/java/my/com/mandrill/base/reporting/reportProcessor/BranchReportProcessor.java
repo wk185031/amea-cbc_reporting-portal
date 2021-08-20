@@ -64,9 +64,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 				logger.debug("Process transaction for branch={}", b.getAbr_code());
 
 				try {
-					masterStream = newPage(masterDoc, masterStream, rgm, b.getAbr_code(), b.getAbr_name());
-
 					branchDoc = new PDDocument();
+					masterStream = newPage(masterDoc, masterStream, rgm, b.getAbr_code(), b.getAbr_name());
 					branchStream = newPage(branchDoc, branchStream, rgm, b.getAbr_code(), b.getAbr_name());
 					Map<String, String> groupingField = new HashMap<String, String>();
 					groupingField.put(GROUP_FIELD_BRANCH, b.getAbr_code());
@@ -113,11 +112,18 @@ public class BranchReportProcessor extends PdfReportProcessor {
 								}
 								writeRowData(rgm, masterDoc, branchDoc, lineFieldsMap, groupingField, b.getAbr_code(),
 										b.getAbr_name(), masterStream, branchStream);
+								if (getLineCounter() >= getMaxLinePerPage()) {
+									masterStream = newPage(masterDoc, masterStream, rgm, b.getAbr_code(),
+											b.getAbr_name());
+									branchStream = newPage(branchDoc, branchStream, rgm, b.getAbr_code(),
+											b.getAbr_name());
+								}
 								noRecordFound = false;
 
 							} while (rs.next());
 						} else {
 							writeNoRecordFound(masterStream, branchStream);
+							incrementLineCounter();
 							noRecordFound = true;
 						}
 					}
@@ -129,7 +135,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 								masterStream, branchStream);
 					}
 
-					endDocument(branchStream);
+					branchStream = endDocument(branchStream);
 					branchStream = null;
 
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
@@ -149,7 +155,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 				}
 
 			}
-			endDocument(masterStream);
+			masterStream = endDocument(masterStream);
 			masterStream = null;
 			String masterDocPath = writeFile(rgm, masterDoc, null);
 			writtenFilePath.add(masterDocPath);
@@ -171,6 +177,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 
 		PDPage page = new PDPage();
 		doc.addPage(page);
+		logger.debug("create new page: {}", doc.getNumberOfPages());
 
 		contentStream = new PDPageContentStream(doc, page);
 		contentStream.setFont(PDType1Font.COURIER, DEFAULT_FONT_SIZE);
@@ -178,8 +185,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
 				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
 
+		contentStream = writeReportHeader(rgm, doc, contentStream, branchCode, branchName);
 		resetLineCounter();
-		writeReportHeader(rgm, doc, contentStream, branchCode, branchName);
 		return contentStream;
 	}
 
@@ -193,66 +200,69 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		}
 	}
 
-	protected void writeReportHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
-			String branchCode, String branchName) throws Exception {
+	protected PDPageContentStream writeReportHeader(ReportGenerationMgr rgm, PDDocument doc,
+			PDPageContentStream contentStream, String branchCode, String branchName) throws Exception {
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
-					contentStream = writeLine(rgm, doc, contentStream, String.valueOf(doc.getNumberOfPages()),
+					contentStream = writeText(rgm, doc, contentStream, String.valueOf(doc.getNumberOfPages()),
 							branchCode, branchName);
 				} else {
-					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+					contentStream = writeText(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
 							branchName);
 				}
-				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+				contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
-					contentStream = writeLine(rgm, doc, contentStream,
+					contentStream = writeText(rgm, doc, contentStream,
 							String.format("%1$-" + field.getPdfLength() + "s", branchCode), branchCode, branchName);
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_NAME)) {
-					contentStream = writeLine(rgm, doc, contentStream,
+					contentStream = writeText(rgm, doc, contentStream,
 							String.format("%1$-" + field.getPdfLength() + "s", branchName), branchCode, branchName);
 				} else {
-					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+					contentStream = writeText(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
 							branchName);
 				}
 			}
 		}
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
+		return contentStream;
 	}
 
-	protected void writeBodyHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
-			String label, String value, String branchCode, String branchName, boolean skipColumnHeader)
-			throws Exception {
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
-		contentStream = writeLine(rgm, doc, contentStream, label + " " + value, branchCode, branchName);
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+	protected PDPageContentStream writeBodyHeader(ReportGenerationMgr rgm, PDDocument doc,
+			PDPageContentStream contentStream, String label, String value, String branchCode, String branchName,
+			boolean skipColumnHeader) throws Exception {
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, label + " " + value, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
 
-		if (!skipColumnHeader) {
-			writeColumnHeader(rgm, doc, contentStream, branchCode, branchName);
-		}
+//		if (!skipColumnHeader) {
+//			contentStream = writeColumnHeader(rgm, doc, contentStream, branchCode, branchName);
+//		}
+		return contentStream;
 	}
 
-	protected void writeColumnHeader(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
-			String branchCode, String branchName) throws Exception {
+	protected PDPageContentStream writeColumnHeader(ReportGenerationMgr rgm, PDDocument doc,
+			PDPageContentStream contentStream, String branchCode, String branchName) throws Exception {
 		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
 		for (ReportGenerationFields field : fields) {
 			if (field.isEol()) {
-				contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+				contentStream = writeText(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
 						branchName);
-				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+				contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
 				if (field.isFirstField()) {
-					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+					contentStream = writeText(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
 							branchName);
 				} else {
-					contentStream = writeLine(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
+					contentStream = writeText(rgm, doc, contentStream, getGlobalFieldValue(rgm, field), branchCode,
 							branchName);
 				}
 			}
 		}
+		return contentStream;
 	}
 
 	protected void writeTrailerSummary(ReportGenerationMgr rgm, PDDocument masterDoc, PDDocument branchDoc,
@@ -309,6 +319,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 							branchName);
 					writeBodyTrailer(rgm, branchDoc, branchStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
 							branchName);
+					incrementLineCounter(getNoOfRowForTrailer());
+
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -369,36 +381,51 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					// Same group. Do nothing
 				} else {
 					if (getLowestLevelGroupField().equals(field.getFieldName())) {
-						writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value, branchCode,
-								branchName, false);
-						writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value, branchCode,
-								branchName, false);
+						masterStream = writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value,
+								branchCode, branchName, false);
+						branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
+								branchCode, branchName, false);
+						incrementLineCounter(getNoOfRowForBodyHeader());
+
+						masterStream = writeColumnHeader(rgm, masterDoc, masterStream, branchCode, branchName);
+						branchStream = writeColumnHeader(rgm, branchDoc, branchStream, branchCode, branchName);
+						incrementLineCounter(getNoOfRowForColumnHeader());
+
 					} else {
-						writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value, branchCode,
-								branchName, true);
-						writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value, branchCode,
-								branchName, true);
+						masterStream = writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value,
+								branchCode, branchName, true);
+						branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
+								branchCode, branchName, true);
+						incrementLineCounter(getNoOfRowForBodyHeader());
 					}
 
 					groupFieldToUpdate.put(field.getFieldName(), value);
 				}
 
 			} else {
+				setBody(true);
+				setBodyHeader(false);
 				if (field.isDecrypt()) {
 					decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 				}
 
+				String fieldValue = getFieldValue(rgm, field, fieldsMap);
 				if (field.isEol()) {
-					masterStream = writeLine(rgm, masterDoc, masterStream, getFieldValue(rgm, field, fieldsMap),
+					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue,
 							branchCode, branchName);
-					branchStream = writeLine(rgm, branchDoc, branchStream, getFieldValue(rgm, field, fieldsMap),
+					masterStream = writeText(rgm, masterDoc, masterStream, null, branchCode, branchName);
+
+					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue,
 							branchCode, branchName);
-					masterStream = writeLine(rgm, masterDoc, masterStream, null, branchCode, branchName);
-					branchStream = writeLine(rgm, branchDoc, branchStream, null, branchCode, branchName);
+					branchStream = writeText(rgm, branchDoc, branchStream, null, branchCode, branchName);
+
+					// Same counter for master and branch
+					incrementLineCounter();
+					incrementLineCounter();
 				} else {
-					masterStream = writeLine(rgm, masterDoc, masterStream, getFieldValue(rgm, field, fieldsMap),
+					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue,
 							branchCode, branchName);
-					branchStream = writeLine(rgm, branchDoc, branchStream, getFieldValue(rgm, field, fieldsMap),
+					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue,
 							branchCode, branchName);
 				}
 			}
@@ -413,21 +440,23 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		logger.debug("write body trailer.");
 		for (ReportGenerationFields field : trailerFields) {
 			if (field.isEol()) {
-				contentStream = writeLine(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
+				contentStream = writeText(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
 						branchName);
-				contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+				contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
 			} else {
-				contentStream = writeLine(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
+				contentStream = writeText(rgm, doc, contentStream, getFieldValue(rgm, field, fieldsMap), branchCode,
 						branchName);
 			}
 		}
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
-		contentStream = writeLine(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
+		contentStream = writeText(rgm, doc, contentStream, null, branchCode, branchName);
 	}
 
-	protected void endDocument(PDPageContentStream contentStream) throws Exception {
+	protected PDPageContentStream endDocument(PDPageContentStream contentStream) throws Exception {
+		logger.debug("end document.");
 		contentStream.endText();
 		contentStream.close();
+		return contentStream;
 	}
 
 	protected void writeNoRecordFound(PDPageContentStream... streams) throws Exception {
@@ -501,17 +530,13 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		return getBodyQuery(rgm);
 	}
 
-	protected PDPageContentStream writeLine(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
+	protected PDPageContentStream writeText(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream,
 			String text, String branchCode, String branchName) throws Exception {
-		if (getLineCounter() >= 70) {			
-			contentStream = newPage(doc, contentStream, rgm, branchCode, branchName);			
-		}
 		if (text == null) {
 			contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
 		} else {
 			contentStream.showText(text);
 		}
-		incrementLineCounter();
 		return contentStream;
 	}
 
@@ -523,12 +548,41 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		lineCounter++;
 	}
 
+	protected void incrementLineCounter(int counterToAdd) {
+		lineCounter += counterToAdd;
+	}
+
 	protected void resetLineCounter() {
 		lineCounter = 0;
 	}
 
 	protected int getLineCounter() {
 		return lineCounter;
+	}
+
+	protected int getNoOfRowForTrailer() {
+		// Interim solution to determine counter to increase to avoid duplicate for
+		// master and branch stream.
+		// Should be dynamic based on configuration
+		return 1;
+	}
+
+	protected int getNoOfRowForColumnHeader() {
+		// Interim solution to determine counter to increase to avoid duplicate for
+		// master and branch stream.
+		// Should be dynamic based on configuration
+		return 2;
+	}
+
+	protected int getNoOfRowForBodyHeader() {
+		// Interim solution to determine counter to increase to avoid duplicate for
+		// master and branch stream.
+		// Should be dynamic based on configuration
+		return 1;
+	}
+	
+	protected int getMaxLinePerPage() {
+		return 120;
 	}
 
 }

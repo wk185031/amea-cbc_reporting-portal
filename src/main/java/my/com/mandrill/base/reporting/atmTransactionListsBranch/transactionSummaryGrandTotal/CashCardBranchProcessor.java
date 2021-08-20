@@ -10,5 +10,10 @@ public class CashCardBranchProcessor extends BranchReportProcessor {
 	protected String getLowestLevelGroupField() {
 		return GROUP_FIELD_CARD_PRODUCT;
 	}
+	
+	@Override
+	protected int getNoOfRowForBodyHeader() {
+		return 2;
+	}
 
 }
