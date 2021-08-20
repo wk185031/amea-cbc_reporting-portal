@@ -50,8 +50,9 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		try {
 			preProcessing(rgm);
 
-			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
-					rgm).entrySet()) {
+			SortedMap<String, Map<String, TreeMap<String, String>>> branches = filterCriteriaByBranch(rgm);
+
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : branches.entrySet()) {
 				pagination = 1;
 				doc = new PDDocument();
 				PDPage page = new PDPage();
@@ -107,6 +108,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 
 				saveFile(rgm, doc, branchCode);
 			}
+
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
@@ -152,40 +154,45 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 			contentStream.beginText();
 			contentStream.newLineAtOffset(startX, startY);
 
-			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
-					rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
-						.entrySet()) {
-					branchName = branchNameMap.getKey();
-					preProcessing(rgm, branchCode, terminal);
-					writePdfHeader(rgm, contentStream, leading, pagination);
-					contentStream.newLineAtOffset(0, -leading);
-					pageHeight += 4;
-					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
-						terminal = terminalMap.getKey();
-						location = terminalMap.getValue();
-						total = 0.00;
-						contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
-						contentStream.newLineAtOffset(0, -leading);
-						contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
-						pageHeight += 2;
-						contentStream.newLineAtOffset(0, -leading);
-						writePdfBodyHeader(rgm, contentStream, leading);
-						pageHeight += 2;
+			SortedMap<String, Map<String, TreeMap<String, String>>> branches = filterCriteriaByBranch(rgm);
+			
+			if (branches != null && branches.size() > 0) {
+				for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : branches.entrySet()) {
+					branchCode = branchCodeMap.getKey();
+					for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+							.entrySet()) {
+						branchName = branchNameMap.getKey();
 						preProcessing(rgm, branchCode, terminal);
-						contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-								pdfFont, fontSize);
-						pageHeight += 1;
-						writePdfTrailer(rgm, contentStream, leading);
-						pageHeight += 1;
+						writePdfHeader(rgm, contentStream, leading, pagination);
 						contentStream.newLineAtOffset(0, -leading);
+						pageHeight += 4;
+						for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+							terminal = terminalMap.getKey();
+							location = terminalMap.getValue();
+							total = 0.00;
+							contentStream.showText(ReportConstants.BRANCH + "   : " + branchCode + " " + branchName);
+							contentStream.newLineAtOffset(0, -leading);
+							contentStream.showText(ReportConstants.TERMINAL + " : " + terminal + " " + location);
+							pageHeight += 2;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
+							preProcessing(rgm, branchCode, terminal);
+							contentStream = execute(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+									pdfFont, fontSize);
+							pageHeight += 1;
+							writePdfTrailer(rgm, contentStream, leading);
+							pageHeight += 1;
+							contentStream.newLineAtOffset(0, -leading);
+						}
 					}
 				}
+				contentStream.endText();
+				contentStream.close();
+			} else {
+				writeEmptyBodyPdf(rgm, contentStream, leading, pageHeight, pagination);			
 			}
-			contentStream.endText();
-			contentStream.close();
-
+			
 			saveFile(rgm, doc);
 		} catch (Exception e) {
 			rgm.errors++;
@@ -285,8 +292,7 @@ public class ListOfPossibleAdjustments extends PdfReportProcessor {
 		logger.debug("In ListOfPossibleAdjustments.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
-			rgm.setBodyQuery(rgm.getBodyQuery()
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}","")
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 //					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
 //							getBranchQueryStatement(rgm.getInstitution(), "ABR.ABR_CODE"))
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
