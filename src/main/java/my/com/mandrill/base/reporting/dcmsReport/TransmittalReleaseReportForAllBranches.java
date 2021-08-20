@@ -34,42 +34,6 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
     private final Logger logger = LoggerFactory.getLogger(TransmittalReleaseReportForAllBranches.class);
     private int pagination = 0;
 
-//    @Override
-//    public void processTxtRecord(ReportGenerationMgr rgm) {
-//        logger.debug("In TransmittalReleaseReportForAllBranches.processTxtRecord()");
-//        File file = null;
-//        String txnDate = null;
-//        String fileLocation = rgm.getFileLocation();
-//        String fileName = "";
-//
-//        try {
-//            //TODO - Please double check this report need to change or not
-//            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
-//                rgm.getTxnStartDate(),
-//                rgm.getReportTxnEndDate(),
-//                ReportConstants.TXT_FORMAT);
-//
-//            if (rgm.errors == 0) {
-//                if (fileLocation != null) {
-//                    File directory = new File(fileLocation);
-//                    if (!directory.exists()) {
-//                        directory.mkdirs();
-//                    }
-//                    file = new File(
-//                        rgm.getFileLocation() + fileName);
-//                    execute(rgm, file);
-//                } else {
-//                    throw new Exception("Path is not configured.");
-//                }
-//            } else {
-//                throw new Exception(
-//                    "Errors when generating" + fileName);
-//            }
-//        } catch (Exception e) {
-//            logger.error("Errors in generating " + fileName, e);
-//        }
-//    }
-
     @Override
     protected void execute(ReportGenerationMgr rgm, File file) {
         String branchCode = null;
@@ -262,7 +226,6 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 			PDFont pdfFont, float fontSize, String branchCode) {
 
 		logger.debug("In GLHandoffFinalProofSheetInterEntity.executePdfBodyQuery()");
-		logger.debug("leading:" + leading);
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -369,7 +332,6 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 				contentStream.newLineAtOffset(0, -leading);
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				logger.debug("getFieldValue(rgm, field, fieldsMap):" + getFieldValue(rgm, field, fieldsMap));
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
@@ -381,8 +343,6 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			logger.debug("field.getFieldName():" + field.getFieldName());
-			logger.debug("getFieldValue(rgm, field, fieldsMap):" + getFieldValue(rgm, field, fieldsMap));
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
