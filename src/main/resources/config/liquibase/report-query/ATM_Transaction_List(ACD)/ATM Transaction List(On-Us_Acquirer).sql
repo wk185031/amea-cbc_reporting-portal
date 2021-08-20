@@ -21,6 +21,7 @@
 -- Master report		15-AUG-2021		NY		Fix acquiring prepaid reload printing APR, instead of BPR
 -- Master report		17-AUG-2021		NY		Fix wrong RFID decline count
 -- CBCAXUPISSLOG-885	20-AUG-2021		NY		Use bank mnem instead of code in "Iss Bank Code" column	
+-- Master report		20-AUG-2021		NY		Include back txn code 2, 22
 	
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -103,7 +104,7 @@ SELECT
 	WHERE
       (TXN.TRL_TQU_ID IN (''F'', ''R'') OR (TXN.TRL_TQU_ID = ''A'' AND TRL_TSC_CODE IN (90, 126, 129, 131, 142, 143)))
       AND TXN.TRL_FRD_REV_INST_ID IS NULL 
-      AND TXN.TRL_TSC_CODE NOT IN (2, 22, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
+      AND TXN.TRL_TSC_CODE NOT IN (42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
 	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
@@ -162,7 +163,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (2, 22, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52)
+      AND TXN.TRL_TSC_CODE IN (42, 43, 44, 45, 46, 47, 48, 49, 51, 52)
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
@@ -221,7 +222,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_TSC_CODE NOT IN (2, 22, 40, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
+      AND TXN.TRL_TSC_CODE NOT IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 52, 252)
       AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
       AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
 	  AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
