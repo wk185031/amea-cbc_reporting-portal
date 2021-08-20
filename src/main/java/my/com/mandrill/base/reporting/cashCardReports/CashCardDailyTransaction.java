@@ -33,6 +33,7 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
+	private final static int ACCOUNT_NAME_MAX_LENGTH = 32;
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -366,7 +367,7 @@ public class CashCardDailyTransaction extends PdfReportProcessor {
 					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					break;
 				case ReportConstants.ACCOUNT_NAME:
-					if (getFieldValue(field, fieldsMap).length() > 28) {
+					if (getFieldValue(field, fieldsMap).length() > ACCOUNT_NAME_MAX_LENGTH) {
 						contentStream.showText(
 								getFieldValue(field, fieldsMap).substring(0, 28) + String.format("%1$4s", ""));
 						accNameValue = getFieldValue(field, fieldsMap).substring(28,
