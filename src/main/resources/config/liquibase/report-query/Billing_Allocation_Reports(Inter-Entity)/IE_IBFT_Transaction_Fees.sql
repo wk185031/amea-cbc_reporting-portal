@@ -84,7 +84,7 @@ ORDER BY "BRANCH CODE"');
 		RED_BODY_QUERY = i_BODY_QUERY
 	WHERE RED_NAME = 'Inter-Entity IBFT Transaction Fees';
 	
-	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity IBFT Transaction Fees' AND red_ins_id = 2;
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANKING CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity IBFT Transaction Fees' AND red_ins_id = 2;
 	
 END;
 /
