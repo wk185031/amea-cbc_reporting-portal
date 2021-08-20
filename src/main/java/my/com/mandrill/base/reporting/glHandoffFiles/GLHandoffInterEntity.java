@@ -109,6 +109,7 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
+        addPostingDateFieldsToGlobalMap(rgm);
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
