@@ -95,6 +95,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Terminal}
@@ -182,6 +183,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Txn_Date}
@@ -246,6 +248,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Txn_Date}
@@ -292,6 +295,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Txn_Date}
 )
@@ -331,6 +335,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')	  
       AND {Txn_Date}
 )
@@ -370,6 +375,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')	  
       AND {Txn_Date}
 )
@@ -436,6 +442,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Terminal}
@@ -523,6 +530,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Txn_Date}
@@ -587,6 +595,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Branch_Code}
       AND {Txn_Date}
@@ -633,6 +642,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
       AND {Txn_Date}
 )
@@ -672,6 +682,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')	  
       AND {Txn_Date}
 )
@@ -709,6 +720,7 @@ WHERE
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
+	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
 	  AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')	  
       AND {Txn_Date}
 )
