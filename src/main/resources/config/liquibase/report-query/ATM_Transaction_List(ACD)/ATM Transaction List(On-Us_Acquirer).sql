@@ -20,7 +20,8 @@
 -- Master report		13-AUG-2021		NY		Include null cbc_bin records, onus/acq ibft/eload to use 44/52 instead of 01 for catching the debit leg
 -- Master report		15-AUG-2021		NY		Fix acquiring prepaid reload printing APR, instead of BPR
 -- Master report		17-AUG-2021		NY		Fix wrong RFID decline count
-
+-- CBCAXUPISSLOG-885	20-AUG-2021		NY		Use bank mnem instead of code in "Iss Bank Code" column	
+	
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
     i_BODY_FIELDS_CBC CLOB;
@@ -57,7 +58,7 @@ SELECT
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      LPAD(CBA.CBA_CODE, 4, ''0'') "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       CASE 
@@ -121,7 +122,7 @@ SELECT
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      LPAD(CBA.CBA_CODE, 4, ''0'') "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       CASE 
@@ -179,7 +180,7 @@ SELECT
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      LPAD(CBA.CBA_CODE, 4, ''0'') "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       CASE
@@ -240,7 +241,7 @@ SELECT
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
       TXN.TRL_PAN "ATM CARD NUMBER",
       TXN.TRL_PAN_EKY_ID,
-      LPAD(CBA.CBA_CODE, 4, ''0'') "BANK CODE",
+      CBA.CBA_MNEM "BANK CODE",
       TXN.TRL_DATETIME_LOCAL_TXN "DATE",
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       CASE
