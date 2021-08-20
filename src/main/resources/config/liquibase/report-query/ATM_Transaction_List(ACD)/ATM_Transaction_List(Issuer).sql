@@ -15,6 +15,7 @@
 -- Master report		02-AUG-2021		NY		Use left join to cbc_bin/cbc_bank so that we still pull data with no bin
 -- Master report		06-AUG-2021		NY		Various fix from cross checking finding and jira related issues
 -- Master report		13-AUG-2021		NY		Left join to transaction_log_custom give unexpected result, revert to use join
+-- Master report		20-AUG-2021		NY		Include back txn code 2, 22
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -151,7 +152,7 @@ SELECT
       LEFT JOIN CBC_BANK CBA_REV ON LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = LPAD(CBA_REV.CBA_CODE, 10, ''0'')
 	WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
-      AND TXN.TRL_TSC_CODE NOT IN (2, 22, 4, 52)
+      AND TXN.TRL_TSC_CODE NOT IN (4, 52)
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
@@ -208,7 +209,7 @@ SELECT
       LEFT JOIN CBC_BANK CBA_REV ON LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = LPAD(CBA_REV.CBA_CODE, 10, ''0'')
 	WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
-      AND TXN.TRL_TSC_CODE NOT IN (2, 22, 44, 52)
+      AND TXN.TRL_TSC_CODE NOT IN (44, 52)
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
       AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
