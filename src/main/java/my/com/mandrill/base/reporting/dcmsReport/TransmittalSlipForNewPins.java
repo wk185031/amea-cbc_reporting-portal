@@ -33,6 +33,9 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
         String txnDate = null;
         String fileLocation = rgm.getFileLocation();
         String fileName = "";
+        if (getEncryptionService() == null) {
+        	setEncryptionService(rgm.getEncryptionService());
+        }
 
         try {
             //TODO - Please double check this report need to change or not
