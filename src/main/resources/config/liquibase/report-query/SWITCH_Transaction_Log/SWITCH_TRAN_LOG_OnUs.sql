@@ -5,6 +5,7 @@
 -- Onus 					09-AUG-2021		NY		Left join to CBC_BANK table give null value of bank name/bank code
 -- Onus						15-AUG-2021		NY		IBFT/Eload for onus to use 44/52 request instead of 01
 -- Onus						15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
+-- Onus						22-AUG-2021		NY		Fix update query not pickup the body_fields column
 
 DECLARE
 
@@ -67,7 +68,10 @@ ORDER BY
       TXN.TRL_SYSTEM_TIMESTAMP ASC,
       TXN.TRL_DEST_STAN ASC');
 	  
-	  UPDATE REPORT_DEFINITION SET RED_BODY_QUERY = i_BODY_QUERY WHERE RED_NAME = 'SWIT (On-Us)';
+	  UPDATE REPORT_DEFINITION SET 
+	    RED_BODY_FIELDS = i_BODY_FIELDS,
+	  	RED_BODY_QUERY = i_BODY_QUERY 
+	  WHERE RED_NAME = 'SWIT (On-Us)';
 	  
 END;
 /
