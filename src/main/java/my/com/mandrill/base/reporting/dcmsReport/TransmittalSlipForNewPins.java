@@ -27,10 +27,14 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
+import my.com.mandrill.base.service.EncryptionService;
 
 public class TransmittalSlipForNewPins extends TxtReportProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(TransmittalSlipForNewPins.class);
+    
+	private EncryptionService encryptionService;
+	
     private final PDFont DEFAULT_FONT = PDType1Font.COURIER;
 	private final float DEFAULT_FONT_SIZE = 6;
 	private final float DEFAULT_MARGIN = 30;
@@ -244,10 +248,31 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                     str.append(",");
                     str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
                     
+                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
+                    
+            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
+            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
+            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
+           		
+            		if (decryptFirstName == null) {
+            			decryptFirstName = encFirstName;
+            		}
+            		if (decryptMiddleName == null) {
+            			decryptMiddleName = encMiddleName;
+            		}
+            		if (decryptLastName == null) {
+            			decryptLastName = encLastName;
+            		}
+            		
                     lineFieldsMap.get("ACCOUNT_NAME").setValue(
-                    		lineFieldsMap.get("FIRST_NAME").getValue() + " " + 
-                    		lineFieldsMap.get("MIDDLE_NAME").getValue() + " " +
-                    		lineFieldsMap.get("LAST_NAME").getValue());
+                    		decryptFirstName + " " + 
+                    		decryptMiddleName + " " +
+                    		decryptLastName);
 
                     if(programToLineFieldsMap == null) {
                         programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
@@ -469,10 +494,32 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                     str.append(",");
                     str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
                     
+                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
+                    
+            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
+            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
+            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
+            		
+            		if (decryptFirstName == null) {
+            			decryptFirstName = encFirstName;
+            		}
+            		if (decryptMiddleName == null) {
+            			decryptMiddleName = encMiddleName;
+            		}
+            		if (decryptLastName == null) {
+            			decryptLastName = encLastName;
+            		}
+            		
                     lineFieldsMap.get("ACCOUNT_NAME").setValue(
-                    		lineFieldsMap.get("FIRST_NAME").getValue() + " " + 
-                    		lineFieldsMap.get("MIDDLE_NAME").getValue() + " " +
-                    		lineFieldsMap.get("LAST_NAME").getValue());
+                    		decryptFirstName + " " + 
+                    		decryptMiddleName + " " +
+                    		decryptLastName);
+
 
                     if(programToLineFieldsMap == null) {
                         programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
@@ -556,4 +603,13 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 		}
 		return false;
 	}
+	
+	public EncryptionService getEncryptionService() {
+		return encryptionService;
+	}
+
+	public void setEncryptionService(EncryptionService encryptionService) {
+		this.encryptionService = encryptionService;
+	}
+
 }
