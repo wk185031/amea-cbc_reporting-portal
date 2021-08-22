@@ -35,6 +35,21 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Daily.sql"
                  splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Statistic_Per_Channel.sql"
+                 splitStatements="false" 
                  stripComments="true" /> 
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Successful.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Unsuccessful.sql"
+                 splitStatements="false" 
+                 stripComments="true" />  
     </changeSet>
 </databaseChangeLog>

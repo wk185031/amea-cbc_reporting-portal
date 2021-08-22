@@ -915,6 +915,70 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
+	
+	protected boolean executeBodyQueryWithHasRecord (ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				
+				if (rs.next()) {
+					do {
+						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+						}
+						writeBody(rgm, lineFieldsMap);
+					} while (rs.next());
+					return true;
+				}
+
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return false;
+	}
 
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.executeBodyQuery()");
