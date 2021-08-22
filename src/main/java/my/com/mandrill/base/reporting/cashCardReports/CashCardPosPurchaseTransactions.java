@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -93,7 +92,10 @@ public class CashCardPosPurchaseTransactions extends PdfReportProcessor {
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			boolean hasRecord = executeBodyQueryWithHasRecord(rgm);
+			if (!hasRecord) {
+				rgm.writeLine(ReportConstants.NO_RECORD.getBytes());
+			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (IOException | JSONException e) {
@@ -130,48 +132,56 @@ public class CashCardPosPurchaseTransactions extends PdfReportProcessor {
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
-				while (rs.next()) {
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream.endText();
-						contentStream.close();
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-					}
+				if (rs.next()) {
+					do {
+						if (pageHeight > totalHeight) {
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							contentStream.endText();
+							contentStream.close();
+							page = new PDPage();
+							doc.addPage(page);
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+						}
 
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
 							}
-						} else {
-							field.setValue("");
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
 						}
-					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					pageHeight++;
+						writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+						pageHeight++;
+					} while (rs.next());
+				} else {
+					contentStream.showText(ReportConstants.NO_RECORD);
 				}
+				
+//				while (rs.next()) {
+//					
+//				}
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
