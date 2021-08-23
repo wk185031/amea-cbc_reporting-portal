@@ -519,11 +519,17 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 						groupingField.remove(KEY_TERMINAL);						
 						groupingField.remove(KEY_CARD_PRODUCT);
 					} else {
+						rgm.writeLine((field.getFieldName() + " - " + field.getValue()).getBytes());
+						rgm.writeLine(getEol().getBytes());
+						
 						if (KEY_TERMINAL.equals(field.getFieldName())) {
 							groupingField.remove(KEY_CARD_PRODUCT);
 						}
-						rgm.writeLine((field.getFieldName() + " - " + field.getValue()).getBytes());
-						rgm.writeLine(getEol().getBytes());
+						
+						if (KEY_CARD_PRODUCT.equals(field.getFieldName())) {
+							rgm.writeLine(getEol().getBytes());
+							writeBodyHeader(rgm);
+						}											
 					}
 
 					groupFieldToUpdate.put(field.getFieldName(), value);

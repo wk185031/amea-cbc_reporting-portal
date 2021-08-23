@@ -50,6 +50,16 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Unsuccessful.sql"
                  splitStatements="false" 
-                 stripComments="true" />  
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Approved_Transactions.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_Possible_Adjustments.sql"
+                 splitStatements="false" 
+                 stripComments="true" />   
     </changeSet>
 </databaseChangeLog>
