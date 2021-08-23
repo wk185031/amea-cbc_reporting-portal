@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -48,8 +49,10 @@ public class Finacle360 extends CsvReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In Finacle360.preProcessing()");
 		
-		// replace {DCMS_Schema}/{Iss_Name}/{Iss_Id} to actual value
+		// replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Name}/{Iss_Id} to actual value
 		rgm.setBodyQuery(rgm.getBodyQuery()
+				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+	            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
 				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
 				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
 				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? CBC_BANK_NAME : CBS_BANK_NAME)

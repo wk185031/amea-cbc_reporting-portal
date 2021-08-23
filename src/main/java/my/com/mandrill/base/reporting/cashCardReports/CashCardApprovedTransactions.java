@@ -46,7 +46,10 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 	private static final String TXN_GROUP_IE = "FROM INTER-ENTITY TRANSACTIONS";
 	private static final String TXN_GROUP_ISSUING = "FROM ISSUING TRANSACTIONS";
 
-	private static final String[] TRANSACTION_GROUPS = new String[] { TXN_GROUP_ONUS, TXN_GROUP_IE, TXN_GROUP_ISSUING };
+	private static final String KEY_BRANCH = "BRANCH CODE";
+	private static final String KEY_TXN_GROUP = "TRANSACTION GROUP";
+	private static final String KEY_TERMINAL = "TERMINAL";
+	private static final String KEY_CARD_PRODUCT = "CARD PRODUCT";
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
@@ -102,12 +105,14 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 
 							}
 							contentStream = writeRowData(rgm, doc, lineFieldsMap, groupingField, contentStream);
+							logger.debug("current line = {}", getLineCounter());
 							if (getLineCounter() >= getMaxLinePerPage()) {
-								contentStream = newPage(doc, contentStream, rgm, groupingField.get("BRANCH CODE"), "");
+								contentStream = newPage(doc, contentStream, rgm, groupingField.get(KEY_BRANCH), "");
 							}
 
 						} while (rs.next());
 					} else {
+						contentStream = newPage(doc, contentStream, rgm, "", "");
 						writeNoRecordFound(contentStream);
 						incrementLineCounter();
 					}
@@ -502,22 +507,35 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 						&& groupingField.get(field.getFieldName()).equals(value)) {
 					// Same group. Do nothing
 				} else {
-					if ("BRANCH CODE".equals(field.getFieldName())) {
+					if (KEY_BRANCH.equals(field.getFieldName())) {
 						pagination++;
 						writeHeader(rgm, pagination, field.getValue(), "");
-					} else if ("TRANSACTION GROUP".equals(field.getFieldName())) {
+						groupingField.remove(KEY_TXN_GROUP);
+						groupingField.remove(KEY_TERMINAL);						
+						groupingField.remove(KEY_CARD_PRODUCT);
+					} else if (KEY_TXN_GROUP.equals(field.getFieldName())) {
 						rgm.writeLine(field.getValue().getBytes());
 						rgm.writeLine(getEol().getBytes());
+						groupingField.remove(KEY_TERMINAL);						
+						groupingField.remove(KEY_CARD_PRODUCT);
 					} else {
 						rgm.writeLine((field.getFieldName() + " - " + field.getValue()).getBytes());
 						rgm.writeLine(getEol().getBytes());
+						
+						if (KEY_TERMINAL.equals(field.getFieldName())) {
+							groupingField.remove(KEY_CARD_PRODUCT);
+						}
+						
+						if (KEY_CARD_PRODUCT.equals(field.getFieldName())) {
+							rgm.writeLine(getEol().getBytes());
+							writeBodyHeader(rgm);
+						}											
 					}
 
 					groupFieldToUpdate.put(field.getFieldName(), value);
 				}
 
 			} else {
-
 				setBody(true);
 				setBodyHeader(false);
 				if (field.isDecrypt()) {
@@ -546,6 +564,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 
+		boolean addNewLineInGroup = true;
 		for (ReportGenerationFields field : fields) {
 			if (field.isGroup()) {
 				String value = getFieldValue(rgm, field, fieldsMap).trim();
@@ -554,20 +573,43 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 						&& groupingField.get(field.getFieldName()).equals(value)) {
 					// Same group. Do nothing
 				} else {
-					contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-					incrementLineCounter(1);
-					if ("BRANCH CODE".equals(field.getFieldName())) {
+					if (KEY_BRANCH.equals(field.getFieldName())) {
 						contentStream = newPage(doc, contentStream, rgm, field.getValue(), "");
-					} else if ("TRANSACTION GROUP".equals(field.getFieldName())) {
-						contentStream.showText(field.getValue());
-						contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-						incrementLineCounter(1);
 					} else {
-						contentStream.showText(field.getFieldName() + " - " + field.getValue());
-						contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
-						incrementLineCounter(1);
+						if (groupingField.containsKey(field.getFieldName()) && addNewLineInGroup) {
+							// Add new line if have record previously
+							contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+							incrementLineCounter(1);
+							addNewLineInGroup = false;
+						}
+						if (KEY_BRANCH.equals(field.getFieldName())) {
+							pagination++;
+							writeHeader(rgm, pagination, field.getValue(), "");
+							groupingField.remove(KEY_TXN_GROUP);
+							groupingField.remove(KEY_TERMINAL);						
+							groupingField.remove(KEY_CARD_PRODUCT);
+						} else if (KEY_TXN_GROUP.equals(field.getFieldName())) {						
+							contentStream.showText(field.getValue());
+							contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+							incrementLineCounter(1);
+							groupingField.remove(KEY_TERMINAL);						
+							groupingField.remove(KEY_CARD_PRODUCT);
+						} else {
+							contentStream.showText(field.getFieldName() + " - " + field.getValue());
+							contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+							incrementLineCounter(1);
+							
+							if (KEY_TERMINAL.equals(field.getFieldName())) {
+								groupingField.remove(KEY_CARD_PRODUCT);
+							}
+							
+							if (KEY_CARD_PRODUCT.equals(field.getFieldName())) {
+								contentStream.newLineAtOffset(0, -DEFAULT_LEADING);
+								writePdfBodyHeader(rgm, contentStream, DEFAULT_LEADING);
+								incrementLineCounter(3);
+							}
+						}
 					}
-
 					groupFieldToUpdate.put(field.getFieldName(), value);
 				}
 
@@ -851,6 +893,6 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 	}
 
 	private int getMaxLinePerPage() {
-		return 120;
+		return 70;
 	}
 }

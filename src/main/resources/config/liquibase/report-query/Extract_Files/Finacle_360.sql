@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- CBCAXUPISSLOG-673	01-JULY-2021	WY		Fix empty report generated for Finacle 360
 -- CBCAXUPISSLOG-673	06-JULY-2021	WY		Fix issue data generated in one single row
+-- DCMS					22-AUG-2021		NY		Add date range by card created ts
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -41,7 +42,9 @@ from
 	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = dcr.dcr_prs_id
 	inner join {DCMS_Schema}.master_status@{DB_LINK_DCMS} sts on sts_id = dcr.dcr_sts_id
 	inner join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON crd.CRD_INS_ID = INS.INS_ID
-where dcr.dcr_ins_id = {Iss_Id}
+where 
+	dcr.dcr_ins_id = {Iss_Id} and
+	trunc(crd.crd_created_ts) between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
 union all
 select
 	clt.clt_cif_number as "CIF",
@@ -67,7 +70,10 @@ from
 	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = ccr.ccr_prs_id
 	inner join {DCMS_Schema}.master_status@{DB_LINK_DCMS} sts on sts_id = ccr.ccr_sts_id
 	inner join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON csh.CSH_INS_ID = INS.INS_ID
-	where ccr.ccr_ins_id = {Iss_Id}) tb
+where 
+	ccr.ccr_ins_id = {Iss_Id} and
+	trunc(csh.csh_created_ts) between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+) tb
 	where tb."ROTATION_NUMBER" is not null
 order by
 	tb.cif, tb."ATM CARD NUMBER"		
