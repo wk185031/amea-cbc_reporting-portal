@@ -269,7 +269,6 @@ public final class ReportConstants {
 	public static final String TRAN_MNEM = "TRAN MNEM";
 	public static final String VALUE_DATE = "Value Date";
 	public static final String TRAN_DATE = "TRAN_DATE";
-	public static final String REVERSAL_SIGN = "REVERSAL SIGN";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";
