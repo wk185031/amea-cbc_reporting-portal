@@ -68,6 +68,7 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 
 			separateQuery(rgm);
 			preProcessing(rgm);
+			preProcessing(rgm, glDescription, branchCode);
 
 			contentStream.setFont(pdfFont, fontSize);
 			contentStream.beginText();
@@ -83,7 +84,6 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();
-				if (glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
@@ -98,16 +98,6 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 						contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 								startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					}
-				} else {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-							startY, pdfFont, fontSize, glDescription, branchCode, ReportConstants.CREDIT_IND);
-				}
 			}
 
 			writePdfTrailer(rgm, contentStream, leading);
@@ -154,9 +144,9 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
+
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();
-				if (glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
@@ -169,14 +159,6 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
 						executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					}
-				} else {
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
-				}
 			}
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
@@ -262,18 +244,26 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
+	
+	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode) throws InstantiationException, 
+	IllegalAccessException, ClassNotFoundException {
+		ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+				ReportGenerationFields.TYPE_STRING,
+				"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
+		getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
 			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffFinalProofSheetInterEntity.preProcessing()");
 		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
+//			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 						ReportGenerationFields.TYPE_STRING,
 						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
+//			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
@@ -282,12 +272,12 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 
 		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditBodyQuery() != null
 				&& indicator.equals(ReportConstants.CREDIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
+//			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 						ReportGenerationFields.TYPE_STRING,
 						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
+//			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
@@ -299,13 +289,13 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) ");
+					" (TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) ");
+					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
