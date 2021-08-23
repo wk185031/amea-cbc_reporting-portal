@@ -66,5 +66,15 @@
                  path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity Summary of Approved IBFT Transactions Net Settlement.sql"
                  splitStatements="false" 
                  stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_IE.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(Inter-Entity).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>
