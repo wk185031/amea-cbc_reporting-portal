@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+ 	<changeSet id="NY_20210824000001_add_eload_system_config" author="ny">	
+ 	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/add_eload_system_configuration_20210824.sql"
+                 stripComments="true" />
+ 	</changeSet>
+</databaseChangeLog>

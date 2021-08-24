@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -21,6 +22,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
+import my.com.mandrill.base.service.util.EloadProviderUtil;
 
 public class ATMTransactionListIssuer extends CsvReportProcessor {
 
@@ -103,6 +105,7 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		String txnQualifier = null;
 		String voidCode = null;
 		logger.info("Query for body line export: {}", query);
+		Map<String, String> eloadProviderMap = EloadProviderUtil.getEloadProviderMap();
 
 		if (query != null && !query.isEmpty()) {
 			try {
@@ -144,7 +147,7 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap, txnQualifier, voidCode);
+					writeBody(rgm, lineFieldsMap, txnQualifier, voidCode, eloadProviderMap);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -219,7 +222,7 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 	}
 	
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String txnQualifier, String voidCode)
+			String txnQualifier, String voidCode, Map<String, String> eloadProviderMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
@@ -230,19 +233,26 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		// need to cater for reverse list, as we need to take decrypt account number first to get the prepaid biller code
 		Collections.reverse(fields);
 		
+		String accountFirstTwoDigit = null;
+		String accountNo = null;
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
-				decryptValue = getFieldValue(rgm, field, fieldsMap);
 				
-				// check if decrypt value is prepaid biller code account
-				if(field.getFieldName().equals(ReportConstants.TO_ACCOUNT_NO)) {
-					if (decryptValue.substring(0, 5).equals("00010")) {
-						prepaidBillerCode = "GLOBE";
-					} else if (decryptValue.substring(0, 5).equals("00020")) {
-						prepaidBillerCode = "SMART";
-					} else if (decryptValue.substring(0, 5).equals("00030")) {
-						prepaidBillerCode = "SUN";
+				if (field.getFieldName().equals(ReportConstants.TO_ACCOUNT_NO)) {
+					decryptValue = getGlobalFileFieldsMap().get(field.getFieldName()).getValue();										
+					// check if decrypt value is prepaid biller code account
+					if(null != decryptValue && decryptValue.trim().length() > 4) {						
+						accountNo = decryptValue.replaceAll("^0*", "");
+						
+						if (accountNo.length() > 4) {
+							accountFirstTwoDigit = accountNo.substring(0, 2);
+							
+							if (eloadProviderMap.containsKey(accountFirstTwoDigit) && accountNo.substring(2, 4).equals("09")) {
+								prepaidBillerCode = eloadProviderMap.get(accountFirstTwoDigit);
+							} 
+						}					
 					}
 				}								
 			}
