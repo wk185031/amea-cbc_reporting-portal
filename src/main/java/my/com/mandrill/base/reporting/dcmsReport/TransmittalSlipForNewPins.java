@@ -14,6 +14,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +27,85 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
+import my.com.mandrill.base.service.EncryptionService;
 
 public class TransmittalSlipForNewPins extends TxtReportProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(TransmittalSlipForNewPins.class);
+    
+	private EncryptionService encryptionService;
+	
+    private final PDFont DEFAULT_FONT = PDType1Font.COURIER;
+	private final float DEFAULT_FONT_SIZE = 6;
+	private final float DEFAULT_MARGIN = 30;
+	
+    private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+    private float totalHeight = PDRectangle.A4.getHeight();
+    private int pagination = 0;
+    
+	@Override
+	public void executePdf(ReportGenerationMgr rgm) {
+		logger.debug("In TransmittalSlipForNewPins.processPdfRecord(): " + rgm.getFileNamePrefix());
+		generateReport(rgm);
+	}
 
+	private void generateReport(ReportGenerationMgr rgm) {
+		logger.debug("In TransmittalSlipForNewPins.generateReport(): " + rgm.getFileNamePrefix());
+		PDPageContentStream contentStream = null;
+		PDFont pdfFont = PDType1Font.COURIER;
+		float fontSize = 6;
+		float leading = 1.5f * fontSize;
+		PDRectangle pageSize = null;
+		float margin = 30;
+		float width = 0.0f;
+		float startX = 0.0f;
+		float startY = 0.0f;
+		PDDocument doc = null;
+		PDPage page = null;
+		pagination = 0;
+
+		try {
+			preProcessing(rgm);
+			doc = new PDDocument();
+			
+			if (!executeQuery(rgm)) {
+				page = new PDPage();
+				doc.addPage(page);
+				contentStream = new PDPageContentStream(doc, page);
+				pageSize = page.getMediaBox();
+				width = pageSize.getWidth() - 2 * margin;
+				startX = pageSize.getLowerLeftX() + margin;
+				startY = pageSize.getUpperRightY() - margin;
+				contentStream.setFont(pdfFont, fontSize);
+				contentStream.beginText();
+				contentStream.newLineAtOffset(startX, startY);
+				contentStream.endText();
+				contentStream.close();
+				saveFile(rgm, doc);
+			} else {
+				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
+						startY, pdfFont, fontSize, width, margin);
+				pageHeight += 1;
+			}
+
+			saveFile(rgm, doc);
+
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+		} finally {
+			if (doc != null) {
+				try {
+					doc.close();
+					rgm.exit();
+				} catch (IOException e) {
+					rgm.errors++;
+					logger.error("Error in closing PDF file", e);
+				}
+			}
+		}
+	}
+    
     @Override
     public void processTxtRecord(ReportGenerationMgr rgm) {
         logger.debug("In TransmittalSlipForNewPins.processTxtRecord()");
@@ -89,6 +169,200 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
             }
         }
     }
+    
+	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
+			PDFont pdfFont, float fontSize, float width, float margin) {
+		logger.debug("In TransmittalSlipForNewPins.executePdfBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+        HashSet<String> branchSet = new HashSet<String>();
+        HashMap<String, List<HashMap<String, ReportGenerationFields>>> programToLineFieldsMap = null;
+        List< HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+                StringBuilder str = null;
+                if(getEncryptionService() == null) {
+                	setEncryptionService(rgm.getEncryptionService());
+                }
+
+				while (rs.next()) {
+                    lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					if (pageHeight > totalHeight) {
+						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+						contentStream = newPage(rgm, doc, contentStream);
+					}
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					
+                    if(branchSet == null) {
+                        branchSet = new HashSet<String>();
+                    }
+
+                    if(str == null) {
+                        str = new StringBuilder();
+                    }
+                    
+                    // 1. store set with branch_name,branch_code value
+                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+                    str.append(",");
+                    str.append(lineFieldsMap.get("BRANCH_CODE").getValue());
+                    branchSet.add(str.toString());
+
+                    // clear StringBuilder to reuse
+                    str.setLength(0);
+
+                    // 2. store map with branch_name,program_name key
+                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+                    str.append(",");
+                    str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
+                    
+                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
+                    
+            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
+            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
+            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
+           		
+            		if (decryptFirstName == null) {
+            			decryptFirstName = encFirstName;
+            		}
+            		if (decryptMiddleName == null) {
+            			decryptMiddleName = encMiddleName;
+            		}
+            		if (decryptLastName == null) {
+            			decryptLastName = encLastName;
+            		}
+            		
+                    lineFieldsMap.get("ACCOUNT_NAME").setValue(
+                    		decryptFirstName + " " + 
+                    		decryptMiddleName + " " +
+                    		decryptLastName);
+
+                    if(programToLineFieldsMap == null) {
+                        programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
+                    }
+
+                    if(programToLineFieldsMap.containsKey(str.toString())) {
+                        programToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
+                    } else {
+                        lineFieldsMapList = new ArrayList<>();
+                        lineFieldsMapList.add(lineFieldsMap);
+                        programToLineFieldsMap.put(str.toString(), lineFieldsMapList);
+                    }
+
+                    str.setLength(0);
+                    
+				}
+				
+                for(String branch: branchSet) {
+					page = new PDPage();
+					doc.addPage(page);
+					pagination++;
+					contentStream = new PDPageContentStream(doc, page);
+					pageSize = page.getMediaBox();
+					width = pageSize.getWidth() - 2 * margin;
+					startX = pageSize.getLowerLeftX() + margin;
+					startY = pageSize.getUpperRightY() - margin;
+					contentStream.setFont(pdfFont, fontSize);
+					contentStream.beginText();
+					contentStream.newLineAtOffset(startX, startY);
+
+                    int totalCount = 0;
+                    preProcessingHeader(rgm, branch.split(",")[0], branch.split(",")[1]);
+					writePdfHeader(rgm, contentStream, leading, pagination);
+    				contentStream.newLineAtOffset(0, -leading);
+                    for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> branchProgramMap: programToLineFieldsMap.entrySet()) {
+                        if(branchProgramMap.getKey().split(",")[0].equals(branch.split(",")[0])) {
+                            preProcessingBodyHeader(rgm, branchProgramMap.getKey().split(",")[1], branchProgramMap.getValue().size());
+        					writePdfBodyHeader(rgm, contentStream, leading);
+                            for(HashMap<String,ReportGenerationFields> m: branchProgramMap.getValue()) {
+                                writePdfBody(rgm, m, contentStream, leading);
+            					pageHeight++;
+                                totalCount++;
+                            }
+                        }
+                    }
+                    if (rgm.getTrailerFields() != null) {
+                    	preProcessingBodyTrailer(rgm, branch.split(",")[0], totalCount);
+            			writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+        				pageHeight += 1;
+        				contentStream.newLineAtOffset(0, -leading);
+                    }
+    				contentStream.endText();
+    				contentStream.close();
+                }
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return contentStream;
+	}
+	
+    private PDPageContentStream newPage(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream)
+			throws Exception {
+
+		if (contentStream != null) {
+			contentStream.endText();
+			contentStream.close();
+		}
+
+		PDPage page = new PDPage();
+		doc.addPage(page);
+		contentStream = new PDPageContentStream(doc, page);
+		contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+		contentStream.beginText();
+		contentStream.newLineAtOffset(page.getMediaBox().getLowerLeftX() + DEFAULT_MARGIN,
+				page.getMediaBox().getUpperRightY() - DEFAULT_MARGIN);
+		pagination++;
+		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+		writePdfHeader(rgm, contentStream, 1.5f * DEFAULT_FONT_SIZE, pagination);
+		return contentStream;
+	}
 
     private void preProcessing(ReportGenerationMgr rgm)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -167,6 +441,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                 rs = ps.executeQuery();
                 fieldsMap = rgm.getQueryResultStructure(rs);
                 StringBuilder str = null;
+    			pagination = 0;
 
                 while (rs.next()) {
                     new StringBuffer();
@@ -218,6 +493,33 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                     str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
                     str.append(",");
                     str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
+                    
+                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
+                    
+            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
+            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
+            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
+            		
+            		if (decryptFirstName == null) {
+            			decryptFirstName = encFirstName;
+            		}
+            		if (decryptMiddleName == null) {
+            			decryptMiddleName = encMiddleName;
+            		}
+            		if (decryptLastName == null) {
+            			decryptLastName = encLastName;
+            		}
+            		
+                    lineFieldsMap.get("ACCOUNT_NAME").setValue(
+                    		decryptFirstName + " " + 
+                    		decryptMiddleName + " " +
+                    		decryptLastName);
+
 
                     if(programToLineFieldsMap == null) {
                         programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
@@ -236,9 +538,10 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 
                 // 3. iterate (branch_name,branch_code) set, iterate (branch_name,program_name) map to print by grouping
                 for(String branch: branchSet) {
+    				pagination++;
                     int totalCount = 0;
                     preProcessingHeader(rgm, branch.split(",")[0], branch.split(",")[1]);
-                    writeHeader(rgm);
+                    writeHeader(rgm, pagination);
                     for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> branchProgramMap: programToLineFieldsMap.entrySet()) {
                         if(branchProgramMap.getKey().split(",")[0].equals(branch.split(",")[0])) {
                             preProcessingBodyHeader(rgm, branchProgramMap.getKey().split(",")[1], branchProgramMap.getValue().size());
@@ -269,4 +572,44 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
             }
         }
     }
+    
+	private boolean executeQuery(ReportGenerationMgr rgm) {
+		logger.debug("In TransmittalSlipForNewPins.executeQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Execute query: {}", query);
+
+		try {
+			ps = rgm.connection.prepareStatement(query);
+			rs = ps.executeQuery();
+
+			if (!rs.isBeforeFirst()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			rgm.errors++;
+			logger.error("Error trying to execute the body query", e);
+		} finally {
+			try {
+				ps.close();
+				rs.close();
+			} catch (SQLException e) {
+				rgm.errors++;
+				logger.error("Error closing DB resources", e);
+			}
+		}
+		return false;
+	}
+	
+	public EncryptionService getEncryptionService() {
+		return encryptionService;
+	}
+
+	public void setEncryptionService(EncryptionService encryptionService) {
+		this.encryptionService = encryptionService;
+	}
+
 }

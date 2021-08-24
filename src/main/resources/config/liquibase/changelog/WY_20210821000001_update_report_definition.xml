@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="WY_20210821000001_update_report_definition" author="wy">
+    	<validCheckSum>any</validCheckSum>
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_IE.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Inter-Entity)/IE_Acquirer_Balance_Inquiry_Transaction_Fees.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Inter-Entity)/IE_Issuer_Balance_Inquiry_Transaction_Fees.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Inter-Entity)/IE_Acquirer_ATM_Withdrawal_Income.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Inter-Entity)/IE_Issuer_ATM_Withdrawal_Expense.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_ATM_Withdrawal_Transactions/Inter-Entity_ATM_Withdrawal_as_Acquirer_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Transmitting_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Receiving_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity_Approved_IBFT_Transactions_as_Acquiring_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Inter-Entity_IBFT_Transactions/Inter-Entity Summary of Approved IBFT Transactions Net Settlement.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_IE.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(Inter-Entity).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    </changeSet>
+</databaseChangeLog>

@@ -3,6 +3,7 @@
 -- CBCAXUPISSLOG-527     05-JUL-2021        GS        Modify Trace No pad length to 6 digits
 -- Report revision       30-JUL-2021        LJL       Update based on excel spec
 -- Report revision		 12-AUG-201			LJL		  Update comment & remark.Insert semicolon (;) between "Tran Code" and  "Remarks" to separate columns
+-- Report revision		 23-AUG-201			LJL		  Update query tp cater IE
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -50,7 +51,10 @@ i_BODY_QUERY_CBC := TO_CLOB('SELECT
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_DEST_STAN "SEQ NUMBER",
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
-      CASE WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",
+      CASE
+	  WHEN TXNC.TRL_IS_INTER_ENTITY = 1 AND TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_DEO_NAME = {V_IE_Deo_Name}  AND CTR.CTR_REV_MNEM IS NOT NULL THEN ''BRX'' 
+	  WHEN TXNC.TRL_IS_INTER_ENTITY = 1 AND TXN.TRL_TQU_ID = ''F'' AND  TXN.TRL_DEO_NAME = {V_IE_Deo_Name}  AND CTR.CTR_MNEM IS NOT NULL THEN ''BRL''  
+	  WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",
       '' '' "RFID REF NO",
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_PAN "ATM CARD NUMBER",
@@ -77,8 +81,9 @@ WHERE
       TXN.TRL_TSC_CODE = 51
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+AND ((TXN.TRL_ISS_NAME = {V_Iss_Name}
+AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
+OR (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})) 
 AND {Channel}
       AND {Branch_Code}
       AND {Terminal}
@@ -104,8 +109,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 51
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+AND ((TXN.TRL_ISS_NAME = {V_Iss_Name}
+AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
+OR (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})) 
 AND {Channel}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
@@ -123,7 +129,10 @@ i_BODY_QUERY_CBS := TO_CLOB('SELECT
       TXN.TRL_DATETIME_LOCAL_TXN "TIME",
       TXN.TRL_DEST_STAN "SEQ NUMBER",
       SUBSTR(TXN.TRL_RRN, 9, 4) "TRACE NUMBER",
-      CASE WHEN TXN.TRL_TQU_ID = ''R'' THEN CTR.CTR_REV_MNEM ELSE CTR.CTR_MNEM END AS "TRAN MNEM",
+	  CASE
+	  WHEN TXNC.TRL_IS_INTER_ENTITY = 1 AND TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_DEO_NAME = {V_Deo_Name}  AND CTR.CTR_REV_MNEM IS NOT NULL THEN CTR.CTR_REV_MNEM 
+	  WHEN TXNC.TRL_IS_INTER_ENTITY = 1 AND TXN.TRL_TQU_ID = ''F'' AND  TXN.TRL_DEO_NAME = {V_Deo_Name}  AND CTR.CTR_MNEM IS NOT NULL THEN CTR.CTR_MNEM 
+	  WHEN TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_DEO_NAME = {V_IE_Deo_Name} THEN ''BRX'' ELSE ''BRL'' END AS "TRAN MNEM",
       '' '' "RFID REF NO",
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_PAN "ATM CARD NUMBER",
@@ -148,8 +157,9 @@ WHERE
       TXN.TRL_TSC_CODE = 51
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
+AND ((TXN.TRL_ISS_NAME = {V_Iss_Name}
+AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
+OR (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})) 
 AND {Channel}
       AND {Branch_Code}
       AND {Terminal}
@@ -175,8 +185,9 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 51
       AND TXN.TRL_TQU_ID IN (''F'', ''R'')
-AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id})
+AND ((TXN.TRL_ISS_NAME = {V_Iss_Name}
+AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
+OR (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})) 
 AND {Channel}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}

@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Revise report		25-JULY-2021	WY		Revise IE reports based on spec
+-- Revise report 		22-AUG-2021		WY		Revise fee amount based on amount sent in Lady's email
 
 DECLARE
 	i_BODY_QUERY CLOB;
@@ -12,7 +13,7 @@ BEGIN
      BRC.BRC_CODE "BRANCH CODE",
      BRC.BRC_NAME "BRANCH NAME",
      COUNT(TXN.TRL_ID) "TOTAL COUNT",
-     COUNT(TXN.TRL_ID) * 7.50 "TOTAL EXPENSE"
+     COUNT(TXN.TRL_ID) * 1.00 "TOTAL EXPENSE"
 FROM
      TRANSACTION_LOG TXN
      JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
@@ -34,7 +35,7 @@ ORDER BY
 	
 	i_TRAILER_QUERY := TO_CLOB('SELECT
       COUNT(TXN.TRL_ID) "TOTAL COUNT",
-      COUNT(TXN.TRL_ID) * 7.50 "TOTAL EXPENSE"
+      COUNT(TXN.TRL_ID) * 1.00 "TOTAL EXPENSE"
 FROM
       TRANSACTION_LOG TXN
       JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN

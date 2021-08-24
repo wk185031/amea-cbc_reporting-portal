@@ -148,13 +148,13 @@ public class GLHandoffInterEntity extends BatchProcessor {
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) ");
+					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (1, 128) ");
+					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
