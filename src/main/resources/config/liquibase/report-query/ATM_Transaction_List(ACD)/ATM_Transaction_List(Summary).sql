@@ -27,6 +27,7 @@
 -- Master report		20-AUG-2021		NY		Include back txn code 2, 22
 -- Master report 		22-AUG-2021		NY		Fix cross checking to cash card transactions
 -- Master report		23-AUG-2021		NY		Cater credit leg for txn code 44 and 48
+-- Master report		24-AUG-2021		NY		Fix missing txn code 43
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -127,7 +128,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (42, 44, 45, 46, 47, 48, 49, 51, 52)
+      AND TXN.TRL_TSC_CODE IN (42, 43, 44, 45, 46, 47, 48, 49, 51, 52)
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}	
@@ -220,7 +221,7 @@ SELECT
 	  LEFT JOIN CBC_BANK CBA_ACQ ON LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = LPAD(CBA_ACQ.CBA_CODE, 10, ''0'')
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
-      AND TXN.TRL_TSC_CODE IN (40, 42, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND CTRI.CTR_DEBIT_CREDIT = ''DEBIT''
       AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
@@ -474,7 +475,7 @@ SELECT
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (42, 44, 45, 46, 47, 48, 49, 51, 52)
+      AND TXN.TRL_TSC_CODE IN (42, 43, 44, 45, 46, 47, 48, 49, 51, 52)
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
@@ -570,7 +571,7 @@ SELECT
       LEFT JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 	WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
-      AND TXN.TRL_TSC_CODE IN (40, 42, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND CTRI.CTR_DEBIT_CREDIT = ''DEBIT''
       AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
