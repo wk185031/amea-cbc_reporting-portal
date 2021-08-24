@@ -92,6 +92,11 @@ public class TransactionCountReport extends TxtReportProcessor {
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
 		String txnQualifier = null;
+		boolean hasCashDispensedAmount = false;
+		boolean hasDepositAmount = false;
+		boolean hasBillPaymentAmount = false;
+		boolean hasTransferAmount = false;
+		
 		logger.info("Query for body line export: {}", query);
 
 		if (query != null && !query.isEmpty()) {
@@ -102,8 +107,12 @@ public class TransactionCountReport extends TxtReportProcessor {
 
 				while (rs.next()) {
 					new StringBuffer();
+					hasCashDispensedAmount = false;
+					hasDepositAmount = false;
+					hasBillPaymentAmount = false;
+					hasTransferAmount = false;
 					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
+					for (String key : lineFieldsMap.keySet()) {						
 						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
 						Object result;
 						try {
@@ -124,12 +133,26 @@ public class TransactionCountReport extends TxtReportProcessor {
 							} else if (key.equalsIgnoreCase(ReportConstants.TXN_QUALIFIER)) {
 								txnQualifier = result.toString();
 								field.setValue(result.toString());
-							} else if (key.equalsIgnoreCase(ReportConstants.REVERSAL_SIGN)) {
-								if(txnQualifier.equals("R")) {
-									field.setValue(result.toString());
-								} else {
-									field.setValue("");
+							} else if (key.equalsIgnoreCase(ReportConstants.CASH_DISPENSED_AMOUNT)) {
+								if(!result.toString().equals("0") && txnQualifier.equals("R")) {
+									hasCashDispensedAmount = true;
 								}
+								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.DEPOSITS_AMOUNT)) {
+								if(!result.toString().equals("0")) {
+									hasDepositAmount = true;
+								}
+								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.BILL_PAYMENTS_AMOUNT)) {
+								if(!result.toString().equals("0")) {
+									hasBillPaymentAmount = true;
+								}
+								field.setValue(result.toString());
+							} else if (key.equalsIgnoreCase(ReportConstants.TRANSFERS_AMOUNT)) {
+								if(!result.toString().equals("0")) {
+									hasTransferAmount = true;
+								}
+								field.setValue(result.toString());
 							} else {
 								field.setValue(result.toString());
 							}
@@ -137,6 +160,20 @@ public class TransactionCountReport extends TxtReportProcessor {
 							field.setValue("");
 						}
 					}
+					
+					if(!hasCashDispensedAmount || txnQualifier.equals("F")) {
+						lineFieldsMap.get(ReportConstants.REVERSAL_SIGN_CD).setValue("");
+					} 
+					if (!hasDepositAmount || txnQualifier.equals("F")) {
+						lineFieldsMap.get(ReportConstants.REVERSAL_SIGN_DP).setValue("");
+					} 
+					if (!hasBillPaymentAmount || txnQualifier.equals("F")) {
+						lineFieldsMap.get(ReportConstants.REVERSAL_SIGN_BP).setValue("");
+					}
+					if (!hasTransferAmount || txnQualifier.equals("F")) {
+						lineFieldsMap.get(ReportConstants.REVERSAL_SIGN_TRFR).setValue("");
+					} 
+					
 					writeBody(rgm, lineFieldsMap);
 				}
 			} catch (Exception e) {
@@ -152,5 +189,25 @@ public class TransactionCountReport extends TxtReportProcessor {
 				}
 			}
 		}
-	}	
+	}
+	
+	@Override
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			if (field.isEol()) {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				line.append(getEol());
+			} else {
+				line.append(getFieldValue(rgm, field, fieldsMap));
+			}
+		}
+		rgm.writeLine(line.toString().getBytes());
+	}
 }

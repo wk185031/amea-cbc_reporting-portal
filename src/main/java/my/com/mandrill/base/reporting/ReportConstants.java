@@ -269,7 +269,14 @@ public final class ReportConstants {
 	public static final String TRAN_MNEM = "TRAN MNEM";
 	public static final String VALUE_DATE = "Value Date";
 	public static final String TRAN_DATE = "TRAN_DATE";
-	public static final String REVERSAL_SIGN = "REVERSAL SIGN";
+	public static final String CASH_DISPENSED_AMOUNT = "CASH DISPENSED";
+	public static final String DEPOSITS_AMOUNT = "DEPOSITS";
+	public static final String BILL_PAYMENTS_AMOUNT = "BILL PAYMENTS";
+	public static final String TRANSFERS_AMOUNT = "TRANSFERS";
+	public static final String REVERSAL_SIGN_CD = "REVERSAL SIGN CD";
+	public static final String REVERSAL_SIGN_DP = "REVERSAL SIGN DP";
+	public static final String REVERSAL_SIGN_BP = "REVERSAL SIGN BP";
+	public static final String REVERSAL_SIGN_TRFR = "REVERSAL SIGN TRFR";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";
