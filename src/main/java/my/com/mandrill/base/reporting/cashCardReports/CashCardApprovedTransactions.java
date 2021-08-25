@@ -105,7 +105,6 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 
 							}
 							contentStream = writeRowData(rgm, doc, lineFieldsMap, groupingField, contentStream);
-							logger.debug("current line = {}", getLineCounter());
 							if (getLineCounter() >= getMaxLinePerPage()) {
 								contentStream = newPage(doc, contentStream, rgm, groupingField.get(KEY_BRANCH), "");
 							}
@@ -143,6 +142,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				}
 
 			}
+			rgm.exit();
 		}
 	}
 
@@ -393,6 +393,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 					try {
 						ps.close();
 						rs.close();
+						rgm.exit();
 					} catch (SQLException e) {
 						rgm.errors++;
 						logger.error("Error closing DB resources", e);

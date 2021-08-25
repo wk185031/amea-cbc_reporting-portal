@@ -35,15 +35,18 @@
 				type="timestamp" />  
 		</addColumn>
 		<sql>update JOB_HISTORY set status='COMPLETED'</sql>
-		
+		<sql>delete from transaction_log_custom</sql>
+		<sql>delete from transaction_log</sql>		
 		<addColumn tableName="TRANSACTION_LOG_CUSTOM" >
 			<column name="TRL_SYSTEM_TIMESTAMP" 
 				afterColumn="TRL_IS_CARDLESS"
 				type="timestamp"/>   
 		</addColumn>		
-		<sql>delete from transaction_log</sql>
-		<sql>delete from transaction_log_custom</sql>
-		<dropPrimaryKey tableName="TRANSACTION_LOG_CUSTOM"/>
-        <addPrimaryKey tableName="TRANSACTION_LOG_CUSTOM" columnNames="TRL_ID, TRL_SYSTEM_TIMESTAMP"/>
+		<addColumn tableName="TRANSACTION_LOG" >
+			<column name="TRL_EXT_ID" 
+				afterColumn="TRL_ID"
+				type="bigint"/>   
+		</addColumn>		
+		<sql>CREATE SEQUENCE REP_TXN_LOG_SEQUENCE INCREMENT BY 1 MAXVALUE 9999999999999999999 MINVALUE 1 CACHE 100;</sql>
     </changeSet>
 </databaseChangeLog>
