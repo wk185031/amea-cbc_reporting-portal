@@ -128,7 +128,9 @@ export class GenerateReportTabComponent implements OnInit {
                 (res: HttpResponse<ReportDefinition[]>) => {
                     this.onSuccess(this.generated);
                 },
-                (res: HttpErrorResponse) => this.onError(this.failed));
+                (res: HttpErrorResponse) => {
+                	this.onError(res.error.message);
+                });
     }
     
     disableDateSelection() {

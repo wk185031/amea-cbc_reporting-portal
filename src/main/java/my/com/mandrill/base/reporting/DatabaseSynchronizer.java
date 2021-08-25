@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
+import javax.swing.text.BadLocationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -110,13 +111,48 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
 
-	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?)";
-	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
+	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?,?)";
+	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_ISSUER_CUSTOM_DATA = "select ISS_CUSTOM_DATA from {DB_SCHEMA}.ISSUER@{DB_LINK} where ISS_STATUS='ACTIVE'";
 	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS,ASH_SERVICE_STATE_REASON from ATM_STATUS_HISTORY {WHERE_CONDITION} order by ASH_AST_ID, ASH_TIMESTAMP";
 	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?, ?)";
 	private static final String SQL_SELECT_ALL_BIN = "select CBI_BIN from CBC_BIN";
+	private static final String SQL_TXN_LOG_INSERT = "insert into TRANSACTION_LOG (\r\n" + 
+			"TRL_ID,TRL_EXT_ID,TRL_ACCOUNT_1_ACN_ID,TRL_ACCOUNT_1_ACN_ID_EKY_ID,TRL_ACCOUNT_1_BALANCE_DATA,TRL_ACCOUNT_1_BALANCE_DATE,TRL_ACCOUNT_1_MAX_AVAILABLE,TRL_ACCOUNT_1_SPENT_AMOUNT,TRL_ACCOUNT_2_ACN_ID,TRL_ACCOUNT_2_ACN_ID_EKY_ID\r\n" + 
+			",TRL_ACCOUNT_2_BALANCE_DATA,TRL_ACCOUNT_2_BALANCE_DATE,TRL_ACCOUNT_2_MAX_AVAILABLE,TRL_ACCOUNT_2_SPENT_AMOUNT,TRL_ACCOUNT_CUR_ISO_ID,TRL_ACCOUNT_TYPE_1_ATP_ID,TRL_ACCOUNT_TYPE_2_ATP_ID,TRL_ACN_STATUS_CODE\r\n" + 
+			",TRL_ACQR_CTY_ISO_ID,TRL_ACQR_INST_ID,TRL_ACQ_CHARGE_AMT,TRL_ACQ_CHARGE_ID,TRL_ACQ_NAME,TRL_ACQ_ORG_NAME,TRL_ACTION_RESPONSE_CODE,TRL_ADDITIONAL_RESPONSE_DATA,TRL_ADDNL_ACTION_CODES,TRL_AMT_ACCOUNT,TRL_AMT_CARDHOLDER_BILLING\r\n" + 
+			",TRL_AMT_CARDHOLDER_BILLING_FEE,TRL_AMT_COMPLETED,TRL_AMT_COMPLETED_PREV_TXN,TRL_AMT_MERCH_SETTLE,TRL_AMT_OTHER,TRL_AMT_SETTLE,TRL_AMT_TXN,TRL_APPROVAL_CODE,TRL_APPR_ID,TRL_AUTHENTIC_MSG_REF,TRL_AUTHORISED_BY\r\n" + 
+			",TRL_AUTHORIZATION_LIFE_CYCLE,TRL_AUTH_DATA,TRL_AUX_MESSAGE_TYPE,TRL_BPM_BILL_SEQ,TRL_BUSINESS_DATE,TRL_CARDBILLING_TO_SETTLE_RATE,TRL_CARDHOLDER_AUTHENT_CPBLTY,TRL_CARDHOLDER_AUTHENT_ENTITY,TRL_CARDHOLDER_AUTHENT_METHOD\r\n" + 
+			",TRL_CARDHOLDER_PRESENT_IND,TRL_CARD_ACCEPTOR_MBC_ID,TRL_CARD_ACPT_IDENT_CODE,TRL_CARD_ACPT_NAME_LOCATION,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_CARD_ADNL_STATUS_CODE,TRL_CARD_BILLING_CUR_ISO_ID,TRL_CARD_CAPTURE_CPBLTY\r\n" + 
+			",TRL_CARD_DATA_INPUT_CPBLTY,TRL_CARD_DATA_INPUT_MODE,TRL_CARD_DATA_OUTPUT_CPBLTY,TRL_CARD_ISSUER_REF_DATA,TRL_CARD_PRESENT_IND,TRL_CARD_SEQUENCE_NBR,TRL_CARD_STATUS_CODE,TRL_CARD_TRACK_DATA,TRL_CARD_TRACK_DATA_EKY_ID\r\n" + 
+			",TRL_CARD_TRACK_NBR,TRL_CARD_TYPE,TRL_CONVERSION_RATE_CARDHOLDER,TRL_CRD_RETAIN_IND,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_CUST_NUMBER,TRL_DATETIME_LOCAL_TXN,TRL_DATETIME_TRANSMISSION,TRL_DATE_CAPTURE\r\n" + 
+			",TRL_DATE_EXPIRY,TRL_DCC_CONV_AMT_EXCL_MARKUP,TRL_DCC_CONV_AMT_INCL_MARKUP,TRL_DCC_CONV_CUR_ISO_ID,TRL_DCC_CONV_RATE_EXCL_MARKUP,TRL_DCC_CONV_RATE_INCL_MARKUP,TRL_DCC_ORIG_AMOUNT,TRL_DCC_ORIG_CUR_ISO_ID,TRL_DCC_OUTCOME\r\n" + 
+			",TRL_DEO_NAME,TRL_DEO_ORG_NAME,TRL_DESTINATION_RESULT_CODE,TRL_DEST_IAP_NAME,TRL_DEST_ICH_NAME,TRL_DEST_REPLY_TIME,TRL_DEST_REQUEST_TIME,TRL_DEST_STAN,TRL_EFFECTIVE_TQU_ID,TRL_EXTERNAL_TRANSACTION_ID,TRL_FRACTALS_BRIDGE_SENT\r\n" + 
+			",TRL_FRD_REV_INST_ID,TRL_FUNCTION_CODE,TRL_ISS_CHARGE_AMT,TRL_ISS_CHARGE_ID,TRL_ISS_NAME,TRL_ISS_ORG_NAME,TRL_LAST_UPDATE_TS,TRL_LOCATION_LOGGED,TRL_MATCH_FLAG,TRL_MCC_ID,TRL_MERCH_SETTLE_CUR_ISO_ID,TRL_MESSAGE_NBR\r\n" + 
+			",TRL_MESSAGE_REASON_CODE,TRL_MESSAGE_TYPE,TRL_MESSAGE_UID,TRL_OPERATING_ENVIRONMENT,TRL_ORIGIN_FEP_NBR,TRL_ORIGIN_IAP_NAME,TRL_ORIGIN_ICH_NAME,TRL_ORIGIN_RESULT_CODE,TRL_ORIG_TXN_ACQR_INST_ID,TRL_ORIG_TXN_AMT\r\n" + 
+			",TRL_ORIG_TXN_APPROVAL_CODE,TRL_ORIG_TXN_BUSINESS_DATE,TRL_ORIG_TXN_CUR_ISO_ID,TRL_ORIG_TXN_FRD_REV_INST_ID,TRL_ORIG_TXN_MESSAGE_TYPE,TRL_ORIG_TXN_STAN,TRL_PAN,TRL_PAN_CTY_ISO_ID,TRL_PAN_EKY_ID,TRL_PART_NO\r\n" + 
+			",TRL_PIN_CAPTURE_CPBLTY,TRL_PIN_RETRY_COUNT,TRL_POST_COMPLETION_CODE,TRL_PREV_TXN_MESSAGE_UID,TRL_PREV_TXN_SAME_PERIOD,TRL_PREV_TXN_TQU_ID,TRL_PREV_TXN_TRL_ID,TRL_PREV_TXN_TSC_CODE,TRL_PRODUCT_CODE,TRL_REFERRAL_CONF_DATA\r\n" + 
+			",TRL_ROUTING_LIST,TRL_RRN,TRL_RVRSL_TYPE,TRL_SERVICE_CODE,TRL_SESSION,TRL_SETTLE_CUR_ISO_ID,TRL_SETTLE_TO_ACCOUNT_RATE,TRL_SETTLE_TO_MER_SETTLE_RATE,TRL_STAN,TRL_STANDIN_REASON_INDICATOR,TRL_SYSTEM_TIMESTAMP\r\n" + 
+			",TRL_TAC_ACC_SEQ,TRL_TCG_ID,TRL_TERMINAL_ATTENDANCE,TRL_TERMINAL_OUTPUT_CPBLTY,TRL_TIME_ZONE,TRL_TQU_ID,TRL_TRANSACTION_ID,TRL_TSC_CODE,TRL_TTY_ID,TRL_TXN_CUR_ISO_ID,TRL_TXN_STATUS,TRL_TXN_TO_SETTLE_RATE\r\n" + 
+			") (select\r\n" + 
+			"REP_TXN_LOG_SEQUENCE.nextVal,TRL_ID,TRL_ACCOUNT_1_ACN_ID,TRL_ACCOUNT_1_ACN_ID_EKY_ID,TRL_ACCOUNT_1_BALANCE_DATA,TRL_ACCOUNT_1_BALANCE_DATE,TRL_ACCOUNT_1_MAX_AVAILABLE,TRL_ACCOUNT_1_SPENT_AMOUNT,TRL_ACCOUNT_2_ACN_ID,TRL_ACCOUNT_2_ACN_ID_EKY_ID\r\n" + 
+			",TRL_ACCOUNT_2_BALANCE_DATA,TRL_ACCOUNT_2_BALANCE_DATE,TRL_ACCOUNT_2_MAX_AVAILABLE,TRL_ACCOUNT_2_SPENT_AMOUNT,TRL_ACCOUNT_CUR_ISO_ID,TRL_ACCOUNT_TYPE_1_ATP_ID,TRL_ACCOUNT_TYPE_2_ATP_ID,TRL_ACN_STATUS_CODE\r\n" + 
+			",TRL_ACQR_CTY_ISO_ID,TRL_ACQR_INST_ID,TRL_ACQ_CHARGE_AMT,TRL_ACQ_CHARGE_ID,TRL_ACQ_NAME,TRL_ACQ_ORG_NAME,TRL_ACTION_RESPONSE_CODE,TRL_ADDITIONAL_RESPONSE_DATA,TRL_ADDNL_ACTION_CODES,TRL_AMT_ACCOUNT,TRL_AMT_CARDHOLDER_BILLING\r\n" + 
+			",TRL_AMT_CARDHOLDER_BILLING_FEE,TRL_AMT_COMPLETED,TRL_AMT_COMPLETED_PREV_TXN,TRL_AMT_MERCH_SETTLE,TRL_AMT_OTHER,TRL_AMT_SETTLE,TRL_AMT_TXN,TRL_APPROVAL_CODE,TRL_APPR_ID,TRL_AUTHENTIC_MSG_REF,TRL_AUTHORISED_BY\r\n" + 
+			",TRL_AUTHORIZATION_LIFE_CYCLE,TRL_AUTH_DATA,TRL_AUX_MESSAGE_TYPE,TRL_BPM_BILL_SEQ,TRL_BUSINESS_DATE,TRL_CARDBILLING_TO_SETTLE_RATE,TRL_CARDHOLDER_AUTHENT_CPBLTY,TRL_CARDHOLDER_AUTHENT_ENTITY,TRL_CARDHOLDER_AUTHENT_METHOD\r\n" + 
+			",TRL_CARDHOLDER_PRESENT_IND,TRL_CARD_ACCEPTOR_MBC_ID,TRL_CARD_ACPT_IDENT_CODE,TRL_CARD_ACPT_NAME_LOCATION,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_CARD_ADNL_STATUS_CODE,TRL_CARD_BILLING_CUR_ISO_ID,TRL_CARD_CAPTURE_CPBLTY\r\n" + 
+			",TRL_CARD_DATA_INPUT_CPBLTY,TRL_CARD_DATA_INPUT_MODE,TRL_CARD_DATA_OUTPUT_CPBLTY,TRL_CARD_ISSUER_REF_DATA,TRL_CARD_PRESENT_IND,TRL_CARD_SEQUENCE_NBR,TRL_CARD_STATUS_CODE,TRL_CARD_TRACK_DATA,TRL_CARD_TRACK_DATA_EKY_ID\r\n" + 
+			",TRL_CARD_TRACK_NBR,TRL_CARD_TYPE,TRL_CONVERSION_RATE_CARDHOLDER,TRL_CRD_RETAIN_IND,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_CUST_NUMBER,TRL_DATETIME_LOCAL_TXN,TRL_DATETIME_TRANSMISSION,TRL_DATE_CAPTURE\r\n" + 
+			",TRL_DATE_EXPIRY,TRL_DCC_CONV_AMT_EXCL_MARKUP,TRL_DCC_CONV_AMT_INCL_MARKUP,TRL_DCC_CONV_CUR_ISO_ID,TRL_DCC_CONV_RATE_EXCL_MARKUP,TRL_DCC_CONV_RATE_INCL_MARKUP,TRL_DCC_ORIG_AMOUNT,TRL_DCC_ORIG_CUR_ISO_ID,TRL_DCC_OUTCOME\r\n" + 
+			",TRL_DEO_NAME,TRL_DEO_ORG_NAME,TRL_DESTINATION_RESULT_CODE,TRL_DEST_IAP_NAME,TRL_DEST_ICH_NAME,TRL_DEST_REPLY_TIME,TRL_DEST_REQUEST_TIME,TRL_DEST_STAN,TRL_EFFECTIVE_TQU_ID,TRL_EXTERNAL_TRANSACTION_ID,TRL_FRACTALS_BRIDGE_SENT\r\n" + 
+			",TRL_FRD_REV_INST_ID,TRL_FUNCTION_CODE,TRL_ISS_CHARGE_AMT,TRL_ISS_CHARGE_ID,TRL_ISS_NAME,TRL_ISS_ORG_NAME,TRL_LAST_UPDATE_TS,TRL_LOCATION_LOGGED,TRL_MATCH_FLAG,TRL_MCC_ID,TRL_MERCH_SETTLE_CUR_ISO_ID,TRL_MESSAGE_NBR\r\n" + 
+			",TRL_MESSAGE_REASON_CODE,TRL_MESSAGE_TYPE,TRL_MESSAGE_UID,TRL_OPERATING_ENVIRONMENT,TRL_ORIGIN_FEP_NBR,TRL_ORIGIN_IAP_NAME,TRL_ORIGIN_ICH_NAME,TRL_ORIGIN_RESULT_CODE,TRL_ORIG_TXN_ACQR_INST_ID,TRL_ORIG_TXN_AMT\r\n" + 
+			",TRL_ORIG_TXN_APPROVAL_CODE,TRL_ORIG_TXN_BUSINESS_DATE,TRL_ORIG_TXN_CUR_ISO_ID,TRL_ORIG_TXN_FRD_REV_INST_ID,TRL_ORIG_TXN_MESSAGE_TYPE,TRL_ORIG_TXN_STAN,TRL_PAN,TRL_PAN_CTY_ISO_ID,TRL_PAN_EKY_ID,TRL_PART_NO\r\n" + 
+			",TRL_PIN_CAPTURE_CPBLTY,TRL_PIN_RETRY_COUNT,TRL_POST_COMPLETION_CODE,TRL_PREV_TXN_MESSAGE_UID,TRL_PREV_TXN_SAME_PERIOD,TRL_PREV_TXN_TQU_ID,TRL_PREV_TXN_TRL_ID,TRL_PREV_TXN_TSC_CODE,TRL_PRODUCT_CODE,TRL_REFERRAL_CONF_DATA\r\n" + 
+			",TRL_ROUTING_LIST,TRL_RRN,TRL_RVRSL_TYPE,TRL_SERVICE_CODE,TRL_SESSION,TRL_SETTLE_CUR_ISO_ID,TRL_SETTLE_TO_ACCOUNT_RATE,TRL_SETTLE_TO_MER_SETTLE_RATE,TRL_STAN,TRL_STANDIN_REASON_INDICATOR,TRL_SYSTEM_TIMESTAMP\r\n" + 
+			",TRL_TAC_ACC_SEQ,TRL_TCG_ID,TRL_TERMINAL_ATTENDANCE,TRL_TERMINAL_OUTPUT_CPBLTY,TRL_TIME_ZONE,TRL_TQU_ID,TRL_TRANSACTION_ID,TRL_TSC_CODE,TRL_TTY_ID,TRL_TXN_CUR_ISO_ID,TRL_TXN_STATUS,TRL_TXN_TO_SETTLE_RATE\r\n" + 
+			"from ";
 	private static final int MAX_ROW = 50;
 
 	private static final String TABLE_DETAILS_NAME = "TABLE_DETAILS";
@@ -170,7 +206,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}, new Trigger() {
 			@Override
 			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+				Job job = jobRepository.findByName(ReportConstants.JOB_NAME_DB_SYNC);
 				Calendar calendar = Calendar.getInstance();
 				if (job != null) {
 					calendar.setTime(job.getScheduleTime());
@@ -198,7 +234,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		Timestamp ts = new Timestamp(calendar.getTimeInMillis());
 
 		Job newSyncDbJob = new Job();
-		newSyncDbJob.setName(ReportConstants.JOB_NAME);
+		newSyncDbJob.setName(ReportConstants.JOB_NAME_DB_SYNC);
 		newSyncDbJob.setStatus(ReportConstants.STATUS_ACTIVE);
 		newSyncDbJob.setCreatedBy(ReportConstants.CREATED_BY_USER);
 		newSyncDbJob.setCreatedDate(ZonedDateTime.now());
@@ -221,7 +257,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	public void createSyncDbTaskGroup(Job job) throws Exception {
 		TaskGroup newTaskGroup = new TaskGroup();
-		newTaskGroup.setName(ReportConstants.JOB_NAME);
+		newTaskGroup.setName(ReportConstants.JOB_NAME_DB_SYNC);
 		newTaskGroup.setStatus(ReportConstants.STATUS_ACTIVE);
 		newTaskGroup.setCreatedBy(ReportConstants.CREATED_BY_USER);
 		newTaskGroup.setCreatedDate(ZonedDateTime.now());
@@ -266,24 +302,42 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	@SuppressWarnings("resource")
 	@PostMapping("/synchronize-database/{user}")
-	public void synchronizeDatabase(@PathVariable String user) throws Exception {
+	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user) throws Exception {
 		log.debug("REST request to Synchronize Database");
 
-		// TODO: Check if there is report generation and database sync in process
-		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_IN_PROGRESS, user);
+		JobHistory incompleteJob = jobHistoryRepo
+				.findFirstByStatusOrderByCreatedDateDesc(ReportConstants.STATUS_IN_PROGRESS);
 
-		Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
-		Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME",
-				"ATD_END_TIMESTAMP");
-		Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
+		if (incompleteJob != null) {
+			throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync", "dbsync.inprogress");
+		}
 
-		syncAuthenticTables();
-		Map<String, List<String>> cardBinMap = getCardBinMap();
-		postProcessCardData(cardLastUpdatedTs);
-		postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
-		postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
+		JobHistory dbsyncJob = createJobHistory(ReportConstants.JOB_NAME_DB_SYNC, ReportConstants.STATUS_IN_PROGRESS,
+				user);
 
-		createJobHistory(ReportConstants.JOB_NAME, ReportConstants.STATUS_COMPLETED, user);
+		try {
+			Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
+			Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME", "ATD_END_TIMESTAMP");
+			Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
+
+			syncAuthenticTables();
+			Map<String, List<String>> cardBinMap = getCardBinMap();
+			postProcessCardData(cardLastUpdatedTs);
+			postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
+			postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
+
+			dbsyncJob.setStatus(ReportConstants.STATUS_COMPLETED);
+			dbsyncJob.setLastModifiedBy(user);
+			dbsyncJob.setLastModifiedDate(Instant.now());
+			jobHistoryRepo.save(dbsyncJob);
+		} catch (Exception e) {
+			log.error("Failed to sync database.", e);
+			dbsyncJob.setStatus(ReportConstants.STATUS_FAILED);
+			dbsyncJob.setLastModifiedBy(user);
+			dbsyncJob.setLastModifiedDate(Instant.now());
+			jobHistoryRepo.save(dbsyncJob);
+			throw e;
+		}
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
 		String instShortCode = null;
@@ -300,6 +354,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false);
 			}
 		}
+		
+		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
+				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString())).body(dbsyncJob);
+
 	}
 
 	private Map<String, List<String>> getCardBinMap() throws Exception {
@@ -452,7 +510,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
 
-		String sql = "insert into " + table + " (select * from " + schemaTableName;
+		String sql = "";
+		if ("TRANSACTION_LOG".equalsIgnoreCase(table)) {
+			sql = SQL_TXN_LOG_INSERT + schemaTableName;
+			lastUpdateColumnName = "TRL_SYSTEM_TIMESTAMP";
+		} else {
+			sql = "insert into " + table + " (select * from " + schemaTableName;
+		}
+		
 		if (lastUpdatedTs != null) {
 			String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
 			sql = sql + " where " + lastUpdateColumnName + " > TO_TIMESTAMP('" + formattedTs
@@ -581,7 +646,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private List<String> getAuthenticTablesToSync() {
-		Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+		Job job = jobRepository.findByName(ReportConstants.JOB_NAME_DB_SYNC);
 
 		if (job.getTableSync() != null) {
 			String[] tablesArr = job.getTableSync().split(",");
@@ -655,7 +720,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 									LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
 							insertAtmDownTime(tempLastDowntime);
 
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null, serviceStateReason);
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
+									serviceStateReason);
 						} else if (lastDowntime != null && astId == lastDowntime.getAstId()
 								&& lastDowntime.getEndTimestamp() == null) {
 							log.debug("Entering criteria 1.3");
@@ -667,10 +733,12 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 							// Since ATM not up from yesterday, downtime will start at 00:00
 							lastDowntime = new AtmDowntime(astId, statusDate,
-									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null, serviceStateReason);
+									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null,
+									serviceStateReason);
 						} else {
 							log.debug("Entering criteria 1.4");
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null, serviceStateReason);
+							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
+									serviceStateReason);
 						}
 					}
 
@@ -888,8 +956,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
-						corporateCardRange, atmDummyCards);
-				log.debug("TRL_ID = {}", txnCustom.getTrlId() );
+						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"));
+				log.debug("TRL_ID = {}", txnCustom.getTrlId());
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
@@ -900,6 +968,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt_insert.setBoolean(7, txnCustom.isCorporateCard());
 				stmt_insert.setBoolean(8, txnCustom.isInterEntity());
 				stmt_insert.setBoolean(9, txnCustom.isCardless());
+				stmt_insert.setTimestamp(10, txnCustom.getSystemTimestamp());
 
 				stmt_insert.executeUpdate();
 
@@ -977,7 +1046,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private TxnLogCustom fromResultSet(Map<String, List<String>> cardBinMap, Long id, String tscCode,
 			String encryptedPan, String acqInstId, String encryptedCustomData, int encryptionKeyId,
 			int panEncryptionKeyId, String originInterchange, String issuerName, String deoName,
-			StringTokenizer corporatePanRange, List<String> atmDummyCards) throws Exception {
+			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp) throws Exception {
 
 		log.debug(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
@@ -991,6 +1060,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 			TxnLogCustom o = new TxnLogCustom();
 			o.setTrlId(id);
+			o.setSystemTimestamp(systemTimestamp);
 
 			if (BILL_PAYMENT_TSC_CODE.equals(tscCode) || BILL_PAYMENT_TSC_CODE_DEPOSIT.equals(tscCode)) {
 				o.setBillerCode(customDataMap.get(BILLERCODE_TAG));
@@ -1018,7 +1088,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 
-			if ("MBK".equals(o.getOriginChannel()) || "EBK".equals(o.getOriginChannel())) {
+			if ("246".equals(tscCode) || "250".equals(tscCode) || "251".equals(tscCode) || "252".equals(tscCode)) {
+				o.setCardless(true);
+			} else if ("MBK".equals(o.getOriginChannel()) || "EBK".equals(o.getOriginChannel())) {
 				o.setCardless(true);
 			} else {
 				if (atmDummyCards.contains(clearPan)) {
@@ -1232,7 +1304,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private boolean isInterEntity(String tscCode, String acqInsId, String issuerName, String deoName) {
-		if ("42".equals(tscCode) || "45".equals(tscCode) || "48".equals(tscCode) || "49".equals(tscCode)) {
+		if ("48".equals(tscCode)) {
 			return true;
 		}
 

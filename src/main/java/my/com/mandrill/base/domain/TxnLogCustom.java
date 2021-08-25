@@ -1,5 +1,7 @@
 package my.com.mandrill.base.domain;
 
+import java.sql.Timestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -53,6 +55,9 @@ public class TxnLogCustom {
 
 	@Column(name = "trl_is_cardless")
 	private boolean cardless;
+	
+	@Column(name = "trl_system_timestamp")
+	private Timestamp systemTimestamp;
 
 	public Long getTrlId() {
 		return trlId;
@@ -126,4 +131,11 @@ public class TxnLogCustom {
 		this.cardless = cardless;
 	}
 
+	public Timestamp getSystemTimestamp() {
+		return systemTimestamp;
+	}
+
+	public void setSystemTimestamp(Timestamp systemTimestamp) {
+		this.systemTimestamp = systemTimestamp;
+	}
 }

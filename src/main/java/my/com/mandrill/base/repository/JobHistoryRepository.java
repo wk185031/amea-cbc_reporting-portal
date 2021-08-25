@@ -14,4 +14,5 @@ import my.com.mandrill.base.domain.JobHistory;
 public interface JobHistoryRepository extends JpaRepository<JobHistory, Long> {
 	
 	public JobHistory findFirstByStatusOrderByCreatedDateDesc(String status);
+	public JobHistory findFirstByStatusAndJobNameOrderByCreatedDateDesc(String status, String jobName);
 }

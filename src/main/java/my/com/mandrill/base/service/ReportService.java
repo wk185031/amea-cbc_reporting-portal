@@ -146,6 +146,7 @@ public class ReportService {
 				}
 			}
 		}
+
 	}
 
 	private Optional<List<LocalDate>> getHolidayList() {

@@ -18,7 +18,6 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -70,6 +69,7 @@ import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.service.UserService;
+import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
 /**
@@ -134,7 +134,7 @@ public class ReportGenerationResource {
 					@Override
 					public void run() {
 						if (!executed) {
-							Job job = jobRepository.findByName(ReportConstants.JOB_NAME);
+							Job job = jobRepository.findByName(ReportConstants.JOB_NAME_DB_SYNC);
 
 							ZonedDateTime currentDate = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
 							LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
@@ -292,80 +292,6 @@ public class ReportGenerationResource {
 		}
 	}
 
-	// @GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}/{txnDate}")
-	// @PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON +
-	// RESOURCE_GENERATE_REPORT + "')")
-	// public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long
-	// institutionId,
-	// @PathVariable Long reportCategoryId, @PathVariable Long reportId,
-	// @PathVariable String txnDate)
-	// throws ParseException {
-	// logger.debug(
-	// "User: {}, Rest to generate Report Institution ID: {}, Category ID: {},
-	// Report ID: {}, Transaction Date: {}",
-	// SecurityUtils.getCurrentUserLogin().orElse(""), institutionId,
-	// reportCategoryId, reportId, txnDate);
-	//
-	// ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-	// LocalDate firstDayOfMonth =
-	// YearMonth.from(getTxnStartDate(txnDate)).atDay(1);
-	// LocalDate lastDayOfMonth =
-	// YearMonth.from(getTxnStartDate(txnDate)).atEndOfMonth();
-	//
-	// DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	//
-	// LocalDateTime txnStartDate = LocalDate.parse(txnDate,
-	// formatter).atStartOfDay();
-	// LocalDateTime txnEndDate = LocalDateTime.parse(txnDate, formatter);
-	//
-	// String instShortCode = null;
-	//
-	// List<Institution> institutions = institutionRepository.findAll();
-	// for (Institution institution : institutions) {
-	// if ("Institution".equals(institution.getType()) && institution.getId() ==
-	// institutionId) {
-	// if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-	// instShortCode = "CBC";
-	// } else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-	// instShortCode = "CBS";
-	// }
-	// }
-	// }
-	//
-	// reportGenerationMgr.setInstitution(instShortCode);
-	// reportGenerationMgr.setGenerate(true);
-	// reportGenerationMgr.setFileDate(getTxnStartDate(txnDate));
-	// reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
-	// reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
-	//
-	// String directory =
-	// Paths.get(env.getProperty("application.reportDir.path")).toString() +
-	// File.separator
-	// + institutionId + File.separator + txnDate.substring(0, 7);
-	//
-	// if (reportId == 0) {
-	// List<ReportDefinition> aList =
-	// reportDefinitionRepository.findAll(orderByIdAsc());
-	// for (ReportDefinition reportDefinition : aList) {
-	// populateReportDetails(reportGenerationMgr, reportDefinition, directory,
-	// txnStartDate, txnEndDate);
-	// runReport(reportGenerationMgr);
-	// }
-	// // FIXME: The return type is only ReportDefinition, but this is processing a
-	// // list
-	// return ResponseUtil
-	// .wrapOrNotFound(Optional.ofNullable((aList == null || aList.isEmpty()) ? null
-	// : aList.get(0)));
-	// } else {
-	// ReportDefinition reportDefinition =
-	// reportDefinitionRepository.findOne(reportId);
-	// populateReportDetails(reportGenerationMgr, reportDefinition, directory,
-	// txnStartDate, txnEndDate);
-	// runReport(reportGenerationMgr);
-	// return ResponseUtil.wrapOrNotFound(Optional.ofNullable(reportDefinition));
-	// }
-	// }
-
 	@GetMapping("/reportGeneration/{institutionId}/{reportCategoryId}/{reportId}")
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
@@ -376,86 +302,21 @@ public class ReportGenerationResource {
 				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId,
 				startDateTime, endDateTime);
 
-		// ReportDefinition reportDefinition = null;
-		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 		LocalDateTime inputStartDateTime = LocalDateTime.parse(startDateTime, formatter);
 		LocalDateTime inputEndDateTime = LocalDateTime.parse(endDateTime, formatter);
-		
-//		long noOfDaysBetween = ChronoUnit.DAYS.between(inputStartDateTime, inputEndDateTime);
 
 		String instShortCode = findInstitutionCode(institutionId);
+		
+		JobHistory dbsyncJob = jobHistoryRepository.findFirstByStatusAndJobNameOrderByCreatedDateDesc(ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
+		if (dbsyncJob != null) {
+			throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync", "dbsync.inprogress");
+		}
 
 		reportService.generateReport(inputStartDateTime, inputEndDateTime, institutionId, instShortCode,
 				reportCategoryId, reportId, true, true);
-		
-//		reportGenerationMgr.setInstitution(instShortCode);
-//		reportGenerationMgr.setGenerate(true);
-//		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
-//		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
-//		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
-//		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
-//	    reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
-//		reportGenerationMgr.setEncryptionService(encryptionService);
-//
-//		String yearMonth = inputStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-//		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-//				+ institutionId + File.separator + yearMonth;
-//
-//		List<ReportDefinition> aList = new ArrayList<>();
-//
-//		if (reportCategoryId == 0) {
-//			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
-//		} else if (reportId == 0) {
-//			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
-//		} else {
-//			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
-//			if (reportDefinition != null) {
-//				aList.add(reportDefinition);
-//			}
-//		}
-//		logger.debug("Process {} reports", aList.size());
-//		for (ReportDefinition reportDefinition : aList) {
-//
-//			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-//			reportGenerationMgr.setFileName(reportDefinition.getName());
-//			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-//			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-//			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-//			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-//			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-//			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
-//			
-//			if (reportGenerationMgr.getFileName().equalsIgnoreCase(ReportConstants.ATM_DAILY_TRANSACTION_SUMMARY)
-//					&& noOfDaysBetween > 0) {
-//				reportGenerationMgr.setFileNamePrefix(ReportConstants.ATM_MONTHLY_TRANSACTION_SUMMARY);
-//			} else {
-//				reportGenerationMgr.setFileNamePrefix(reportDefinition.getFileNamePrefix());
-//			}
-//			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-//			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-//			
-//			String[] frequencies = reportGenerationMgr.getFrequency().split(",");
-//			for (String freq : frequencies) {
-//				if (ReportConstants.DAILY.equals(freq)) {
-//					setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime, directory,
-//							reportDefinition.getReportCategory().getName());
-//					logger.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
-//							reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
-//					runReport(reportGenerationMgr);
-//				}
-//
-//				if (ReportConstants.MONTHLY.equals(freq)) {
-//					setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime, directory,
-//							reportDefinition.getReportCategory().getName());
-//					logger.debug("run monthly report: name={}, start date={}, end date={}", reportDefinition.getName(),
-//							reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
-//					runReport(reportGenerationMgr);
-//				}
-//			}
-//		}
+
 		return ResponseUtil
 				.wrapOrNotFound(Optional.ofNullable(new ReportDefinition()));
 	}

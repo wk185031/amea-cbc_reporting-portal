@@ -230,6 +230,9 @@ export class DatabaseSynchronizationComponent implements OnInit {
             if (!(this.spinners)) {
                 this.ngxLoader.stop();
             }
+        },
+        (res: HttpErrorResponse) => {
+        	this.onError(res.error);
         });
     }
 }

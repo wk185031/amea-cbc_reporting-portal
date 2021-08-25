@@ -6,7 +6,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
- 	<changeSet id="20200221000000_auth_table" author="kw" runAlways="true" failOnError="false">	
+ 	<changeSet id="20200221000000_auth_table" author="kw">	
  	<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/auth_table.sql"

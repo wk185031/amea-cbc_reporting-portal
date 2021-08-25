@@ -21,5 +21,29 @@
                  path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Approved_Transactions.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Recycler_Transactions/List_of_Recycler_Transactions.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <addColumn tableName="JOB_HISTORY" >
+			<column name="LAST_MODIFIED_BY" 
+				afterColumn="CREATED_DATE"
+				type="varchar(50)"/>  				
+			<column afterColumn="LAST_MODIFIED_BY" 
+				name="LAST_MODIFIED_DATE"  
+				type="timestamp" />  
+		</addColumn>
+		<sql>update JOB_HISTORY set status='COMPLETED'</sql>
+		
+		<addColumn tableName="TRANSACTION_LOG_CUSTOM" >
+			<column name="TRL_SYSTEM_TIMESTAMP" 
+				afterColumn="TRL_IS_CARDLESS"
+				type="timestamp"/>   
+		</addColumn>		
+		<sql>delete from transaction_log</sql>
+		<sql>delete from transaction_log_custom</sql>
+		<dropPrimaryKey tableName="TRANSACTION_LOG_CUSTOM"/>
+        <addPrimaryKey tableName="TRANSACTION_LOG_CUSTOM" columnNames="TRL_ID, TRL_SYSTEM_TIMESTAMP"/>
     </changeSet>
 </databaseChangeLog>

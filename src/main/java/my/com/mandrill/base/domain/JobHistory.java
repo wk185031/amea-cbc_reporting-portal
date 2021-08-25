@@ -62,6 +62,13 @@ public class JobHistory implements Serializable {
     @Size(max = 100)
     @Column(name = "created_by", length = 100, nullable = false)
     private String createdBy;
+    
+    @Size(max = 100)
+    @Column(name = "last_modified_by", length = 100)
+    private String lastModifiedBy;
+
+    @Column(name = "last_modified_date")
+    private Instant lastModifiedDate;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -125,6 +132,22 @@ public class JobHistory implements Serializable {
         this.createdDate = createdDate;
     }
 
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	public Instant getLastModifiedDate() {
+		return lastModifiedDate;
+	}
+
+	public void setLastModifiedDate(Instant lastModifiedDate) {
+		this.lastModifiedDate = lastModifiedDate;
+	}
+
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 	@Override
@@ -155,6 +178,8 @@ public class JobHistory implements Serializable {
 	            ", status='" + getStatus() + "'" +
 	            ", createdBy='" + getCreatedBy() + "'" +
 	            ", createdDate='" + getCreatedDate() + "'" +
+	            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
+	            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
 	            "}";
 	}
 }
