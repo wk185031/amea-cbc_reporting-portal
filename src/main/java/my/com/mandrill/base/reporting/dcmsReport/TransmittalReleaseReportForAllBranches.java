@@ -190,19 +190,11 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
                             field.setValue("");
                         }
 
-                        // append date to branch code as requirement
-                        if(key.equals("BRANCH_CODE")) {
-                            field.setValue(field.getValue() + "-" + rgm.getFileDate().format(DateTimeFormatter.ofPattern("MMddyy")));
-                        }
-
                         if(key.equals("TOTAL")) {
                             grandTotal += Integer.valueOf(field.getValue());
                         }
                     }
                     writeBody(rgm, lineFieldsMap);
-                    
-                    
-
                 }
                 preProcessingBodyTrailer(rgm, grandTotal);
                 writeTrailer(rgm, null);
@@ -225,7 +217,7 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize, String branchCode) {
 
-		logger.debug("In GLHandoffFinalProofSheetInterEntity.executePdfBodyQuery()");
+		logger.debug("In TransmittalReleaseReportForAllBranches.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -280,12 +272,6 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 							field.setValue("");
 						}
 						
-						// append date to branch code as requirement
-						if (key.equals("BRANCH_CODE")) {
-							field.setValue(field.getValue() + "-"
-									+ rgm.getFileDate().format(DateTimeFormatter.ofPattern("MMddyy")));
-						}
-
 						if (key.equals("TOTAL")) {
 							grandTotal += Integer.valueOf(field.getValue());
 						}
@@ -323,6 +309,7 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			logger.debug(getFieldValue(rgm, field, fieldsMap));
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
