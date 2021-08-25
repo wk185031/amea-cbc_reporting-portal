@@ -9,6 +9,7 @@
 -- Issuer				14-AUG-2021		NY		Introduce trailer query for displaying subtotal
 -- Issuer				16-AUG-2021		NY		Update wrong condition in trailer that exlclude failed txn
 -- Issuer				19-AUG-2021		NY		Exclude inter-entity per recent specification confirmation
+-- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -61,7 +62,7 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1 
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_TQU_ID IN (''F'',''R'')
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}) 

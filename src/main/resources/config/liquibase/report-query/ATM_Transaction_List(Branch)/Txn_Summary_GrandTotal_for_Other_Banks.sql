@@ -6,6 +6,7 @@
 -- Acquirer				13-AUG-2021		NY		Cater for BRM channel mnem
 -- Acquirer				16-AUG-2021		NY		Corrected sum of count/amount
 -- Acquirer				19-AUG-2021		NY		Fix count/amount
+-- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -73,7 +74,7 @@ BEGIN
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'') 
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME IS NULL
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
@@ -126,7 +127,7 @@ BEGIN
       LEFT JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'') 
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME IS NULL
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})

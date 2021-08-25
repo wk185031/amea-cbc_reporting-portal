@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Initial from UAT env
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Report revision		06-AUG-2021		LJL		Revise report based on spec
+-- CBCAXUPISSLOG-637	25-AUG-2021		LJL		Revise where caluse rejected reversals or unsuccessful reversal request
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
     i_BODY_FIELDS_CBC CLOB;
@@ -73,7 +74,7 @@ JOIN AUTH_RESULT_CODE ARC ON TXN.TRL_ACTION_RESPONSE_CODE = ARC.ARC_CODE
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 146
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE =''0''))
       AND AST.AST_TERMINAL_TYPE = ''ATM''
 AND ((cba.cba_mnem  = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
@@ -105,7 +106,7 @@ FROM
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
 WHERE
       TXN.TRL_TSC_CODE = 146
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE =''0''))
       AND AST.AST_TERMINAL_TYPE = ''ATM''
 AND ((cba.cba_mnem  = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_IE_Acqr_Inst_Id}))
