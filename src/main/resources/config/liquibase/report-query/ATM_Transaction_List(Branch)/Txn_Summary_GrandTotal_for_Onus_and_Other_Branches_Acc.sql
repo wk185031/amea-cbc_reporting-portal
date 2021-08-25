@@ -7,6 +7,7 @@
 -- Onus					13-AUG-2021		NY		Cater for BRM channel mnem
 -- Onus					16-AUG-2021		NY		Corrected sum of count/amount
 -- Onus					19-AUG-2021		NY		Fix count/amount 
+-- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -69,7 +70,7 @@ BEGIN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
@@ -126,7 +127,7 @@ BEGIN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'')
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')

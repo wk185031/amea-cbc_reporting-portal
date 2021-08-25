@@ -5,6 +5,7 @@
 -- Report revision		25-JUL-2021		NY		Update based on excel spec
 -- Onus					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master 
 -- Onus					09-AUG-2021		NY		Fix BRM mnem not print
+-- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -60,7 +61,7 @@ BEGIN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31, 142, 143)
-      AND TXN.TRL_TQU_ID IN (''F'', ''R'') 
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND ABR.ABR_CODE = TXNC.TRL_CARD_BRANCH
       AND TXN.TRL_FRD_REV_INST_ID IS NULL

@@ -7,6 +7,7 @@
 -- Cross Checking		04-AUG-2021		NY		Fix cross checking to master not match
 -- Acquirer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Acquirer				13-AUG-2021		NY		Exclude inter-entity per specification update 
+-- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -62,7 +63,7 @@ BEGIN
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
 	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
-      AND TXN.TRL_TQU_ID IN (''F'',''R'')
+      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_ISS_NAME IS NULL 
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
