@@ -55,6 +55,7 @@ public final class ReportConstants {
 	public static final String DATE_FORMAT_06 = "yyyy-MM";
 	public static final String DATE_FORMAT_07 = "dd";
     public static final String DATE_FORMAT_08 = "HH";
+    public static final String DATE_FORMAT_MMDDYYYY = "MM-dd-yyyy";
 	public static final String DATETIME_FORMAT_01 = "yyyyMMdd HH:mm:ss";
     public static final String DATETIME_FORMAT_02 = "yyyyMMdd hh:mm a";
     public static final String DATETIME_FORMAT_03 = "yyyyMMdd HH:mm a";

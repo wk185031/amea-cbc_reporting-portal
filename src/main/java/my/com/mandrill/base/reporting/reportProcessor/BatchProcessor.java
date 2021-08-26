@@ -133,20 +133,20 @@ public class BatchProcessor extends TxtReportProcessor {
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
+
 	protected void addPostingDateFieldsToGlobalMap(ReportGenerationMgr rgm) {
 		logger.debug("In GeneralReportProcess.addPostinDatePreProcessingFieldsToGlobalMap()");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_02);
+		DateTimeFormatter postingDateFormatter = DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_MMDDYYYY);
 
 		ReportGenerationFields valueDateField = new ReportGenerationFields(ReportConstants.VALUE_DATE,
-				ReportGenerationFields.TYPE_DATE, rgm.getPostingDate().format(formatter).toString());
+				ReportGenerationFields.TYPE_DATE, rgm.getPostingDate().format(postingDateFormatter).toString());
 
 		getGlobalFileFieldsMap().put(valueDateField.getFieldName(), valueDateField);
-		
+
 		ReportGenerationFields tranDateField = new ReportGenerationFields(ReportConstants.TRAN_DATE,
-				ReportGenerationFields.TYPE_DATE, rgm.getPostingDate().format(formatter).toString());
+				ReportGenerationFields.TYPE_DATE, rgm.getPostingDate().format(postingDateFormatter).toString());
 
 		getGlobalFileFieldsMap().put(tranDateField.getFieldName(), tranDateField);
-
 
 	}
 
