@@ -79,6 +79,9 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 				contentStream.setFont(pdfFont, fontSize);
 				contentStream.beginText();
 				contentStream.newLineAtOffset(startX, startY);
+				writePdfHeader(rgm, contentStream, leading, pagination);
+				contentStream.newLineAtOffset(0, -leading);
+				contentStream.showText(ReportConstants.NO_RECORD);
 				contentStream.endText();
 				contentStream.close();
 				saveFile(rgm, doc);
@@ -194,100 +197,108 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                 	setEncryptionService(rgm.getEncryptionService());
                 }
 
-				while (rs.next()) {
-                    lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream = newPage(rgm, doc, contentStream);
-					}
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
+				if (rs.next()) {
+					do {
+						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+						if (pageHeight > totalHeight) {
+							pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+							contentStream = newPage(rgm, doc, contentStream);
 						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
 							}
-						} else {
-							field.setValue("");
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
 						}
-					}
-					
-                    if(branchSet == null) {
-                        branchSet = new HashSet<String>();
-                    }
 
-                    if(str == null) {
-                        str = new StringBuilder();
-                    }
-                    
-                    // 1. store set with branch_name,branch_code value
-                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
-                    str.append(",");
-                    str.append(lineFieldsMap.get("BRANCH_CODE").getValue());
-                    branchSet.add(str.toString());
+						if (branchSet == null) {
+							branchSet = new HashSet<String>();
+						}
 
-                    // clear StringBuilder to reuse
-                    str.setLength(0);
+						if (str == null) {
+							str = new StringBuilder();
+						}
 
-                    // 2. store map with branch_name,program_name key
-                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
-                    str.append(",");
-                    str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
-                    
-                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
-                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
-                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
-                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
-                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
-                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
-                    
-            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
-            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
-            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
-           		
-            		if (decryptFirstName == null) {
-            			decryptFirstName = encFirstName;
-            		}
-            		if (decryptMiddleName == null) {
-            			decryptMiddleName = encMiddleName;
-            		}
-            		if (decryptLastName == null) {
-            			decryptLastName = encLastName;
-            		}
-            		
-                    lineFieldsMap.get("ACCOUNT_NAME").setValue(
-                    		decryptFirstName + " " + 
-                    		decryptMiddleName + " " +
-                    		decryptLastName);
+						// 1. store set with branch_name,branch_code value
+						str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+						str.append(",");
+						str.append(lineFieldsMap.get("BRANCH_CODE").getValue());
+						branchSet.add(str.toString());
 
-                    if(programToLineFieldsMap == null) {
-                        programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-                    }
+						// clear StringBuilder to reuse
+						str.setLength(0);
 
-                    if(programToLineFieldsMap.containsKey(str.toString())) {
-                        programToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
-                    } else {
-                        lineFieldsMapList = new ArrayList<>();
-                        lineFieldsMapList.add(lineFieldsMap);
-                        programToLineFieldsMap.put(str.toString(), lineFieldsMapList);
-                    }
+						// 2. store map with branch_name,program_name key
+						str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+						str.append(",");
+						str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
 
-                    str.setLength(0);
-                    
+						// decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+						String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+						String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+						String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+						String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+						int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
+
+						String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode,
+								rotationNumber);
+						String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode,
+								rotationNumber);
+						String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode,
+								rotationNumber);
+
+						if (decryptFirstName == null) {
+							decryptFirstName = encFirstName;
+						}
+						if (decryptMiddleName == null) {
+							decryptMiddleName = encMiddleName;
+						}
+						if (decryptLastName == null) {
+							decryptLastName = encLastName;
+						}
+
+						lineFieldsMap.get("ACCOUNT_NAME")
+								.setValue(decryptFirstName + " " + decryptMiddleName + " " + decryptLastName);
+
+						if (programToLineFieldsMap == null) {
+							programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
+						}
+
+						if (programToLineFieldsMap.containsKey(str.toString())) {
+							programToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
+						} else {
+							lineFieldsMapList = new ArrayList<>();
+							lineFieldsMapList.add(lineFieldsMap);
+							programToLineFieldsMap.put(str.toString(), lineFieldsMapList);
+						}
+
+						str.setLength(0);
+
+					} while (rs.next());
+				} else {
+					writePdfHeader(rgm, contentStream, leading, pagination);
+    				contentStream.newLineAtOffset(0, -leading);
+					contentStream.showText(ReportConstants.NO_RECORD);
 				}
 				
                 for(String branch: branchSet) {
@@ -443,98 +454,105 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                 StringBuilder str = null;
     			pagination = 0;
 
-                while (rs.next()) {
-                    new StringBuffer();
-                    lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-                    for (String key : lineFieldsMap.keySet()) {
-                        ReportGenerationFields field = lineFieldsMap.get(key);
-                        Object result;
-                        try {
-                            result = rs.getObject(field.getSource());
-                        } catch (SQLException e) {
-                            rgm.errors++;
-                            logger.error("An error was encountered when trying to write a line", e);
-                            continue;
-                        }
-                        if (result != null) {
-                            if (result instanceof Date) {
-                                field.setValue(Long.toString(((Date) result).getTime()));
-                            } else if (result instanceof oracle.sql.TIMESTAMP) {
-                                field.setValue(
-                                    Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-                            } else if (result instanceof oracle.sql.DATE) {
-                                field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-                            } else {
-                                field.setValue(result.toString());
-                            }
-                        } else {
-                            field.setValue("");
-                        }
-                    }
+				if (rs.next()) {
+					do {
+						new StringBuffer();
+						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+						}
 
-                    if(branchSet == null) {
-                        branchSet = new HashSet<String>();
-                    }
+						if (branchSet == null) {
+							branchSet = new HashSet<String>();
+						}
 
-                    if(str == null) {
-                        str = new StringBuilder();
-                    }
+						if (str == null) {
+							str = new StringBuilder();
+						}
 
-                    // 1. store set with branch_name,branch_code value
-                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
-                    str.append(",");
-                    str.append(lineFieldsMap.get("BRANCH_CODE").getValue());
-                    branchSet.add(str.toString());
+						// 1. store set with branch_name,branch_code value
+						str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+						str.append(",");
+						str.append(lineFieldsMap.get("BRANCH_CODE").getValue());
+						branchSet.add(str.toString());
 
-                    // clear StringBuilder to reuse
-                    str.setLength(0);
+						// clear StringBuilder to reuse
+						str.setLength(0);
 
-                    // 2. store map with branch_name,program_name key
-                    str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
-                    str.append(",");
-                    str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
-                    
-                    //decrypt first, middle, last name and combine set value for ACCOUNT_NAME
-                    String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
-                    String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
-                    String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
-                    String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
-                    int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
-                    
-            		String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode, rotationNumber);
-            		String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode, rotationNumber);
-            		String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode, rotationNumber);
-            		
-            		if (decryptFirstName == null) {
-            			decryptFirstName = encFirstName;
-            		}
-            		if (decryptMiddleName == null) {
-            			decryptMiddleName = encMiddleName;
-            		}
-            		if (decryptLastName == null) {
-            			decryptLastName = encLastName;
-            		}
-            		
-                    lineFieldsMap.get("ACCOUNT_NAME").setValue(
-                    		decryptFirstName + " " + 
-                    		decryptMiddleName + " " +
-                    		decryptLastName);
+						// 2. store map with branch_name,program_name key
+						str.append(lineFieldsMap.get("BRANCH_NAME").getValue());
+						str.append(",");
+						str.append(lineFieldsMap.get("PROGRAM_NAME").getValue());
 
+						// decrypt first, middle, last name and combine set value for ACCOUNT_NAME
+						String encFirstName = lineFieldsMap.get("FIRST_NAME").getValue();
+						String encMiddleName = lineFieldsMap.get("MIDDLE_NAME").getValue();
+						String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
+						String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
+						int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
 
-                    if(programToLineFieldsMap == null) {
-                        programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
-                    }
+						String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode,
+								rotationNumber);
+						String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode,
+								rotationNumber);
+						String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode,
+								rotationNumber);
 
-                    if(programToLineFieldsMap.containsKey(str.toString())) {
-                        programToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
-                    } else {
-                        lineFieldsMapList = new ArrayList<>();
-                        lineFieldsMapList.add(lineFieldsMap);
-                        programToLineFieldsMap.put(str.toString(), lineFieldsMapList);
-                    }
+						if (decryptFirstName == null) {
+							decryptFirstName = encFirstName;
+						}
+						if (decryptMiddleName == null) {
+							decryptMiddleName = encMiddleName;
+						}
+						if (decryptLastName == null) {
+							decryptLastName = encLastName;
+						}
 
-                    str.setLength(0);
-                }
+						lineFieldsMap.get("ACCOUNT_NAME")
+								.setValue(decryptFirstName + " " + decryptMiddleName + " " + decryptLastName);
+
+						if (programToLineFieldsMap == null) {
+							programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
+						}
+
+						if (programToLineFieldsMap.containsKey(str.toString())) {
+							programToLineFieldsMap.get(str.toString()).add(lineFieldsMap);
+						} else {
+							lineFieldsMapList = new ArrayList<>();
+							lineFieldsMapList.add(lineFieldsMap);
+							programToLineFieldsMap.put(str.toString(), lineFieldsMapList);
+						}
+
+						str.setLength(0);
+					} while (rs.next());
+				} else {
+					writeHeader(rgm, pagination);
+					rgm.writeLine(ReportConstants.NO_RECORD.getBytes());
+					rgm.writeLine(getEol().getBytes());
+				}
 
                 // 3. iterate (branch_name,branch_code) set, iterate (branch_name,program_name) map to print by grouping
                 for(String branch: branchSet) {
