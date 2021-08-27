@@ -812,15 +812,6 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				}
 				line.append(field.getDelimiter());
 				line.append(getEol());
-			} else if (ReportGenerationResource.getUserInsId().equalsIgnoreCase("CBS") && 
-		              (field.getFieldName().equalsIgnoreCase("Bank Code") || field.getFieldName().equalsIgnoreCase("Bank Name"))){
-		          if(field.getFieldName().equalsIgnoreCase("Bank Code")) {
-		              line.append("0112");
-		              line.append(field.getDelimiter());
-		          }else{
-		              line.append("CHINA BANK SAVINGS");
-		              line.append(field.getDelimiter());
-		          }
 			} else {
 				line.append(getGlobalFieldValue(rgm, field));
 				line.append(field.getDelimiter());
