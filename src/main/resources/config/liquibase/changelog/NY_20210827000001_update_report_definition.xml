@@ -38,6 +38,20 @@
                  path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
                  splitStatements="false" 
                  stripComments="true" />
+                 
+        <!-- Onus -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(On-Us).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+                 
+        <!-- Issuer -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(Issuer).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     	                
         <!-- RFID -->
 		<sqlFile dbms="oracle" 
