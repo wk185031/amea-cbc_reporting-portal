@@ -25,60 +25,29 @@ public class ListRfidPayments extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
-		String channel = null;
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
-		String location = null;
+		
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-			preProcessing(rgm);
-
-			for (SortedMap.Entry<String, TreeMap<String, Map<String, TreeMap<String, String>>>> channelMap : filterByChannelBranch(
-					rgm).entrySet()) {
-				pagination++;
-				writeHeader(rgm, pagination);
-				channel = channelMap.getKey();
-				StringBuilder line = new StringBuilder();
-				line.append(ReportConstants.CHANNEL + " : ").append(";").append(channel).append(";");
-				line.append(getEol());
-				rgm.writeLine(line.toString().getBytes());
-
-				for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : channelMap.getValue()
-						.entrySet()) {
-					for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
-							.entrySet()) {
-						branchCode = branchCodeMap.getKey();
-						branchName = branchNameMap.getKey();
-						line = new StringBuilder();
-						line.append(ReportConstants.BRANCH + " : ").append(";").append(branchCode).append(";")
-								.append(branchName).append(";");
-						line.append(getEol());
-						rgm.writeLine(line.toString().getBytes());
-
-						for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
-							terminal = terminalMap.getKey();
-							location = terminalMap.getValue();
-							preProcessing(rgm, branchCode, terminal,channel);
-							line = new StringBuilder();
-							line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
-									.append(location).append(";");
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
-							writeBodyHeader(rgm);
-							executeBodyQuery(rgm);
-							line = new StringBuilder();
-							line.append(getEol());
-							rgm.writeLine(line.toString().getBytes());
-						}
-					}
-					executeTrailerQuery(rgm);
-				}
-			}
+			
+			writeHeader(rgm, pagination);
+			
+			separateQuery(rgm);
+			
+			rgm.setBodyQuery(getOnusBodyQuery());
+			rgm.setTrailerQuery(getOnusTrailerQuery());
+			
+			preProcessing(rgm);			
+			processReport(rgm, "ON-US TRANSACTIONS");
+			
+			rgm.setBodyQuery(getInterEntityBodyQuery());
+			rgm.setTrailerQuery(getInterEntityTrailerQuery());
+			
+			preProcessing(rgm);			
+			processReport(rgm, "INTER-ENTITY TRANSACTIONS");
+			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
-				| JSONException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -96,18 +65,100 @@ public class ListRfidPayments extends CsvReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmListBeepPayments.preProcessing()");
+		logger.debug("In ListRfidPayments.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "").replace("AND {" + ReportConstants.PARAM_CHANNEL + "}", ""));
 		}
+			
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
+	
+	private void processReport(ReportGenerationMgr rgm, String categoryHeader) {
+		String channel = null;
+		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
+		StringBuilder line = new StringBuilder();
 
+		line.append(categoryHeader);
+		line.append(getEol());
+
+		try {
+			for (SortedMap.Entry<String, TreeMap<String, Map<String, TreeMap<String, String>>>> channelMap : filterByChannelBranch(
+					rgm).entrySet()) {
+				pagination++;
+				
+				channel = channelMap.getKey();
+
+				line.append(ReportConstants.CHANNEL + " : ").append(";").append(channel).append(";");
+				line.append(getEol());
+				rgm.writeLine(line.toString().getBytes());
+
+				for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : channelMap.getValue()
+						.entrySet()) {
+					for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+							.entrySet()) {
+						branchCode = branchCodeMap.getKey();
+						branchName = branchNameMap.getKey();
+						line = new StringBuilder();
+						line.append(ReportConstants.BRANCH + " : ").append(";").append(branchCode).append(";")
+						.append(branchName).append(";");
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
+
+						for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+							terminal = terminalMap.getKey();
+							location = terminalMap.getValue();
+							preProcessing(rgm, branchCode, terminal,channel);
+							line = new StringBuilder();
+							line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
+							.append(location).append(";");
+							line.append(getEol());
+							rgm.writeLine(line.toString().getBytes());
+							writeBodyHeader(rgm);
+							executeBodyQuery(rgm);
+							line = new StringBuilder();
+							line.append(getEol());
+							rgm.writeLine(line.toString().getBytes());
+						}
+					}
+					executeTrailerQuery(rgm);
+				}				
+			}
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
+			rgm.errors++;
+			logger.error("Error in generating CSV file", e);
+		} 
+
+	}
+	
+	
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In ListRfidPayments.separateQuery()");
+		if (rgm.getBodyQuery() != null) {
+			setOnusBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setInterEntityBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+		if (rgm.getTrailerQuery() != null) {
+			setOnusTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setInterEntityTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+	}
+	
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByChannel)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		logger.debug("In AtmListBeepPayments.preProcessing()");
+		logger.debug("In ListRfidPayments.preProcessing()");
 		if (filterByBranchCode != null && filterByTerminal != null && filterByChannel!= null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
@@ -124,7 +175,7 @@ public class ListRfidPayments extends CsvReportProcessor {
 	}
 	@Override
 	protected void writeHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
-		logger.debug("In CsvReportProcessor.writeHeader()");
+		logger.debug("In ListRfidPayments.writeHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {

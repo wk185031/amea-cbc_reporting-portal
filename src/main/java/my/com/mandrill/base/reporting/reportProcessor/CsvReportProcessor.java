@@ -38,6 +38,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String criteriaQuery = null;
 	private String causeTrailerQuery = null;
 	private String terminalTrailerQuery = null;
+	private String onusBodyQuery = null;
+	private String interEntityBodyQuery = null;
+	private String onusTrailerQuery = null;
+	private String interEntityTrailerQuery = null;
 
 	public String getAcquiringBodyQuery() {
 		return acquiringBodyQuery;
@@ -125,6 +129,42 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setTerminalTrailerQuery(String terminalTrailerQuery) {
 		this.terminalTrailerQuery = terminalTrailerQuery;
+	}
+
+	public String getOnusBodyQuery() {
+		return onusBodyQuery;
+	}
+
+	public void setOnusBodyQuery(String onusBodyQuery) {
+		this.onusBodyQuery = onusBodyQuery;
+	}
+
+	public String getInterEntityBodyQuery() {
+		return interEntityBodyQuery;
+	}
+
+	public void setInterEntityBodyQuery(String interEntityBodyQuery) {
+		this.interEntityBodyQuery = interEntityBodyQuery;
+	}
+
+	public String getOnusTrailerQuery() {
+		return onusTrailerQuery;
+	}
+
+	public void setOnusTrailerQuery(String onusTrailerQuery) {
+		this.onusTrailerQuery = onusTrailerQuery;
+	}
+
+	public String getInterEntityTrailerQuery() {
+		return interEntityTrailerQuery;
+	}
+
+	public void setInterEntityTrailerQuery(String interEntityTrailerQuery) {
+		this.interEntityTrailerQuery = interEntityTrailerQuery;
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 	@Override
