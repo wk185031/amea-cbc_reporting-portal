@@ -26,119 +26,72 @@ BEGIN
 
 
 	i_BODY_QUERY := TO_CLOB('		
-							select
-                            	report_summary.PRODUCT_CODE,
-                             	report_summary.PRODUCT_NAME,
-       							report_summary.BRANCH_CODE,
-                                report_summary.BRANCH_NAME,
-                                report_summary.EXCEED_CARDS,
-						    	report_summary.UNUSUAL_CARDS,
-								report_summary.ACTIVE_CARDS,
-						  		report_summary.INACTIVE_CARDS,
-								report_summary.STOLEN_CARDS,
-								report_summary.LOST_CARDS,
-						     	report_summary.DAMAGED_CARDS,
-								report_summary.BLOCKED_CARDS,
-								report_summary.REPLACED_CARDS,
-								report_summary.CLOSED_CARDS,
-								report_summary.CAPTURED_CARDS,	
-								report_summary.SUSPICIOUS_CARDS,
-                             	(select report_summary.EXCEED_CARDS + report_summary.UNUSUAL_CARDS + report_summary.ACTIVE_CARDS + report_summary.INACTIVE_CARDS + report_summary.STOLEN_CARDS 
-									+ report_summary.LOST_CARDS + report_summary.DAMAGED_CARDS + report_summary.BLOCKED_CARDS + report_summary.REPLACED_CARDS + report_summary.CLOSED_CARDS 
-									+ report_summary.CAPTURED_CARDS + report_summary.SUSPICIOUS_CARDS from dual) AS TOTAL_COUNT from
-                                       (SELECT
-                                               (select prs_code from {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} where prs_id = crd.crd_prs_id) AS PRODUCT_CODE,
-                                               (select prs_name from {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} where prs_id = crd.crd_prs_id) AS PRODUCT_NAME,
-                                               (SELECT BRN_CODE FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_CODE,
-                                               (SELECT BRN_NAME FROM {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} WHERE BRN_ID = CRD.CRD_BRN_ID) AS BRANCH_NAME,
-                                               (SELECT COUNT(CRD_ACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_ACTIVE
-                                                 WHERE CRD_ACTIVE.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_ACTIVE.CRD_STS_ID = 72
-                                                 AND trunc(CRD_ACTIVE.crd_created_ts)
-                                                 between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 )AS EXCEED_CARDS,
-
-                                               (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                )AS UNUSUAL_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 72
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                )AS ACTIVE_CARDS,
-
-                                               (SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 71
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                ) AS INACTIVE_CARDS,
-
-                                           		(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 78
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS STOLEN_CARDS,
-
-                                                (SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_CLOSED
-                                                 WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 76
-                                                 AND trunc(CRD_CLOSED.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-yy hh24:mi:ss'') And To_Date({To_Date},''dd-MM-yy hh24:mi:ss'')
-                                                 ) AS LOST_CARDS,
-
-												(SELECT COUNT(CRD_CLOSED.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_CLOSED
-                                                 WHERE CRD_CLOSED.CRD_BRN_ID =  CRD.CRD_BRN_ID AND CRD_CLOSED.CRD_STS_ID = 75
-                                                 AND trunc(CRD_CLOSED.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-yy hh24:mi:ss'') And To_Date({To_Date},''dd-MM-yy hh24:mi:ss'')
-                                                 ) AS DAMAGED_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 73
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS BLOCKED_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS REPLACED_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 74
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS CLOSED_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS CAPTURED_CARDS,
-
-												(SELECT COUNT(CRD_INACTIVE.CRD_BRN_ID)
-                                                 FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD_INACTIVE
-                                                 WHERE CRD_INACTIVE.CRD_BRN_ID = CRD.CRD_BRN_ID AND CRD_INACTIVE.CRD_STS_ID = 77
-                                                 AND trunc(CRD_INACTIVE.crd_created_ts)
-                                                  between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-                                                 ) AS SUSPICIOUS_CARDS
-
-                                           FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD WHERE
-                                           CRD.CRD_INS_ID = {Iss_Id}
-                                           GROUP BY crd.crd_prs_id, CRD.CRD_BRN_ID
-                                           ORDER BY BRANCH_CODE) report_summary
+select 
+  PRODUCT_CODE,
+  PRODUCT_NAME,
+  BRANCH_CODE,
+  BRANCH_NAME,
+  SUM(EXCEED_CARDS) AS EXCEED_CARDS,
+  SUM(UNUSUAL_CARDS) AS UNUSUAL_CARDS,
+  SUM(ACTIVE_CARDS) AS ACTIVE_CARDS,
+  SUM(INACTIVE_CARDS) AS INACTIVE_CARDS,
+  SUM(STOLEN_CARDS) AS STOLEN_CARDS,
+  SUM(LOST_CARDS) AS LOST_CARDS,
+  SUM(DAMAGED_CARDS) AS DAMAGED_CARDS,
+  SUM(BLOCKED_CARDS) AS BLOCKED_CARDS,
+  SUM(REPLACED_CARDS) AS REPLACED_CARDS,
+  SUM(CLOSED_CARDS) AS CLOSED_CARDS,
+  SUM(CAPTURED_CARDS) AS CAPTURED_CARDS,
+  SUM(SUSPICIOUS_CARDS) AS SUSPICIOUS_CARDS,
+  SUM(EXCEED_CARDS) + SUM(UNUSUAL_CARDS) + SUM(ACTIVE_CARDS) + SUM(INACTIVE_CARDS) + SUM(STOLEN_CARDS) + SUM(LOST_CARDS) + SUM(DAMAGED_CARDS) + SUM(BLOCKED_CARDS) + SUM(REPLACED_CARDS) + SUM(CLOSED_CARDS) + SUM(CAPTURED_CARDS) + SUM(SUSPICIOUS_CARDS) AS TOTAL_COUNT
+FROM(
+select 
+  PRS.PRS_CODE AS PRODUCT_CODE,
+  PRS.PRS_NAME AS PRODUCT_NAME,
+  BRN.BRN_CODE as BRANCH_CODE,
+  BRN.BRN_NAME as BRANCH_NAME,
+  0 AS EXCEED_CARDS,
+  0 AS UNUSUAL_CARDS,
+  CASE WHEN CRD_STS_ID = 72 THEN 1 ELSE 0 END AS ACTIVE_CARDS,
+  CASE WHEN CRD_STS_ID = 71 THEN 1 ELSE 0 END AS INACTIVE_CARDS,
+  CASE WHEN CRD_STS_ID = 78 THEN 1 ELSE 0 END AS STOLEN_CARDS,
+  CASE WHEN CRD_STS_ID = 76 THEN 1 ELSE 0 END AS LOST_CARDS,
+  CASE WHEN CRD_STS_ID = 75 THEN 1 ELSE 0 END AS DAMAGED_CARDS,
+  CASE WHEN CRD_STS_ID = 73 THEN 1 ELSE 0 END AS BLOCKED_CARDS,
+  CASE WHEN CRD_STS_ID = 77 THEN 1 ELSE 0 END AS REPLACED_CARDS,
+  CASE WHEN CRD_STS_ID = 74 THEN 1 ELSE 0 END AS CLOSED_CARDS,
+  0 AS CAPTURED_CARDS,
+  0 AS SUSPICIOUS_CARDS 
+FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD
+  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CRD.CRD_BRN_ID
+  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CRD.CRD_PRS_ID
+WHERE CRD.CRD_INS_ID = 1
+  AND trunc(COALESCE(CRD.CRD_UPDATED_TS,CRD.CRD_CREATED_TS)) between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+UNION ALL
+select 
+  PRS.PRS_CODE AS PRODUCT_CODE,
+  PRS.PRS_NAME AS PRODUCT_NAME,
+  BRN.BRN_CODE as BRANCH_CODE,
+  BRN.BRN_NAME as BRANCH_NAME,
+  0 AS EXCEED_CARDS,
+  0 AS UNUSUAL_CARDS,
+  CASE WHEN CSH_STS_ID = 72 THEN 1 ELSE 0 END AS ACTIVE_CARDS,
+  CASE WHEN CSH_STS_ID = 71 THEN 1 ELSE 0 END AS INACTIVE_CARDS,
+  CASE WHEN CSH_STS_ID = 78 THEN 1 ELSE 0 END AS STOLEN_CARDS,
+  CASE WHEN CSH_STS_ID = 76 THEN 1 ELSE 0 END AS LOST_CARDS,
+  CASE WHEN CSH_STS_ID = 75 THEN 1 ELSE 0 END AS DAMAGED_CARDS,
+  CASE WHEN CSH_STS_ID = 73 THEN 1 ELSE 0 END AS BLOCKED_CARDS,
+  CASE WHEN CSH_STS_ID = 77 THEN 1 ELSE 0 END AS REPLACED_CARDS,
+  CASE WHEN CSH_STS_ID = 74 THEN 1 ELSE 0 END AS CLOSED_CARDS,
+  0 AS CAPTURED_CARDS,
+  0 AS SUSPICIOUS_CARDS 
+FROM {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} CSH
+  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CSH.CSH_BRN_ID
+  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CSH.CSH_PRS_ID
+WHERE CSH.CSH_INS_ID = {Iss_Id}
+  AND trunc(COALESCE(CSH.CSH_UPDATED_TS,CSH.CSH_CREATED_TS)) between To_Date(''01-05-21 00:00:00'',''dd-MM-YY hh24:mi:ss'') And To_Date(''31-08-21 00:00:00'',''dd-MM-YY hh24:mi:ss'')
+) GROUP BY PRODUCT_CODE, PRODUCT_NAME, BRANCH_CODE, BRANCH_NAME
+ORDER BY BRANCH_CODE
 	');
 	i_TRAILER_QUERY := null;
 	

@@ -96,5 +96,15 @@
                  path="config/liquibase/report-query/POS_Transactions/POS_Approved_Transactions.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/Monthly_Card_File_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/Monthly_Cardbase_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>
