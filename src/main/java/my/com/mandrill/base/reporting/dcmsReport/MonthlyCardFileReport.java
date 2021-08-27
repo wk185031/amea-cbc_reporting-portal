@@ -22,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,10 +32,20 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
     private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
     private float totalHeight = PDRectangle.A4.getHeight();
     private int pagination = 0;
-    private double grandTotalActive = 0.00;
-    private double grandTotalBlocked = 0.00;
-    private int totalCount = 0;
-
+    private static final String EXCEED_CARDS = "EXCEED_CARDS";
+    private static final String UNUSUAL_CARDS = "UNUSUAL_CARDS";
+    private static final String ACTIVE_CARDS = "ACTIVE_CARDS";
+    private static final String INACTIVE_CARDS = "INACTIVE_CARDS";
+    private static final String STOLEN_CARDS = "STOLEN_CARDS";
+    private static final String LOST_CARDS = "LOST_CARDS";
+    private static final String DAMAGED_CARDS = "DAMAGED_CARDS";
+    private static final String BLOCKED_CARDS = "BLOCKED_CARDS";
+    private static final String REPLACED_CARDS = "REPLACED_CARDS";
+    private static final String CLOSED_CARDS = "CLOSED_CARDS";
+    private static final String CAPTURED_CARDS = "CAPTURED_CARDS";
+    private static final String SUSPICIOUS_CARDS = "SUSPICIOUS_CARDS";
+    private static final String TOTAL_COUNT = "TOTAL_COUNT";
+        
     @Override
     public void executePdf(ReportGenerationMgr rgm) {
         logger.debug("In MonthlyCardFileReport.processPdfRecord()");
@@ -45,9 +54,6 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         PDPage page = null;
         PDPageContentStream contentStream = null;
         DecimalFormat formatter = new DecimalFormat("#,##0.00");
-        String cardProduct = null;
-        String branchCode = null;
-        String branchName = null;
         pagination = 1;
         try {
             preProcessing(rgm);
@@ -71,11 +77,11 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
             writePdfHeader(rgm, contentStream, leading, pagination);
             contentStream.newLineAtOffset(0, -leading);
             pageHeight += 4;
-            contentStream.showText(String.format("") + "==========================================================================================================================================================");
+            contentStream.showText(String.format("") + "=============================================================================================================================================================");
             contentStream.newLineAtOffset(0, -leading);
             writePdfBodyHeader(rgm, contentStream, leading);
             pageHeight += 2;
-            contentStream.showText(String.format("") + "==========================================================================================================================================================");
+            contentStream.showText(String.format("") + "=============================================================================================================================================================");
             contentStream.newLineAtOffset(0, -leading);
             pageHeight += 1;
             contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
@@ -155,13 +161,20 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         HashMap<String, ReportGenerationFields> fieldsMap = null;
         HashMap<String, ReportGenerationFields> lineFieldsMap = null;
         String query = getBodyQuery(rgm);
+        int grandTotalExceed = 0;
+        int grandTotalUnusual = 0;
         int grandTotalActive = 0;
         int grandTotalInactive = 0;
-        int grandTotalRenewed = 0;
+        int grandTotalStolen = 0;
+        int grandTotalLost = 0;
+        int grandTotalDamaged = 0;
+        int grandTotalBlocked = 0;
         int grandTotalReplaced = 0;
         int grandTotalClosed = 0;
+        int grandTotalCaptured = 0;
+        int grandTotalSuspicious = 0;
         int grandTotalTotal = 0;
-        StringBuilder str = null;
+     
         logger.info("Query for body line export: {}", query);
 
         if (query != null && !query.isEmpty()) {
@@ -210,30 +223,51 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
                             field.setValue("");
                         }
 
-                        if(key.equals("ACTIVE_CARDS")){
+                        if(key.equals(EXCEED_CARDS)){
+                        	grandTotalExceed += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(UNUSUAL_CARDS)){
+                            grandTotalUnusual += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(ACTIVE_CARDS)){
                             grandTotalActive += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("INACTIVE_CARDS")){
+                        if(key.equals(INACTIVE_CARDS)){
                             grandTotalInactive += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("RENEWED_CARDS")){
-                            grandTotalRenewed += Integer.valueOf(field.getValue());
+                        if(key.equals(STOLEN_CARDS)){
+                            grandTotalStolen += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("REPLACED_CARDS")){
+                        if(key.equals(LOST_CARDS)){
+                            grandTotalLost += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(DAMAGED_CARDS)){
+                            grandTotalDamaged += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(BLOCKED_CARDS)){
+                            grandTotalBlocked += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(REPLACED_CARDS)){
                             grandTotalReplaced += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("CLOSED_CARDS")){
+                        if(key.equals(CLOSED_CARDS)){
                             grandTotalClosed += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("TOTAL_COUNT")){
+                        if(key.equals(CAPTURED_CARDS)){
+                            grandTotalCaptured += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(SUSPICIOUS_CARDS)){
+                            grandTotalSuspicious += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(TOTAL_COUNT)){
                             grandTotalTotal += Integer.valueOf(field.getValue());
                         }
-
                     }
                     writePdfBody(rgm, lineFieldsMap, contentStream, leading);
                 }
 
-                    preProcessingBodyTrailer(rgm, grandTotalActive, grandTotalInactive, grandTotalRenewed, grandTotalReplaced, grandTotalClosed, grandTotalTotal);
+                    preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
+                    		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
                     writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
 
             } catch (Exception e) {
@@ -261,12 +295,20 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         String query = getBodyQuery(rgm);
         StringBuilder str = null;
 
+        int grandTotalExceed = 0;
+        int grandTotalUnusual = 0;
         int grandTotalActive = 0;
         int grandTotalInactive = 0;
-        int grandTotalRenewed = 0;
+        int grandTotalStolen = 0;
+        int grandTotalLost = 0;
+        int grandTotalDamaged = 0;
+        int grandTotalBlocked = 0;
         int grandTotalReplaced = 0;
         int grandTotalClosed = 0;
+        int grandTotalCaptured = 0;
+        int grandTotalSuspicious = 0;
         int grandTotalTotal = 0;
+        
         logger.info("Query for body line export: {}", query);
 
         if (query != null && !query.isEmpty()) {
@@ -302,28 +344,50 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
                         } else {
                             field.setValue("");
                         }
-                        if(key.equals("ACTIVE_CARDS")){
+                        if(key.equals(EXCEED_CARDS)){
+                        	grandTotalExceed += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(UNUSUAL_CARDS)){
+                            grandTotalUnusual += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(ACTIVE_CARDS)){
                             grandTotalActive += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("INACTIVE_CARDS")){
+                        if(key.equals(INACTIVE_CARDS)){
                             grandTotalInactive += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("RENEWED_CARDS")){
-                            grandTotalRenewed += Integer.valueOf(field.getValue());
+                        if(key.equals(STOLEN_CARDS)){
+                            grandTotalStolen += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("REPLACED_CARDS")){
+                        if(key.equals(LOST_CARDS)){
+                            grandTotalLost += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(DAMAGED_CARDS)){
+                            grandTotalDamaged += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(BLOCKED_CARDS)){
+                            grandTotalBlocked += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(REPLACED_CARDS)){
                             grandTotalReplaced += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("CLOSED_CARDS")){
+                        if(key.equals(CLOSED_CARDS)){
                             grandTotalClosed += Integer.valueOf(field.getValue());
                         }
-                        if(key.equals("TOTAL_COUNT")){
+                        if(key.equals(CAPTURED_CARDS)){
+                            grandTotalCaptured += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(SUSPICIOUS_CARDS)){
+                            grandTotalSuspicious += Integer.valueOf(field.getValue());
+                        }
+                        if(key.equals(TOTAL_COUNT)){
                             grandTotalTotal += Integer.valueOf(field.getValue());
                         }
                     }
                     writeBody(rgm, lineFieldsMap);
                 }
-                preProcessingBodyTrailer(rgm, grandTotalActive, grandTotalInactive, grandTotalRenewed, grandTotalReplaced, grandTotalClosed, grandTotalTotal);
+                preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
+                		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
                 writeTrailer(rgm, null);
             } catch (Exception e) {
                 rgm.errors++;
@@ -357,28 +421,50 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         addReportPreProcessingFieldsToGlobalMap(rgm);
     }
 
-    private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int grandTotalActive, int grandTotalInactive, int grandTotalRenewed, int grandTotalReplaced, int grandTotalClosed, int grandTotalTotal)
+    private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int grandTotalExceed, int grandTotalUnusual, int grandTotalActive, int grandTotalInactive, int grandTotalStolen, int grandTotalLost, int grandTotalDamaged, 
+    		int grandTotalBlocked, int grandTotalReplaced, int grandTotalClosed, int grandTotalCaptured, int grandTotalSuspicious, int grandTotalTotal)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In MonthlyCardFileReport.preProcessingBodyTrailer()");
 
+        ReportGenerationFields totalExceed = new ReportGenerationFields("TOTAL_EXCEED",
+            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalExceed));
+        ReportGenerationFields totalUnsual = new ReportGenerationFields("TOTAL_UNUSUAL",
+            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalUnusual));
         ReportGenerationFields totalActive = new ReportGenerationFields("TOTAL_ACTIVE",
             ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalActive));
         ReportGenerationFields totalInactive = new ReportGenerationFields("TOTAL_INACTIVE",
             ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalInactive));
-        ReportGenerationFields totalRenewed = new ReportGenerationFields("TOTAL_RENEWED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalRenewed));
-        ReportGenerationFields totalRepalced = new ReportGenerationFields("TOTAL_REPLACED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalReplaced));
+        ReportGenerationFields totalStolen = new ReportGenerationFields("TOTAL_STOLEN",
+            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalStolen));
+        ReportGenerationFields totalLost = new ReportGenerationFields("TOTAL_LOST",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalLost));
+        ReportGenerationFields totalDamaged = new ReportGenerationFields("TOTAL_DAMAGED",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalDamaged));
+        ReportGenerationFields totalBlocked = new ReportGenerationFields("TOTAL_BLOCKED",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalBlocked));
+        ReportGenerationFields totalReplaced = new ReportGenerationFields("TOTAL_REPLACED",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalReplaced));
         ReportGenerationFields totalClosed = new ReportGenerationFields("TOTAL_CLOSED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalClosed));
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalClosed));
+        ReportGenerationFields totalCaptured = new ReportGenerationFields("TOTAL_CAPTURED",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalCaptured));
+        ReportGenerationFields totalSuspicious = new ReportGenerationFields("TOTAL_SUSPICIOUS",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalSuspicious));
         ReportGenerationFields totalTotal = new ReportGenerationFields("TOTAL_TOTAL",
             ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalTotal));
 
+        getGlobalFileFieldsMap().put(totalExceed.getFieldName(), totalExceed);
+        getGlobalFileFieldsMap().put(totalUnsual.getFieldName(), totalUnsual);
         getGlobalFileFieldsMap().put(totalActive.getFieldName(), totalActive);
         getGlobalFileFieldsMap().put(totalInactive.getFieldName(), totalInactive);
-        getGlobalFileFieldsMap().put(totalRenewed.getFieldName(), totalRenewed);
-        getGlobalFileFieldsMap().put(totalRepalced.getFieldName(), totalRepalced);
+        getGlobalFileFieldsMap().put(totalStolen.getFieldName(), totalStolen);
+        getGlobalFileFieldsMap().put(totalLost.getFieldName(), totalLost);
+        getGlobalFileFieldsMap().put(totalDamaged.getFieldName(), totalDamaged);
+        getGlobalFileFieldsMap().put(totalBlocked.getFieldName(), totalBlocked);
+        getGlobalFileFieldsMap().put(totalReplaced.getFieldName(), totalReplaced);
         getGlobalFileFieldsMap().put(totalClosed.getFieldName(), totalClosed);
+        getGlobalFileFieldsMap().put(totalCaptured.getFieldName(), totalCaptured);
+        getGlobalFileFieldsMap().put(totalSuspicious.getFieldName(), totalSuspicious);
         getGlobalFileFieldsMap().put(totalTotal.getFieldName(), totalTotal);
 
         addReportPreProcessingFieldsToGlobalMap(rgm);

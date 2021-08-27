@@ -40,6 +40,20 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     private float totalHeight = PDRectangle.A4.getHeight();
     private int pagination = 0;
 
+    private static final String EXCEED_CARDS = "EXCEED_CARDS";
+    private static final String UNUSUAL_CARDS = "UNUSUAL_CARDS";
+    private static final String ACTIVE_CARDS = "ACTIVE_CARDS";
+    private static final String INACTIVE_CARDS = "INACTIVE_CARDS";
+    private static final String STOLEN_CARDS = "STOLEN_CARDS";
+    private static final String LOST_CARDS = "LOST_CARDS";
+    private static final String DAMAGED_CARDS = "DAMAGED_CARDS";
+    private static final String BLOCKED_CARDS = "BLOCKED_CARDS";
+    private static final String REPLACED_CARDS = "REPLACED_CARDS";
+    private static final String CLOSED_CARDS = "CLOSED_CARDS";
+    private static final String CAPTURED_CARDS = "CAPTURED_CARDS";
+    private static final String SUSPICIOUS_CARDS = "SUSPICIOUS_CARDS";
+    private static final String TOTAL_COUNT = "TOTAL_COUNT";
+    
     @Override
     public void executePdf(ReportGenerationMgr rgm) {
         logger.debug("In MonthlyCardbaseReport.processPdfRecord()");
@@ -239,27 +253,42 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                     pageHeight += 2;
 
                     // 3. initialize all the grand total to sum by card product
+                    int grandTotalExceed = 0;
+                    int grandTotalUnusual = 0;
                     int grandTotalActive = 0;
                     int grandTotalInactive = 0;
-                    int grandTotalRenewed = 0;
+                    int grandTotalStolen = 0;
+                    int grandTotalLost = 0;
+                    int grandTotalDamaged = 0;
+                    int grandTotalBlocked = 0;
                     int grandTotalReplaced = 0;
                     int grandTotalClosed = 0;
+                    int grandTotalCaptured = 0;
+                    int grandTotalSuspicious = 0;
                     int grandTotalTotal = 0;
 
                     for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
                         writePdfBody(rgm, m, contentStream, leading);
                         pageHeight+=2;
-                        grandTotalActive += Integer.parseInt(m.get("ACTIVE_CARDS").getValue());
-                        grandTotalInactive += Integer.parseInt(m.get("INACTIVE_CARDS").getValue());
-                        grandTotalRenewed += Integer.parseInt(m.get("RENEWED_CARDS").getValue());
-                        grandTotalReplaced += Integer.parseInt(m.get("REPLACED_CARDS").getValue());
-                        grandTotalClosed += Integer.parseInt(m.get("CLOSED_CARDS").getValue());
-                        grandTotalTotal += Integer.parseInt(m.get("TOTAL_COUNT").getValue());
+                        grandTotalExceed += Integer.parseInt(m.get(EXCEED_CARDS).getValue());
+                        grandTotalUnusual += Integer.parseInt(m.get(UNUSUAL_CARDS).getValue());
+                        grandTotalActive += Integer.parseInt(m.get(ACTIVE_CARDS).getValue());
+                        grandTotalInactive += Integer.parseInt(m.get(INACTIVE_CARDS).getValue());
+                        grandTotalStolen += Integer.parseInt(m.get(STOLEN_CARDS).getValue());
+                        grandTotalLost += Integer.parseInt(m.get(LOST_CARDS).getValue());
+                        grandTotalDamaged += Integer.parseInt(m.get(DAMAGED_CARDS).getValue());
+                        grandTotalBlocked += Integer.parseInt(m.get(BLOCKED_CARDS).getValue());
+                        grandTotalReplaced += Integer.parseInt(m.get(REPLACED_CARDS).getValue());
+                        grandTotalClosed += Integer.parseInt(m.get(CLOSED_CARDS).getValue());
+                        grandTotalCaptured += Integer.parseInt(m.get(CAPTURED_CARDS).getValue());
+                        grandTotalSuspicious += Integer.parseInt(m.get(SUSPICIOUS_CARDS).getValue());
+                        grandTotalTotal += Integer.parseInt(m.get(TOTAL_COUNT).getValue());
                     }
                     contentStream.newLineAtOffset(0, -leading);
                     pageHeight += 2;
 
-                    preProcessingBodyTrailer(rgm, grandTotalActive, grandTotalInactive, grandTotalRenewed, grandTotalReplaced, grandTotalClosed, grandTotalTotal);
+                    preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
+                    		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
                     writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
                     contentStream.newLineAtOffset(0, -leading);
                     pageHeight += 2;
@@ -386,24 +415,39 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                     writeBodyHeader(rgm);
 
                     // 3. initialize all the grand total to sum by card product
+                    int grandTotalExceed = 0;
+                    int grandTotalUnusual = 0;
                     int grandTotalActive = 0;
                     int grandTotalInactive = 0;
-                    int grandTotalRenewed = 0;
+                    int grandTotalStolen = 0;
+                    int grandTotalLost = 0;
+                    int grandTotalDamaged = 0;
+                    int grandTotalBlocked = 0;
                     int grandTotalReplaced = 0;
                     int grandTotalClosed = 0;
+                    int grandTotalCaptured = 0;
+                    int grandTotalSuspicious = 0;
                     int grandTotalTotal = 0;
 
                     for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
                         writeBody(rgm, m);
 
-                        grandTotalActive += Integer.parseInt(m.get("ACTIVE_CARDS").getValue());
-                        grandTotalInactive += Integer.parseInt(m.get("INACTIVE_CARDS").getValue());
-                        grandTotalRenewed += Integer.parseInt(m.get("RENEWED_CARDS").getValue());
-                        grandTotalReplaced += Integer.parseInt(m.get("REPLACED_CARDS").getValue());
-                        grandTotalClosed += Integer.parseInt(m.get("CLOSED_CARDS").getValue());
-                        grandTotalTotal += Integer.parseInt(m.get("TOTAL_COUNT").getValue());
+                        grandTotalExceed += Integer.parseInt(m.get(EXCEED_CARDS).getValue());
+                        grandTotalUnusual += Integer.parseInt(m.get(UNUSUAL_CARDS).getValue());
+                        grandTotalActive += Integer.parseInt(m.get(ACTIVE_CARDS).getValue());
+                        grandTotalInactive += Integer.parseInt(m.get(INACTIVE_CARDS).getValue());
+                        grandTotalStolen += Integer.parseInt(m.get(STOLEN_CARDS).getValue());
+                        grandTotalLost += Integer.parseInt(m.get(LOST_CARDS).getValue());
+                        grandTotalDamaged += Integer.parseInt(m.get(DAMAGED_CARDS).getValue());
+                        grandTotalBlocked += Integer.parseInt(m.get(BLOCKED_CARDS).getValue());
+                        grandTotalReplaced += Integer.parseInt(m.get(REPLACED_CARDS).getValue());
+                        grandTotalClosed += Integer.parseInt(m.get(CLOSED_CARDS).getValue());
+                        grandTotalCaptured += Integer.parseInt(m.get(CAPTURED_CARDS).getValue());
+                        grandTotalSuspicious += Integer.parseInt(m.get(SUSPICIOUS_CARDS).getValue());
+                        grandTotalTotal += Integer.parseInt(m.get(TOTAL_COUNT).getValue());
                     }
-                    preProcessingBodyTrailer(rgm, grandTotalActive, grandTotalInactive, grandTotalRenewed, grandTotalReplaced, grandTotalClosed, grandTotalTotal);
+                    preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
+                    		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
                     writeTrailer(rgm, null);
                 }
             } catch (Exception e) {
@@ -421,29 +465,51 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
         }
     }
 
-    private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int grandTotalActive, int grandTotalInactive, int grandTotalRenewed, int grandTotalReplaced, int grandTotalClosed, int grandTotalTotal)
+    private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int grandTotalExceed, int grandTotalUnusual, int grandTotalActive, int grandTotalInactive, int grandTotalStolen, int grandTotalLost, int grandTotalDamaged, 
+    		int grandTotalBlocked, int grandTotalReplaced, int grandTotalClosed, int grandTotalCaptured, int grandTotalSuspicious, int grandTotalTotal)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In TransmittalSlipForNewPins.preProcessingBodyTrailer()");
 
-        ReportGenerationFields totalActive = new ReportGenerationFields("TOTAL_ACTIVE",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalActive));
-        ReportGenerationFields totalInactive = new ReportGenerationFields("TOTAL_INACTIVE",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalInactive));
-        ReportGenerationFields totalRenewed = new ReportGenerationFields("TOTAL_RENEWED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalRenewed));
-        ReportGenerationFields totalRepalced = new ReportGenerationFields("TOTAL_REPLACED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalReplaced));
-        ReportGenerationFields totalClosed = new ReportGenerationFields("TOTAL_CLOSED",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalClosed));
-        ReportGenerationFields totalTotal = new ReportGenerationFields("TOTAL_TOTAL",
-            ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalTotal));
+        ReportGenerationFields totalExceed = new ReportGenerationFields("TOTAL_EXCEED",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalExceed));
+            ReportGenerationFields totalUnsual = new ReportGenerationFields("TOTAL_UNUSUAL",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalUnusual));
+            ReportGenerationFields totalActive = new ReportGenerationFields("TOTAL_ACTIVE",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalActive));
+            ReportGenerationFields totalInactive = new ReportGenerationFields("TOTAL_INACTIVE",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalInactive));
+            ReportGenerationFields totalStolen = new ReportGenerationFields("TOTAL_STOLEN",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalStolen));
+            ReportGenerationFields totalLost = new ReportGenerationFields("TOTAL_LOST",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalLost));
+            ReportGenerationFields totalDamaged = new ReportGenerationFields("TOTAL_DAMAGED",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalDamaged));
+            ReportGenerationFields totalBlocked = new ReportGenerationFields("TOTAL_BLOCKED",
+                        ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalBlocked));
+            ReportGenerationFields totalReplaced = new ReportGenerationFields("TOTAL_REPLACED",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalReplaced));
+            ReportGenerationFields totalClosed = new ReportGenerationFields("TOTAL_CLOSED",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalClosed));
+            ReportGenerationFields totalCaptured = new ReportGenerationFields("TOTAL_CAPTURED",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalCaptured));
+            ReportGenerationFields totalSuspicious = new ReportGenerationFields("TOTAL_SUSPICIOUS",
+                    ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalSuspicious));
+            ReportGenerationFields totalTotal = new ReportGenerationFields("TOTAL_TOTAL",
+                ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalTotal));
 
-        getGlobalFileFieldsMap().put(totalActive.getFieldName(), totalActive);
-        getGlobalFileFieldsMap().put(totalInactive.getFieldName(), totalInactive);
-        getGlobalFileFieldsMap().put(totalRenewed.getFieldName(), totalRenewed);
-        getGlobalFileFieldsMap().put(totalRepalced.getFieldName(), totalRepalced);
-        getGlobalFileFieldsMap().put(totalClosed.getFieldName(), totalClosed);
-        getGlobalFileFieldsMap().put(totalTotal.getFieldName(), totalTotal);
+            getGlobalFileFieldsMap().put(totalExceed.getFieldName(), totalExceed);
+            getGlobalFileFieldsMap().put(totalUnsual.getFieldName(), totalUnsual);
+            getGlobalFileFieldsMap().put(totalActive.getFieldName(), totalActive);
+            getGlobalFileFieldsMap().put(totalInactive.getFieldName(), totalInactive);
+            getGlobalFileFieldsMap().put(totalStolen.getFieldName(), totalStolen);
+            getGlobalFileFieldsMap().put(totalLost.getFieldName(), totalLost);
+            getGlobalFileFieldsMap().put(totalDamaged.getFieldName(), totalDamaged);
+            getGlobalFileFieldsMap().put(totalBlocked.getFieldName(), totalBlocked);
+            getGlobalFileFieldsMap().put(totalReplaced.getFieldName(), totalReplaced);
+            getGlobalFileFieldsMap().put(totalClosed.getFieldName(), totalClosed);
+            getGlobalFileFieldsMap().put(totalCaptured.getFieldName(), totalCaptured);
+            getGlobalFileFieldsMap().put(totalSuspicious.getFieldName(), totalSuspicious);
+            getGlobalFileFieldsMap().put(totalTotal.getFieldName(), totalTotal);
 
         addReportPreProcessingFieldsToGlobalMap(rgm);
     }
