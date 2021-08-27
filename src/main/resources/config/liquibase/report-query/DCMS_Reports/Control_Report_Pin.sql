@@ -33,34 +33,30 @@ FROM
   	(SELECT
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
-    		ON req.DCR_CRD_ID = crd.CRD_ID
-    		Where crd.crd_pin_offset IS Not Null
-    		AND req.DCR_INS_ID = {Iss_Name}
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 3
+			AND req.DCR_CRN_ID IS NULL
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS New_Card,
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
-    		On Req.Dcr_Crd_Id = Crd.Crd_Id
-    		WHERE req.DCR_REQUEST_TYPE = ''Auto Renewal'' OR req.DCR_REQUEST_TYPE=''Renew'' OR req.DCR_REQUEST_TYPE=''Replace''
-    		And Crd.Crd_Pin_Offset Is Not Null
-    		AND req.DCR_INS_ID = {Iss_Name}
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 3
+			AND req.DCR_CRN_ID IS NOT NULL
     		And Req.Dcr_Created_Ts Between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS Replacement_Card ,
-    	(SELECT Count(crd_id)
-    		From {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}
-    		Where Crd_Bcr_Id Like ''B%'' And Crd_Pin_Offset Is Not Null
-    		AND Crd_Ins_id = {Iss_Name}
-    		AND crd_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+		(SELECT SUM(BCR_NUMBER_OF_CARDS)
+    		FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
+    		WHERE BCR_STS_ID = 70
+    		AND BCR_INS_ID = {Iss_Name}
+			AND BCR_LIFE_CYCLE = 3
+    		AND BCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS Pre_Generated_Card,
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
-    		ON req.DCR_CRD_ID = crd.CRD_ID
-    		WHERE req.DCR_REQ_FROM_BATCH = 1 OR DCR_REQUEST_TYPE=''Bulk upload''
-    		And Crd.crd_pin_offset Is Not Null
+    		WHERE req.DCR_REQ_FROM_BATCH = 1
     		AND req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 3
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS Bulk_Uploaded_Card_Records
   	From Dual

@@ -24,45 +24,65 @@ BEGIN
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"SPACE","csvTxtLength":"45","pdfLength":"45","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"fieldName":"TRAILER","csvTxtLength":"30","pdfLength":"30","eol":true,"defaultValue":"*** END OF REPORT ***"}]');
 	
 	i_BODY_QUERY := TO_CLOB('
-SELECT 
-	q1.New_Card AS NEW_COUNT,
-	q1.Replacement_Card AS REPLACEMENT_COUNT,
+SELECT (q1.New_Card_ATM + q1.New_Card_Cash) AS NEW_COUNT,
+	(q1.Replacement_Card_ATM + q1.Replacement_Card_Cash) AS REPLACEMENT_COUNT,
 	NVL(q1.Pre_Generated_Card,0) AS PREGEN_COUNT,
-	q1.Bulk_Uploaded_Card_Records AS BULK_UPLOADED_COUNT,
-	(New_Card + Replacement_Card + NVL(Pre_Generated_Card,0) + Bulk_Uploaded_Card_Records) AS TOTAL_COUNT
+	(q1.Bulk_Uploaded_Card_ATM + q1.Bulk_Uploaded_Card_Cash) AS BULK_UPLOADED_COUNT,
+  	(q1.New_Card_ATM + q1.New_Card_Cash +q1.Replacement_Card_ATM + q1.Replacement_Card_Cash + NVL(Pre_Generated_Card,0) + 
+    q1.Bulk_Uploaded_Card_ATM + q1.Bulk_Uploaded_Card_Cash) AS TOTAL_COUNT
 FROM
-	(SELECT
+  	(SELECT
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
-    		ON req.DCR_CRD_ID = crd.CRD_ID
-    		WHERE crd.CRD_EMB_ID IS NOT NULL
-    		AND req.DCR_INS_ID = 1
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 4
+			AND req.DCR_CRN_ID IS NULL
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS New_Card,
+    	) AS New_Card_ATM,
+		(SELECT COUNT(*)
+		  FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+		  WHERE req.CCR_INS_ID = {Iss_Name}
+		  AND req.CCR_LIFE_CYCLE = 4
+		  AND req.CCR_CRN_ID IS NULL
+		  AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+		  ) AS New_Card_Cash,
     	(SELECT COUNT(*)
-    		FROM {DCMS_Schema}.support_card_renewal@{DB_LINK_DCMS}
-    		WHERE CRN_STS_ID = 91
-    		AND CRN_INS_ID = 1
-    		AND TO_DATE(CRN_CREATED_TS, ''YYYY-MM-DD hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Replacement_Card ,
-    	(SELECT SUM(BCR_NUMBER_OF_CARDS)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 4
+			AND req.DCR_CRN_ID IS NOT NULL
+    		And Req.Dcr_Created_Ts Between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS Replacement_Card_ATM ,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+		  WHERE req.CCR_INS_ID = {Iss_Name}
+		  AND req.CCR_LIFE_CYCLE = 4
+		  AND req.CCR_CRN_ID IS NOT NULL
+		  AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+		) AS Replacement_Card_Cash,
+		(SELECT SUM(BCR_NUMBER_OF_CARDS)
     		FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
     		WHERE BCR_STS_ID = 70
-    		AND BCR_INS_ID = 1
+    		AND BCR_INS_ID = {Iss_Name}
+			AND BCR_LIFE_CYCLE = 4
     		AND BCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS Pre_Generated_Card,
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} crd
-    		ON req.DCR_CRD_ID = crd.CRD_ID
     		WHERE req.DCR_REQ_FROM_BATCH = 1
-    		AND crd.CRD_EMB_ID IS NOT NULL
-    		AND req.DCR_INS_ID = 1
+    		AND req.DCR_INS_ID = {Iss_Name}
+			AND DCR_LIFE_CYCLE = 4
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Bulk_Uploaded_Card_Records
-  	FROM dual
- ) q1
+    	) AS Bulk_Uploaded_Card_ATM,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+    		WHERE req.CCR_REQ_FROM_BATCH = 1
+    		AND req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_LIFE_CYCLE = 4
+    		AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS Bulk_Uploaded_Card_Cash
+  	From Dual
+) q1
 	');	
 	i_TRAILER_QUERY := null;
 	

@@ -409,7 +409,6 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				if (rgm.fileOutputStream != null) {
 					rgm.fileOutputStream.flush();
 					rgm.fileOutputStream.close();
-					rgm.exit();
 				}
 			} catch (Exception e) {
 				logger.warn("Failed to close document.");

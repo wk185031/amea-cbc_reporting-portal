@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
+-- Rel-20210827			26-AUG-2021		WY		Revise report format and query
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Transmittal Release Report for All Branches';
@@ -53,44 +54,39 @@ BEGIN
 	{"sequence":3,"sectionName":"3","fieldName":"TOTAL","csvTxtLength":"30", "pdfLength":"30", "fieldType":"String", "delimiter":"", "fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	
 	i_BODY_QUERY := TO_CLOB('
-select
-    tb.branch_code || ''-'' || update_date as BRANCH_CODE,
-    count(tb.account_name)as TOTAL from
-    ((SELECT
-    (SELECT CLT_FIRST_NAME || '' ''|| CLT_MIDDLE_NAME || '' '' || CLT_LAST_NAME FROM {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} WHERE CLT_ID = DCR_CLT_ID) AS ACCOUNT_NAME,
-    ''NEW'' AS REMARKS,
-    (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Name,
-    (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = DCR_BRN_ID) as Branch_Code,
-	 to_char(DCR_UPDATED_TS,''MMddYY'') as update_date,
-    (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = DCR_PRS_ID) AS PROGRAM_NAME
-    FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} WHERE DCR_STS_ID = 70)
-    union
-    (select
-    clt.CLT_FIRST_NAME || '' '' ||clt.CLT_MIDDLE_NAME || '' '' || clt.CLT_LAST_NAME as Account_Name,
-    ''REPLACEMENT'' as Remarks,
-     (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Name,
-     (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = REN.CRN_BRN_ID) as Branch_Code,
-	  to_char(crd.CRD_UPDATED_TS,''MMddYY'')as update_date,
-     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} ren
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ccm on CCM.CCM_ID = ren.CRN_CCM_ID
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} clt on CLT.CLT_ID = ccm.CCM_CLT_ID
-     inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = ccm.CCM_CRD_ID
-     where ren.CRN_STS_ID = 88)
-     union
-     (select
-     rclt.CLT_FIRST_NAME || '' '' ||rclt.CLT_MIDDLE_NAME || '' ''|| rclt.CLT_LAST_NAME as Account_Name,
-     ''PIN REGENERATION'' as Remarks,
-     (select brn_name from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Name,
-     (select brn_code from {DCMS_Schema}.master_branches@{DB_LINK_DCMS} where BRN_ID = rpin.REP_BRN_ID) as Branch_Code,
-	 to_char(crd.CRD_UPDATED_TS,''MMddYY'')as update_date,
-     (SELECT PRS_NAME FROM {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} WHERE PRS_ID = crd.CRD_PRS_ID) AS PROGRAM_NAME
-     from {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS} rpin
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} rccm on rccm.CCM_ID = rpin.REP_CCM_ID
-     inner join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} rclt on rclt.CLT_ID = rccm.CCM_CLT_ID
-     inner join {DCMS_Schema}.issuance_card@{DB_LINK_DCMS} crd on crd.CRD_ID = rccm.CCM_CRD_ID
-     where rpin.REP_STS_ID = 88)) tb group by tb.branch_code, update_date
+	SELECT bc || ''-'' || update_date as BRANCH_CODE, COUNT(*) AS TOTAL FROM(
+	select 
+	  BRN_CODE as bc,
+	  to_char(DCR_UPDATED_TS,''MMddYY'') as update_date
+	from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
+	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on DCR_INS_ID = INS_ID
+	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = DCR_BRN_ID
+	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = DCR_PRS_ID
+	  join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
+	where 
+	  INS_ID = {Iss_Id}
+	  AND DCR_LIFE_CYCLE = 1
+	  AND DCR_STS_ID in (68,70)
+	  AND DCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''YYYYMMdd hh24:mi:ss'') AND TO_DATE({To_Date},''YYYYMMdd hh24:mi:ss'')
+	union all
+	select 
+	  BRN_CODE as bc,
+	  to_char(CCR_UPDATED_TS,''MMddYY'') as update_date
+	from {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS}
+	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
+	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
+	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
+	  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
+	  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
+	where 
+	  INS_ID = {Iss_Id}
+	  AND CCR_LIFE_CYCLE = 1
+	  AND CCR_STS_ID in (68,70)
+	  AND CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''YYYYMMdd hh24:mi:ss'') AND TO_DATE({To_Date},''YYYYMMdd hh24:mi:ss''))
+	  GROUP BY bc, update_date
+	  ORDER BY bc, update_date
 	');	
+	
 	i_TRAILER_QUERY := null;
 	
 	UPDATE REPORT_DEFINITION SET 

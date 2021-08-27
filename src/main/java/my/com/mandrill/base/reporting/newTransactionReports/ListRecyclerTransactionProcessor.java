@@ -55,7 +55,7 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 						line.append("\"" + fieldValue + "\"");
 					}
 					
-					ReportGenerationFields responseCode = bodyFields.stream().filter(f -> "REMARKS".equals(f.getFieldName())).findFirst().orElse(null);
+					ReportGenerationFields responseCode = bodyFields.stream().filter(f -> "TRAN_CODE".equals(f.getFieldName())).findFirst().orElse(null);
 					if (responseCode != null ) {
 						if (responseCode.getValue().startsWith("0")) {
 							addToSumField(context, field);
