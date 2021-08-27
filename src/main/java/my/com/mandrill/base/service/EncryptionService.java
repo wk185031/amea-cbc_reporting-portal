@@ -29,7 +29,7 @@ public class EncryptionService {
 	public String decryptDcms(String encString, String institutionCode, int rotationNumber) {
 		logger.debug("encString={}, institutionCode={}, rotationNumber={}", encString, institutionCode, rotationNumber);
 		String decrypt = dcmsDecrypt.decrypt(institutionCode, rotationNumber, encString);
-		return decrypt;
+		return decrypt == null ? encString : decrypt;
 	}
 
 	

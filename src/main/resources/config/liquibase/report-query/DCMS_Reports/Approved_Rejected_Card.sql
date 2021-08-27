@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
+-- Rel-20210827			27-AUG-2021		KW		Revise query
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Approved Rejected Card Records';
@@ -15,474 +16,458 @@ BEGIN
 
 -- CBC header/body/trailer fields
 	i_HEADER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"APPROVED/REJECTED CARD RECORDS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"RUN DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"RunDate Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SPACE","csvTxtLength":"97","pdfLength":"97","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"Time","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"Time Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"HH:mm:ss","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"Report Id","eol":true,"csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":""}]');
-	i_BODY_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CUSTOMER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"FUNCTION/","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"FUNCTION/","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":7,"sectionName":"11","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"12","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"13","fieldName":"NAME","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"14","fieldName":"DESCRIPTION","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":11,"sectionName":"15","fieldName":"ISSUE_DATE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"16","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":13,"sectionName":"17","fieldName":"CLIENTNAME","csvTxtLength":"50","pdfLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"18","fieldName":"FUNCTIONNAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"22","fieldName":"MAKER","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"24","fieldName":"STATUS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
+	i_BODY_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","defaultValue":"CUSTOMER NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"FUNCTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"FUNCTION /","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"17","fieldName":"FROM DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"FROM DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"18","fieldName":"TO DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TO DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"19","fieldName":"CHECKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHECKER ID","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true},{"sequence":9,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"21","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"REMARKS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"11","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":12,"sectionName":"27","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":13,"sectionName":"28","fieldName":"EMPTY","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"14","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":15,"sectionName":"15","fieldName":"ISSUE_DATE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"16","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":17,"sectionName":"17","fieldName":"CLIENT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"FUNCTION_NAME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"25","fieldName":"FROM_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"bodyHeader":false},{"sequence":20,"sectionName":"26","fieldName":"TO_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"22","fieldName":"MAKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"23","fieldName":"CHECKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":23,"sectionName":"24","fieldName":"STATUS","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"20","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
 	i_TRAILER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"TOTAL ITEM","csvTxtLength":"21","pdfLength":"21","defaultValue":"TOTAL NUMBER OF ITEMS:","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"7","pdfLength":"7","eol":true}]');
 	
 -- CBS header/body/trailer fields
-	i_HEADER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0010","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"APPROVED/REJECTED CARD RECORDS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"RUN DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"RunDate Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SPACE","csvTxtLength":"97","pdfLength":"97","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"Time","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"Time Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"HH:mm:ss","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"Report Id","eol":true,"csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":""}]');
-	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CUSTOMER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"FUNCTION/","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"FUNCTION/","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":7,"sectionName":"11","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"12","fieldName":"","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"13","fieldName":"NAME","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"14","fieldName":"DESCRIPTION","csvTxtLength":"25","pdfLength":"25","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":11,"sectionName":"15","fieldName":"ISSUE_DATE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"16","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":13,"sectionName":"17","fieldName":"CLIENTNAME","csvTxtLength":"50","pdfLength":"50","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"18","fieldName":"FUNCTIONNAME","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"22","fieldName":"MAKER","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"24","fieldName":"STATUS","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
+	i_HEADER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0112","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK SAVINGS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"APPROVED/REJECTED CARD RECORDS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"RUN DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"RunDate Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SPACE","csvTxtLength":"97","pdfLength":"97","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"Time","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"Time Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"HH:mm:ss","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"Report Id","eol":true,"csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":""}]');
+	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD NO.","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","defaultValue":"CUSTOMER NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"FUNCTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"FUNCTION /","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"17","fieldName":"FROM DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"FROM DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"18","fieldName":"TO DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TO DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":8,"sectionName":"19","fieldName":"CHECKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHECKER ID","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true},{"sequence":9,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"12","pdfLength":"12","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":10,"sectionName":"21","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"REMARKS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"11","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":12,"sectionName":"27","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":13,"sectionName":"28","fieldName":"EMPTY","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"14","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":15,"sectionName":"15","fieldName":"ISSUE_DATE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":16,"sectionName":"16","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":17,"sectionName":"17","fieldName":"CLIENT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"FUNCTION_NAME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"25","fieldName":"FROM_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"bodyHeader":false},{"sequence":20,"sectionName":"26","fieldName":"TO_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"22","fieldName":"MAKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"23","fieldName":"CHECKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":23,"sectionName":"24","fieldName":"STATUS","csvTxtLength":"12","pdfLength":"12","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"20","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"TOTAL ITEM","csvTxtLength":"21","pdfLength":"21","defaultValue":"TOTAL NUMBER OF ITEMS:","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"7","pdfLength":"7","eol":true}]');
 	
 	i_BODY_QUERY := TO_CLOB('
-
+SELECT * FROM (
 SELECT
-	'ACCOUNT DLINKING' AS FUNCTIONNAME,
-	SALD.ADL_CREATED_TS AS ISSUE_DATE,
+	''ACCOUNT DELINK'' AS FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(SALD.ADL_CREATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') AS ISSUE_DATE,
 	IC.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	IC.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	SALD.ADL_CREATED_BY AS MAKER,
-	SALD.ADL_UPDATED_BY AS CHECKER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	SALD.ADL_REMARKS AS REMARKS,
-	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
-	MS.STS_NAME AS STATUS
+	IC.CRD_CARDHOLDER_NAME AS CLIENT_NAME,
+	ADL_BAC_ID FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 FROM
 	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING@{DB_LINK_DCMS} SALD
 	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
-	JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON ICCM.CCM_CLT_ID = IC.CRD_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON ICCM.CCM_CRD_ID = IC.CRD_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON SALD.ADL_STS_ID=MS.STS_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = ADL_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = ADL_UPDATED_BY
 Where
-	TO_DATE(Sald.Adl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between TO_DATE({From_Date}, 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	AND STS_ID IN (88, 90)
-	AND SALD.ADL_INS_ID = 1
+	TO_DATE(Sald.Adl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	AND SALD.ADL_INS_ID = {Iss_Name}
 UNION ALL
 Select
-	'Request For Add On Card' As FUNCTIONNAME,
-	Rac.Aoc_Created_Ts As Issue_Date,
+	''ACCOUNT LINKING'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As ISSUE_DATE,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Rac.Aoc_Created_By As Maker,
-	Rac.Aoc_Updated_By As Checker,
-	Rac.Aoc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Add_On_Card@{DB_LINK_DCMS} Rac
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Rac.Aoc_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Rac.Aoc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Rac.Aoc_Ins_Id = 1
-UNION ALL
-Select
-	'ACCOUNT LINKING' As FUNCTIONNAME,
-	Acl_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sal.Acl_Created_By As Maker,
-	Sal.Acl_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Sal.Acl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    CAST(ACL_AUDIT_LOG AS VARCHAR2(1000)) TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Account_Linking@{DB_LINK_DCMS} Sal
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sal.Acl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = ACL_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = ACL_UPDATED_BY
 Where
-	To_Date(Sal.Acl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sal.Acl_Ins_Id = 1
+	To_Date(Sal.Acl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sal.Acl_Ins_Id = {Iss_Name}
 Union All
 Select
-	'Card Activation'As Functionname,
-	Sac.Caa_Created_Ts As Issue_Date,
+	''CARD ACTIVATION'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sac.Caa_Created_By As Maker,
-	Sac.Caa_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Sac.Caa_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Card_Activation@{DB_LINK_DCMS} Sac
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CAA_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CAA_UPDATED_BY
 Where
-	To_Date(Sac.Caa_Created_Ts, 'YYYY-MM-DD HH24:MI:SS')  Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date},'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sac.Caa_Ins_Id = 1
+	To_Date(Sac.Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sac.Caa_Ins_Id = {Iss_Name}
 UNION ALL
 Select
-	'CARD RENEWAL' As Functionname,
-	Scr.Crn_Created_Ts As Issue_Date,
+	''CARD ACTIVATION'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scr.Crn_Created_By As Maker,
-	Scr.Crn_Updated_By As Checker,
-	Scr.Crn_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Scr.Crn_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scr.Crn_Ins_Id = 1
-Union All
-Select
-	'CASH CARD ACTIVATION' Functionname,
-	Scca.Cc_Caa_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scca.Cc_Caa_Created_By As Maker,
-	Scca.Cc_Caa_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Scca.Cc_Caa_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Cc_Activation@{DB_LINK_DCMS} Scca
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CAA_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CAA_UPDATED_BY
 Where
-	To_Date(Scca.Cc_Caa_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scca.Cc_Caa_Ins_Id = 1
+	To_Date(Scca.Cc_Caa_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Scca.Cc_Caa_Ins_Id = {Iss_Name}
 Union All
 Select
-	'CASH CARD RENEWAL' Functionname,
-	Sccr.Cc_Crn_Created_Ts As Issue_Date,
+	''CARD RENEWAL'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Scr.Crn_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CRN_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CRN_UPDATED_BY
+Where
+	To_Date(Scr.Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Scr.Crn_Ins_Id = {Iss_Name}
+Union All
+Select
+	''CARD RENEWAL'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC ,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sccr.Cc_Crn_Created_By As Maker,
-	Sccr.Cc_Crn_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Sccr.Cc_Crn_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Cc_Renewal@{DB_LINK_DCMS} Sccr
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccr.Cc_Crn_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CRN_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CRN_UPDATED_BY
 Where
-	To_Date(Sccr.Cc_Crn_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sccr.Cc_Crn_Ins_Id = 1
-UNION ALL
-Select
-	'CASH DEHOTLIST' Functionname,
-	Sccd.Cc_Dhl_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sccd.Cc_Dhl_Created_By As Maker,
-	Sccd.Cc_Dhl_Updated_By As Checker,
-	Sccd.Cc_Dhl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Dehotlist@{DB_LINK_DCMS} Sccd
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Sccd.Cc_Dhl_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sccd.Cc_Dhl_Ins_Id = 1
+	To_Date(Sccr.Cc_Crn_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sccr.Cc_Crn_Ins_Id = {Iss_Name}	
 Union All
 Select
-	'HOTLIST' Functionname,
-	Scch.Hot_Created_Ts As Issue_Date,
+	''HOTLIST'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scch.Hot_Created_By As Maker,
-	Scch.Hot_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Scch.Hot_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Hotlist@{DB_LINK_DCMS} Scch
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = HOT_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = HOT_UPDATED_BY
 Where
-	To_Date(Scch.Hot_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scch.Hot_Ins_id = 1
-Union All
-Select
-	'CASH CARD RESET PIN' Functionname,
-	Sccrp.Cc_Rpc_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sccrp.Cc_Rpc_Created_By As Maker,
-	Sccrp.Cc_Rpc_Updated_By As Checker,
-	Sccrp.Cc_Rpc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter@{DB_LINK_DCMS} Sccrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Sccrp.Cc_Rpc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sccrp.Cc_Rpc_Ins_id = 1
+	To_Date(Scch.Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Scch.Hot_Ins_Id = {Iss_Name}	
 UNION ALL
 Select
-	'CASH CARD HOTLIST' Functionname,
-	Scht.Cc_Hot_Created_Ts As Issue_Date,
+	''HOTLIST'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scht.Cc_Hot_Created_By As Maker,
-	Scht.Cc_Hot_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Scht.Cc_Hot_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Cc_Hotlist@{DB_LINK_DCMS} Scht
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_HOT_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_HOT_UPDATED_BY
 Where
-	To_Date(Scht.Cc_Hot_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scht.Cc_Hot_Ins_Id = 1
-Union All
-Select
-	'REPIN' Functionname,
-	Sdrp.Rep_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sdrp.Rep_Created_By As Maker,
-	Sdrp.Rep_Updated_By As Checker,
-	Sdrp.Rep_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Repin@{DB_LINK_DCMS} Sdrp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Sdrp.Rep_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sdrp.Rep_Ins_Id = 1
+	To_Date(Scht.Cc_Hot_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Scht.Cc_Hot_Ins_Id = {Iss_Name}	
 UNION ALL
 Select
-	'RESET PIN COUNTER' Functionname,
-	Srp.Rpc_Created_Ts As Issue_Date,
+	''DEHOTLIST'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Srp.Rpc_Created_By As Maker,
-	Srp.Rpc_Updated_By As Checker,
-	Srp.Rpc_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Reset_Pin_Counter@{DB_LINK_DCMS} Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Srp.Rpc_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Srp.Rpc_Ins_Id = 1
-UNION ALL
-Select
-	'STOP CARD RENEWAL' Functionname,
-	Scrn.SRN_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scrn.SRN_Created_By As Maker,
-	Scrn.SRN_Updated_By As Checker,
-	Scrn.SRN_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_STOP_RENEWAL@{DB_LINK_DCMS} Scrn
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scrn.SRN_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Scrn.SRN_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scrn.Srn_Ins_Id = 1
-UNION ALL
-Select
-	'Default Account Change' As Functionnamesal,
-	DAR_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Dac.DAR_Created_By As Maker,
-	Dac.DAR_Updated_By As Checker,
-	Dac.DAR_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Default_Acc_Req_Map@{DB_LINK_DCMS} Dac
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Dac.DAR_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Dac.Dar_Ins_Id = 1
-UNION ALL
-Select
-	'Transaction Limit Update Cash card' As FunctionName,
-	Scctlu.CC_Trm_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Scctlu.CC_TRM_Created_By As Maker,
-	Scctlu.CC_TRM_Updated_By As Checker,
-	Scctlu.CC_TRM_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map@{DB_LINK_DCMS} Scctlu
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scctlu.CC_TRM_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Scctlu.CC_TRM_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Scctlu.Cc_Trm_Ins_Id = 1
-UNION ALL
-Select
-	'Reset pin Cash card' As Functionname,
-	Srp.Cc_Rep_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Srp.Cc_Rep_Created_By As Maker,
-	Srp.Cc_Rep_Updated_By As Checker,
-	Srp.Cc_Rep_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Repin@{DB_LINK_DCMS} Srp
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
-	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-Where
-	To_Date(Srp.Cc_Rep_Created_Ts, 'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Srp.Cc_Rep_Ins_Id = 1
-UNION ALL
-Select
-	'Address Update' As Functionname,
-	Sarm.Aur_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sarm.Aur_Created_By As Maker,
-	Sarm.Aur_Updated_By As Checker,
-	Sarm.Aur_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Address_Update_Req_Map@{DB_LINK_DCMS} Sarm
-	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarm.AUR_STS_ID=MS.STS_ID
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-WHERE
-	To_Date(Sarm.Aur_Created_Ts ,'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sarm.Aur_Ins_Id = 1
-UNION ALL
-Select
-	'Cash Card Address Update' As Functionname,
-	Sarcm.Cc_Aur_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sarcm.Cc_Aur_Created_By As Maker,
-	Sarcm.Cc_Aur_Updated_By As Checker,
-	Sarcm.Cc_Aur_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
-From
-	{DCMS_Schema}.Support_Cc_Add_Update_Req_Map@{DB_LINK_DCMS} Sarcm
-	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID
-	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} MS ON Sarcm.CC_Aur_STS_ID=MS.STS_ID
-	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-WHERE
-	To_Date(Sarcm.CC_Aur_Created_Ts ,'YYYY-MM-DD HH24:MI:SS') Between To_Date({From_Date}, 'YYYY-MM-DD HH24:MI:SS') And To_Date({To_Date}, 'YYYY-MM-DD HH24:MI:SS')
-	And Sts_Id IN (88, 90)
-	And Sarcm.Cc_Aur_Ins_Id = 1
-UNION ALL
-Select
-	''Dehotlist'' As Functionname,
-	Sdhl.Dhl_Created_Ts As Issue_Date,
-	Ic.CRD_NUMBER_ENC,
-	INS.INS_CODE AS INSTITUTION_ID,
-	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Sdhl.Dhl_Created_By As Maker,
-	Sdhl.Dhl_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Sdhl.Dhl_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Dehotlist@{DB_LINK_DCMS} Sdhl
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = DHL_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = DHL_UPDATED_BY
 Where
 	To_Date(Sdhl.Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88, 90)
-	And Sdhl.Dhl_Ins_Id = 1
+	AND STS_ID IN (88, 90, 91)
+	And Sdhl.Dhl_Ins_Id = {Iss_Name}	
 UNION ALL
 Select
-	''Transaction Limit Update'' As FunctionName,
-	Stlu.Trm_Created_Ts As Issue_Date,
+	''DEHOTLIST'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 	Ic.CRD_NUMBER_ENC,
 	INS.INS_CODE AS INSTITUTION_ID,
 	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
-	Stlu.Trm_Created_By As Maker,
-	Stlu.Trm_Updated_By As Checker,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Sccd.Cc_Dhl_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Cc_Dehotlist@{DB_LINK_DCMS} Sccd
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_DHL_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_DHL_UPDATED_BY
+Where
+	To_Date(Sccd.Cc_Dhl_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sccd.Cc_Dhl_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''RESET PIN COUNTER'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Srp.Rpc_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Reset_Pin_Counter@{DB_LINK_DCMS} Srp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = RPC_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = RPC_UPDATED_BY
+Where
+	To_Date(Srp.Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Srp.Rpc_Ins_Id = {Iss_Name}
+Union All
+Select
+	''RESET PIN COUNTER'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Sccrp.Cc_Rpc_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter@{DB_LINK_DCMS} Sccrp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_RPC_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_RPC_UPDATED_BY
+Where
+	To_Date(Sccrp.Cc_Rpc_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sccrp.Cc_Rpc_Ins_Id = {Iss_Name}
+Union All
+Select
+	''REPIN'' FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Sdrp.Rep_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Repin@{DB_LINK_DCMS} Sdrp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdrp.Rep_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = REP_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = REP_UPDATED_BY
+Where
+	To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Sdrp.Rep_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''REPIN'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Srp.Cc_Rep_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Cc_Repin@{DB_LINK_DCMS} Srp
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Cc_Rep_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_REP_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_REP_UPDATED_BY
+Where
+	To_Date(Srp.Cc_Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Srp.Cc_Rep_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''CHANGE ACCOUNT'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	Dac.DAR_Remarks As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.Support_Default_Acc_Req_Map@{DB_LINK_DCMS} Dac
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Dac.DAR_Sts_Id=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = DAR_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = DAR_UPDATED_BY
+Where
+	To_Date(Dac.DAR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And Dac.Dar_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''UPDATE LIMIT'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
 	Stlu.Trm_Remarks As Remarks,
-	Ic.Crd_Cardholder_Name As Clientname,
-	Ms.Sts_Name As Status
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
 From
 	{DCMS_Schema}.Support_Txn_Limit_Request_Map@{DB_LINK_DCMS} Stlu
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
-	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Clt_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Stlu.Trm_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = TRM_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = TRM_UPDATED_BY
 Where
 	To_Date(Stlu.Trm_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-	And Sts_Id IN (88, 90)
-	And Stlu.Trm_Ins_Id = 1
+	AND STS_ID IN (88, 90, 91)
+	And Stlu.Trm_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''UPDATE CIF'' As FUNCTION_NAME,
+	TO_CHAR(TO_TIMESTAMP(FCR.FCR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	FCR.FCR_COMMENT As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.SUPPORT_FETCH_CIF_REQUEST@{DB_LINK_DCMS} FCR
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On FCR.FCR_CLT_ID = Iccm.Ccm_CLT_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On FCR.FCR_STS_ID=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = FCR_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = FCR_UPDATED_BY
+Where
+	To_Date(FCR.FCR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID IN (88, 90, 91)
+	And FCR.FCR_Ins_Id = {Iss_Name}
+) ORDER BY ISSUE_DATE
 	');	
 	i_TRAILER_QUERY := null;
 	

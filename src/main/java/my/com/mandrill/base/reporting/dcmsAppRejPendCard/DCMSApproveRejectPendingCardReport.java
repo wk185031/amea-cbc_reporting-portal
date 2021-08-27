@@ -28,10 +28,11 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(DCMSApproveRejectPendingCardReport.class);
-	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-	private float totalHeight = PDRectangle.A4.getHeight();
+	private float DEFAULT_PAGE_HEIGHT = 10;
+	private float pageHeight = DEFAULT_PAGE_HEIGHT;
+	private float totalHeight = PDRectangle.A4.getWidth();
 	private int pagination = 0;
-		
+
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) {
 		logger.debug("In DCMSApproveRejectPendingCardReport.processPdfRecord(): " + rgm.getFileNamePrefix());
@@ -40,8 +41,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 	private void generateReport(ReportGenerationMgr rgm) {
 		logger.debug("In DCMSApproveRejectPendingCardReport.generateReport(): " + rgm.getFileNamePrefix());
-		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-		totalHeight = PDRectangle.A4.getHeight();
+		pageHeight = DEFAULT_PAGE_HEIGHT;
+		totalHeight = PDRectangle.A4.getWidth();
 		PDDocument doc = null;
 		pagination = 1;
 
@@ -49,7 +50,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			preProcessing(rgm);
 
 			doc = new PDDocument();
-			PDPage page = new PDPage();
+			PDPage page = new PDPage(new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()));
 			doc.addPage(page);
 			PDPageContentStream contentStream = new PDPageContentStream(doc, page);
 			PDFont pdfFont = PDType1Font.COURIER;
@@ -71,8 +72,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			contentStream.newLineAtOffset(0, -leading);
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
-			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
-					startY, pdfFont, fontSize);
+			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
+					pdfFont, fontSize);
 			pageHeight += 1;
 
 			contentStream.newLineAtOffset(0, -leading);
@@ -121,51 +122,62 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 				int recordCount = 0;
-				
-				while (rs.next()) {
-					if (pageHeight > totalHeight) {
-						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
-						contentStream.endText();
-						contentStream.close();
-						page = new PDPage();
-						doc.addPage(page);
-						pagination++;
-						contentStream = new PDPageContentStream(doc, page);
-						contentStream.setFont(pdfFont, fontSize);
-						contentStream.beginText();
-						contentStream.newLineAtOffset(startX, startY);
-					}
 
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
+				if (rs.next()) {
+					do {
+						if (recordCount > 0 && recordCount % 50 == 0) {
+							pageHeight = DEFAULT_PAGE_HEIGHT;
+							contentStream.endText();
+							contentStream.close();
+							page = new PDPage(new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()));
+							doc.addPage(page);
+							pagination++;
+							contentStream = new PDPageContentStream(doc, page);
+							contentStream.setFont(pdfFont, fontSize);
+							contentStream.beginText();
+							contentStream.newLineAtOffset(startX, startY);
+							writePdfHeader(rgm, contentStream, leading, pagination);
+							contentStream.newLineAtOffset(0, -leading);
+							pageHeight += 4;
+							contentStream.newLineAtOffset(0, -leading);
+							writePdfBodyHeader(rgm, contentStream, leading);
+							pageHeight += 2;
 						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
+
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
 							}
-						} else {
-							field.setValue("");
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
 						}
-					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
-					pageHeight++;
-					recordCount++;
+						writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+						pageHeight++;
+						recordCount++;
+					} while (rs.next());
+				} else {
+					contentStream.showText(ReportConstants.NO_RECORD);
 				}
-				
+
 				addTotalNoOfItemToGlobalParam(recordCount);
 				contentStream.newLineAtOffset(0, -leading);
 			} catch (Exception e) {
@@ -186,7 +198,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		
+
 		String txnStartDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		String txnEndDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
@@ -220,7 +232,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			writeTrailer(rgm, null);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
-		} catch (IOException | InstantiationException | IllegalAccessException | ClassNotFoundException | JSONException e) {
+		} catch (IOException | InstantiationException | IllegalAccessException | ClassNotFoundException
+				| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
@@ -253,40 +266,45 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				int recordCount = 0;
 
-				while (rs.next()) {
-					new StringBuffer();
-					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
-					for (String key : lineFieldsMap.keySet()) {
-						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
-						Object result;
-						try {
-							result = rs.getObject(field.getSource());
-						} catch (SQLException e) {
-							rgm.errors++;
-							logger.error("An error was encountered when trying to write a line", e);
-							continue;
-						}
-						if (result != null) {
-							if (result instanceof Date) {
-								field.setValue(Long.toString(((Date) result).getTime()));
-							} else if (result instanceof oracle.sql.TIMESTAMP) {
-								field.setValue(
-										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
-							} else if (result instanceof oracle.sql.DATE) {
-								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-							} else {
-								field.setValue(result.toString());
+				if (rs.next()) {
+					do {
+						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
 							}
-						} else {
-							field.setValue("");
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
 						}
-					}
-					writeBody(rgm, lineFieldsMap);
-					recordCount++;
+						writeBody(rgm, lineFieldsMap);
+						recordCount++;
+					} while (rs.next());
+				} else {
+					rgm.writeLine(ReportConstants.NO_RECORD.getBytes());
+					rgm.writeLine(getEol().getBytes());
 				}
-				
+
 				addTotalNoOfItemToGlobalParam(recordCount);
-				
+
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
@@ -301,11 +319,11 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			}
 		}
 	}
-	
+
 	private void addTotalNoOfItemToGlobalParam(int count) {
 		ReportGenerationFields total = new ReportGenerationFields(ReportConstants.TOTAL,
 				ReportGenerationFields.TYPE_NUMBER, String.valueOf(count));
 		getGlobalFileFieldsMap().put(total.getFieldName(), total);
 	}
-	
+
 }
