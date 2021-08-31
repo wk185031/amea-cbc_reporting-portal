@@ -51,9 +51,9 @@ public class SummaryRecyclerTransactionProcessor extends ReportWithBodyHeaderTra
 		if ((context.getCurrentBranch() != null && !context.getCurrentBranch().equals(branch.getValue()))
 				|| (context.getCurrentTerminal() != null && !context.getCurrentTerminal().equals(terminal.getValue()))) {
 			StringBuilder s = new StringBuilder();
-			s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER);
+			s.append(CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON);
 			BigDecimal overallTotal = context.getOverallTotal().get(overallTotalFieldName);
 			String formattedAmount = "0.00";
 			if (overallTotal != null) {
@@ -66,5 +66,12 @@ public class SummaryRecyclerTransactionProcessor extends ReportWithBodyHeaderTra
 			context.getOverallTotal().clear();
 		}
 	}
+
+	@Override
+	protected String getDefaultDelimiter() {
+		return CsvWriter.DELIMITER_SEMICOLON;
+	}
+	
+	
 
 }

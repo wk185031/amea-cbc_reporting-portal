@@ -107,10 +107,10 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 
 		if (!context.getSubTotal().isEmpty() && context.getSubTotal().containsKey(SUB_TOTAL_FIELD_NAME)) {
 			StringBuilder s = new StringBuilder();
-			s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
-			s.append("TOTAL:").append(CsvWriter.DEFAULT_DELIMITER);
+			s.append(CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON);
+			s.append("TOTAL:").append(CsvWriter.DELIMITER_SEMICOLON);
 			String formattedAmount = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT)
 					.format(context.getSubTotal().get("TRANS AMOUNT").doubleValue());
 			s.append("\"" + formattedAmount + "\"");
@@ -127,9 +127,9 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 				&& context.getCurrentGroupMap().containsKey("TRANSACTION GROUP")
 				&& !transactionGroup.getValue().equals(context.getCurrentGroupMap().get("TRANSACTION GROUP"))) {
 			StringBuilder s = new StringBuilder();
-			s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-					+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
+			s.append(CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+					+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON);
 			BigDecimal overallTotal = BigDecimal.ZERO;
 			if (context.getOverallTotal() != null && context.getOverallTotal().containsKey(OVERALL_TOTAL_FIELD_NAME)) {
 				overallTotal = context.getOverallTotal().get(OVERALL_TOTAL_FIELD_NAME);
@@ -139,9 +139,9 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 
 			if (context.getCurrentGroupMap() != null && context.getCurrentGroupMap().containsKey("TRANSACTION GROUP")
 					&& context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
-				s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
+				s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DELIMITER_SEMICOLON);
 			} else {
-				s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
+				s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DELIMITER_SEMICOLON);
 			}
 
 			s.append("\"" + formattedAmount + "\"");
@@ -162,14 +162,14 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 		String formattedAmount = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT)
 				.format(overallTotal.doubleValue());
 		StringBuilder s = new StringBuilder();
-		s.append(CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER
-				+ CsvWriter.DEFAULT_DELIMITER + CsvWriter.DEFAULT_DELIMITER);
+		s.append(CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+				+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON
+				+ CsvWriter.DELIMITER_SEMICOLON + CsvWriter.DELIMITER_SEMICOLON);
 		if (context.getCurrentGroupMap() != null && context.getCurrentGroupMap().containsKey("TRANSACTION GROUP")
 				&& context.getCurrentGroupMap().get("TRANSACTION GROUP").contains("CASH DEPOSIT")) {
-			s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DEFAULT_DELIMITER);
+			s.append("OVER-ALL TOTAL CREDITS:").append(CsvWriter.DELIMITER_SEMICOLON);
 		} else {
-			s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DEFAULT_DELIMITER);
+			s.append("OVER-ALL TOTAL DEBITS:").append(CsvWriter.DELIMITER_SEMICOLON);
 		}
 		s.append("\"" + formattedAmount + "\"");
 		s.append(CsvWriter.EOL);

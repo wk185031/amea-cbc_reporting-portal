@@ -92,21 +92,25 @@ public class ReportWithBodyHeaderTrailerProcessor extends BaseReportProcessor {
 
 				if (isFirstColumn) {
 					subTotalLine.append("SUB-TOTAL");
-					subTotalLine.append(CsvWriter.DEFAULT_DELIMITER);
+					subTotalLine.append(getDefaultDelimiter());
 					isFirstColumn = false;
 				} else if (context.getSubTotal().containsKey(tempField.getFieldName())) {
 					String formattedAmount = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT)
 							.format(context.getSubTotal().get(tempField.getFieldName()));
 					subTotalLine.append("\"" + formattedAmount + "\"");
-					subTotalLine.append(CsvWriter.DEFAULT_DELIMITER);
+					subTotalLine.append(getDefaultDelimiter());
 				} else {
-					subTotalLine.append(CsvWriter.DEFAULT_DELIMITER);
+					subTotalLine.append(getDefaultDelimiter());
 				}
 			}
 			csvWriter.writeLine(out, subTotalLine.toString());
 			csvWriter.writeLine(out, CsvWriter.EOL);
 			context.getSubTotal().clear();
 		}
+	}
+	
+	protected String getDefaultDelimiter() {
+		return CsvWriter.DEFAULT_DELIMITER;
 	}
 
 	protected String getBranchFieldName() {
