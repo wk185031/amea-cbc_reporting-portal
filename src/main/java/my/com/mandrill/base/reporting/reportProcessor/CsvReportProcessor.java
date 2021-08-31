@@ -42,6 +42,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String interEntityBodyQuery = null;
 	private String onusTrailerQuery = null;
 	private String interEntityTrailerQuery = null;
+	private String cashCardBodyQuery = null;
+	private String cashCardTrailerQuery = null;
+	private String atmCardBodyQuery = null;
+	private String atmCardTrailerQuery = null;
 
 	public String getAcquiringBodyQuery() {
 		return acquiringBodyQuery;
@@ -161,6 +165,38 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setInterEntityTrailerQuery(String interEntityTrailerQuery) {
 		this.interEntityTrailerQuery = interEntityTrailerQuery;
+	}
+
+	public String getCashCardBodyQuery() {
+		return cashCardBodyQuery;
+	}
+
+	public void setCashCardBodyQuery(String cashCardBodyQuery) {
+		this.cashCardBodyQuery = cashCardBodyQuery;
+	}
+
+	public String getCashCardTrailerQuery() {
+		return cashCardTrailerQuery;
+	}
+
+	public void setCashCardTrailerQuery(String cashCardTrailerQuery) {
+		this.cashCardTrailerQuery = cashCardTrailerQuery;
+	}
+
+	public String getAtmCardBodyQuery() {
+		return atmCardBodyQuery;
+	}
+
+	public void setAtmCardBodyQuery(String atmCardBodyQuery) {
+		this.atmCardBodyQuery = atmCardBodyQuery;
+	}
+
+	public String getAtmCardTrailerQuery() {
+		return atmCardTrailerQuery;
+	}
+
+	public void setAtmCardTrailerQuery(String atmCardTrailerQuery) {
+		this.atmCardTrailerQuery = atmCardTrailerQuery;
 	}
 
 	public Logger getLogger() {

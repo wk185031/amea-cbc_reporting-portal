@@ -38,9 +38,26 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
+					
+					separateQuery(rgm);
+					
 					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + ReportConstants.SUM_FORMAT);
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-cashCard" + ReportConstants.SUM_FORMAT);
+					
+					setQuery(rgm, getCashCardBodyQuery(), getCashCardTrailerQuery());
+					
 					execute(rgm, file);
+					
+					file = new File(
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-atmCard" + ReportConstants.SUM_FORMAT);
+					
+					setQuery(rgm, getAtmCardBodyQuery(), getAtmCardTrailerQuery());
+					
+					execute(rgm, file);
+					
+					rgm.fileOutputStream.flush();
+					rgm.fileOutputStream.close();
+					
 				} else {
 					throw new Exception("Path is not configured.");
 				}
@@ -48,8 +65,20 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 				throw new Exception(
 						"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.SUM_FORMAT);
 			}
+			
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.SUM_FORMAT, e);
+			
+		}finally {
+			try {
+				if (rgm.fileOutputStream != null) {
+					rgm.fileOutputStream.close();
+					rgm.exit();
+				}
+			} catch (IOException e) {
+				rgm.errors++;
+				logger.error("Error in closing fileOutputStream", e);
+			}
 		}
 	}
 
@@ -67,21 +96,43 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 			line.append(getEol());
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
+			
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating TXT file", e);
-		} finally {
-			try {
-				if (rgm.fileOutputStream != null) {
-					rgm.fileOutputStream.close();
-					rgm.exit();
-				}
-			} catch (IOException e) {
-				rgm.errors++;
-				logger.error("Error in closing fileOutputStream", e);
-			}
+		} 
+	}
+	
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In BillsPaymentExtractFilesSummary.separateQuery()");
+		
+		if (rgm.getBodyQuery() != null) {
+			setCashCardBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setAtmCardBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
 		}
+		
+		logger.debug("getCashCardBodyQuery():"+ getCashCardBodyQuery());
+		logger.debug("getAtmCardBodyQuery():"+ getAtmCardBodyQuery());
+		
+		if (rgm.getTrailerQuery() != null) {
+			setCashCardTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setAtmCardTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+		
+	}
+	
+	private void setQuery(ReportGenerationMgr rgm, String bodyQuery, String trailerQuery) {
+
+		rgm.setBodyQuery(bodyQuery);
+		rgm.setTrailerQuery(trailerQuery);
+
 	}
 }

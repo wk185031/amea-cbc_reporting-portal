@@ -28,7 +28,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 		if (getEncryptionService() == null) {
 			setEncryptionService(rgm.getEncryptionService());
 		}
-		
+
 		File file = null;
 		String txnDate = null;
 		String fileLocation = rgm.getFileLocation();
@@ -46,9 +46,28 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 					if (!directory.exists()) {
 						directory.mkdirs();
 					}
-					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT);
+
+					separateQuery(rgm);
+
+					// Generate Cash card report
+					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-cashCard"
+							+ ReportConstants.DPS_FORMAT);
+
+					setQuery(rgm, getCashCardBodyQuery(), getCashCardTrailerQuery());
+
 					execute(rgm, file);
+
+					// Generate ATM card report
+					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-atmCard"
+							+ ReportConstants.DPS_FORMAT);
+
+					setQuery(rgm, getAtmCardBodyQuery(), getAtmCardTrailerQuery());
+
+					execute(rgm, file);
+
+					rgm.fileOutputStream.flush();
+					rgm.fileOutputStream.close();
+
 				} else {
 					throw new Exception("Path is not configured.");
 				}
@@ -56,24 +75,10 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				throw new Exception(
 						"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT);
 			}
+
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT, e);
-		}
-	}
 
-	@Override
-	protected void execute(ReportGenerationMgr rgm, File file) {
-		try {
-			rgm.fileOutputStream = new FileOutputStream(file);
-			addBatchPreProcessingFieldsToGlobalMap(rgm);
-			executeBodyQuery(rgm);
-			addPostProcessingFieldsToGlobalMap(rgm);
-			executeTrailerQuery(rgm);
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
-		} catch (IOException e) {
-			rgm.errors++;
-			logger.error("Error in generating TXT file", e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {
@@ -85,6 +90,22 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				logger.error("Error in closing fileOutputStream", e);
 			}
 		}
+	}
+
+	@Override
+	protected void execute(ReportGenerationMgr rgm, File file) {
+		
+		try {
+			rgm.fileOutputStream = new FileOutputStream(file);
+			addBatchPreProcessingFieldsToGlobalMap(rgm);
+			executeBodyQuery(rgm);
+			addPostProcessingFieldsToGlobalMap(rgm);
+			executeTrailerQuery(rgm);
+			
+		} catch (IOException e) {
+			rgm.errors++;
+			logger.error("Error in generating TXT file", e);
+		} 
 	}
 
 	private void addPostProcessingFieldsToGlobalMap(ReportGenerationMgr rgm) {
@@ -145,5 +166,35 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.separateQuery()");
+		
+		if (rgm.getBodyQuery() != null) {
+			setCashCardBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setAtmCardBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+		
+		if (rgm.getTrailerQuery() != null) {
+			setCashCardTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setAtmCardTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+		
+	}
+	
+	private void setQuery(ReportGenerationMgr rgm, String bodyQuery, String trailerQuery) {
+		
+		rgm.setBodyQuery(bodyQuery);
+		rgm.setTrailerQuery(trailerQuery);
+		
 	}
 }
