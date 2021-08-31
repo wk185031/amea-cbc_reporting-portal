@@ -24,17 +24,55 @@ public class AtmListBeepPayments extends CsvReportProcessor {
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
+		
+		try {
+			
+			rgm.fileOutputStream = new FileOutputStream(file);
+			pagination++;
+			writeHeader(rgm, pagination);
+			
+			separateQuery(rgm);
+			
+			rgm.setBodyQuery(getOnusBodyQuery());
+			rgm.setTrailerQuery(getOnusTrailerQuery());
+			
+			preProcessing(rgm);			
+			processReport(rgm, "ON-US TRANSACTIONS");
+			
+			rgm.setBodyQuery(getInterEntityBodyQuery());
+			rgm.setTrailerQuery(getInterEntityTrailerQuery());
+			
+			preProcessing(rgm);			
+			processReport(rgm, "INTER-ENTITY TRANSACTIONS");
+			
+			rgm.fileOutputStream.flush();
+			rgm.fileOutputStream.close();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException | JSONException e) {
+			rgm.errors++;
+			logger.error("Error in generating CSV file", e);
+		} finally {
+			try {
+				if (rgm.fileOutputStream != null) {
+					rgm.fileOutputStream.close();
+					rgm.exit();
+				}
+			} catch (IOException e) {
+				rgm.errors++;
+				logger.error("Error in closing fileOutputStream", e);
+			}
+		}
+	}
+	private void processReport(ReportGenerationMgr rgm, String categoryHeader) {
 		String branchCode = null;
 		String branchName = null;
 		String terminal = null;
 		String location = null;
-		pagination = 1;
-		try {
-			rgm.fileOutputStream = new FileOutputStream(file);
-			preProcessing(rgm);
-			writeHeader(rgm, pagination);
+		StringBuilder line = new StringBuilder();
 
-			StringBuilder line = new StringBuilder();
+		line.append(categoryHeader);
+		line.append(getEol());
+		
+		try {
 			line.append(ReportConstants.CHANNEL + " : ").append(";").append(ReportConstants.ATM).append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
@@ -53,7 +91,7 @@ public class AtmListBeepPayments extends CsvReportProcessor {
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
-						preProcessing(rgm, branchCode, terminal);
+						preProcessing(rgm, branchCode, terminal,branchName);
 						line = new StringBuilder();
 						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 								.append(location).append(";");
@@ -68,37 +106,47 @@ public class AtmListBeepPayments extends CsvReportProcessor {
 					executeTrailerQuery(rgm);
 				}
 			}
-			rgm.fileOutputStream.flush();
-			rgm.fileOutputStream.close();
+			
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
-		} finally {
-			try {
-				if (rgm.fileOutputStream != null) {
-					rgm.fileOutputStream.close();
-					rgm.exit();
-				}
-			} catch (IOException e) {
-				rgm.errors++;
-				logger.error("Error in closing fileOutputStream", e);
-			}
+		} 
+	}
+	
+	
+	private void separateQuery(ReportGenerationMgr rgm) {
+		logger.debug("In ListRfidPayments.separateQuery()");
+		if (rgm.getBodyQuery() != null) {
+			setOnusBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setInterEntityBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
+		}
+		if (rgm.getTrailerQuery() != null) {
+			setOnusTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+					rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
+			setInterEntityTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace(ReportConstants.SUBSTRING_START, ""));
 		}
 	}
-
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmListBeepPayments.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByBranchName)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmListBeepPayments.preProcessing()");
 		if (filterByBranchCode != null && filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
@@ -107,8 +155,11 @@ public class AtmListBeepPayments extends CsvReportProcessor {
 					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}
