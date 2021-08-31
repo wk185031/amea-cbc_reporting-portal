@@ -17,6 +17,7 @@
 -- Master report		13-AUG-2021		NY		Left join to transaction_log_custom give unexpected result, revert to use join
 -- Master report		20-AUG-2021		NY		Include back txn code 2, 22
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude rejected reversal
+-- Master report		31-AUG-2021		NY		Internal finding, wrong txn code
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -147,7 +148,7 @@ SELECT
       LEFT JOIN CBC_BANK CBA_REV ON LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = LPAD(CBA_REV.CBA_CODE, 10, ''0'')
 	WHERE
 	  (TXN.TRL_TQU_ID IN (''F'', ''C'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
-      AND TXN.TRL_TSC_CODE NOT IN (4, 52)
+      AND TXN.TRL_TSC_CODE NOT IN (44, 52)
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
