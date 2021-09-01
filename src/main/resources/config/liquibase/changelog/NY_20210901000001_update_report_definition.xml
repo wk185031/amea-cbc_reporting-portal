@@ -16,6 +16,18 @@
 
     <changeSet id="NY_20210901000001_update_report_definition" author="ny">
     	<validCheckSum>any</validCheckSum>
+		
+		<!-- Onus -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Branch).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_ATM_Withdrawals_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     	
     	<!-- Issuer -->
         <sqlFile dbms="oracle" 
