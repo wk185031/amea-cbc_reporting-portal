@@ -126,6 +126,8 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
         logger.debug("In TransmittalReleaseReportForAllBranches.preProcessing():" + rgm.getFileNamePrefix());
 
         rgm.setBodyQuery(rgm.getBodyQuery()
+        	.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")) + "'")
+			.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")) + "'")
             .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
             .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
             .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
