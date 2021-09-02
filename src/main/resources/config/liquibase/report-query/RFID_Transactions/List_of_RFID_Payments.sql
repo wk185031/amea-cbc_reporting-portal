@@ -83,6 +83,7 @@ WHERE
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Channel}
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Terminal}
       AND {Txn_Date}
 ORDER BY
@@ -134,6 +135,7 @@ WHERE
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))   
       AND {Channel}
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Terminal}
       AND {Txn_Date}
 ORDER BY
@@ -165,6 +167,7 @@ WHERE
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Channel}
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Txn_Date}
 START SELECT
        SUM(TXN.TRL_AMT_TXN) "AMOUNT",
@@ -187,6 +190,7 @@ WHERE
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))     
       AND {Channel}      
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Txn_Date}
 END
 ');

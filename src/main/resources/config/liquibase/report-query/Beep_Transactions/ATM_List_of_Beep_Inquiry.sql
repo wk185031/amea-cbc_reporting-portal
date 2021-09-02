@@ -81,6 +81,7 @@ WHERE
 	  AND  (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Terminal}
       AND {Txn_Date}
 ORDER BY
@@ -133,6 +134,7 @@ AND (cba.cba_mnem = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))  
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Terminal}
       AND {Txn_Date}
 ORDER BY
@@ -174,6 +176,7 @@ WHERE
     AND cba.cba_mnem = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Txn_Date})
 START SELECT       
        SUM(NVL("TRAN FEE DR", 0)) "TRAN FEE DR",
@@ -204,6 +207,7 @@ WHERE
 	  OR cba.cba_mnem = {V_IE_Iss_Name}
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))   
       AND {Branch_Code}
+      AND {Branch_Name}
       AND {Txn_Date})
 END
 
