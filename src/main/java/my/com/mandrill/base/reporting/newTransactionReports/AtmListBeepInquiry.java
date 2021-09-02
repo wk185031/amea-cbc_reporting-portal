@@ -77,12 +77,7 @@ public class AtmListBeepInquiry extends CsvReportProcessor {
 		
 
 		try {
-			SortedMap<String, Map<String, TreeMap<String, String>>> ByBranch = filterCriteriaByBranch(rgm);
-			if (ByBranch == null || ByBranch.size() == 0) {
-				line.append(ReportConstants.NO_RECORD);
-				line.append(getEol());
-				rgm.writeLine(line.toString().getBytes());
-			} else {
+
 			line.append(ReportConstants.CHANNEL + " : ").append(";").append(ReportConstants.ATM).append(";");
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
@@ -103,7 +98,7 @@ public class AtmListBeepInquiry extends CsvReportProcessor {
 					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
 						terminal = terminalMap.getKey();
 						location = terminalMap.getValue();
-						preProcessing(rgm, branchCode, terminal);
+						preProcessing(rgm, branchCode, terminal,branchName);
 						line = new StringBuilder();
 						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 								.append(location).append(";");
@@ -118,7 +113,7 @@ public class AtmListBeepInquiry extends CsvReportProcessor {
 					executeTrailerQuery(rgm);
 				}
 			}
-			}
+		
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
@@ -153,12 +148,13 @@ public class AtmListBeepInquiry extends CsvReportProcessor {
 		if (rgm.getBodyQuery() != null) {
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_NAME + "}", ""));
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,  String filterByBranchName)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmListBeepInquiry.preProcessing()");
 		if (filterByBranchCode != null && filterByTerminal != null && rgm.getTmpBodyQuery() != null) {
@@ -167,8 +163,11 @@ public class AtmListBeepInquiry extends CsvReportProcessor {
 					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
 					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}

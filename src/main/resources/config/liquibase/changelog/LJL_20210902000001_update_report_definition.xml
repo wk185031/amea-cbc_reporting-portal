@@ -14,27 +14,22 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="NY_20210901000001_update_report_definition" author="ny">
+    <changeSet id="LJL_20210902000001_update_report_definition" author="LJL">
     	<validCheckSum>any</validCheckSum>
-		
-		<!-- Onus -->
-        <sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Branch).sql"
-                 splitStatements="false" 
-                 stripComments="true" />
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_ATM_Withdrawals_Report.sql"
+                 path="config/liquibase/report-query/Beep_Transactions/ATM_List_of_Beep_Inquiry.sql"
                  splitStatements="false" 
-                 stripComments="true" />
-    	
-    	<!-- Issuer -->
-        <sqlFile dbms="oracle" 
+                 stripComments="true" />		
+		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
+                 path="config/liquibase/report-query/RFID_Transactions/List_of_RFID_Payments.sql"
                  splitStatements="false" 
-                 stripComments="true" />
-    	    	 				                       					
+                 stripComments="true" />	
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Beep_Transactions/ATM_List_of_Beep_Payments.sql"
+                 splitStatements="false" 
+                 stripComments="true" />		 
     </changeSet>
 </databaseChangeLog>
