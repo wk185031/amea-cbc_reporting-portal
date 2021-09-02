@@ -31,6 +31,21 @@
                  path="config/liquibase/report-query/Recycler_Transactions/List_of_Recycler_Transactions.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Bills_Payment.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_BP_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Bills_Payment.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
     
 </databaseChangeLog>
