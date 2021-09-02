@@ -858,6 +858,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 
 					writeBody(rgm, lineFieldsMap, channel);
 				}
+				
 				if (!writeAcquiringSummary) {
 					writeSummary(rgm, false, acquiringSummary);
 					writeAcquiringSummary = true;
@@ -881,6 +882,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 
 	private void writeSummary(ReportGenerationMgr rgm, boolean isIssuing, SummaryCount summaryCount) {
 		logger.debug("writeSummary: isIssuing={}", isIssuing);
+		
 		StringBuilder line = new StringBuilder();
 		try {
 			line.append(getEol());
@@ -888,14 +890,21 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 			line.append(getEol());
 			line.append("FOR THIS BRANCH");
 			line.append(getEol());
-			line.append("AP").append(DELIMITER).append(summaryCount.apCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.apTotalAmount));
-			line.append(getEol());
-			line.append("WS").append(DELIMITER).append(summaryCount.wsCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wsTotalAmount));
-			line.append(getEol());
-			line.append("WOS").append(DELIMITER).append(summaryCount.wosCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wosTotalAmount));
+			
+			if (summaryCount.apCount > 0 || summaryCount.wsCount > 0 || summaryCount.wosCount > 0) {
+				line.append("AP").append(DELIMITER).append(summaryCount.apCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.apTotalAmount));
+				line.append(getEol());
+				line.append("WS").append(DELIMITER).append(summaryCount.wsCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wsTotalAmount));
+				line.append(getEol());
+				line.append("WOS").append(DELIMITER).append(summaryCount.wosCount).append(DELIMITER).append(AMOUNT_FORMATTER.format(summaryCount.wosTotalAmount));
+			}else {
+				line.append("*** NONE ***");
+			}
+			
 			line.append(getEol());
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
+			
 		} catch (IOException e) {
 			rgm.errors++;
 			logger.error("Error in writeSummary", e);
