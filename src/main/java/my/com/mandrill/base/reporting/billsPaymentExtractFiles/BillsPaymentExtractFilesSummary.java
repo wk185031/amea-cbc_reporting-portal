@@ -115,9 +115,6 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 		}
 		
-		logger.debug("getCashCardBodyQuery():"+ getCashCardBodyQuery());
-		logger.debug("getAtmCardBodyQuery():"+ getAtmCardBodyQuery());
-		
 		if (rgm.getTrailerQuery() != null) {
 			setCashCardTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
