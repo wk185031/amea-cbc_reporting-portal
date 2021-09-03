@@ -69,6 +69,8 @@ public final class ReportConstants {
 	// Report Generation Parameter
 	public static final String PARAM_FILE_DATE = "FileDate";
 	public static final String PARAM_TXN_DATE = "Txn_Date";
+	public static final String PARAM_TXN_START_TS = "Txn_Start_Ts";
+	public static final String PARAM_TXN_END_TS = "Txn_End_Ts";
 	public static final String PARAM_RECEIVING_BRANCH_CODE = "Receiving_Branch_Code";
 	public static final String PARAM_BRANCH_CODE = "Branch_Code";
 	public static final String PARAM_BRANCH_NAME = "Branch_Name";
