@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -527,6 +528,19 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		ReportGenerationFields branchCodeField = new ReportGenerationFields(GROUP_FIELD_BRANCH,
 				ReportGenerationFields.TYPE_STRING, "'" + branchCode + "'");
 		getGlobalFileFieldsMap().put(branchCodeField.getFieldName(), branchCodeField);
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
+		
+		ReportGenerationFields txnStartField = new ReportGenerationFields(ReportConstants.PARAM_TXN_START_TS,
+				ReportGenerationFields.TYPE_STRING, "'" + txnStart + "'");
+		getGlobalFileFieldsMap().put(txnStartField.getFieldName(), txnStartField);
+		
+		ReportGenerationFields txnEndField = new ReportGenerationFields(ReportConstants.PARAM_TXN_END_TS,
+				ReportGenerationFields.TYPE_STRING, "'" + txnEnd + "'");
+		getGlobalFileFieldsMap().put(txnEndField.getFieldName(), txnEndField);
+		
 		return getBodyQuery(rgm);
 	}
 

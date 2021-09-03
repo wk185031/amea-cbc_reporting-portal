@@ -18,12 +18,17 @@
     	<validCheckSum>any</validCheckSum>
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)\CAM_Transaction_List.sql"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/CAM_Transaction_List.sql"
                  splitStatements="false" 
                  stripComments="true" />
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)\CAM_Transaction_List_Summary.sql"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/CAM_Transaction_List_Summary.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_Possible_Adjustments.sql"
                  splitStatements="false" 
                  stripComments="true" />
         <sqlFile dbms="oracle" 
