@@ -168,7 +168,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		}
 	}
 
-	private PDPageContentStream newPage(PDDocument doc, PDPageContentStream contentStream, ReportGenerationMgr rgm,
+	protected PDPageContentStream newPage(PDDocument doc, PDPageContentStream contentStream, ReportGenerationMgr rgm,
 			String branchCode, String branchName) throws Exception {
 		if (contentStream != null) {
 			contentStream.endText();
