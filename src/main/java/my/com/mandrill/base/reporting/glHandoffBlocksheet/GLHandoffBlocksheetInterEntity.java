@@ -362,10 +362,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		logger.debug("In GLHandoffBlocksheetInterEntity.preProcessing()");
 		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 				
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
@@ -376,11 +372,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditBodyQuery() != null
 				&& indicator.equals(ReportConstants.CREDIT_IND)) {
 			
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-				
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
@@ -525,7 +516,12 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			} else {
 				switch (field.getFieldName()) {
 				case ReportConstants.BRANCH_CODE:
-					line.append(getFieldValue(rgm, field, fieldsMap));
+					if ((branchCode != null && glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)
+							&& indicator.equals(ReportConstants.CREDIT_IND))) {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", branchCode));
+					} else {
+						line.append(getFieldValue(rgm, field, fieldsMap));
+					}
 					fieldLength += field.getCsvTxtLength();
 					break;
 				case ReportConstants.GL_ACCOUNT_NUMBER:
@@ -651,7 +647,12 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 				} else {
 					switch (field.getFieldName()) {
 					case ReportConstants.BRANCH_CODE:
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						if ((branchCode != null && glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)
+								&& indicator.equals(ReportConstants.CREDIT_IND))) {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", branchCode));
+						} else {
+							contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+						}
 						fieldLength += field.getPdfLength();
 						break;
 					case ReportConstants.GL_ACCOUNT_NUMBER:
