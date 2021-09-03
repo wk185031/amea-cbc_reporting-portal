@@ -18,14 +18,42 @@
     	<validCheckSum>any</validCheckSum>
 		
 		<!-- Onus -->
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(On-Us).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Branch).sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_Onus_and_Other_Branches_Acc.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_ATM_Withdrawals_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Summary_of_ATM_Withdrawals_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+                 
+        <!-- Acquirer -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Banks).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_Other_Banks.sql"
                  splitStatements="false" 
                  stripComments="true" />
     	
@@ -35,6 +63,17 @@
                  path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
                  splitStatements="false" 
                  stripComments="true" />
+                 
+        <sql>
+        	update REPORT_DEFINITION set RED_PROCESSING_CLASS='my.com.mandrill.base.reporting.reportProcessor.BranchReportProcessor'
+        	where RED_NAME in (
+        	'EFT - ATM Transaction List (On-Us)', 
+        	'EFT - ATM Transaction List (Other Branch)', 
+        	'EFT - ATM Transaction List (Other Banks)', 
+        	'Transaction Summary Grand Total for On-Us and Other Branches Accounts', 
+        	'Transaction Summary Grand Total for Other Banks', 
+        	'List of ATM Withdrawals Report')
+        </sql>
     	    	 				                       					
     </changeSet>
 </databaseChangeLog>
