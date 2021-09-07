@@ -148,16 +148,19 @@ public class AtmHostDowntime extends CsvReportProcessor {
 							ZoneId.systemDefault());
 					ZonedDateTime zonedDateTime = ZonedDateTime.from(timeDown);
 
-					long days = zonedDateTime.until(timeUp, ChronoUnit.DAYS);
+					Long days = zonedDateTime.until(timeUp, ChronoUnit.DAYS);
 					zonedDateTime = zonedDateTime.plusDays(days);
 
-					long hours = zonedDateTime.until(timeUp, ChronoUnit.HOURS);
+					Long hours = zonedDateTime.until(timeUp, ChronoUnit.HOURS);
 					zonedDateTime = zonedDateTime.plusHours(hours);
 
-					long minutes = zonedDateTime.until(timeUp, ChronoUnit.MINUTES);
+					Long minutes = zonedDateTime.until(timeUp, ChronoUnit.MINUTES);
 					zonedDateTime = zonedDateTime.plusMinutes(minutes);
+					
+					String hoursStr = hours < 10 ? "0"+ hours.toString() : hours.toString();
+					String minutesStr = minutes < 10 ? "0"+ minutes.toString() : minutes.toString();
 
-					line.append(days + "day/s" + hours + ":" + minutes);
+					line.append(days + " day/s " + hoursStr + ":" + minutesStr);
 				}
 				break;
 			default:
