@@ -30,17 +30,18 @@ SELECT
 	"CARD TYPE",
 	"CARD SUBTYPE",
 	CASE WHEN "CARD STATUS" = ''Active'' THEN ''A''
-	     WHEN "CARD STATUS" = ''Inactive'' THEN ''I''
+	     WHEN "CARD STATUS" = ''Inactive'' THEN ''U''
+         WHEN "CARD STATUS" = ''Stolen'' THEN ''S''
+         WHEN "CARD STATUS" = ''Lost'' THEN ''L''
 		 WHEN "CARD STATUS" = ''Blocked'' THEN ''B''
+         WHEN "CARD STATUS" = ''Blocked-Exceeded PIN Tries'' THEN ''P''
+         WHEN "CARD STATUS" = ''Replaced'' THEN ''R''
 		 WHEN "CARD STATUS" = ''Closed'' THEN ''C''
-		 WHEN "CARD STATUS" = ''Stolen'' THEN ''S''
+		 WHEN "CARD STATUS" = ''Suspicious'' THEN ''F''
+		 WHEN "CARD STATUS" = ''Closed due to Dormant'' THEN ''X''
+		 WHEN "CARD STATUS" = ''Active but Idle'' THEN ''I''
+		 WHEN "CARD STATUS" = ''Captured lost'' THEN ''E''
 		 WHEN "CARD STATUS" = ''Damaged'' THEN ''D''
-		 WHEN "CARD STATUS" = ''Replaced'' THEN ''R''
-		 WHEN "CARD STATUS" = ''Lost'' THEN ''L''
-		 WHEN "CARD STATUS" = ''Unusual Activity'' THEN ''U''
-		 WHEN "CARD STATUS" = ''Captured lost'' THEN ''X''
-		 WHEN "CARD STATUS" = ''Blocked-Exceeded PIN Tries'' THEN ''P''
-		 WHEN "CARD STATUS" = ''Suspicious'' THEN ''Z''
 		 ELSE ''''
 		END AS "CARD STATUS",
 	"NO OF JOINT ACC HOLDERS",
