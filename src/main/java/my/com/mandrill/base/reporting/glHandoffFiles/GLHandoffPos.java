@@ -123,9 +123,18 @@ public class GLHandoffPos extends BatchProcessor {
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.AC_NUMBER:
-				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-						branchCode + getFieldValue(field, fieldsMap)));
-				String glAccNo = branchCode + getFieldValue(field, fieldsMap);
+				String glAccNo = null; 
+				
+				if(getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							branchCode + getFieldValue(field, fieldsMap)));
+					glAccNo = branchCode + getFieldValue(field, fieldsMap);					
+				} else {
+					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
+							getFieldValue(field, fieldsMap)));
+					glAccNo = getFieldValue(field, fieldsMap);
+				}
+				
 				int[] glAccNoArray = new int[glAccNo.length()];
 				for (int i = 0; i < glAccNoArray.length; i++) {
 					glAccNoArray[i] = glAccNo.charAt(i);
