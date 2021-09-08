@@ -92,11 +92,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 
-//						Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-//						while (branchCodeItr.hasNext()) {
-//							branchCode = branchCodeItr.next();
 							rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-//							rgm.setBodyQuery(getDebitBodyQuery());
 							rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
 							preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 							if (executeQuery(rgm)) {
@@ -114,7 +110,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 							}
 
 							rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-//							rgm.setBodyQuery(getCreditBodyQuery());
 							rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
 							preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 							if (executeQuery(rgm)) {
@@ -136,11 +131,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 						preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 
-//						Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-//						while (branchCodeItr.hasNext()) {
-//							branchCode = branchCodeItr.next();
 							rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-//							rgm.setBodyQuery(getDebitBodyQuery());
 							rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
 							preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 							if (executeQuery(rgm)) {
@@ -165,7 +156,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 							}
 
 							rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-//							rgm.setBodyQuery(getCreditBodyQuery());
 							rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
 							preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 							if (executeQuery(rgm)) {
@@ -181,7 +171,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 								pdfCreditDetail(rgm, glDescription, branchCode, contentStream, doc, page, pageSize,
 										leading, startX, startY, pdfFont, fontSize);
 							}
-//						}
 						endGroup = true;
 					}
 				}
@@ -282,13 +271,9 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 
-//				Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-//				while (branchCodeItr.hasNext()) {
-//					branchCode = branchCodeItr.next();
 					firstRecord = true;
 					pagination++;
 					rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-//					rgm.setBodyQuery(getDebitBodyQuery());
 					rgm.setTrailerQuery(getAcquirerDebitTrailerQuery());
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 					if (executeQuery(rgm)) {
@@ -297,13 +282,11 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					firstRecord = true;
 					pagination++;
 					rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-//					rgm.setBodyQuery(getCreditBodyQuery());
 					rgm.setTrailerQuery(getAcquirerCreditTrailerQuery());
 					preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 					if (executeQuery(rgm)) {
 						creditDetail(rgm, glDescription, branchCode);
 					}
-//				}
 			}
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -366,7 +349,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
 			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffBlocksheetInterEntity.preProcessing()");
-//		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
 		if (filterByGlDescription != null && getDebitBodyQuery() != null 
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
 
@@ -376,7 +358,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-//		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditBodyQuery() != null
 		if (filterByGlDescription != null && getCreditBodyQuery() != null 
 				&& indicator.equals(ReportConstants.CREDIT_IND)) {
 
