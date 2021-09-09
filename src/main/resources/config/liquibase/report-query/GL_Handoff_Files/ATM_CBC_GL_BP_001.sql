@@ -4,6 +4,7 @@
 -- Report Revise		06-JUL-2021		NY		Revise report based on specification
 -- CBCAXUPISSLOG-742	06-JUL-2021		NY		Sort debit/credit accordingly
 -- Rel-20210730			30-JUL-2021		KW		Cater for CBS
+-- CBCAXUPISSLOG-898	09-SEP-2021		KW		Include all biller for CBS
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(200) := 'ATM CBC GL BP 001';
@@ -13,8 +14,10 @@ DECLARE
     i_HEADER_FIELDS_CBS CLOB;
     i_BODY_FIELDS_CBS CLOB;
     i_TRAILER_FIELDS_CBS CLOB;
-	i_BODY_QUERY CLOB;
-	i_TRAILER_QUERY CLOB;
+	i_BODY_QUERY_CBC CLOB;
+	i_TRAILER_QUERY_CBC CLOB;
+	i_BODY_QUERY_CBS CLOB;
+	i_TRAILER_QUERY_CBS CLOB;
 BEGIN 
 
 	i_HEADER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Record Type Indicator","csvTxtLength":"1","fieldType":"String","defaultValue":"H","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"File Upload Date","csvTxtLength":"8","fieldType":"Date","fieldFormat":"ddMMyyyy","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"Source Application code","csvTxtLength":"3","fieldType":"String","defaultValue":"ATM","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"User ID of source application","csvTxtLength":"80","fieldType":"String","defaultValue":"GL_UPLOAD","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"File Type","csvTxtLength":"1","fieldType":"String","defaultValue":"G","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"File Name","csvTxtLength":"50","fieldType":"String","defaultValue":"","fieldFormat":"yyyyMMdd","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Filler","csvTxtLength":"1459","fieldType":"String","eol":true,"leftJustified":true,"padFieldLength":0}]');
@@ -26,7 +29,7 @@ BEGIN
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Record Type Indicator","csvTxtLength":"1","fieldType":"String","defaultValue":"T","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"File Hash","csvTxtLength":"32","fieldType":"Decimal","defaultValue":"","fieldFormat":"0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Number of Data Records","csvTxtLength":"13","fieldType":"Number","leftJustified":false,"padFieldLength":"0","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":4,"sectionName":"4","fieldName":"Filler","csvTxtLength":"1556","fieldType":"Number","eol":true,"leftJustified":true,"padFieldLength":"0","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"}]');
 	
 
-	i_BODY_QUERY := TO_CLOB('
+	i_BODY_QUERY_CBC := TO_CLOB('
 SELECT
       SUM("Tran Amount") "Tran Amount",
       "A/C Number",
@@ -63,8 +66,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
-      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
+      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
       AND {GL_Description}
       AND {Txn_Date}
 )
@@ -113,8 +115,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
-      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
+      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
       AND {GL_Description}
       AND {Txn_Date}
 ORDER BY
@@ -131,22 +132,127 @@ ORDER BY
      "Tran Particular" DESC
 END		
 ');	
-	i_TRAILER_QUERY := null;
+	i_TRAILER_QUERY_CBC := null;
 	
 UPDATE REPORT_DEFINITION SET 
 	    RED_HEADER_FIELDS = i_HEADER_FIELDS_CBC,
 		RED_BODY_FIELDS = i_BODY_FIELDS_CBC,
 		RED_TRAILER_FIELDS = i_TRAILER_FIELDS_CBC,
-		RED_BODY_QUERY = i_BODY_QUERY,
-		RED_TRAILER_QUERY = i_TRAILER_QUERY
+		RED_BODY_QUERY = i_BODY_QUERY_CBC,
+		RED_TRAILER_QUERY = i_TRAILER_QUERY_CBC
 	WHERE RED_NAME = i_REPORT_NAME AND RED_INS_ID = 22;
+
+-- CBS
+	i_BODY_QUERY_CBS := TO_CLOB('
+SELECT
+      SUM("Tran Amount") "Tran Amount",
+      "A/C Number",
+      "Currency Code of Account Number",
+      "Part Tran Indicator",
+      "Tran Particular",
+      "Reference Currency Code",
+      "Third Party Tran Description"
+FROM(
+SELECT
+      GLA.GLA_NUMBER "A/C Number",
+      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
+      ''D'' AS "Part Tran Indicator",
+      TXN.TRL_AMT_TXN "Tran Amount",
+      GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
+      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
+      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description",
+      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+      JOIN (SELECT DISTINCT CBL_CODE,CBL_MNEM,CBL_SETTLEMENT_TYPE FROM CBC_BILLER) BIL ON LPAD(TXNC.TRL_BILLER_CODE, 3, ''0'') = LPAD(BIL.CBL_CODE, 3, ''0'')
+WHERE
+      TXN.TRL_TSC_CODE IN (50, 250)
+      AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND TXNC.TRL_CARD_PRODUCT_TYPE NOT IN (''80'',''81'',''82'',''83'')
+      AND {Channel}
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND {GL_Description}
+      AND {Txn_Date}
+)
+GROUP BY
+    "A/C Number",
+    "Currency Code of Account Number",
+    "Part Tran Indicator",
+    "Tran Particular",
+    "Reference Currency Code",
+    "Third Party Tran Description"
+ORDER BY
+     "Tran Particular" DESC
+START SELECT
+       SUM("Tran Amount") "Tran Amount",
+      "A/C Number",
+      "Currency Code of Account Number",
+      "Part Tran Indicator",
+      "Tran Particular",
+      "Reference Currency Code",
+      "Third Party Tran Description"
+FROM(
+SELECT
+      GLA.GLA_NUMBER "A/C Number",
+      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
+      ''C'' AS "Part Tran Indicator",
+      TXN.TRL_AMT_TXN "Tran Amount",
+      GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
+      CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
+      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
+      GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description",
+      TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "TRAN_DATE"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID = TXNC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
+      JOIN (SELECT DISTINCT CBL_CODE,CBL_MNEM,CBL_SETTLEMENT_TYPE FROM CBC_BILLER) BIL ON LPAD(TXNC.TRL_BILLER_CODE, 3, ''0'') = LPAD(BIL.CBL_CODE, 3, ''0'')
+WHERE
+      TXN.TRL_TSC_CODE IN (50, 250)
+      AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND TXNC.TRL_CARD_PRODUCT_TYPE NOT IN (''80'',''81'',''82'',''83'')
+      AND {Channel}
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND {GL_Description}
+      AND {Txn_Date}
+ORDER BY
+      TXN.TRL_SYSTEM_TIMESTAMP ASC
+)
+GROUP BY
+    "A/C Number",
+    "Currency Code of Account Number",
+    "Part Tran Indicator",
+    "Tran Particular",
+    "Reference Currency Code",
+    "Third Party Tran Description"
+ORDER BY
+     "Tran Particular" DESC
+END		
+');
+
+i_TRAILER_QUERY_CBS := null;
 	
 	UPDATE REPORT_DEFINITION SET 
 		RED_HEADER_FIELDS = i_HEADER_FIELDS_CBS,
 		RED_BODY_FIELDS = i_BODY_FIELDS_CBS,
 		RED_TRAILER_FIELDS = i_TRAILER_FIELDS_CBS,
-		RED_BODY_QUERY = i_BODY_QUERY,
-		RED_TRAILER_QUERY = i_TRAILER_QUERY
+		RED_BODY_QUERY = i_BODY_QUERY_CBS,
+		RED_TRAILER_QUERY = i_TRAILER_QUERY_CBS
 	WHERE RED_NAME = i_REPORT_NAME AND RED_INS_ID = 2;
 	
 END;
