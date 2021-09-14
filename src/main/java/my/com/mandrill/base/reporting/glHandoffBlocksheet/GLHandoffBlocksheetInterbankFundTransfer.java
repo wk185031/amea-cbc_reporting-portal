@@ -276,7 +276,9 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name}  OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
+						"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name}  OR TXN.TRL_ISS_NAME IS NULL) " +
+						"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
+						"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
 					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
@@ -290,7 +292,9 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-					"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name} OR TXN.TRL_ISS_NAME IS NULL) AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
+						"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name} OR TXN.TRL_ISS_NAME IS NULL) " +
+						"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
+						"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
 					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
@@ -456,7 +460,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 				}
 			} else {
 				if (field.isEol()) {
-					contentStream.showText(getFieldValue(field, fieldsMap));
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
