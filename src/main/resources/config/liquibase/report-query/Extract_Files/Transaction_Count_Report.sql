@@ -38,6 +38,9 @@
 -- CBCAXUPISSLOG-688	27-AUG-2021		NY		Txn 44 from BRM to populate CTD instead of BTD
 -- CBCAXUPISSLOG-768	30-AUG-2021		NY		Missing amount for CMA/CRL/DMA/MWD/POS/PSR
 -- CBCAXUPISSLOG-860	30-AUG-2021		NY		Fix IE txn populate as BBL instead of AIL for beep reload
+-- CBCAXUPISSLOG-531	14-SEP-2021		NY		Sum txn code 1 from EBK/MBK to Transfer column, instead of Cash Dispense
+-- CBCAXUPISSLOG-550	14-SEP-2021		NY		BTC should not contain CBS as receiving bank, another fix to exclude row if all amount sum column is 0 accumulated
+-- CBCAXUPISSLOG-550	14-SEP-2021		NY		Fix AWI/AWR populate for other bank card as well instead of only IE
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -51,7 +54,8 @@ BEGIN
 	i_HEADER_FIELDS := TO_CLOB('[]');
 	i_BODY_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE","csvTxtLength":"8","fieldType":"Date","defaultValue":"","firstField":true,"bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"fieldFormat":"MM/dd/yy"},{"sequence":2,"sectionName":"2","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"TERMINAL","csvTxtLength":"4","fieldType":"String","bodyHeader":false,"defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","defaultValue":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"BANK MNEM","csvTxtLength":"3","fieldType":"String","defaultValue":"","fieldFormat":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","fieldFormat":"","bodyHeader":false,"defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TRAN MNEM","csvTxtLength":"3","fieldType":"String","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":8,"sectionName":"8","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":9,"sectionName":"32","fieldName":"BILLER MNEM","csvTxtLength":"4","pdfLength":"","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":10,"sectionName":"33","fieldName":"SPACE","csvTxtLength":"2","pdfLength":"","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":11,"sectionName":"11","fieldName":"APPROVED TRAN COUNT","csvTxtLength":"11","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"fieldFormat":","},{"sequence":12,"sectionName":"12","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","bodyHeader":false,"defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"REJECTED TRAN COUNT","csvTxtLength":"11","fieldType":"Number","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"fieldFormat":","},{"sequence":14,"sectionName":"14","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"TOTAL TRAN COUNT","csvTxtLength":"14","fieldType":"Number","eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"fieldFormat":","},{"sequence":16,"sectionName":"16","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","delimiter":"","fieldFormat":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":17,"sectionName":"17","fieldName":"SHORT DISPENSE COUNT","csvTxtLength":"11","fieldType":"Number","delimiter":"","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":19,"sectionName":"19","fieldName":"NO DISPENSE COUNT","csvTxtLength":"11","fieldType":"Number","delimiter":"","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":20,"sectionName":"20","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","delimiter":"","fieldFormat":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":21,"sectionName":"21","fieldName":"OVER DISPENSE COUNT","csvTxtLength":"11","fieldType":"Number","delimiter":"","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"22","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":23,"sectionName":"23","fieldName":"HARDWARE FAILURE COUNT","csvTxtLength":"11","fieldType":"Number","delimiter":"","fieldFormat":",","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"24","fieldName":"SPACE","csvTxtLength":"2","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":25,"sectionName":"25","fieldName":"CASH DISPENSED","csvTxtLength":"16","fieldType":"Decimal","delimiter":"","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":26,"sectionName":"32","fieldName":"REVERSAL SIGN CD","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":27,"sectionName":"26","fieldName":"SPACE","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":28,"sectionName":"27","fieldName":"DEPOSITS","csvTxtLength":"17","fieldType":"Decimal","delimiter":"","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":29,"sectionName":"33","fieldName":"REVERSAL SIGN DP","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":30,"sectionName":"28","fieldName":"SPACE","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":31,"sectionName":"29","fieldName":"BILL PAYMENTS","csvTxtLength":"17","fieldType":"Decimal","delimiter":"","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":32,"sectionName":"34","fieldName":"REVERSAL SIGN BP","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":33,"sectionName":"30","fieldName":"SPACE","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":34,"sectionName":"31","fieldName":"TRANSFERS","csvTxtLength":"17","fieldType":"Decimal","delimiter":"","fieldFormat":"#,##0.00","eol":false,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":35,"sectionName":"35","fieldName":"REVERSAL SIGN TRFR","csvTxtLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
 	i_TRAILER_FIELDS := TO_CLOB('[]');
-	i_BODY_QUERY := TO_CLOB('		
+	i_BODY_QUERY := TO_CLOB('
+SELECT * FROM (		
 SELECT
       "TXN QUALIFIER",
       "DATE",
@@ -68,13 +72,13 @@ SELECT
       SUM("OVER DISPENSE") "OVER DISPENSE COUNT",
       0 "HARDWARE FAILURE COUNT",
       SUM("CASH DISPENSED") "CASH DISPENSED",
-      ''-'' "REVERSAL SIGN CD",
+      CASE WHEN "TXN QUALIFIER" = ''R'' AND SUM("CASH DISPENSED") > 0 THEN ''-'' ELSE '''' END AS "REVERSAL SIGN CD",
       SUM("DEPOSITS") "DEPOSITS",
-      ''-'' "REVERSAL SIGN DP",
+      CASE WHEN "TXN QUALIFIER" = ''R'' AND SUM("DEPOSITS") > 0 THEN ''-'' ELSE '''' END AS "REVERSAL SIGN DP",
       SUM("BILL PAYMENTS") "BILL PAYMENTS",
-      ''-'' "REVERSAL SIGN BP",
+      CASE WHEN "TXN QUALIFIER" = ''R'' AND SUM("BILL PAYMENTS") > 0 THEN ''-'' ELSE '''' END AS "REVERSAL SIGN BP",
       SUM("TRANSFERS") "TRANSFERS",
-      ''-'' "REVERSAL SIGN TRFR"
+      CASE WHEN "TXN QUALIFIER" = ''R'' AND SUM("TRANSFERS") > 0 THEN ''-'' ELSE '''' END AS "REVERSAL SIGN TRFR"
 FROM (
 -- Onus (exclude Transfer)
 SELECT DISTINCT
@@ -97,12 +101,12 @@ SELECT DISTINCT
 	  CASE WHEN TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0 THEN 1 ELSE 0 END AS "NO DISP",
 	  CASE WHEN TXN.TRL_POST_COMPLETION_CODE is null AND TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_AMT_COMPLETED < TXN.TRL_AMT_TXN THEN 1 ELSE 0 END AS "SHORT DISP",
       CASE WHEN TXN.TRL_POST_COMPLETION_CODE is null AND TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_AMT_COMPLETED > TXN.TRL_AMT_TXN THEN 1 ELSE 0 END AS "OVER DISPENSE",
-      CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (1, 128, 142, 143) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED",
+      CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (1, 128, 142, 143) AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''EBK'', ''MBK'') THEN TXN.TRL_AMT_TXN ELSE 0 END AS "CASH DISPENSED",
       CASE 
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE = 122 THEN TXN.TRL_ISS_CHARGE_AMT
    		WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (21, 24, 26) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "DEPOSITS",
       CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (0, 50, 51, 133, 146, 246, 250, 251) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "BILL PAYMENTS",
-      CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND TXN.TRL_TSC_CODE IN (2, 22, 40, 41, 42, 43, 44, 45, 46, 47, 52) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS",
+      CASE WHEN TXN.TRL_ACTION_RESPONSE_CODE = 0 AND (TXN.TRL_TSC_CODE IN (2, 22, 40, 41, 42, 43, 44, 45, 46, 47, 52) OR (TXN.TRL_TSC_CODE = 1 AND TXNC.TRL_ORIGIN_CHANNEL IN (''EBK'', ''MBK''))) THEN TXN.TRL_AMT_TXN ELSE 0 END AS "TRANSFERS",
       TXN.TRL_ID
 FROM
       TRANSACTION_LOG TXN
@@ -171,8 +175,8 @@ SELECT DISTINCT
 		WHEN LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id} THEN CBA_ACQ.CBA_MNEM
 		WHEN CBA.CBA_MNEM IS NOT NULL THEN CBA.CBA_MNEM ELSE '''' END AS "BANK MNEM",
       CASE
-		WHEN (TXNC.TRL_IS_INTER_ENTITY = 1 OR (CBA.CBA_MNEM IS NOT NULL AND CBA.CBA_MNEM != {V_Deo_Name})) AND TXN.TRL_TQU_ID = ''R'' AND CTRI.CTR_REV_MNEM IS NOT NULL THEN CTRI.CTR_REV_MNEM 
-		WHEN (TXNC.TRL_IS_INTER_ENTITY = 1 OR (CBA.CBA_MNEM IS NOT NULL AND CBA.CBA_MNEM != {V_Deo_Name})) AND TXN.TRL_TQU_ID = ''F'' AND CTRI.CTR_MNEM IS NOT NULL THEN CTRI.CTR_MNEM 
+		WHEN (TXNC.TRL_IS_INTER_ENTITY = 1 OR (CBA.CBA_MNEM IS NOT NULL AND CBA.CBA_MNEM = {V_IE_Iss_Name})) AND TXN.TRL_TQU_ID = ''R'' AND CTRI.CTR_REV_MNEM IS NOT NULL THEN CTRI.CTR_REV_MNEM 
+		WHEN (TXNC.TRL_IS_INTER_ENTITY = 1 OR (CBA.CBA_MNEM IS NOT NULL AND CBA.CBA_MNEM = {V_IE_Iss_Name})) AND TXN.TRL_TQU_ID = ''F'' AND CTRI.CTR_MNEM IS NOT NULL THEN CTRI.CTR_MNEM 
 	    WHEN TXN.TRL_TQU_ID = ''R'' AND (SELECT CTR_REV_MNEM FROM CBC_TRAN_CODE WHERE CTR_CODE=TXN.TRL_TSC_CODE AND CTR_CHANNEL=''BNT'' AND CTR_DEBIT_CREDIT = ''DEBIT'') IS NOT NULL
 			THEN (SELECT CTR_REV_MNEM FROM CBC_TRAN_CODE WHERE CTR_CODE=TXN.TRL_TSC_CODE AND CTR_CHANNEL=''BNT'' AND CTR_DEBIT_CREDIT = ''DEBIT'')
 		WHEN TXN.TRL_TQU_ID = ''F'' AND (SELECT CTR_MNEM FROM CBC_TRAN_CODE WHERE CTR_CODE=TXN.TRL_TSC_CODE AND CTR_CHANNEL=''BNT'' AND CTR_DEBIT_CREDIT = ''DEBIT'') IS NOT NULL
@@ -437,20 +441,25 @@ WHERE
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND CBA.CBA_MNEM = {V_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
       AND {Txn_Date}
-)
+) A
 GROUP BY
-      "TXN QUALIFIER",
-      "DATE",
-      "TERMINAL",
-      "BANK MNEM",
-      "TRAN MNEM",
-	  "BILLER MNEM",
-      "BANK CODE"
+      A."TXN QUALIFIER",
+      A."DATE",
+      A."TERMINAL",
+      A."BANK MNEM",
+      A."TRAN MNEM",
+	  A."BILLER MNEM",
+      A."BANK CODE"
 ORDER BY
-      "TRAN MNEM" ASC,
-      "TERMINAL" ASC,
-      "BANK CODE" ASC	
+      A."TRAN MNEM" ASC,
+      A."TERMINAL" ASC,
+      A."BANK CODE" ASC	
+) B
+WHERE 
+	  B."APPROVED TRAN COUNT" > 0 OR B."REJECTED TRAN COUNT" > 0 OR B."TOTAL TRAN COUNT" > 0 OR B."NO DISPENSE COUNT" > 0 OR B."OVER DISPENSE COUNT" > 0 OR
+	  B."CASH DISPENSED" > 0 OR B."DEPOSITS" > 0 OR B."BILL PAYMENTS" > 0 OR B."TRANSFERS" > 0
 	');	
 	i_TRAILER_QUERY := null;
 	

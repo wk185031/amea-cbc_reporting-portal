@@ -18,6 +18,7 @@
 -- Master report		20-AUG-2021		NY		Include back txn code 2, 22
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude rejected reversal
 -- Master report		31-AUG-2021		NY		Internal finding, wrong txn code
+-- CBCAXUPISSLOG-550	14-SEP-2021		NY		Fix redundant ACI/ADI for txn code 40, BTC should not contain CBS as receiving bank
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -46,7 +47,7 @@ BEGIN
 SELECT * FROM(
 -- Issuer (exclude Transfer)
 SELECT
-      TXN.TRL_TQU_ID "TXN QUALIFIER",
+      DISTINCT TXN.TRL_TQU_ID "TXN QUALIFIER",
       CBA_ACQ.CBA_NAME "BANK NAME ACQ",
       CONCAT(LPAD(CBA_ACQ.CBA_CODE, 4, ''0''),  TXN.TRL_CARD_ACPT_TERMINAL_IDENT) "ATM CODE",
       CBA_ACQ.CBA_MNEM "BANK MNEM",
@@ -208,6 +209,7 @@ SELECT
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND CBA.CBA_MNEM = {V_Iss_Name}
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
       AND {Bank_Code}
       AND {Txn_Date}
 	)

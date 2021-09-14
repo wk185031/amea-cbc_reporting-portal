@@ -4,6 +4,7 @@
 -- CBCAXUPISSLOG-822	04-AUG-2021		NY		Fix IBFT transmitting not appear in report
 -- IBFT					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- IBFT					15-AUG-2021		NY		Get stan if dest_stan null
+-- CBCAXUPISSLOG-531	14-SEP-2021		NY		Acquiring IBFT include both CBC/CBS instead of only CBC
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -59,6 +60,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Txn_Date}
 ORDER BY
