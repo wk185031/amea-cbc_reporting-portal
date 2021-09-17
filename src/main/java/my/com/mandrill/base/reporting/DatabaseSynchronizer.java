@@ -373,7 +373,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			rs = stmt.executeQuery();
 
 			while (rs.next()) {
-				String bin = String.valueOf(rs.getInt(1));
+				String bin = String.valueOf(rs.getLong(1));
 				String prefix = bin;
 				if (bin.length() > 4) {
 					prefix = bin.substring(0, 4);

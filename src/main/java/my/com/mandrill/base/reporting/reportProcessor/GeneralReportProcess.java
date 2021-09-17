@@ -47,7 +47,7 @@ public class GeneralReportProcess {
 	private EncryptionService encryptionService;
 
 	private HashMap<String, ReportGenerationFields> globalFileFieldsMap = new HashMap<String, ReportGenerationFields>();
-	private String eol = System.lineSeparator();
+	private String eol = "\r\n"; 
 	private boolean header = false;
 	private boolean bodyHeader = false;
 	private boolean body = false;

@@ -3,6 +3,7 @@
 -- Report revision		23-JUL-2021		NY		Revised reports based on spec
 -- Report revision		24-JUL-2021		NY		Separate update query to CBC/CBS report definition
 -- Issuer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- CBCAXUPISSLOG-531	15-SEP-2021		NY		Exclude IE as there is another report for it
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -51,6 +52,7 @@ WHERE
       AND TXN.TRL_MCC_ID = ''6011''   
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Txn_Date}
 GROUP BY
       BRC.BRC_CODE,
@@ -81,6 +83,7 @@ WHERE
       AND TXN.TRL_MCC_ID = ''6011''   
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+      AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
       AND {Txn_Date}
 	');
 	
