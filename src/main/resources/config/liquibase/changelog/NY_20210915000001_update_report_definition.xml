@@ -16,7 +16,25 @@
 
     <changeSet id="NY_20210915000001_update_report_definition" author="ny">
     	<validCheckSum>any</validCheckSum>
-								
+    	
+    	<!-- 688 -->
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM Transaction List(On-Us_Acquirer).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Summary).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+		
+		<!-- 531 -->						
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Billing_Allocation_Reports(Interbank)/Acquirer_ATM_Withdrawal_Income.sql"
@@ -27,6 +45,8 @@
                  path="config/liquibase/report-query/Billing_Allocation_Reports(Interbank)/Issuer_ATM_Withdrawal_Expense.sql"
                  splitStatements="false" 
                  stripComments="true" />
+                 
+        <!-- 854 -->
         <sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
