@@ -27,6 +27,11 @@
                  path="config/liquibase/report-query/Billing_Allocation_Reports(Interbank)/Issuer_ATM_Withdrawal_Expense.sql"
                  splitStatements="false" 
                  stripComments="true" />
-       	    	 				                       					
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />         
+               	    	 				                       					
     </changeSet>
 </databaseChangeLog>

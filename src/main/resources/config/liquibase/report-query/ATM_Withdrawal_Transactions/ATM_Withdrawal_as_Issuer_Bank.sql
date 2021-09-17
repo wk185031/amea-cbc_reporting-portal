@@ -11,6 +11,7 @@
 -- Issuer				19-AUG-2021		NY		Exclude inter-entity per recent specification confirmation
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 -- CBCAXUPISSLOG-854	01-SEP-2021		NY		Summary section to exclude decline count/amount
+-- CBCAXUPISSLOG-854	17-SEP-2021		NY		Details section to match what in summary, exclude decline
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -63,7 +64,8 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1 
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
+      AND TXN.TRL_TQU_ID IN (''F'',''R'')
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}) 
