@@ -101,6 +101,7 @@ public class PosSummary extends PdfReportProcessor {
 		double txnAmt = 0.00;
 		double commission = 0.00;
 		double netSettAmt = 0.00;
+
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
@@ -114,11 +115,13 @@ public class PosSummary extends PdfReportProcessor {
 					fieldsMap.get(field.getFieldName()).setValue(field.getValue().substring(1));
 				}
 				
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_MNEM)) {
+				ReportGenerationFields txnCountField = fields.stream()
+						.filter(tempField -> ReportConstants.TRAN_COUNT.equals(tempField.getFieldName())).findAny().orElse(null);
+				if ("POS".contentEquals(getFieldValue(field, fieldsMap))) {		
+					txnCount += Integer.parseInt(getFieldValue(txnCountField, fieldsMap).replace(",", ""));
 				} else {
-					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap));
+					txnCount -= Integer.parseInt(getFieldValue(txnCountField, fieldsMap).replace(",", ""));
 				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_COMMISSION_AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
@@ -140,6 +143,7 @@ public class PosSummary extends PdfReportProcessor {
 			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
+
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
