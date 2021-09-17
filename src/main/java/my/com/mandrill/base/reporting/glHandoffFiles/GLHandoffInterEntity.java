@@ -52,28 +52,16 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			Iterator<String> tranParticularItr = filterByGlDescription(rgm).iterator();
 			while (tranParticularItr.hasNext()) {
 				tranParticular = tranParticularItr.next();
-				if (tranParticular.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
-					preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-					Iterator<String> branchCodeItr = filterByBranchCode(rgm).iterator();
-					while (branchCodeItr.hasNext()) {
-						branchCode = branchCodeItr.next();
-						preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-						rgm.setBodyQuery(getAcquirerDebitBodyQuery());
-						executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-						preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-						rgm.setBodyQuery(getAcquirerCreditBodyQuery());
-						executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-					}
-				} else {
-					preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-					rgm.setBodyQuery(getDebitBodyQuery());
-					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-					preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-					rgm.setBodyQuery(getCreditBodyQuery());
-					executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-				}
+				
+				preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+				rgm.setBodyQuery(getDebitBodyQuery());
+				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
+				preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+				rgm.setBodyQuery(getCreditBodyQuery());
+				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+				
 			}
+			
 			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
@@ -115,28 +103,16 @@ public class GLHandoffInterEntity extends BatchProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
 			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffInterEntity.preProcessing()");
-		if (filterByGlDescription != null && getDebitBodyQuery() != null && getAcquirerDebitBodyQuery() != null
+		if (filterByGlDescription != null && getDebitBodyQuery() != null
 				&& indicator.equals(ReportConstants.DEBIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_DEBIT_DESCRIPTION) = '" + filterByGlDescription + "'");
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 
-		if (filterByGlDescription != null && getCreditBodyQuery() != null && getAcquirerCreditBodyQuery() != null
+		if (filterByGlDescription != null && getCreditBodyQuery() != null
 				&& indicator.equals(ReportConstants.CREDIT_IND)) {
-			if (filterByGlDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING,
-						"SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
 			ReportGenerationFields glDesc = new ReportGenerationFields(ReportConstants.PARAM_GL_DESCRIPTION,
 					ReportGenerationFields.TYPE_STRING,
 					"TRIM(GLE.GLE_CREDIT_DESCRIPTION) = '" + filterByGlDescription + "'");
@@ -148,34 +124,42 @@ public class GLHandoffInterEntity extends BatchProcessor {
 		case ReportConstants.INTER_ENTITY_AP_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAP = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
+					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) AND TXN.TRL_ISS_NAME = '"
+							+ rgm.getInstitution() + "'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			getGlobalFileFieldsMap().put(channelAP.getFieldName(), channelAP);
 			break;
 		case ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL:
 			ReportGenerationFields channelAR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) ");
+					"(TXN.TRL_TSC_CODE IN (128) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL)) AND TXN.TRL_ISS_NAME = '"
+							+ ie_ins_name + "'  AND (TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')");
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + 
-					"'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+					+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
+					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + 
-					"'  AND (TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')");
+					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
+					+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
+					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE = 31 ");
+					"TXN.TRL_TSC_CODE = 31 AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+					+ "'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
+					+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -184,26 +168,14 @@ public class GLHandoffInterEntity extends BatchProcessor {
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffInterEntity.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
-			setAcquirerDebitBodyQuery(
-					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
-					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+			setDebitBodyQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
-					.replace(ReportConstants.SUBSTRING_START, "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
-					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("\"BRANCH CODE\",", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "").replace("\"BRANCH CODE\" ASC,", "")
-					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("\"BRANCH CODE\",", ""));
+					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
@@ -223,27 +195,6 @@ public class GLHandoffInterEntity extends BatchProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
-			case ReportConstants.AC_NUMBER:
-				if (branchCode != null && glDescription.equalsIgnoreCase(ReportConstants.INTER_ENTITY_AR_ATM_WITHDRAWAL)
-						&& indicator.equals(ReportConstants.CREDIT_IND)) {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s",
-							branchCode + getFieldValue(field, fieldsMap)));
-					String glAccNo = branchCode + getFieldValue(field, fieldsMap);
-					int[] glAccNoArray = new int[glAccNo.length()];
-					for (int i = 0; i < glAccNoArray.length; i++) {
-						glAccNoArray[i] = glAccNo.charAt(i);
-						fileHash += glAccNoArray[i];
-					}
-				} else {
-					line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
-					String glAccNo = getFieldValue(field, fieldsMap);
-					int[] glAccNoArray = new int[glAccNo.length()];
-					for (int i = 0; i < glAccNoArray.length; i++) {
-						glAccNoArray[i] = glAccNo.charAt(i);
-						fileHash += glAccNoArray[i];
-					}
-				}
-				break;
 			case ReportConstants.GROUP_ID:
 				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", "ATM" + groupIdDate + "001000001"));
 				break;
