@@ -18,7 +18,7 @@ public class CsvWriter implements IFileWriter {
 
 	public static final String DEFAULT_DELIMITER = ",";
 	public static final String DELIMITER_SEMICOLON = ";";
-	public static final String EOL = System.lineSeparator();
+	public static final String EOL = "\r\n";
 
 	@Override
 	public void writeLine(FileOutputStream out, String line) throws IOException {
