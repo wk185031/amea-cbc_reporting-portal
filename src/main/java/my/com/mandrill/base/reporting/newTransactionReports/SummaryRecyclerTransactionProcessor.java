@@ -8,13 +8,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import my.com.mandrill.base.cbc.processor.ReportWithBodyHeaderTrailerProcessor;
+import my.com.mandrill.base.cbc.processor.BranchReportWithBodyHeaderTrailerProcessor;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
 import my.com.mandrill.base.writer.CsvWriter;
 
 @Component
-public class SummaryRecyclerTransactionProcessor extends ReportWithBodyHeaderTrailerProcessor {
+public class SummaryRecyclerTransactionProcessor extends BranchReportWithBodyHeaderTrailerProcessor {
 
 	@Autowired
 	private CsvWriter csvWriter;
@@ -41,8 +41,8 @@ public class SummaryRecyclerTransactionProcessor extends ReportWithBodyHeaderTra
 
 	@Override
 	protected void writeBodyTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
-			FileOutputStream out) throws Exception {
-		super.writeBodyTrailer(context, bodyFields, out);
+			FileOutputStream outMaster, FileOutputStream outBranch) throws Exception {
+		super.writeBodyTrailer(context, bodyFields, outMaster, outBranch);
 
 		ReportGenerationFields branch = bodyFields.stream()
 				.filter(field -> getBranchFieldName().equals(field.getFieldName())).findAny().orElse(null);
@@ -62,7 +62,8 @@ public class SummaryRecyclerTransactionProcessor extends ReportWithBodyHeaderTra
 			}
 
 			s.append("\"" + formattedAmount + "\"");
-			csvWriter.writeLine(out, s.toString());
+			csvWriter.writeLine(outMaster, s.toString() + " \r\n");
+			csvWriter.writeLine(outBranch, s.toString() + " \r\n");
 			context.getOverallTotal().clear();
 		}
 	}
