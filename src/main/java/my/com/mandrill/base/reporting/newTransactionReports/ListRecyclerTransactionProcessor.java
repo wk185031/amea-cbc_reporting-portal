@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import my.com.mandrill.base.cbc.processor.ReportWithBodyHeaderTrailerProcessor;
+import my.com.mandrill.base.cbc.processor.BranchReportWithBodyHeaderTrailerProcessor;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
 import my.com.mandrill.base.writer.CsvWriter;
 
 @Component
-public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTrailerProcessor {
+public class ListRecyclerTransactionProcessor extends BranchReportWithBodyHeaderTrailerProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(ListRecyclerTransactionProcessor.class);
 
@@ -28,7 +28,7 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 	private final static String SUB_TOTAL_FIELD_NAME = "TRANS AMOUNT";
 
 	@Override
-	protected void writeBodyData(ReportContext context, List<ReportGenerationFields> bodyFields, FileOutputStream out)
+	protected void writeBodyData(ReportContext context, List<ReportGenerationFields> bodyFields, FileOutputStream outMaster, FileOutputStream outBranch)
 			throws Exception {
 
 		StringBuilder line = new StringBuilder();
@@ -64,7 +64,7 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 							f.setFieldName(field.getFieldName());
 							f.setSumAmount(true);
 							f.setValue("0");
-							addToSumField(context, f);
+							addToSumField(context, f);										
 						}
 					} else {
 						addToSumField(context, field);
@@ -81,11 +81,11 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 			}
 		}
 
-		csvWriter.writeLine(out, line.toString());
+		csvWriter.writeLine(outMaster, line.toString());
+		csvWriter.writeLine(outBranch, line.toString());
 		context.setTotalRecord(context.getTotalRecord() + 1);
 	}
 	
-	@Override
 	protected void addToSumField(ReportContext context, ReportGenerationFields field) {
 		if (!field.isSumAmount()) {
 			return;
@@ -103,7 +103,7 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 
 	@Override
 	protected void writeBodyTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
-			FileOutputStream out) throws Exception {
+			FileOutputStream outMaster, FileOutputStream outBranch) throws Exception {
 
 		if (!context.getSubTotal().isEmpty() && context.getSubTotal().containsKey(SUB_TOTAL_FIELD_NAME)) {
 			StringBuilder s = new StringBuilder();
@@ -115,8 +115,10 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 					.format(context.getSubTotal().get("TRANS AMOUNT").doubleValue());
 			s.append("\"" + formattedAmount + "\"");
 
-			csvWriter.writeLine(out, s.toString());
-			csvWriter.writeLine(out, CsvWriter.EOL);
+			csvWriter.writeLine(outMaster, s.toString());
+			csvWriter.writeLine(outMaster, CsvWriter.EOL);
+			csvWriter.writeLine(outBranch, s.toString());
+			csvWriter.writeLine(outBranch, CsvWriter.EOL);
 			context.getSubTotal().clear();
 		}
 
@@ -146,14 +148,15 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 
 			s.append("\"" + formattedAmount + "\"");
 			s.append(CsvWriter.EOL);
-			csvWriter.writeLine(out, s.toString());
+			csvWriter.writeLine(outMaster, s.toString());
+			csvWriter.writeLine(outBranch, s.toString());
 			context.getOverallTotal().clear();
 		}
 	}
 
 	@Override
 	protected void writeReportTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
-			FileOutputStream out) {
+			FileOutputStream outMaster, FileOutputStream outBranch) {
 		// write last line of Overall-Total
 		BigDecimal overallTotal = BigDecimal.ZERO;
 		if (context.getOverallTotal() != null && context.getOverallTotal().containsKey(OVERALL_TOTAL_FIELD_NAME)) {
@@ -174,7 +177,8 @@ public class ListRecyclerTransactionProcessor extends ReportWithBodyHeaderTraile
 		s.append("\"" + formattedAmount + "\"");
 		s.append(CsvWriter.EOL);
 		try {
-			csvWriter.writeLine(out, s.toString());
+			csvWriter.writeLine(outMaster, s.toString());
+			csvWriter.writeLine(outBranch, s.toString());
 		} catch (Exception e) {
 			logger.warn("Failed to write line: {}", e);
 		}

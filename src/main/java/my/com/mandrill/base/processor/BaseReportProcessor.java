@@ -35,12 +35,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.reportProcessor.GeneralReportProcess;
 import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.writer.CsvWriter;
 
-public abstract class BaseReportProcessor implements IReportProcessor,IReportOutputFileName {
+public abstract class BaseReportProcessor extends GeneralReportProcess implements IReportProcessor,IReportOutputFileName {
 
 	private final Logger logger = LoggerFactory.getLogger(BaseReportProcessor.class);
 	private static final String ENCRYPTION_KEY_SUFFIX = "_ENCKEY";
@@ -174,7 +175,7 @@ public abstract class BaseReportProcessor implements IReportProcessor,IReportOut
 
 		return predefinedDataMap;
 	}
-
+	
 	protected Map<String, Map<String, ?>> initDataMap(ReportGenerationMgr rgm) {
 		return new HashMap<>();
 	}
