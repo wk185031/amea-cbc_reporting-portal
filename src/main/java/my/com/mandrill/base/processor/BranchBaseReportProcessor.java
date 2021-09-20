@@ -637,18 +637,15 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 		
 		try {
 			
-			// 2. set some context into ReportContext object for usage throughout the report generation
 			ReportContext currentContext = new ReportContext();
 			currentContext.setTxnEndDateTime(rgm.getTxnEndDate());
 			currentContext.setPredefinedFieldMap(initPredefinedFieldMap(rgm));
 			currentContext.setDataMap(initDataMap(rgm));
 
-			// 4. set body/trailer query to query with {V_*} tag replaceds
 			rgm.setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
 			rgm.setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
 
 			masterOutputFile = createEmptyReportFile(rgm, null); 
-			// 6. initialize outstream that is use for writing data onto the file
 			outMaster = new FileOutputStream(masterOutputFile);
 
 			logger.debug("Execute query: {}", currentContext.getQuery());
@@ -656,23 +653,18 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 			for (Branch b : branches) {
 				logger.debug("Process transaction for branch={}", b.getAbr_code());
 				
-				// 5. not sure what this line doing, to check further in debug
 				currentContext.setQuery(replaceBodyQueryCriteria(rgm, currentContext.getPredefinedFieldMap(), b));
 				conn = datasource.getConnection();
 				ps = conn.prepareStatement(currentContext.getQuery());
 				rs = ps.executeQuery();
 
-				// 1. create file by the location/filename prefix in rgm/start date/end date
 				branchOutputFile = createEmptyReportFile(rgm, b.getAbr_code());
-				// 6. initialize outstream that is use for writing data onto the file
 				outBranch = new FileOutputStream(branchOutputFile);
 
-				// 7. write report header (1 time only)
 				presetBranchCodeAndName(currentContext.getPredefinedFieldMap(), b);
 				writeReportHeader(outMaster, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
 				writeReportHeader(outBranch, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
 
-				// 8. iterate query result to write the body header/body data
 				if (rs.next()) {
 					do {
 						List<ReportGenerationFields> bodyFields = mapResultsetToField(extractBodyFields(rgm.getBodyFields()),
@@ -686,7 +678,6 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 												
 					} while (rs.next());	
 					
-					// Write trailer for last group
 					writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), outMaster, outBranch);
 					writeReportTrailer(currentContext, parseFieldConfig(rgm.getTrailerFields()), outMaster, outBranch);
 					
