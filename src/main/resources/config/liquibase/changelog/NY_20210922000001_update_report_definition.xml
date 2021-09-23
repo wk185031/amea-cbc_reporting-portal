@@ -33,6 +33,13 @@
                  path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
                  splitStatements="false" 
                  stripComments="true" />
+                 
+        <!-- 854 -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
 		
 		<!-- 769 -->
         <sql>
