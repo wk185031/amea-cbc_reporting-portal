@@ -4,6 +4,7 @@
 -- Eload Reports Specification	02-JUL-2021		GS		Modify and restructure the logic of GL Files Eload Reports
 -- Report revision				26-JUL-2021		NY		Revised reports based on spec
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- CBCAXUPISSLOG-935			22-SEP-2021		NY		Exclude cash card product
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -58,6 +59,7 @@ WHERE
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
@@ -103,6 +105,7 @@ WHERE
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLA.GLA_NAME NOT IN (''ACD Eload SVC Charge Bridge'', ''Accts. Payable - Bancnet Eload Tfee'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''

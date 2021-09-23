@@ -40,6 +40,45 @@
                  path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Issuer_Bank.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        
+        <!-- 936/937 -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Summary).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+                 
+        <!-- 934/935 -->
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_E-load.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_ELD_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_E-load.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_IBFT.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_IBFT_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_IBFT.sql"
+                 splitStatements="false" 
+                 stripComments="true" />   
 		
 		<!-- 769 -->
         <sql>

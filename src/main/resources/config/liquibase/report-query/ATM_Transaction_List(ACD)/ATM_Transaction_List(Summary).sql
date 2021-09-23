@@ -41,6 +41,7 @@
 -- CBCAXUPISSLOG-769	20-SEP-2021		NY 		MBK activation to use tsc code 127 from recent ATM fix, segregate accordingly from 126
 -- CBCAXUPISSLOG-550	21-SEP-2021		NY		Fix case condition to not filter out MBK/EBK withdrawal amount under cash dispensed column
 -- CBCAXUPISSLOG-929	21-SEP-2021		NY		Fix eload acq not appear 
+-- CBCAXUPISSLOG-937	22-SEP-2021		NY		New section for inter-entity
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -189,9 +190,9 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NULL 
   AND TXN.TRL_TSC_CODE NOT IN (40, 42, 44, 45, 46, 47, 48, 49, 52, 252)
   AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Acquirer Transfer (debit)
@@ -225,9 +226,9 @@ WHERE
   TXN.TRL_TQU_ID IN (''F'', ''R'')
   AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
   AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Acquirer Transfer (credit)
@@ -261,10 +262,10 @@ WHERE
   TXN.TRL_TQU_ID IN (''F'', ''R'')
   AND TXN.TRL_TSC_CODE IN (44, 48)
   AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
   AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
+  AND {Txn_Criteria}
   AND {Txn_Date}		  
 )	
 GROUP BY "TRAN MNEM"
@@ -310,7 +311,7 @@ WHERE
   AND TXN.TRL_TSC_CODE NOT IN (2, 22)
   AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}) 
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Issuer Transfer (debit)
@@ -343,7 +344,7 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
   AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}) 
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Issuer Transfer (credit)
@@ -372,9 +373,9 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
   AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}) 
   AND CBA.CBA_MNEM = {V_Iss_Name}
   AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
+  AND {Txn_Criteria}
   AND {Txn_Date}
 )
 GROUP BY "TRAN MNEM"
@@ -505,9 +506,9 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NULL 
   AND TXN.TRL_TSC_CODE NOT IN (40, 42, 44, 45, 46, 47, 48, 49, 51, 52, 252)
   AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Acquirer Transfer (debit)
@@ -543,9 +544,9 @@ WHERE
   TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
   AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
   AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Acquirer Transfer (credit)
@@ -581,11 +582,12 @@ WHERE
   TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
   AND TXN.TRL_TSC_CODE IN (44, 48)
   AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
-  AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
   AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
-  AND {Txn_Date}) END ACQ
+  AND {Txn_Criteria}
+  AND {Txn_Date}
+) END ACQ
   START ISS SELECT 
   COUNT("GOOD TRANS") "GOOD TRANS",
   COUNT("BAD TRANS") "BAD TRANS",
@@ -629,7 +631,7 @@ WHERE
   AND TXN.TRL_TSC_CODE NOT IN (2, 22)
   AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Issuer Transfer (debit)
@@ -666,7 +668,7 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
   AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
+  AND {Txn_Criteria}
   AND {Txn_Date}
 UNION ALL
 -- Issuer Transfer (credit)
@@ -699,10 +701,11 @@ WHERE
   AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL 
   AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
   AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
-  AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
   AND CBA.CBA_MNEM = {V_Iss_Name}
   AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = {V_Recv_Inst_Id}
-  AND {Txn_Date}) END');
+  AND {Txn_Criteria}
+  AND {Txn_Date}
+) END');
 	
 	UPDATE REPORT_DEFINITION SET 
 		RED_HEADER_FIELDS = i_HEADER_FIELDS_CBC,
