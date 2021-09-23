@@ -27,6 +27,7 @@ public class GLHandoffBeep extends BatchProcessor {
 	private final Logger logger = LoggerFactory.getLogger(GLHandoffBeep.class);
 	public static final String DM = "DM";
 	public static final String CM = "CM";
+	public static final String CBC_BEEP_SERVICE_CHARGE = "CBC BEEP SERVICE CHARGE";
 	private int success = 0;
 	private double fileHash = 0.00;
 	private String groupIdDate = null;
@@ -34,6 +35,7 @@ public class GLHandoffBeep extends BatchProcessor {
 	@Override
 	protected void execute(File file, ReportGenerationMgr rgm) {
 		try {
+			List<ReportGenerationFields> fields = extractBodyFields(rgm);
 			String tranParticular = null;
 			String branchCode = null;
 			rgm.fileOutputStream = new FileOutputStream(file);
@@ -43,12 +45,27 @@ public class GLHandoffBeep extends BatchProcessor {
 			Iterator<String> tranParticularItr = filterByGlDescription(rgm).iterator();
 			while (tranParticularItr.hasNext()) {
 				tranParticular = tranParticularItr.next();
+				if (tranParticular.equalsIgnoreCase(CBC_BEEP_SERVICE_CHARGE)) {
+					for (ReportGenerationFields field : fields) {
+						switch (field.getFieldName()) {
+						case ReportConstants.TRAN_AMOUNT:
+							String Amount = field.getValue();
+							if (Amount == null) {
+								tranParticular = tranParticularItr.next();
+							}
+
+						}
+
+					}
+
+				} else {		 
 				preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
 				rgm.setBodyQuery(getDebitBodyQuery());
 				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
 				preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
 				rgm.setBodyQuery(getCreditBodyQuery());
 				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
+				}
 			}
 			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
