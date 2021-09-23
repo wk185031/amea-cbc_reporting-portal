@@ -33,10 +33,14 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 	private String tmpTrailerQuery = null;
 	private String onUsBodyQuery = null;
 	private String acqBodyQuery = null;
+	private String ieAcqBodyQuery = null;
 	private String issBodyQuery = null;
+	private String ieIssBodyQuery = null;
 	private String onUsTrailerQuery = null;
 	private String acqTrailerQuery = null;
+	private String ieAcqTrailerQuery = null;
 	private String issTrailerQuery = null;
+	private String ieIssTrailerQuery = null;
 	private String branchDetailBodyQuery = null;
 	private String branchBodyQuery = null;
 	private String bankBodyQuery = null;
@@ -209,6 +213,38 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 
 	public void setCreditTrailerQuery(String creditTrailerQuery) {
 		this.creditTrailerQuery = creditTrailerQuery;
+	}
+
+	public String getIeAcqBodyQuery() {
+		return ieAcqBodyQuery;
+	}
+
+	public void setIeAcqBodyQuery(String ieAcqBodyQuery) {
+		this.ieAcqBodyQuery = ieAcqBodyQuery;
+	}
+
+	public String getIeIssBodyQuery() {
+		return ieIssBodyQuery;
+	}
+
+	public void setIeIssBodyQuery(String ieIssBodyQuery) {
+		this.ieIssBodyQuery = ieIssBodyQuery;
+	}
+
+	public String getIeAcqTrailerQuery() {
+		return ieAcqTrailerQuery;
+	}
+
+	public void setIeAcqTrailerQuery(String ieAcqTrailerQuery) {
+		this.ieAcqTrailerQuery = ieAcqTrailerQuery;
+	}
+
+	public String getIeIssTrailerQuery() {
+		return ieIssTrailerQuery;
+	}
+
+	public void setIeIssTrailerQuery(String ieIssTrailerQuery) {
+		this.ieIssTrailerQuery = ieIssTrailerQuery;
 	}
 
 	public void processPdfRecord(ReportGenerationMgr rgm) {

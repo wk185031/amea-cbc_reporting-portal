@@ -24,7 +24,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
-import my.com.mandrill.base.web.rest.ReportGenerationResource;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
 public class ATMTransactionListSummary extends PdfReportProcessor {
 
@@ -128,6 +128,8 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		StringBuilder onUsLine = new StringBuilder();
 		StringBuilder issLine = new StringBuilder();
 		StringBuilder acqLine = new StringBuilder();
+		StringBuilder ieAcqLine = new StringBuilder();
+		StringBuilder ieIssLine = new StringBuilder();
 
 		try {
 			pagination++;
@@ -158,6 +160,20 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 			issLine.append("FROM ISSUER TRANSACTIONS").append(";");
 			issLine.append(getEol());
 			rgm.writeLine(issLine.toString().getBytes());
+			processingDetails(rgm);
+			
+			rgm.setBodyQuery(getIeAcqBodyQuery());
+			rgm.setTrailerQuery(getIeAcqTrailerQuery());
+			ieAcqLine.append("FROM INTER-ENTITY ACQUIRER TRANSACTIONS").append(";");
+			ieAcqLine.append(getEol());
+			rgm.writeLine(ieAcqLine.toString().getBytes());
+			processingDetails(rgm);
+
+			rgm.setBodyQuery(getIeIssBodyQuery());
+			rgm.setTrailerQuery(getIeIssTrailerQuery());
+			ieIssLine.append("FROM INTER-ENTITY ISSUER TRANSACTIONS").append(";");
+			ieIssLine.append(getEol());
+			rgm.writeLine(ieIssLine.toString().getBytes());
 			processingDetails(rgm);
 
 			rgm.fileOutputStream.flush();
@@ -209,30 +225,55 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		logger.debug("In ATMTransactionListSummary.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setOnUsBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
+					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ)));
 			setAcqBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL")
 					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
-			setIssBodyQuery(rgm.getBodyQuery()
+			setIeAcqBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_IE_Iss_Name}")
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_ISSUER_NAME));
+			setIssBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START_ISS, ""));
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') != {V_Acqr_Inst_Id}) "
+							+ "AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') != {V_IE_Acqr_Inst_Id})")
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""), rgm.getInstitution(), ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ACQR_INST_ID, 
+					ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_INTER_ACQR_INST_ID));
+			setIeIssBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = {V_IE_Acqr_Inst_Id})")
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_INTER_ACQR_INST_ID));
 		}
 		if (rgm.getTrailerQuery() != null) {
-			setOnUsTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NOT NULL"));
-			setAcqTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
+			setOnUsTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ)));
+			setAcqTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL")
 					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
-			setIssTrailerQuery(
-					rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
+			setIeAcqTrailerQuery(CriteriaParamsUtil.replaceInstitution(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_IE_Iss_Name}")
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_ISSUER_NAME));
+			setIssTrailerQuery(CriteriaParamsUtil.replaceInstitution(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START_ISS, ""));
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') != {V_Acqr_Inst_Id}) "
+							+ "AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') != {V_IE_Acqr_Inst_Id})")
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""), rgm.getInstitution(), ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ACQR_INST_ID, 
+					ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_INTER_ACQR_INST_ID));
+			setIeIssTrailerQuery(CriteriaParamsUtil.replaceInstitution(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ISS),
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND (TXN.TRL_DEO_NAME = {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = {V_IE_Acqr_Inst_Id})")
+					.replace(ReportConstants.SUBSTRING_START_ISS, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_INTER_ACQR_INST_ID));
 		}
 	}
 
