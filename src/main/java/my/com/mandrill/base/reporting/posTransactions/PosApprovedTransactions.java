@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
@@ -56,8 +57,8 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 					totalCommission = 0.00;
 					totalNetSettAmt = 0.00;
 					preProcessing(rgm, bankCode);
-					writeMerchantHeader(rgm, bankCode, bankName);
-					writeBodyHeader(rgm);
+					//writeMerchantHeader(rgm, bankCode, bankName);
+					//writeBodyHeader(rgm);
 					executeBodyQuery(rgm, bankCode);
 					writeMerchantTotal(rgm, txnCount, total, totalCommission, totalNetSettAmt);
 				}
@@ -168,7 +169,7 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 			throws IOException {
 		logger.debug("In PosApprovedTransactions.writeMerchantHeader()");
 		StringBuilder line = new StringBuilder();
-		line.append("BANK NAME : ").append(";").append(bankCode).append(" ").append(bankName).append(";").append("COMMISSION : ").append(";")
+		line.append("MERCHANT NAME : ").append(";").append(bankCode).append(" ").append(bankName).append(";").append("COMMISSION : ").append(";")
 				.append("30%").append(";");
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -216,6 +217,15 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 		double txnAmt = 0.00;
 		double commission = 0.00;
 		double netSettAmt = 0.00;
+		
+		boolean isReverse = false;
+		ReportGenerationFields mnemField = fields.stream()
+				.filter(field -> ReportConstants.TRAN_MNEM.equals(field.getFieldName())).findAny().orElse(null);
+		String mnemVal = getFieldValue(mnemField, fieldsMap);
+		if ("PSR".equals(mnemVal)) {	
+			isReverse = true;
+		}
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
@@ -224,35 +234,122 @@ public class PosApprovedTransactions extends PdfReportProcessor {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += txnAmt;
 				} else {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+				if (!isReverse) {
 					total += txnAmt;
+				} else {
+					total -= txnAmt;
 				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_COMMISSION)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					commission = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					commission = Double.parseDouble(getFieldValue(field, fieldsMap));	
+				}
+				if (!isReverse) {
 					totalCommission += commission;
 				} else {
-					commission = Double.parseDouble(getFieldValue(field, fieldsMap));
-					totalCommission += commission;
+					totalCommission -= commission;
 				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_NET_SETT_AMT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					totalNetSettAmt += netSettAmt;
 				} else {
 					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+				if (!isReverse) {
 					totalNetSettAmt += netSettAmt;
+				} else {
+					totalNetSettAmt -= netSettAmt;
 				}
 			}
 
 			line.append(getFieldValue(rgm, field, fieldsMap));
 			line.append(field.getDelimiter());
 		}
-		txnCount++;
+		if (!isReverse) {
+			txnCount++;
+		} else {
+			txnCount--;
+		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				String currentMerchant = null;
+				while (rs.next()) {
+					boolean writeNewGroup = false;
+
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+						if("MERCHANT NAME".equals(field.getFieldName())) {
+							if (currentMerchant == null || !currentMerchant.equals(field.getValue())) {
+								writeNewGroup = true;
+							}
+							currentMerchant = field.getValue();
+						}
+					}
+	
+					if (writeNewGroup) {
+						writeMerchantHeader(rgm, "", currentMerchant);
+						writeBodyHeader(rgm);
+					}
+					writeBody(rgm, lineFieldsMap, branchCode);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 
 //	private String extractCommission(String customData) {

@@ -10,9 +10,6 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -102,42 +99,55 @@ public class PosSummary extends PdfReportProcessor {
 		double commission = 0.00;
 		double netSettAmt = 0.00;
 
+		boolean isReverse = false;
+		ReportGenerationFields mnemField = fields.stream()
+				.filter(field -> ReportConstants.TRAN_MNEM.equals(field.getFieldName())).findAny().orElse(null);
+		String mnemVal = getFieldValue(mnemField, fieldsMap);
+		if ("PSR".equals(mnemVal)) {	
+			isReverse = true;
+		}
 		for (ReportGenerationFields field : fields) {
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					total += txnAmt;
 				} else {
 					txnAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
-					total += txnAmt;
-				}
-				if (field.getValue().startsWith("-")) {
-					fieldsMap.get(field.getFieldName()).setValue(field.getValue().substring(1));
 				}
 				
-			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_MNEM)) {
-				ReportGenerationFields txnCountField = fields.stream()
-						.filter(tempField -> ReportConstants.TRAN_COUNT.equals(tempField.getFieldName())).findAny().orElse(null);
-				if ("POS".contentEquals(getFieldValue(field, fieldsMap))) {		
-					txnCount += Integer.parseInt(getFieldValue(txnCountField, fieldsMap).replace(",", ""));
+				if (!isReverse) {
+					total += txnAmt;
 				} else {
-					txnCount -= Integer.parseInt(getFieldValue(txnCountField, fieldsMap).replace(",", ""));
+					total -= txnAmt;
 				}
+				
+			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.TRAN_COUNT)) {
+				if (!isReverse) {
+					txnCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
+				} else {
+					txnCount -= Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
+				}
+				
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_COMMISSION_AMOUNT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					commission = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					totalCommission += commission;
 				} else {
 					commission = Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+				if (!isReverse) {
 					totalCommission += commission;
+				} else {
+					totalCommission -= commission;
 				}
 			} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.POS_NET_SETT_AMT)) {
 				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
 					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-					totalNetSettAmt += netSettAmt;
 				} else {
 					netSettAmt = Double.parseDouble(getFieldValue(field, fieldsMap));
+				}
+				if (!isReverse) {
 					totalNetSettAmt += netSettAmt;
+				} else {
+					totalNetSettAmt -= netSettAmt;
 				}
 			}
 			line.append(getFieldValue(rgm, field, fieldsMap));
