@@ -427,22 +427,21 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setAcquirerDebitBodyQuery(getAcquirerDebitBodyQuery()
-					.replace(getAcquirerDebitBodyQuery().substring(getAcquirerDebitBodyQuery().indexOf("GROUP BY"),
-							getAcquirerDebitBodyQuery().indexOf("ORDER BY")), ""));
+					.replace("GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_DEBIT_DESCRIPTION", ""));
 			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setAcquirerCreditBodyQuery(getAcquirerCreditBodyQuery()
-					.replace(getAcquirerCreditBodyQuery().substring(getAcquirerCreditBodyQuery().indexOf("GROUP BY"),
-							getAcquirerCreditBodyQuery().indexOf("ORDER BY")), ""));
+					.replace("GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_CREDIT_DESCRIPTION", ""));
 			setDebitBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT ASC,", "")
 					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT,", ""));
+					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT,", "")
+					.replace("TXN.TRL_ID,", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
@@ -450,9 +449,10 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT ASC,", "")
 					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",", "")
-					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT,", ""));
-			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
-					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
+					.replace("TXN.TRL_CARD_ACPT_TERMINAL_IDENT,", "")
+					.replace("TXN.TRL_ID,", ""));
+			setCreditBodyQuery(getCreditBodyQuery()
+					.replace("GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_CREDIT_DESCRIPTION", ""));
 			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
 					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
 					.replace(
@@ -460,9 +460,12 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 							"")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "").replace("TXN.TRL_AMT_TXN,", "")
-					.replace("TXN.TRL_ACQ_CHARGE_AMT,", "").replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));
-			setDebitBodyQuery(getDebitBodyQuery().replace(getDebitBodyQuery()
-					.substring(getDebitBodyQuery().indexOf("GROUP BY"), getDebitBodyQuery().indexOf("ORDER BY")), ""));
+					.replace("TXN.TRL_ACQ_CHARGE_AMT,", "").replace("TXN.TRL_ACCOUNT_1_ACN_ID,", "")
+					.replace("TXN.TRL_ID,", "").replace("WHERE \"DEBIT\" <> 0", "")
+					.replace("\"CODE\" ASC,", ""));
+			setDebitBodyQuery(getDebitBodyQuery()
+					.replace("GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_DEBIT_DESCRIPTION", ""));
+			
 		}
 
 		if (rgm.getTrailerQuery() != null) {
