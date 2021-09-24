@@ -5,6 +5,7 @@
 -- CBCAXUPISSLOG-742	06-JUL-2021		NY		Sort debit/credit accordingly
 -- Report revision		24-JUL-2021		NY		Separate update query to CBC/CBS report definition
 -- Issuer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- CBCAXUPISSLOG-854	24-SEP-2021		NY		Service charge should be acquirer fee charge by other bank
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -44,7 +45,7 @@ SELECT
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''D'' AS "Part Tran Indicator",
-      CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = ''BANCNET AP ATM WITHDRAWAL'' THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT, 0) END AS "Tran Amount",
+      CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = ''BANCNET AP ATM WITHDRAWAL'' THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
       TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, ''MM-DD-YYYY'') "Value Date",
@@ -98,7 +99,7 @@ SELECT
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''C'' AS "Part Tran Indicator",
-      CASE WHEN GLE.GLE_CREDIT_DESCRIPTION = ''BANCNET AP ATM WITHDRAWAL'' THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT, 0) END AS "Tran Amount",
+      CASE WHEN GLE.GLE_CREDIT_DESCRIPTION = ''BANCNET AP ATM WITHDRAWAL'' THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
       GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description"

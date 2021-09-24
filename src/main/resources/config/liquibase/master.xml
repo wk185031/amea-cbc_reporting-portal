@@ -186,4 +186,5 @@
 	<include file="config/liquibase/changelog/NY_20210922000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/LJL_20210923000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20210923000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/NY_20210924000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
