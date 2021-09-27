@@ -48,6 +48,9 @@ public class IbftTransactionFees extends CsvReportProcessor {
 	private double overallAcquiringIncome = 0.00;
 	private double overallReceivingIncome = 0.00;
 	private double overallTotalBilling = 0.00;
+	private int overallTransmittingCount = 0;
+	private int overallAcquiringCount = 0;
+	private int overallReceivingCount = 0;	
 	private String acquiringBranchCode = null;
 	private String issuingBranchCode = null;
 
@@ -75,13 +78,16 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		TreeSet<String> branchCodesList = new TreeSet<>();
 		Set<String> toAccountList = new TreeSet<>();
 		String toAccountNumber = "";
+		String branchName = "";
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
+			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			separateQuery(rgm);
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm);
 			writeBodyHeader(rgm);
 
+			// 1. get all branch codes having ibft acquiring/issuing (transmitting)/receiving
 			preProcessing(rgm, "acquiring");
 			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
 				branchCodesList.add(branchCodeMap.getKey());
@@ -97,46 +103,52 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				branchCodesList.add(receivingBranchCodeMap.getKey());
 			}
 
-			for (String branchCodes : branchCodesList) {
+			// 2. iterate the list of branch codes, for each branch check if the branch has record for acquiring/issuing/receiving, set true flag if it has
+			for (String branchCode : branchCodesList) {
 				preProcessing(rgm, "acquiring");
 				for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-					if (branchCodeMap.getKey().equals(branchCodes)) {
+					if (branchCodeMap.getKey().equals(branchCode)) {
 						acquiring = true;
 					}
 				}
 
 				preProcessing(rgm, "issuing");
 				for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-					if (branchCodeMap.getKey().equals(branchCodes)) {
+					if (branchCodeMap.getKey().equals(branchCode)) {
 						issuing = true;
 					}
 				}
 
-				addReceivingBranchCode(branchCodes);
+				addReceivingBranchCode(branchCode);
 				preProcessing(rgm, "receiving");
 				for (SortedMap.Entry<String, Set<String>> receivingBranchCodeMap : filterForReceivingBranchCode(rgm)
 						.entrySet()) {
-					if (receivingBranchCodeMap.getKey().equals(branchCodes)) {
+					if (receivingBranchCodeMap.getKey().equals(branchCode)) {
 						toAccountList = receivingBranchCodeMap.getValue();
 						receiving = true;
 					}
 				}
+				
+				transmittingCount = 0;
+				transmittingExpense = 0.00;
+				transmittingIncome = 0.00;
+				acquiringCount = 0;	
+				acquiringIncome = 0.00;
+				receivingCount = 0;
+				receivingIncome = 0.00;
 
+				// 3. depend on the flag, accumulate each total/calculation accordingly to populate to report's column
 				if (acquiring) {
 					preProcessing(rgm, "acquiring");
 					for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-						if (branchCodeMap.getKey().equals(branchCodes)) {
-							transmittingExpense = 0.00;
-							transmittingIncome = 0.00;
-							acquiringIncome = 0.00;
-							receivingIncome = 0.00;
-							ReportGenerationFields branchCode = new ReportGenerationFields(
+						if (branchCodeMap.getKey().equals(branchCode)) {
+							ReportGenerationFields branchCodeValue = new ReportGenerationFields(
 									ReportConstants.PARAM_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
-									"ABR.ABR_CODE = '" + branchCodes + "'");
-							getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+									"ABR.ABR_CODE = '" + branchCode + "'");
+							getGlobalFileFieldsMap().put(branchCodeValue.getFieldName(), branchCodeValue);
 							setAcquiringBranchCode(branchCodeMap.getKey());
 							rgm.setBodyQuery(getAcquiringBodyQuery());
-							executeBodyQuery(rgm, branchCodes, toAccountList);
+							executeBodyQuery(rgm, branchCode, toAccountList);
 						}
 					}
 				}
@@ -144,36 +156,26 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				if (issuing) {
 					preProcessing(rgm, "issuing");
 					for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-						if (branchCodeMap.getKey().equals(branchCodes)
-								&& !branchCodeMap.getKey().equals(getAcquiringBranchCode())) {
-							transmittingExpense = 0.00;
-							transmittingIncome = 0.00;
-							acquiringIncome = 0.00;
-							receivingIncome = 0.00;
-							ReportGenerationFields branchCode = new ReportGenerationFields(
+						if (branchCodeMap.getKey().equals(branchCode)) {
+							ReportGenerationFields branchCodeValue = new ReportGenerationFields(
 									ReportConstants.PARAM_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
-									"BRC.BRC_CODE = '" + branchCodes + "'");
-							getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+									"BRC.BRC_CODE = '" + branchCode + "'");
+							getGlobalFileFieldsMap().put(branchCodeValue.getFieldName(), branchCodeValue);
 							setIssuingBranchCode(branchCodeMap.getKey());
 							rgm.setBodyQuery(getIssuingBodyQuery());
-							executeBodyQuery(rgm, branchCodes, toAccountList);
+							executeBodyQuery(rgm, branchCode, toAccountList);
 						}
 					}
 				}
 
 				if (receiving) {
-					addReceivingBranchCode(branchCodes);
+					addReceivingBranchCode(branchCode);
 					preProcessing(rgm, "receiving");
 					for (SortedMap.Entry<String, Set<String>> branchCodeMap : filterForReceivingBranchCode(rgm)
 							.entrySet()) {
-						if (branchCodeMap.getKey().equals(branchCodes)
-								&& !branchCodeMap.getKey().equals(getAcquiringBranchCode())
-								&& !branchCodeMap.getKey().equals(getIssuingBranchCode())) {
+						if (branchCodeMap.getKey().equals(branchCode)) {
+							toAccountNumber = "";
 							toAccountList = branchCodeMap.getValue();
-							transmittingExpense = 0.00;
-							transmittingIncome = 0.00;
-							acquiringIncome = 0.00;
-							receivingIncome = 0.00;
 							int i = 0;
 							for (Iterator<String> it = toAccountList.iterator(); it.hasNext();) {
 								String toAccountNo = it.next();
@@ -197,15 +199,43 @@ public class IbftTransactionFees extends CsvReportProcessor {
 									"TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
 							getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
 							rgm.setBodyQuery(getReceivingBodyQuery());
-							executeBodyQuery(rgm, branchCodes, toAccountList);
+							executeBodyQuery(rgm, branchCode, toAccountList);
 						}
 					}
 				}
+				
+				totalBilling = transmittingExpense - transmittingIncome - acquiringIncome - receivingIncome;
+				overallTransmittingCount += transmittingCount;
+				overallAcquiringCount += acquiringCount;
+				overallReceivingCount += receivingCount;
+				overallTransmittingExpense += transmittingExpense;
+				overallTransmittingIncome += transmittingIncome;
+				overallAcquiringIncome += acquiringIncome;
+				overallReceivingIncome += receivingIncome;
+					
+				// 4. write to body after we have combine acquiring/issuing (transmitting)/receiving count/amount for each branch
+				HashMap<String, ReportGenerationFields> fieldsMap = new HashMap<>();
+				branchName = getBranchName(rgm, branchCode);
+				fieldsMap.put("BRANCH CODE", new ReportGenerationFields("BRANCH CODE", "STRING", branchCode));
+				fieldsMap.put("BRANCH NAME", new ReportGenerationFields("BRANCH CODE", "STRING", branchName));
+				fieldsMap.put("TRANSMITTING COUNT", new ReportGenerationFields("TRANSMITTING COUNT", "STRING", String.valueOf(transmittingCount)));
+				fieldsMap.put("TRANSMITTING EXPENSE", new ReportGenerationFields("TRANSMITTING EXPENSE", "STRING", String.valueOf(transmittingExpense)));
+				fieldsMap.put("TRANSMITTING INCOME", new ReportGenerationFields("TRANSMITTING INCOME", "STRING", String.valueOf(transmittingIncome)));
+				fieldsMap.put("ACQUIRER COUNT", new ReportGenerationFields("ACQUIRER COUNT", "STRING", String.valueOf(acquiringCount)));
+				fieldsMap.put("ACQUIRER INCOME", new ReportGenerationFields("ACQUIRER INCOME", "STRING", String.valueOf(acquiringIncome)));
+				fieldsMap.put("RECEIVING COUNT", new ReportGenerationFields("RECEIVING COUNT", "STRING", String.valueOf(receivingCount)));
+				fieldsMap.put("RECEIVING INCOME", new ReportGenerationFields("RECEIVING INCOME", "STRING", String.valueOf(receivingIncome)));
+				fieldsMap.put("TOTAL BILLING", new ReportGenerationFields("TOTAL BILLING", "STRING", String.valueOf(totalBilling)));
+				writeBody(rgm, fieldsMap);
 			}
 
+			overallTotalBilling = overallTransmittingExpense - overallTransmittingIncome - overallAcquiringIncome - overallReceivingIncome;
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
+			
+			// reset to original body query otherwise monthly report generation will break
+			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 		} catch (IOException | JSONException | InstantiationException | IllegalAccessException
 				| ClassNotFoundException e) {
 			rgm.errors++;
@@ -293,133 +323,6 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		rgm.writeLine(line.toString().getBytes());
 	}
 
-	private void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String filterByBranchCode, Set<String> filterByToAccountNo)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
-		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		StringBuilder line = new StringBuilder();
-		DecimalFormat formatter = new DecimalFormat("#,##0.00");
-		String toAccountNumber = "";
-		for (ReportGenerationFields field : fields) {
-			switch (field.getFieldName()) {
-			case ReportConstants.TRANSMITTING_COUNT:
-				if (filterByBranchCode != null) {
-					ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-							ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
-					getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-				}
-
-				rgm.setBodyQuery(getIssuingBodyQuery());
-				fieldsMap.get(field.getFieldName())
-						.setValue(executeQuery(rgm, ReportConstants.TRANSMITTING_COUNT, null));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				transmittingCount += ((Integer.parseInt(getFieldValue(field, fieldsMap))) / 2);
-				break;
-			case ReportConstants.TRANSMITTING_EXPENSE:
-				fieldsMap.get(field.getFieldName())
-						.setValue(executeQuery(rgm, null, ReportConstants.TRANSMITTING_EXPENSE));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					transmittingExpense += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					transmittingExpense += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				overallTransmittingExpense += transmittingExpense;
-				break;
-			case ReportConstants.TRANSMITTING_INCOME:
-				fieldsMap.get(field.getFieldName())
-						.setValue(executeQuery(rgm, null, ReportConstants.TRANSMITTING_INCOME));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					transmittingIncome += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					transmittingIncome += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				overallTransmittingIncome += transmittingIncome;
-				break;
-			case ReportConstants.ACQUIRER_COUNT:
-				if (filterByBranchCode != null) {
-					ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-							ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
-					getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-				}
-
-				rgm.setBodyQuery(getAcquiringBodyQuery());
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, ReportConstants.ACQUIRER_COUNT, null));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				acquiringCount += Integer.parseInt(getFieldValue(field, fieldsMap));
-				break;
-			case ReportConstants.ACQUIRER_INCOME:
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, null, ReportConstants.ACQUIRER_INCOME));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					acquiringIncome += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					acquiringIncome += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				overallAcquiringIncome += acquiringIncome;
-				break;
-			case ReportConstants.RECEIVING_COUNT:
-				if (filterByToAccountNo != null) {
-					for (Iterator<String> it = filterByToAccountNo.iterator(); it.hasNext();) {
-						String toAccountNo = it.next();
-						if (it.hasNext()) {
-							toAccountNumber += "'" + toAccountNo + "',";
-						} else {
-							toAccountNumber += "'" + toAccountNo + "'";
-						}
-					}
-					
-					if(toAccountNumber == "") {
-						toAccountNumber = "'0'";
-					}
-					
-					ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
-							ReportGenerationFields.TYPE_STRING,
-							"TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
-					getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
-				}
-
-				rgm.setBodyQuery(getReceivingBodyQuery());
-				rgm.setBodyQuery(getBodyQuery(rgm).replace("TXN.TRL_ACCOUNT_2_ACN_ID \"TO ACCOUNT NO\",", "")
-						.replace("TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,", "")
-						.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("(SELECT BRC_NAME"),
-								getBodyQuery(rgm).indexOf("\"BRANCH NAME\",")), "")
-						.replace("\"BRANCH NAME\",", "")
-						.replace(getBodyQuery(rgm).substring(getBodyQuery(rgm).indexOf("GROUP BY")), ""));
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, ReportConstants.RECEIVING_COUNT, null));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				receivingCount += Integer.parseInt(getFieldValue(field, fieldsMap));
-				break;
-			case ReportConstants.RECEIVING_INCOME:
-				fieldsMap.get(field.getFieldName()).setValue(executeQuery(rgm, null, ReportConstants.RECEIVING_INCOME));
-				line.append(getFieldValue(rgm, field, fieldsMap));
-
-				if (getFieldValue(field, fieldsMap).indexOf(",") != -1) {
-					receivingIncome += Double.parseDouble(getFieldValue(field, fieldsMap).replace(",", ""));
-				} else {
-					receivingIncome += Double.parseDouble(getFieldValue(field, fieldsMap));
-				}
-				overallReceivingIncome += receivingIncome;
-				break;
-			case ReportConstants.TOTAL_BILLING:
-				totalBilling = transmittingExpense - (transmittingIncome + acquiringIncome + receivingIncome);
-				overallTotalBilling += totalBilling;
-				line.append(formatter.format(totalBilling));
-				break;
-			default:
-				line.append(getFieldValue(rgm, field, fieldsMap));
-				break;
-			}
-			line.append(field.getDelimiter());
-		}
-		line.append(getEol());
-		rgm.writeLine(line.toString().getBytes());
-	}
-
 	private void writeTrailer(ReportGenerationMgr rgm)
 			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
 		logger.debug("In IbftTransactionFees.writeTrailer()");
@@ -429,7 +332,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRANSMITTING_COUNT:
-				line.append(transmittingCount);
+				line.append(overallTransmittingCount);
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.TRANSMITTING_EXPENSE:
@@ -441,7 +344,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.ACQUIRER_COUNT:
-				line.append(acquiringCount);
+				line.append(overallAcquiringCount);
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.ACQUIRER_INCOME:
@@ -449,7 +352,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.RECEIVING_COUNT:
-				line.append(receivingCount);
+				line.append(overallReceivingCount);
 				line.append(field.getDelimiter());
 				break;
 			case ReportConstants.RECEIVING_INCOME:
@@ -546,10 +449,9 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
-		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
 		logger.info("Query for body line export: {}", query);
-
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		if (query != null && !query.isEmpty()) {
 			try {
 				ps = rgm.connection.prepareStatement(query);
@@ -584,7 +486,13 @@ public class IbftTransactionFees extends CsvReportProcessor {
 							field.setValue("");
 						}
 					}
-					writeBody(rgm, lineFieldsMap, branchCode, toAccountNo);
+					transmittingCount += Integer.parseInt(lineFieldsMap.get("TRANSMITTING COUNT").getValue());
+					transmittingExpense += Double.parseDouble(lineFieldsMap.get("TRANSMITTING EXPENSE").getValue());
+					transmittingIncome += Double.parseDouble(lineFieldsMap.get("TRANSMITTING INCOME").getValue());
+					acquiringCount += Integer.parseInt(lineFieldsMap.get("ACQUIRER COUNT").getValue());
+					acquiringIncome += Double.parseDouble(lineFieldsMap.get("ACQUIRER INCOME").getValue());
+					receivingCount += Integer.parseInt(lineFieldsMap.get("RECEIVING COUNT").getValue());
+					receivingIncome +=  Double.parseDouble(lineFieldsMap.get("RECEIVING INCOME").getValue());
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -600,12 +508,12 @@ public class IbftTransactionFees extends CsvReportProcessor {
 			}
 		}
 	}
-
-	private String executeQuery(ReportGenerationMgr rgm, String count, String total) {
-		logger.debug("In IbftTransactionFees.executeQuery()");
+	
+	private String getBranchName(ReportGenerationMgr rgm, String branchCode) {
+		logger.debug("In IbftTransactionFees.getBranchName()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
-		String query = getBodyQuery(rgm);
+		String query = "select brc.brc_name from branch brc where brc.brc_code = '" + branchCode + "'";
 		logger.info("Execute query: {}", query);
 
 		try {
@@ -613,12 +521,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
-				if (count != null) {
-					return rs.getObject(count).toString();
-				}
-				if (total != null) {
-					return rs.getObject(total).toString();
-				}
+				return rs.getString(1);
 			}
 		} catch (Exception e) {
 			rgm.errors++;
