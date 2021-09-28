@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -15,6 +16,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.MovingCashReportProcessor;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
 public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
@@ -166,6 +168,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		pagination++;
 		try {
 			preProcessing(rgm, false, "issuer");
+			logger.debug("getSummaryBodyQuery(): " + getSummaryBodyQuery());
 			writeSummaryHeader(rgm, pagination);
 			StringBuilder line = new StringBuilder();
 			line.append("PER ISSUER BRANCH").append(";");
@@ -250,25 +253,38 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
 		} else {
 			if (summaryType != null) {
+				
 				if (summaryType.equals("issuer")) {
-					setSummaryBodyQuery(getSummaryBodyQuery()
-							.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "} \"BRANCH CODE\"",
-									"BRC.BRC_CODE \"BRANCH CODE\"")
-							.replace("{" + ReportConstants.PARAM_BRANCH_NAME + "} \"BRANCH NAME\"",
-									"BRC.BRC_NAME \"BRANCH NAME\"")
-							.replace("{" + ReportConstants.PARAM_JOIN_CRITERIA + "}",
-									"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE"));
-					rgm.setBodyQuery(
-							getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					
+					String summaryQuery =  CriteriaParamsUtil.replaceInstitution(
+							" COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_Iss_Name} ",
+					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME);
+					
+					setSummaryBodyQuery(getSummaryBodyQuery().
+							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+					
+					setSummaryTrailerQuery(getSummaryTrailerQuery().
+							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+					
+					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
+					
 				} else {
-					setSummaryBodyQuery(getSummaryBodyQuery()
-							.replace("BRC.BRC_CODE \"BRANCH CODE\"", "ABR.ABR_CODE \"BRANCH CODE\"")
-							.replace("BRC.BRC_NAME \"BRANCH NAME\"", "ABR.ABR_NAME \"BRANCH NAME\"").replace(
-									"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE",
-									"JOIN ATM_STATIONS AST ON TXN.TRL_CARD_ACPT_TERMINAL_IDENT = AST.AST_TERMINAL_ID JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID"));
-					rgm.setBodyQuery(
-							getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					
+					String summaryQuery =  CriteriaParamsUtil.replaceInstitution(
+							" (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = {V_Acqr_Inst_Id}) ",
+					rgm.getInstitution(), ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ACQR_INST_ID);
+					
+					setSummaryBodyQuery(getSummaryBodyQuery().
+							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+					
+					setSummaryTrailerQuery(getSummaryTrailerQuery().
+							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+					
+					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
 				}
+				
+				rgm.setBodyQuery(
+						getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			}
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -279,15 +295,9 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		logger.debug("In AtmListCardlessWithdrawal.preProcessing()");
 		ReportGenerationFields txnCode = null;
 		if (filterByBranchCode != null) {
-			if (txnType.equals("issuerSummary")) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			} else {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
 						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
-			}
 		}
 
 		if (filterByTerminal != null) {
@@ -306,4 +316,5 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			getGlobalFileFieldsMap().put(txnCode.getFieldName(), txnCode);
 		}
 	}
+	
 }

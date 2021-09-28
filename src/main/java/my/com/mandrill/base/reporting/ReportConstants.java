@@ -108,6 +108,7 @@ public final class ReportConstants {
 	public static final String PARAM_TXN_TIME = "Txn_Time";
 	public static final String PARAM_BANK_MNEM = "Bank_Mnem";
 	public static final String PARAM_BRANCH_INST_FILTER = "Branch_Inst_Filter";
+	public static final String PARAM_SUMMARY = "SUMMARY";
 
 	public static final String VALUE_DEO_NAME = "V_Deo_Name";
 	public static final String VALUE_INTER_DEO_NAME = "V_IE_Deo_Name";
