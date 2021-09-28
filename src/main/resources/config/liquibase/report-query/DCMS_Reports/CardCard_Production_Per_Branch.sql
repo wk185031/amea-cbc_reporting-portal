@@ -47,7 +47,7 @@ from
 	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
 where
 	ccr.ccr_ins_id = {Iss_Id}
-	and To_Timestamp(ccr.ccr_created_ts, ''DD/MM/YYYY HH24:MI:SS.FF'') Between To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') And To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and ccr.ccr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') and ccr.ccr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
 group by
 	brn.brn_code, brn.brn_name
 	');	

@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.glHandoffBlocksheet;
+package my.com.mandrill.base.reporting.glHandoffFinalProofSheet;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,14 +24,14 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.BaseGLProcessor;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 
-public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
-
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetCashCard.class);
+public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
+	private final Logger logger = LoggerFactory.getLogger(BaseGLProcessor.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -67,8 +67,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
-			String currentDebitCreditFlag = null;
-			boolean newGroup = true;
 			if (rs.next()) {
 				Map<String, BigDecimal> summaryTotal = new HashMap<String, BigDecimal>();
 				summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
@@ -103,7 +101,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 							branchCode = field.getValue();
 						}
 					}
-					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
 
 					if (recordCount >= MAX_RECORD_PER_PAGE) {
 						contentStream.endText();
@@ -113,26 +110,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 						recordCount = 0;
 					}
 
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag)) {
-						newGroup = false;
-					} else {
-						if (lastDebitCreditFlag != null) {
-							writePdfTrailer(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, summaryTotal);
-							contentStream.endText();
-							contentStream.close();
-							contentStream = newPage(rgm, doc, DEFAULT_FONT, DEFAULT_FONT_SIZE, DEFAULT_MARGIN,
-									pageCount);
-							pageCount++;
-						}
-						newGroup = true;
-						lastDebitCreditFlag = currentDebitCreditFlag;
-						// reset total
-						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
-						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
-					}
-
-					writePdfBody(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, branchCode, newGroup,
-							summaryTotal);
+					writePdfBody(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, branchCode, summaryTotal);
 					recordCount++;
 				} while (rs.next());
 				writePdfTrailer(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, summaryTotal);
@@ -178,7 +156,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			PreparedStatement ps = null;
 			int recordCount = 0;
 			int pageCount = 1;
-			String lastDebitCreditFlag = null;
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			String query = getBodyQuery(rgm);
 
@@ -187,9 +164,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
-			String currentDebitCreditFlag = null;
-			boolean newGroup = true;
-			
 			writeHeader(rgm, pageCount);
 			writeBodyHeader(rgm);
 			pageCount++;
@@ -228,7 +202,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 							branchCode = field.getValue();
 						}
 					}
-					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
 
 					if (recordCount >= MAX_RECORD_PER_PAGE) {
 						writeHeader(rgm, pageCount);
@@ -236,24 +209,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 						pageCount++;
 						recordCount = 0;
 					}
-
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag)) {
-						newGroup = false;
-					} else {
-						if (lastDebitCreditFlag != null) {
-							writeTxtTrailer(rgm, lineFieldsMap, DEFAULT_LEADING, summaryTotal);
-							writeHeader(rgm, pageCount);
-							writeBodyHeader(rgm);
-							pageCount++;
-						}
-						newGroup = true;
-						lastDebitCreditFlag = currentDebitCreditFlag;
-						// reset total
-						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
-						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
-					}
-
-					writeBody(rgm, lineFieldsMap, branchCode, newGroup, summaryTotal);
+					writeBody(rgm, lineFieldsMap, branchCode, summaryTotal);
 					recordCount++;
 				} while (rs.next());
 				writeTxtTrailer(rgm, lineFieldsMap, DEFAULT_LEADING, summaryTotal);
@@ -476,7 +432,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading, branchCode, false, null);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, branchCode, new HashMap<String, BigDecimal>());
 					pageHeight++;
 				}
 				pageHeight += 1;
@@ -501,111 +457,41 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 	}
 
 	private void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading, String branchCode, boolean isNewGroup,
-			Map<String, BigDecimal> summaryTotal)
+			PDPageContentStream contentStream, float leading, String branchCode, Map<String, BigDecimal> summaryTotal)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		String overflowAccName = null;
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
-			if (!isNewGroup) {
-				switch (field.getFieldName()) {
-				case ReportConstants.BRANCH_CODE:
-				case ReportConstants.GL_ACCOUNT_NUMBER:
-				case ReportConstants.GL_ACCOUNT_NAME:
-				case ReportConstants.DESCRIPTION:
-					if (field.isEol()) {
-						contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						contentStream.newLineAtOffset(0, -leading);
-					} else {
-						if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-							contentStream.showText(
-									String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s", ""));
-						} else {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", ""));
-						}
-					}
-					break;
-				case ReportConstants.DEBIT:
-					String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalDebit = new BigDecimal(debitVal).add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
-					summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
-					contentStream.showText(field.format(rgm, false, false, true, false));
-					break;
-				case ReportConstants.CREDIT:
-					String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalCredit = new BigDecimal(creditVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
-					summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
-					contentStream.showText(field.format(rgm, false, false, true, false));
-					break;
-				default:
-					if (field.isEol()) {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-						contentStream.newLineAtOffset(0, -leading);
-					} else {
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					}
-					break;
+			switch (field.getFieldName()) {
+			case ReportConstants.GL_ACCOUNT_NUMBER:
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
 				}
-			} else {
-				if (field.isEol()) {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-					contentStream.newLineAtOffset(0, -leading);
-				} else {
-					switch (field.getFieldName()) {
-					case ReportConstants.GL_ACCOUNT_NUMBER:
-						if (getFieldValue(field, fieldsMap).length() < 14) {
-							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
-									branchCode + getFieldValue(field, fieldsMap)));
-						} else {
-							contentStream.showText(
-									String.format("%1$" + field.getPdfLength() + "s", getFieldValue(field, fieldsMap)));
-						}
-						break;
-					case ReportConstants.GL_ACCOUNT_NAME:
-						String value = getFieldValue(field, fieldsMap);
-						if (value != null && value.length() > field.getPdfLength()) {
-							overflowAccName = value.substring(value.length() - 6);
-							contentStream.showText(
-									String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-											getFieldValue(rgm, field, fieldsMap).substring(0, value.length() - 6)));
-						} else {
-							contentStream.showText(String.format("%1$4s", "") + String
-									.format("%1$" + field.getPdfLength() + "s", getFieldValue(rgm, field, fieldsMap)));
-						}
-						break;
-					case ReportConstants.DEBIT:
-						String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-						BigDecimal totalDebit = new BigDecimal(debitVal)
-								.add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
-						summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
-						contentStream.showText(field.format(rgm, false, false, true, false));
-						break;
-					case ReportConstants.CREDIT:
-						String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-						BigDecimal totalCredit = new BigDecimal(creditVal)
-								.add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
-						summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
-						contentStream.showText(field.format(rgm, false, false, true, false));
-						break;
-					default:
-						contentStream.showText(getFieldValue(rgm, field, fieldsMap));
-						break;
-					}
-				}
+				contentStream.showText(field.format(rgm, false, false, true, false));
+				break;
+			case ReportConstants.DEBIT:
+				String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
+				BigDecimal totalDebit = new BigDecimal(debitVal).add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
+				summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
+				contentStream.showText(field.format(rgm, false, false, true, false));
+				break;
+			case ReportConstants.CREDIT:
+				String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
+				BigDecimal totalCredit = new BigDecimal(creditVal).add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
+				summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
+				contentStream.showText(field.format(rgm, false, false, true, false));
+				break;
+			default:
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				break;
+			}
+			if (field.isEol()) {
+				contentStream.newLineAtOffset(0, -leading);
 			}
 		}
-		if (overflowAccName != null && overflowAccName.length() > 0) {
-			contentStream.showText(String.format("%1$28s", "") + overflowAccName);
-			contentStream.newLineAtOffset(0, -leading);
-			pageHeight += 1;
-			overflowAccName = null;
-		}
-		// firstRecord = false;
 	}
 
 	private void processingDetail(ReportGenerationMgr rgm, String branchCode) {
@@ -655,98 +541,41 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 	}
 
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			String branchCode, boolean newGroup, Map<String, BigDecimal> summaryTotal)
+			String branchCode, Map<String, BigDecimal> summaryTotal)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
-		String overflowAccName = null;
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
-			if (!newGroup) {
-				switch (field.getFieldName()) {
-				case ReportConstants.BRANCH_CODE:
-				case ReportConstants.GL_ACCOUNT_NUMBER:
-				case ReportConstants.GL_ACCOUNT_NAME:
-				case ReportConstants.DESCRIPTION:
-					if (field.getFieldName().equalsIgnoreCase(ReportConstants.GL_ACCOUNT_NAME)) {
-						line.append(
-								String.format("%1$4s", "") + String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					} else {
-						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", ""));
-					}
-					break;
-				case ReportConstants.DEBIT:
-					String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalDebit = new BigDecimal(debitVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
-					summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
-					line.append(field.format(rgm, false, false, true, false));
-					break;
-				case ReportConstants.CREDIT:
-					String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalCredit = new BigDecimal(creditVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
-					summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
-					line.append(field.format(rgm, false, false, true, false));
-					break;
-				default:
-					line.append(getFieldValue(rgm, field, fieldsMap));
-					break;
+			switch (field.getFieldName()) {
+			case ReportConstants.GL_ACCOUNT_NUMBER:
+				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
+					field.setValue(branchCode + field.getValue());
 				}
-			} else {
-				switch (field.getFieldName()) {
-				case ReportConstants.GL_ACCOUNT_NUMBER:
-					if (getFieldValue(field, fieldsMap).length() < 14) {
-						line.append(
-								String.format("%1$" + field.getCsvTxtLength() + "s", branchCode + field.getValue()));
-					} else {
-						line.append(
-								String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
-					}
-
-					break;
-				case ReportConstants.GL_ACCOUNT_NAME:
-					String value = getFieldValue(field, fieldsMap);
-					if (value != null && value.length() > field.getPdfLength()) {
-						overflowAccName = value.substring(value.length() - 6);
-						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(rgm, field, fieldsMap).substring(0, value.length() - 6)));
-					} else {
-						line.append(String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-								getFieldValue(rgm, field, fieldsMap)));
-					}
-					break;
-				case ReportConstants.DEBIT:
-					String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalDebit = new BigDecimal(debitVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
-					summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
-					line.append(field.format(rgm, false, false, true, false));
-					break;
-				case ReportConstants.CREDIT:
-					String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalCredit = new BigDecimal(creditVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
-					summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
-					line.append(field.format(rgm, false, false, true, false));
-					break;
-				default:
-					line.append(getFieldValue(rgm, field, fieldsMap));
-					break;
-				}
+				line.append(field.format(rgm, false, false, true, false));
+				break;
+			case ReportConstants.DEBIT:
+				String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
+				BigDecimal totalDebit = new BigDecimal(debitVal).add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
+				summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
+				line.append(field.format(rgm, false, false, true, false));
+				break;
+			case ReportConstants.CREDIT:
+				String creditVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
+				BigDecimal totalCredit = new BigDecimal(creditVal).add(summaryTotal.get(ReportConstants.TOTAL_CREDIT));
+				summaryTotal.put(ReportConstants.TOTAL_CREDIT, totalCredit);
+				line.append(field.format(rgm, false, false, true, false));
+				break;
+			default:
+				line.append(getFieldValue(rgm, field, fieldsMap));
+				break;
 			}
 		}
 		line.append(getEol());
-		if (overflowAccName != null && overflowAccName.length() > 0) {
-			line.append(String.format("%1$28s", "") + overflowAccName);
-			line.append(getEol());
-			overflowAccName = null;
-		}
 		rgm.writeLine(line.toString().getBytes());
-		// firstRecord = false;
 	}
 
 	private boolean executeQuery(ReportGenerationMgr rgm) {

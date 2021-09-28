@@ -193,6 +193,8 @@ public final class ReportConstants {
 	public static final String COMMENT = "COMMENT";
 	public static final String DEBITS = "DEBITS";
 	public static final String CREDITS = "CREDITS";
+	public static final String DEBIT = "DEBIT";
+	public static final String CREDIT = "CREDIT";
 	public static final String TOTAL_DEBIT = "TOTAL DEBIT";
 	public static final String TOTAL_CREDIT = "TOTAL CREDIT";
 	public static final String TOTAL_AMOUNT = "TOTAL AMOUNT";

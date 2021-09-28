@@ -1,4 +1,4 @@
-package my.com.mandrill.base.reporting.glHandoffBlocksheet;
+package my.com.mandrill.base.processor;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,9 +29,9 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
 
-public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
+public class BaseGLProcessor extends TxtReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(GLHandoffBlocksheetCashCard.class);
+	private final Logger logger = LoggerFactory.getLogger(BaseGLProcessor.class);
 	private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 	private float totalHeight = PDRectangle.A4.getHeight();
 	private int pagination = 0;
@@ -130,7 +130,6 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
 						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
 					}
-
 					writePdfBody(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, branchCode, newGroup,
 							summaryTotal);
 					recordCount++;
@@ -189,7 +188,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 
 			String currentDebitCreditFlag = null;
 			boolean newGroup = true;
-			
+
 			writeHeader(rgm, pageCount);
 			writeBodyHeader(rgm);
 			pageCount++;
@@ -680,8 +679,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 					break;
 				case ReportConstants.DEBIT:
 					String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalDebit = new BigDecimal(debitVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
+					BigDecimal totalDebit = new BigDecimal(debitVal).add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
 					summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
 					line.append(field.format(rgm, false, false, true, false));
 					break;
@@ -721,8 +719,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 					break;
 				case ReportConstants.DEBIT:
 					String debitVal = getFieldValue(rgm, field, fieldsMap).replace(",", "").trim();
-					BigDecimal totalDebit = new BigDecimal(debitVal)
-							.add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
+					BigDecimal totalDebit = new BigDecimal(debitVal).add(summaryTotal.get(ReportConstants.TOTAL_DEBIT));
 					summaryTotal.put(ReportConstants.TOTAL_DEBIT, totalDebit);
 					line.append(field.format(rgm, false, false, true, false));
 					break;

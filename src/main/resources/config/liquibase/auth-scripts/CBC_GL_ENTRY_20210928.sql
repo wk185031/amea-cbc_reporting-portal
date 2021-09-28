@@ -52,4 +52,9 @@ current_timestamp,
 current_timestamp
 );
 
+update CBC_GL_ENTRY set GLE_SVC_ENABLED='Y' where gle_debit_account='ACD Issuer WDL SVC Charge Brdige';
+update CBC_GL_ENTRY set GLE_SVC_ENABLED='Y' where gle_debit_account='ACD IBFT SVC Charge Bridge';
+update CBC_GL_ENTRY set GLE_SVC_ENABLED='Y' where gle_debit_account='ACD Inter-Entity IBFT SVC Charge Bridge';
+update CBC_GL_ENTRY set GLE_SVC_ENABLED='Y' where gle_debit_account='ACD BEEP SVC Charge Bridge';
+
 commit;

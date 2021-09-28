@@ -13,6 +13,7 @@ DECLARE
     i_TRAILER_FIELDS_CBS CLOB;
 	i_BODY_QUERY CLOB;
 	i_TRAILER_QUERY CLOB;
+	i_PROCESSING_CLASS VARCHAR2(200) := 'my.com.mandrill.base.reporting.glHandoffFiles.DefaultGLHandoff';
 BEGIN 
 
 	i_HEADER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Record Type Indicator","csvTxtLength":"1","fieldType":"String","defaultValue":"H","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":2,"sectionName":"2","fieldName":"File Upload Date","csvTxtLength":"8","fieldType":"Date","fieldFormat":"ddMMyyyy","leftJustified":true,"padFieldLength":0},{"sequence":3,"sectionName":"3","fieldName":"Source Application code","csvTxtLength":"3","fieldType":"String","defaultValue":"ATM","leftJustified":true,"padFieldLength":0},{"sequence":4,"sectionName":"4","fieldName":"User ID of source application","csvTxtLength":"80","fieldType":"String","defaultValue":"GL_UPLOAD","leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"File Type","csvTxtLength":"1","fieldType":"String","defaultValue":"G","leftJustified":true,"padFieldLength":0},{"sequence":6,"sectionName":"6","fieldName":"File Name","csvTxtLength":"50","fieldType":"String","defaultValue":"","fieldFormat":"yyyyMMdd","leftJustified":true,"padFieldLength":0},{"sequence":7,"sectionName":"7","fieldName":"Filler","csvTxtLength":"1459","fieldType":"String","eol":true,"leftJustified":true,"padFieldLength":0}]');
@@ -148,7 +149,8 @@ END
 		RED_BODY_FIELDS = i_BODY_FIELDS_CBC,
 		RED_TRAILER_FIELDS = i_TRAILER_FIELDS_CBC,
 		RED_BODY_QUERY = i_BODY_QUERY,
-		RED_TRAILER_QUERY = i_TRAILER_QUERY
+		RED_TRAILER_QUERY = i_TRAILER_QUERY,
+		RED_PROCESSING_CLASS = i_PROCESSING_CLASS
 	WHERE RED_NAME = i_REPORT_NAME AND RED_INS_ID = 22;
 	
 	UPDATE REPORT_DEFINITION SET 
@@ -156,7 +158,8 @@ END
 		RED_BODY_FIELDS = i_BODY_FIELDS_CBS,
 		RED_TRAILER_FIELDS = i_TRAILER_FIELDS_CBS,
 		RED_BODY_QUERY = i_BODY_QUERY,
-		RED_TRAILER_QUERY = i_TRAILER_QUERY
+		RED_TRAILER_QUERY = i_TRAILER_QUERY,
+		RED_PROCESSING_CLASS = i_PROCESSING_CLASS
 	WHERE RED_NAME = i_REPORT_NAME AND RED_INS_ID = 2;	
 	
 END;
