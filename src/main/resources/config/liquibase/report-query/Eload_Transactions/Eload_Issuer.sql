@@ -7,6 +7,7 @@
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- Eload						12-AUG-2021		NY		Fix column not fully display in excel
 -- Eload						15-AUG-2021		NY		Get stan if dest_stan null, fix some wrong operator
+-- CBCAXUPISSLOG-935			28-AUG-2021		NY		Exclude approved with post completion code R
 
 DECLARE
 
@@ -55,12 +56,13 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -87,12 +89,13 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 )
 GROUP BY
@@ -116,12 +119,13 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1
       AND TXN.TRL_TQU_ID = ''F''
+	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL 
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
       AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Bank_Code}
       AND {Txn_Date}
 START SELECT
@@ -136,12 +140,13 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 1
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_DEO_NAME IS NULL
       AND LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id}
-      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882''     
       AND {Txn_Date}
 END
 	');

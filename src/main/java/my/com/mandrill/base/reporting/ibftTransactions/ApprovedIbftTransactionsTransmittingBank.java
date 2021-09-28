@@ -262,20 +262,19 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
-			case 12:
+			case 17:
 				break;
 			default:
-				if (field.isEol()) {
+				if (field.isEol()) {					
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else {
 					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
 						line.append(String.valueOf(pagination));
 					} else {
 						line.append(getGlobalFieldValue(rgm, field));
-					}
-					line.append(field.getDelimiter());
-					line.append(getEol());
-				} else {
-					line.append(getGlobalFieldValue(rgm, field));
-					line.append(field.getDelimiter());
+						line.append(field.getDelimiter());
+					}					
 				}
 				break;
 			}
@@ -291,7 +290,7 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
-			case 11:
+			case 16:
 				break;
 			default:
 				if (field.isEol()) {
@@ -321,9 +320,9 @@ public class ApprovedIbftTransactionsTransmittingBank extends IbftReportProcesso
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 3:
-			case 11:
+			case 16:
 				break;
-			case 12:
+			case 17:
 				line.append(field.getDelimiter());
 				break;
 			default:

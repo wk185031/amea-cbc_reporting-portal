@@ -7,6 +7,7 @@
 -- Eload 						07-AUG-2021		NY		Fix empty report
 -- Eload						12-AUG-2021		NY		Fix column not fully display in excel
 -- Eload						15-AUG-2021		NY		Parameterized acq bank
+-- CBCAXUPISSLOG-935			28-AUG-2021		NY		Exclude approved with post completion code R
 
 DECLARE
 
@@ -57,6 +58,7 @@ WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
       AND {Bank_Code}
@@ -80,6 +82,7 @@ WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
       AND {Txn_Date}
@@ -106,6 +109,7 @@ WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
       AND {Bank_Code}
@@ -124,6 +128,7 @@ WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME IS NULL
       AND {Txn_Date}

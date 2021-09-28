@@ -433,34 +433,39 @@ public class GeneralReportProcess {
 		String branchCode = "";
 		try {
 			toAccountNo = SecurePANField.fromDatabase(toAccountNumber, ekyId).getClear();
-			switch (toAccountNo.length()) {
-			case 10:
-				branchCode = toAccountNo.substring(0, 3);
-				switch (branchCode) {
-				case "101":
-				case "201":
-					branchCode = "1001";
-					break;
-				case "103":
-				case "203":
-				case "303":
-					branchCode = "1003";
-					break;
-				default:
-					threeDigits = Integer.parseInt(branchCode) - 100 + 1000;
-					branchCode = String.valueOf(threeDigits);
-					break;
-				}
-				break;
-			case 12:
-				branchCode = toAccountNo.substring(0, 4);
-				break;
-			default:
-				break;
-			}
 		} catch (Throwable e) {
 			logger.error("Failed to decrypt to account number.", e);
 		}
+			
+		switch (toAccountNo.length()) {
+		case 10:
+			branchCode = toAccountNo.substring(0, 3);
+			switch (branchCode) {
+			case "101":
+			case "201":
+				branchCode = "1001";
+				break;
+			case "103":
+			case "203":
+			case "303":
+				branchCode = "1003";
+				break;
+			default:
+				threeDigits = Integer.parseInt(branchCode) - 100 + 1000;
+				branchCode = String.valueOf(threeDigits);
+				break;
+			}
+			break;
+		case 12:
+			branchCode = toAccountNo.substring(0, 4);
+			break;
+		case 13:
+			branchCode = toAccountNo.substring(2, 6);
+			break;
+		default:
+			break;
+		}
+		
 		return branchCode;
 	}
 
