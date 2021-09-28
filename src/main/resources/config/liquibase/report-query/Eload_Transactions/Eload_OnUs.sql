@@ -5,6 +5,7 @@
 -- Report revision				26-JUL-2021		NY		Revised reports based on spec
 -- CBCAXUPISSLOG-849			06-AUG-2021		NY		Exclude reversal as report dont have mnemonic to distinguish thoses
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
+-- CBCAXUPISSLOG-935			28-AUG-2021		NY		Exclude approved with post completion code R
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -45,9 +46,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -70,9 +72,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -98,9 +101,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -114,9 +118,10 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE = 52
       AND TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Txn_Date}
 END
 	');

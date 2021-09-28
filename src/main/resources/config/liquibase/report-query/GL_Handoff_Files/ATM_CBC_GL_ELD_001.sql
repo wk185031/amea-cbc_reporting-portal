@@ -5,6 +5,7 @@
 -- Report revision				26-JUL-2021		NY		Revised reports based on spec
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- CBCAXUPISSLOG-935			22-SEP-2021		NY		Exclude cash card product
+-- CBCAXUPISSLOG-935			28-SEP-2021		NY		Onus eload using txn code 52, issuer eload using txn code 1 with receiving inst 8882
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -55,7 +56,8 @@ FROM
       LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
-      TXN.TRL_TSC_CODE = 52
+      ((TXN.TRL_TSC_CODE = 52 AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))
+		OR (TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882'' AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})))
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -101,7 +103,8 @@ FROM
       LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
       LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
-      TXN.TRL_TSC_CODE = 52
+      ((TXN.TRL_TSC_CODE = 52 AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id}))
+		OR (TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, ''0'') = ''0000008882'' AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})))
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
