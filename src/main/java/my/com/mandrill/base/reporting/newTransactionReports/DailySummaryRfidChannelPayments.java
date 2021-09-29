@@ -207,8 +207,8 @@ public class DailySummaryRfidChannelPayments extends CsvReportProcessor {
 			rgm.setBodyQuery(getThirdPageBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				rgm.setBodyQuery(getSecondPageBodyQuery());
-				rgm.setTrailerQuery(getSecondPageTrailerQuery());
+				rgm.setBodyQuery(getThirdPageBodyQuery());
+				rgm.setTrailerQuery(getThirdPageTrailerQuery());
 				preProcessing(rgm, branchCode, null, false);
 				executeBodyQuery(rgm, null, "thirdPage");
 			}
