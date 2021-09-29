@@ -26,17 +26,17 @@ import my.com.mandrill.base.reporting.reportProcessor.IbftReportProcessor;
 public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(InterEntityApprovedIbftTransactionsAcquiringBank.class);
-    public static final String RETAIL = "RETAIL";
-    public static final String CORPORATE = "CORPORATE";
-    public static final String IVRS = "IVRS";
-    public String CBC_AT_CBC_TO_CBS = "CBC at CBC to CBS";
-    public String CBS_AT_CBC_TO_CBC = "CBS at CBC to CBC";
-    public String CBS_AT_CBC_TO_OTHER_BANK = "CBS at CBC to OTHER BANK";
-    private int pagination = 0;
-    private double overallSectionTotal = 0.00;
-    private String ie_ins_name = "CBS";
-    private String ie_ins_id = "0000000112";
-    private String ins_id = "0000000010";
+	public static final String RETAIL = "RETAIL";
+	public static final String CORPORATE = "CORPORATE";
+	public static final String IVRS = "IVRS";
+	public String CBC_AT_CBC_TO_CBS = "CBC at CBC to CBS";
+	public String CBS_AT_CBC_TO_CBC = "CBS at CBC to CBC";
+	public String CBS_AT_CBC_TO_OTHER_BANK = "CBS at CBC to OTHER BANK";
+	private int pagination = 0;
+	private double overallSectionTotal = 0.00;
+	private String ie_ins_name = "CBS";
+	private String ie_ins_id = "0000000112";
+	private String ins_id = "0000000010";
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
@@ -50,16 +50,16 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeHeader(rgm, pagination);
 			rgm.setBodyQuery(getTxnBodyQuery());
-			
-            if(rgm.getInstitution().equalsIgnoreCase("CBS")) {
-                ie_ins_name = "CBC";
-                ie_ins_id = "0000000010";
-                ins_id = "0000000112";
-                
-                CBC_AT_CBC_TO_CBS = "CBS at CBS to CBC";
-                CBS_AT_CBC_TO_CBC = "CBC at CBS to CBS";
-                CBS_AT_CBC_TO_OTHER_BANK = "CBC at CBS to OTHER BANK";
-            }
+
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				ie_ins_name = "CBC";
+				ie_ins_id = "0000000010";
+				ins_id = "0000000112";
+
+				CBC_AT_CBC_TO_CBS = "CBS at CBS to CBC";
+				CBS_AT_CBC_TO_CBC = "CBC at CBS to CBS";
+				CBS_AT_CBC_TO_OTHER_BANK = "CBC at CBS to OTHER BANK";
+			}
 
 			StringBuilder line = new StringBuilder();
 			line.append("I. ").append(";").append("ONLINE").append(";");
@@ -122,13 +122,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.retailDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-            if(rgm.getInstitution().equalsIgnoreCase("CBS")) {
-                line.append("A.").append("CBS AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(RETAIL ONLINE)").append(";");
-            }else {
-                line.append("A.").append("CBC AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(RETAIL ONLINE)").append(";");
-            }
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				line.append("A.").append("CBS AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(RETAIL ONLINE)").append(";");
+			} else {
+				line.append("A.").append("CBC AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(RETAIL ONLINE)").append(";");
+			}
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
@@ -149,13 +149,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.corporateDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-            if(rgm.getInstitution().equalsIgnoreCase("CBS")) {
-                line.append("B.").append("CBS AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(CORPORATE ONLINE)").append(";");
-            }else {
-                line.append("B.").append("CBC AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(CORPORATE ONLINE)").append(";");
-            }
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				line.append("B.").append("CBS AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(CORPORATE ONLINE)").append(";");
+			} else {
+				line.append("B.").append("CBC AS ISSUER/TRANSMITTING BRANCH - EBK PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(CORPORATE ONLINE)").append(";");
+			}
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
@@ -176,13 +176,13 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		logger.debug("In InterEntityApprovedIbftTransactionsAcquiringBank.ivrsDetails()");
 		try {
 			StringBuilder line = new StringBuilder();
-            if(rgm.getInstitution().equalsIgnoreCase("CBS")) {
-                line.append("A.").append("CBS AS ISSUER/TRANSMITTING BRANCH - IVR PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(IVRS TRANSACTION)").append(";");
-            }else {
-                line.append("A.").append("CBC AS ISSUER/TRANSMITTING BRANCH - IVR PPC-IBFT TMP ACC ").append(";").append("")
-                .append(";").append("(IVRS TRANSACTION)").append(";");
-            }
+			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
+				line.append("A.").append("CBS AS ISSUER/TRANSMITTING BRANCH - IVR PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(IVRS TRANSACTION)").append(";");
+			} else {
+				line.append("A.").append("CBC AS ISSUER/TRANSMITTING BRANCH - IVR PPC-IBFT TMP ACC ").append(";")
+						.append("").append(";").append("(IVRS TRANSACTION)").append(";");
+			}
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
@@ -327,7 +327,10 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		if (indicator.equals(RETAIL)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-                    "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'" + " AND TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					"TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'"
+							+ " AND TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' AND TXNC.TRL_ORIGIN_CHANNEL IN ( '"
+							+ ReportConstants.MBK + "','" + ReportConstants.EBK + "')");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -339,8 +342,9 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			getGlobalFileFieldsMap().put(joinCriteria.getFieldName(), joinCriteria);
 		} else if (indicator.equals(CORPORATE)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-                    "LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'" + "  AND TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					ReportGenerationFields.TYPE_STRING, "LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'"
+							+ "  AND TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' AND TXNC.TRL_ORIGIN_CHANNEL IN ( '"
+							+ ReportConstants.MBK + "','" + ReportConstants.EBK + "')");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -353,7 +357,9 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(IVRS)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-                    "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "' AND TXNC.TRL_ORIGIN_CHANNEL = '" + ReportConstants.IVR + "'" );
+					"TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id
+							+ "' AND TXNC.TRL_ORIGIN_CHANNEL = '" + ReportConstants.IVR + "'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -365,8 +371,8 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			getGlobalFileFieldsMap().put(joinCriteria.getFieldName(), joinCriteria);
 		} else if (indicator.equals(CBC_AT_CBC_TO_CBS)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-                    "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'" );
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'CBC' AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -379,8 +385,8 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 			getGlobalFileFieldsMap().put(joinCriteria.getFieldName(), joinCriteria);
 		} else if (indicator.equals(CBS_AT_CBC_TO_CBC)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
-					ReportGenerationFields.TYPE_STRING,
-                    "TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
+					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", 'CBC' AS \"RECEIVING BANK MNEM\",");
@@ -394,7 +400,8 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CBS_AT_CBC_TO_OTHER_BANK)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-                    "TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('" + ins_id + "', '" + ie_ins_id + "')");
+					"TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('"
+							+ ins_id + "', '" + ie_ins_id + "')");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -637,7 +644,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 					if (ps != null) {
 						ps.close();
 					}
-					
+
 					if (rs != null) {
 						rs.close();
 					}
