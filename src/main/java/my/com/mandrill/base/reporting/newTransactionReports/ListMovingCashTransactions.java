@@ -29,6 +29,7 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			separateQuery(rgm);
 			processingDetails(rgm);
+			processingPendingDetails(rgm);
 			processingSummaryDetails(rgm);
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
@@ -104,6 +105,35 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 		}
 	}
 
+	private void processingPendingDetails(ReportGenerationMgr rgm) {
+		logger.debug("In ListMovingCashTransactions.processingPendingDetails()");
+
+		try {
+			
+			pagination++;
+			writePendingSectionHeader(rgm, pagination);
+
+			StringBuilder line = new StringBuilder();
+			line.append("PAY TO MOBILE TRANSACTIONS").append(";");
+			line.append(getEol());
+			line.append("MODE : ").append(";").append(ReportConstants.ATM).append(";").append("WITHDRAWAL").append(";");
+			line.append(getEol());
+			rgm.writeLine(line.toString().getBytes());
+
+			writeBodyHeader(rgm);
+
+			rgm.setBodyQuery(getPendingTxnQuery());
+			executeBodyQuery(rgm, false);
+			
+			rgm.setTrailerQuery(getPendingTrailerQuery());
+			executeTrailerQuery(rgm, false);
+
+		} catch (IOException | JSONException e) {
+			rgm.errors++;
+			logger.error("Error in processingPendingDetails", e);
+		}
+	}
+
 	private void processingSummaryDetails(ReportGenerationMgr rgm) {
 		logger.debug("In ListMovingCashTransactions.processingSummaryDetails()");
 		pagination++;
@@ -130,6 +160,11 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
+			setPendingTxnQuery(getTxnBodyQuery()
+					.replace("(TXN.TRL_TQU_ID IN ('F') OR (TXN.TRL_TQU_ID = 'R' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))",
+					" TXN.TRL_TQU_ID = 'A'")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
+					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
@@ -140,6 +175,9 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
+			setPendingTrailerQuery(getTxnTrailerQuery().replace("AND TXN.TRL_TQU_ID = 'F'", " AND TXN.TRL_TQU_ID = 'A' ")
+					.replace("AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'", "")
+					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 		}
 	}
 
@@ -222,6 +260,35 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 				}
 				break;
 			default:
+				break;
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	private void writePendingSectionHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
+		logger.debug("In MovingCashReportProcessor.writePendingSectionHeader()");
+		List<ReportGenerationFields> fields = extractHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			switch (field.getSequence()) {
+			case 3:
+			case 4:
+				break;
+			default:
+				if (field.isEol()) {
+					if (field.getFieldName().equalsIgnoreCase(ReportConstants.PAGE_NUMBER)) {
+						line.append(String.valueOf(pagination));
+					} else {
+						line.append(getGlobalFieldValue(rgm, field));
+					}
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else {
+					line.append(getGlobalFieldValue(rgm, field));
+					line.append(field.getDelimiter());
+				}
 				break;
 			}
 		}

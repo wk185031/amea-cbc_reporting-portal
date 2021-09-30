@@ -28,6 +28,7 @@ public class MovingCashReportProcessor extends CsvReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 4:
+			case 5:
 				break;
 			default:
 				if (field.isEol()) {
@@ -56,6 +57,7 @@ public class MovingCashReportProcessor extends CsvReportProcessor {
 		for (ReportGenerationFields field : fields) {
 			switch (field.getSequence()) {
 			case 3:
+			case 5:
 				break;
 			default:
 				if (field.isEol()) {
