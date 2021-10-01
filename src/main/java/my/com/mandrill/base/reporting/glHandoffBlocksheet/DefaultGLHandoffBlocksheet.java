@@ -568,18 +568,11 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						}
 						break;
 					case ReportConstants.GL_ACCOUNT_NAME:
-						String value = getFieldValue(rgm, field, fieldsMap);
+						String value = getFieldValue(field, fieldsMap);
 						if (value != null && value.length() > field.getPdfLength()) {
-							overflowAccName = value.substring(value.length() - 6);
-							if (value.length() <= 6) {
-								contentStream.showText(
-										String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-												value));
-							} else {
-								contentStream.showText(
-										String.format("%1$4s", "") + String.format("%1$" + field.getPdfLength() + "s",
-												value.substring(0, value.length() - 6)));
-							}		
+							overflowAccName = value.substring(field.getPdfLength() - 6);
+							contentStream.showText(String.format("%1$4s", "") + String.format(
+									"%1$" + field.getPdfLength() + "s", value.substring(0, field.getPdfLength() - 6)));		
 						} else {
 							contentStream.showText(String.format("%1$4s", "") + String
 									.format("%1$" + field.getPdfLength() + "s", getFieldValue(rgm, field, fieldsMap)));
@@ -607,7 +600,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 			}
 		}
 		if (overflowAccName != null && overflowAccName.length() > 0) {
-			contentStream.showText(String.format("%1$28s", "") + overflowAccName);
+			contentStream.showText(String.format("%1$33s", "") + overflowAccName);
 			contentStream.newLineAtOffset(0, -leading);
 			pageHeight += 1;
 			overflowAccName = null;
