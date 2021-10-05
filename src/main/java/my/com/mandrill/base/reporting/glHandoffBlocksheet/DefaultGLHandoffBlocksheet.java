@@ -231,12 +231,12 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 					}
 					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
 
-					if (recordCount >= MAX_RECORD_PER_PAGE) {
-						writeHeader(rgm, pageCount);
-						writeBodyHeader(rgm);
-						pageCount++;
-						recordCount = 0;
-					}
+//					if (recordCount >= MAX_RECORD_PER_PAGE) {
+//						writeHeader(rgm, pageCount);
+//						writeBodyHeader(rgm);
+//						pageCount++;
+//						recordCount = 0;
+//					}
 
 					if (currentDebitCreditFlag.equals(lastDebitCreditFlag)) {
 						newGroup = false;
@@ -507,6 +507,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		String overflowAccName = null;
+	
+		ReportGenerationFields glAccNumField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String glAccountNumber = getFieldValue(glAccNumField, fieldsMap);
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
@@ -558,6 +562,13 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 					contentStream.newLineAtOffset(0, -leading);
 				} else {
 					switch (field.getFieldName()) {
+					case ReportConstants.BRANCH_CODE:
+						if (glAccountNumber != null && glAccountNumber.length() > 10) {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", glAccountNumber.substring(0, 4)));	
+						} else {
+							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", getFieldValue(rgm, field, fieldsMap)));	
+						}
+						break;
 					case ReportConstants.GL_ACCOUNT_NUMBER:
 						if (getFieldValue(field, fieldsMap).length() < 14) {
 							contentStream.showText(String.format("%1$" + field.getPdfLength() + "s",
@@ -660,6 +671,11 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		String overflowAccName = null;
 		StringBuilder line = new StringBuilder();
+		
+		ReportGenerationFields glAccNumField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String glAccountNumber = getFieldValue(glAccNumField, fieldsMap);
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
@@ -697,6 +713,13 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 				}
 			} else {
 				switch (field.getFieldName()) {
+				case ReportConstants.BRANCH_CODE:
+					if (glAccountNumber != null && glAccountNumber.length() > 10) {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", glAccountNumber.substring(0, 4)));	
+					} else {
+						line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(rgm, field, fieldsMap)));	
+					}
+					break;
 				case ReportConstants.GL_ACCOUNT_NUMBER:
 					if (getFieldValue(field, fieldsMap).length() < 14) {
 						line.append(

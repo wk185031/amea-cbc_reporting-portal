@@ -109,8 +109,20 @@ public class DefaultGLHandoff extends BatchProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
+		
+		ReportGenerationFields glAccNumField = fields.stream()
+				.filter(field -> ReportConstants.AC_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String glAccountNumber = getFieldValue(glAccNumField, fieldsMap);
+		
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
+			case ReportConstants.BRANCH_CODE:
+				if (glAccountNumber != null && glAccountNumber.length() > 10) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", glAccountNumber.substring(0, 4)));	
+				} else {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(rgm, field, fieldsMap)));	
+				}
+				break;
 			case ReportConstants.AC_NUMBER:
 				String glAccNo = null; 
 				
