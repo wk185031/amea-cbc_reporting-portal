@@ -21,5 +21,10 @@
                  path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Inter-Entity.sql"
                  splitStatements="false" 
                  stripComments="true" />
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Bills_Payment_Extract_Files/Bills_Payment_Extract_Files_Detail.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>

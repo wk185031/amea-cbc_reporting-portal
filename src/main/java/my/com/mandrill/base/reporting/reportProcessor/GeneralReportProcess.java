@@ -149,6 +149,31 @@ public class GeneralReportProcess {
 		}
 		return sb.toString();
 	}
+	
+	public String getCriteriaQuery(ReportGenerationMgr rgm, String query) {
+		StringBuffer sb = new StringBuffer();
+		if (query != null) {
+			Pattern p = Pattern.compile("[{]\\w+,*\\w*[}]");
+			Matcher m = p.matcher(query);
+			while (m.find()) {
+				
+				String paramName = m.group().substring(1, m.group().length() - 1);
+				if (globalFileFieldsMap.containsKey(paramName)) {
+					String value = globalFileFieldsMap.get(paramName).format();
+					logger.debug("Replace parameter[{}] with value[{}]", paramName, value);
+					m.appendReplacement(sb, value);
+				} else {
+					rgm.errors++;
+					logger.error("No field defined for parameter: {}", paramName);
+				}
+
+			}
+			m.appendTail(sb);
+		} else {
+			logger.debug("*** Body query is null or empty");
+		}
+		return sb.toString();
+	}
 
 	protected List<ReportGenerationFields> extractHeaderFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
@@ -214,6 +239,25 @@ public class GeneralReportProcess {
 	}
 
 	protected List<ReportGenerationFields> extractTrailerFields(ReportGenerationMgr rgm)
+			throws JSONException, JsonParseException, JsonMappingException, IOException {
+		header = false;
+		bodyHeader = false;
+		body = false;
+		trailer = true;
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<ReportGenerationFields> trailerFields = null;
+		if (rgm.getTrailerFields() != null) {
+			trailerFields = objectMapper.readValue(rgm.getTrailerFields().getBytes(),
+					new TypeReference<List<ReportGenerationFields>>() {
+					});
+			if (trailerFields.size() > 0) {
+				trailerFields.get(trailerFields.size() - 1).setEndOfSection(true);
+			}
+		}
+		return trailerFields;
+	}
+	
+	protected List<ReportGenerationFields> extractInstitutionTrailerFields(ReportGenerationMgr rgm)
 			throws JSONException, JsonParseException, JsonMappingException, IOException {
 		header = false;
 		bodyHeader = false;

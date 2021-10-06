@@ -143,7 +143,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
-
+	
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm) {
 		logger.debug("In TxtReportProcessor.executeBodyQuery()");

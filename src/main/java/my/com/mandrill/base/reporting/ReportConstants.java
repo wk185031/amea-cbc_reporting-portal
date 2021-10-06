@@ -142,8 +142,9 @@ public final class ReportConstants {
 	public static final String PDF_FORMAT = ".pdf";
 	public static final String CSV_FORMAT = ".csv";
 	public static final String TXT_FORMAT = ".txt";
-	public static final String DPS_FORMAT = ".dps";
+	public static final String DPS_FORMAT = ".DPS";
 	public static final String SUM_FORMAT = ".sum";
+	public static final String PGP_FORMAT = ".PGP";
 
 	// Report Fields
 	public static final String TOTAL_PAYMENTS = "Total Payments";
@@ -285,6 +286,7 @@ public final class ReportConstants {
 	public static final String REVERSAL_SIGN_DP = "REVERSAL SIGN DP";
 	public static final String REVERSAL_SIGN_BP = "REVERSAL SIGN BP";
 	public static final String REVERSAL_SIGN_TRFR = "REVERSAL SIGN TRFR";
+	public static final String PROCESS_DATE = "Process Date";
 
 	// Channels
 	public static final String CHINABANK_ATM = "ChinaBank ATM";
@@ -317,6 +319,8 @@ public final class ReportConstants {
 	public static final String SUBSTRING_END = "END";
 	public static final String SUBSTRING_START = "START";
 	public static final String SUBSTRING_SECOND_QUERY_START = "START SELECT";
+	public static final String SUBSTRING_END_BODY = "END BODY";
+	public static final String SUBSTRING_END_CRITERIA = "END CRITERIA";
 	
 	public static final String SUBSTRING_START_ACQ = "START ACQ";
 	public static final String SUBSTRING_START_ISS = "START ISS";
