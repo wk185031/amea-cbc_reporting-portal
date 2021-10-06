@@ -460,12 +460,24 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 			PDPageContentStream contentStream, float leading, String branchCode, Map<String, BigDecimal> summaryTotal)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		
+		ReportGenerationFields glAccNumField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String glAccountNumber = getFieldValue(glAccNumField, fieldsMap);
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
 			switch (field.getFieldName()) {
+			case ReportConstants.BRANCH_CODE:
+				if (glAccountNumber != null && glAccountNumber.length() > 10) {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", glAccountNumber.substring(0, 4)));	
+				} else {
+					contentStream.showText(String.format("%1$" + field.getPdfLength() + "s", getFieldValue(rgm, field, fieldsMap)));	
+				}
+				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
 				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
 					field.setValue(branchCode + field.getValue());
@@ -545,12 +557,24 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
+		
+		ReportGenerationFields glAccNumField = fields.stream()
+				.filter(field -> ReportConstants.GL_ACCOUNT_NUMBER.equals(field.getFieldName())).findAny().orElse(null);
+		String glAccountNumber = getFieldValue(glAccNumField, fieldsMap);
+		
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
 			switch (field.getFieldName()) {
+			case ReportConstants.BRANCH_CODE:
+				if (glAccountNumber != null && glAccountNumber.length() > 10) {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", glAccountNumber.substring(0, 4)));	
+				} else {
+					line.append(String.format("%1$" + field.getCsvTxtLength() + "s", getFieldValue(rgm, field, fieldsMap)));	
+				}
+				break;
 			case ReportConstants.GL_ACCOUNT_NUMBER:
 				if (getFieldValue(field, fieldsMap).length() < ReportConstants.GL_ACCOUNT_NUMBER_MAX_LENGTH) {
 					field.setValue(branchCode + field.getValue());

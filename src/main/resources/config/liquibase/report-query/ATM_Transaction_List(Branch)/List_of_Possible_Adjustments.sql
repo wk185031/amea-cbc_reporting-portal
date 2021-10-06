@@ -3,6 +3,7 @@
 -- CBCAXUPISSLOG-527 	05-JUL-2021		GS		Modify Trace No pad length to 6 digits
 -- Rel-20210823			22-AUG-2021		KW		Revise query
 -- CBCAXUPISSLOG-932	29-SEP-2021		GS		Revise query, added scenario: Presenter Error (Cash Retract), Suspect Dispense, Transactions without Cash Taken
+-- CBCAXUPISSLOG-932	05-OCT-2021		GS		Revise query, added scenario: Unable to Dispense
 
 DECLARE
 
@@ -38,7 +39,7 @@ BEGIN
 	)
   , TXN_ACTIVITY_Condition as (
   		select * from (select ATA_TRL_ID, ATA_TXN_STATE, ATA_TXN_SEQ_NBR, ATA_AST_ID, ATA_BUS_DATE from ATM_TXN_ACTIVITY_LOG 
-    		where ATA_TXN_STATE LIKE ''Suspect dispense%''
+    		where (ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA_TXN_STATE = ''Command reject (Force post reversal)'' OR ATA_TXN_STATE LIKE ''Suspect dispense%'')
     		and ATA_LAST_UPDATE_TS >= TO_DATE({Txn_Start_Ts}, ''YYYYMMDD HH24:MI:SS'') AND ATA_LAST_UPDATE_TS < TO_DATE({Txn_End_Ts},''YYYYMMDD HH24:MI:SS'') 
   		)
 	)
@@ -116,7 +117,8 @@ BEGIN
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_AMT_TXN "AMOUNT",
       TXN.TRL_ACTION_RESPONSE_CODE "VOID CODE",
-      CASE WHEN ATA.ATA_TXN_STATE IS NOT NULL THEN ATA.ATA_TXN_STATE 
+      CASE WHEN (ATA.ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA.ATA_TXN_STATE = ''Command reject (Force post reversal)'') THEN ''Unable to Dispense''
+        WHEN ATA.ATA_TXN_STATE IS NOT NULL THEN ATA.ATA_TXN_STATE 
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 907 THEN ''Issuer or Switch Inoperative''
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 909 THEN ''System Malfunction''
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 911 THEN ''Card Issuer Timed Out''
