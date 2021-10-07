@@ -1,6 +1,7 @@
 -- Tracking					Date			Name	Description
 -- Report Revise			04-JULy-2021	KW		Revise report based on specification
 -- Rel-20210730				14-JUL-2021		KW		Solve duplicate due to multiple biller with same code
+--CBCAXUPISSLOG-950			07-OCT-2021		LJL		Incorrect File Layout and Content
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(200) := 'Bills Payment Extract Files (Summary)';
@@ -79,7 +80,7 @@ BEGIN
 	 GROUP BY
       TRL_BILLER_CODE, CBL.CBL_NAME
     ORDER BY
-       CBL.CBL_NAME ASC
+       TXNC.TRL_BILLER_CODE ASC
 	 END'); 
   
   i_TRAILER_QUERY := TO_CLOB('

@@ -27,9 +27,9 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 
 		try {
 			if (rgm.isGenerate() == true) {
-				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
+				txnDate = rgm.getFileDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			} else {
-				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
+				txnDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 			}
 
 			if (rgm.errors == 0) {
@@ -42,14 +42,14 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 					separateQuery(rgm);
 					
 					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-cashCard" + ReportConstants.SUM_FORMAT);
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + "EMV_CASHCARD_" + txnDate +ReportConstants.SUM_FORMAT + ReportConstants.PGP_FORMAT);
 					
 					setQuery(rgm, getCashCardBodyQuery(), getCashCardTrailerQuery());
 					
 					execute(rgm, file);
 					
 					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "-atmCard" + ReportConstants.SUM_FORMAT);
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate  + ReportConstants.SUM_FORMAT + ReportConstants.PGP_FORMAT);
 					
 					setQuery(rgm, getAtmCardBodyQuery(), getAtmCardTrailerQuery());
 					

@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -39,7 +40,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 	private int txnCount = 0;
 	private double totalAmount = 0.00;
 	private double totalCommission = 0.00;
-	private static final String DEFAULT_SEPARATOR = ",";
+	private static final String DEFAULT_SEPARATOR = ";";
 	private static final String LINE_ITEM_PURCHASE = "PURCHASES";
 	private static final String LINE_ITEM_REVERSAL = "REVERSALS";
 	private static final String LINE_ITEM_NET = "NET";
@@ -51,59 +52,61 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		String bankCode = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
-	
+
 			ResultSet rs = null;
 			PreparedStatement ps = null;
-				
-			writeHeader(rgm, pagination, branchCode == null ? "" : branchCode, branchName == null ? "" : branchName);
-			
+
+//			writeHeader(rgm, pagination, branchCode == null ? "" : branchCode, branchName == null ? "" : branchName);
+
 			preProcessing(rgm);
-			SortedMap<String, Map<String, Map<String, TreeSet<String>>>> branchList = filterByBranches(rgm);
-			
+			SortedMap<String, Map<String, TreeSet<String>>> branchList = filterByBranches(rgm);
+
 			if (branchList == null || branchList.isEmpty()) {
 				StringBuilder line = new StringBuilder();
 				line.append(ReportConstants.NO_RECORD);
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 			} else {
-				for (SortedMap.Entry<String, Map<String, Map<String, TreeSet<String>>>> branchCodeMap : branchList.entrySet()) {
+				for (Entry<String, Map<String, TreeSet<String>>> branchCodeMap : branchList.entrySet()) {
 					branchCode = branchCodeMap.getKey();
-					for (SortedMap.Entry<String, Map<String, TreeSet<String>>> branchNameMap : branchCodeMap.getValue()
-							.entrySet()) {
+					for (Entry<String, TreeSet<String>> branchNameMap : branchCodeMap.getValue().entrySet()) {
 						branchName = branchNameMap.getKey();
 						pagination++;
 						writeHeader(rgm, pagination, branchCode, branchName);
-						writeBodyHeader(rgm);
-						for (SortedMap.Entry<String, TreeSet<String>> bankMap : branchNameMap.getValue().entrySet()) {
-							bankCode = bankMap.getKey();
-							for (String bankName : bankMap.getValue()) {
-								txnCount = 0;
-								totalAmount = 0.00;
-								totalCommission = 0.00;
-								preProcessing(rgm, branchCode);
-								
-								executeBodyQuery(rgm, bankCode);
-								
-								Map<String, LineItem> summaryItemMap = new HashMap<String, PosTransactionsCardholderBranch.LineItem>();
-								summaryItemMap.put(LINE_ITEM_PURCHASE, new LineItem(LINE_ITEM_PURCHASE));
-								summaryItemMap.put(LINE_ITEM_REVERSAL, new LineItem(LINE_ITEM_REVERSAL));
-								summaryItemMap.put(LINE_ITEM_NET, new LineItem(LINE_ITEM_NET));
-								
-								executeTrailerQuery(rgm, bankCode, summaryItemMap);
-								writeLineItem(rgm, bankName, summaryItemMap.get(LINE_ITEM_PURCHASE));
-								writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_REVERSAL));
-								writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_NET));
-								rgm.writeLine(getEol().getBytes());
-								//writeMerchantTotal(rgm, merchantName, txnCount, totalAmount, totalCommission);
+//						writeBodyHeader(rgm);
+
+						for (String bankName : branchNameMap.getValue()) {
+
+							txnCount = 0;
+							totalAmount = 0.00;
+							totalCommission = 0.00;
+							preProcessing(rgm, branchCode);
+
+							executeBodyQuery(rgm, bankCode);
+
+							Map<String, LineItem> summaryItemMap = new HashMap<String, PosTransactionsCardholderBranch.LineItem>();
+							summaryItemMap.put(LINE_ITEM_PURCHASE, new LineItem(LINE_ITEM_PURCHASE));
+							summaryItemMap.put(LINE_ITEM_REVERSAL, new LineItem(LINE_ITEM_REVERSAL));
+							summaryItemMap.put(LINE_ITEM_NET, new LineItem(LINE_ITEM_NET));
+
+							executeTrailerQuery(rgm, bankCode, summaryItemMap);
+							int purchaseCount = summaryItemMap.get(LINE_ITEM_PURCHASE).getCount();
+							int peversalCount = summaryItemMap.get(LINE_ITEM_REVERSAL).getCount();
+							if (purchaseCount!=0 ||peversalCount!=0 ) {
+							summaryItemMap.get(LINE_ITEM_NET).setCount(purchaseCount-peversalCount);
 							}
+							
+							writeLineItem(rgm, bankName, summaryItemMap.get(LINE_ITEM_PURCHASE));
+							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_REVERSAL));
+							writeLineItem(rgm, null, summaryItemMap.get(LINE_ITEM_NET));
+							rgm.writeLine(getEol().getBytes());
+							// writeMerchantTotal(rgm, merchantName, txnCount, totalAmount,
+							// totalCommission);
 						}
 					}
+				}
 			}
-			
-					
-			
-			
-			}
+
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
@@ -123,17 +126,17 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		}
 	}
 
-	private SortedMap<String, Map<String, Map<String, TreeSet<String>>>> filterByBranches(ReportGenerationMgr rgm) {
+	private SortedMap<String, Map<String, TreeSet<String>>> filterByBranches(ReportGenerationMgr rgm) {
 		logger.debug("In PosTransactionsCardholderBranch.filterByBranches()");
 		String branchCode = null;
 		String branchName = null;
 		String bankName = null;
-		//String customData = null;
+		// String customData = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-		SortedMap<String, Map<String, Map<String, TreeSet<String>>>> criteriaMap = new TreeMap<>();
+		SortedMap<String, Map<String, TreeSet<String>>> criteriaMap = new TreeMap<>();
 		String query = getBodyQuery(rgm);
 		logger.info("Query for filter criteria: {}", query);
 
@@ -169,6 +172,15 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 //								customData = result.toString();
 //							}
 						}
+					}
+					if (criteriaMap.get(branchCode) == null) {
+						Map<String, TreeSet<String>> branchNameMap = new HashMap<>();
+						TreeSet<String> bankcodeList = new TreeSet<>();
+						if (bankcodeList != null) {
+							bankcodeList.add(bankName);
+						}
+						branchNameMap.put(branchName, bankcodeList);
+						criteriaMap.put(branchCode, branchNameMap);
 					}
 //					if (criteriaMap.get(branchCode) == null) {
 //						Map<String, Map<String, TreeSet<String>>> branchNameMap = new HashMap<>();
@@ -248,26 +260,29 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 //			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
-	
+
 	private void writeLineItem(ReportGenerationMgr rgm, String merchantName, LineItem item) throws IOException {
 		StringBuilder line = new StringBuilder();
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR);
+		 BigDecimal C30 = new BigDecimal("0.3");
 		if (merchantName != null) {
 			line.append(merchantName);
 		}
 
 		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(item.getName())
 				.append(DEFAULT_SEPARATOR).append(String.format("%,d", item.getCount())).append(DEFAULT_SEPARATOR);
-		
+
 		if (LINE_ITEM_REVERSAL.equals(item.getName())) {
-			line.append("(" + formatter.format(item.getTxnAmount().getValue()) +")").append(DEFAULT_SEPARATOR)
-			.append("(" + formatter.format(item.getCommission().getValue()) +")").append(DEFAULT_SEPARATOR);
+			line.append("(" + formatter.format(item.getTxnAmount().getValue()) + ")").append(DEFAULT_SEPARATOR)
+					.append("(" + formatter.format(item.getTxnAmount().getValue().multiply(C30)) + ")").append(DEFAULT_SEPARATOR);
 		} else {
-			line.append(StringUtils.wrap(formatter.format(item.getTxnAmount().getValue()), "\"")).append(DEFAULT_SEPARATOR)
-			.append(StringUtils.wrap(formatter.format(item.getCommission().getValue()), "\"")).append(DEFAULT_SEPARATOR);
+			line.append(StringUtils.wrap(formatter.format(item.getTxnAmount().getValue()), "\""))
+					.append(DEFAULT_SEPARATOR)
+					.append(StringUtils.wrap(formatter.format(item.getTxnAmount().getValue().multiply(C30)), "\""))
+					.append(DEFAULT_SEPARATOR);
 		}
-					
+
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
@@ -277,9 +292,10 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		logger.debug("In PosTransactionsCardholderBranch.writeMerchantTotal()");
 		DecimalFormat formatter = new DecimalFormat("#,##0.00");
 		StringBuilder line = new StringBuilder();
-		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append("NET : ").append(DEFAULT_SEPARATOR)
-				.append(String.format("%,d", txnCount)).append(DEFAULT_SEPARATOR).append(formatter.format(total)).append(DEFAULT_SEPARATOR)
-				.append(formatter.format(totalCommission)).append(DEFAULT_SEPARATOR);
+		line.append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR).append(DEFAULT_SEPARATOR)
+				.append(DEFAULT_SEPARATOR).append("NET : ").append(DEFAULT_SEPARATOR)
+				.append(String.format("%,d", txnCount)).append(DEFAULT_SEPARATOR).append(formatter.format(total))
+				.append(DEFAULT_SEPARATOR).append(formatter.format(totalCommission)).append(DEFAULT_SEPARATOR);
 		line.append(getEol());
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
@@ -311,9 +327,9 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		Amount txnAmount = null;
-		
+
 		String qualifier = fieldsMap.get(ReportConstants.TXN_QUALIFIER).getValue();
-		
+
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
@@ -322,7 +338,7 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 			switch (field.getFieldName()) {
 			case ReportConstants.AMOUNT:
 				txnAmount = new AmountBuilder(getFieldValue(field, fieldsMap)).build();
-				
+
 				String formattedAmount = txnAmount.format(field.getFieldFormat());
 				if ("R".equals(qualifier)) {
 					formattedAmount = "(" + formattedAmount + ")";
@@ -356,18 +372,23 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
 		Amount txnAmt = null;
 		Amount revTxnAmt = null;
+		Amount txnAmount = null;
+
 		BigDecimal commission = BigDecimal.ZERO;
 		BigDecimal revCommission = BigDecimal.ZERO;
+		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRAN_COUNT:
 				int count = Integer.parseInt(getFieldValue(field, fieldsMap));
-				summaryItemMap.get(LINE_ITEM_PURCHASE).setCount(summaryItemMap.get(LINE_ITEM_PURCHASE).getCount() + count);
+				summaryItemMap.get(LINE_ITEM_PURCHASE)
+						.setCount(summaryItemMap.get(LINE_ITEM_PURCHASE).getCount() + count);
 				summaryItemMap.get(LINE_ITEM_NET).setCount(summaryItemMap.get(LINE_ITEM_NET).getCount() + count);
 				break;
 			case ReportConstants.REV_TRAN_COUNT:
 				int revCount = Integer.parseInt(getFieldValue(field, fieldsMap));
-				summaryItemMap.get(LINE_ITEM_REVERSAL).setCount(summaryItemMap.get(LINE_ITEM_REVERSAL).getCount() + revCount);
+				summaryItemMap.get(LINE_ITEM_REVERSAL)
+						.setCount(summaryItemMap.get(LINE_ITEM_REVERSAL).getCount() + revCount);
 				summaryItemMap.get(LINE_ITEM_NET).setCount(summaryItemMap.get(LINE_ITEM_NET).getCount() + revCount);
 				break;
 			case ReportConstants.AMOUNT:
@@ -380,20 +401,32 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 				summaryItemMap.get(LINE_ITEM_REVERSAL).getTxnAmount().add(revTxnAmt);
 				summaryItemMap.get(LINE_ITEM_NET).getTxnAmount().subtract(revTxnAmt);
 				break;
-			case ReportConstants.POS_COMMISSION:
-				commission = txnAmt.calculateFee(extractCommission(customData));
-				summaryItemMap.get(LINE_ITEM_PURCHASE).getCommission().add(new Amount(commission));
-				summaryItemMap.get(LINE_ITEM_NET).getCommission().add(new Amount(commission));
-				break;
-			case ReportConstants.POS_REV_COMMISSION:
-				revCommission = revTxnAmt.calculateFee(extractCommission(customData));
-				summaryItemMap.get(LINE_ITEM_REVERSAL).getCommission().add(new Amount(revCommission));
-				summaryItemMap.get(LINE_ITEM_NET).getCommission().subtract(new Amount(revCommission));
-				break;
+//			case ReportConstants.POS_TRAILER_COMMISSION:
+//				BigDecimal commission = txnAmount.calculateFee(extractCommission(customData));
+//				String formattedCommission = new DecimalFormat(field.getFieldFormat()).format(commission);
+//				if ("R".equals(qualifier)) {
+//					formattedCommission = "(" + formattedCommission + ")";
+//				}
+//				line.append(StringUtils.wrap(formattedCommission, "\""));
+//				line.append(field.getDelimiter());
+//				break;
+//			case ReportConstants.POS_TRAILER_REV_COMMISSION:
+//				BigDecimal revcommission = txnAmount.calculateFee(extractCommission(customData));
+//				String revformattedCommission = new DecimalFormat(field.getFieldFormat()).format(revcommission);
+//				if ("R".equals(qualifier)) {
+//					formattedCommission = "(" + revformattedCommission + ")";
+//				}
+//				line.append(StringUtils.wrap(revformattedCommission, "\""));
+//				line.append(field.getDelimiter());
+//				break;
 			default:
 				break;
+
 			}
+
 		}
+
+		rgm.writeLine(line.toString().getBytes());
 	}
 
 	private void executeTrailerQuery(ReportGenerationMgr rgm, String customData, Map<String, LineItem> summaryItemMap) {
@@ -410,9 +443,79 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 				ps = rgm.connection.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
-
+				String currentMerchant = null;
 				while (rs.next()) {
 					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					boolean writeNewGroup = false;
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+						if ("MERCHANT NAME".equals(field.getFieldName())) {
+							if (currentMerchant == null || !currentMerchant.equals(field.getValue())) {
+								writeNewGroup = true;
+							}
+							currentMerchant = field.getValue();
+						}
+					}
+					writeTrailer(rgm, lineFieldsMap, customData, summaryItemMap);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the trailer query ", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm, String branchCode) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+
+				String currentMerchant = null;
+				while (rs.next()) {
+					boolean writeNewGroup = false;
+
 					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 					for (String key : lineFieldsMap.keySet()) {
 						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
@@ -438,12 +541,23 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 						} else {
 							field.setValue("");
 						}
+						if ("MERCHANT NAME".equals(field.getFieldName())) {
+							if (currentMerchant == null || !currentMerchant.equals(field.getValue())) {
+								writeNewGroup = true;
+							}
+							currentMerchant = field.getValue();
+						}
 					}
-					writeTrailer(rgm, lineFieldsMap, customData, summaryItemMap);
+
+					if (writeNewGroup) {
+						writeBodyHeader(rgm);
+
+					}
+					writeBody(rgm, lineFieldsMap, currentMerchant);
 				}
 			} catch (Exception e) {
 				rgm.errors++;
-				logger.error("Error trying to execute the trailer query ", e);
+				logger.error("Error trying to execute the body query", e);
 			} finally {
 				try {
 					ps.close();
@@ -472,13 +586,13 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		}
 		return "";
 	}
-	
+
 	class LineItem {
 		private final String name;
 		private int count = 0;
 		private Amount txnAmount = new Amount(BigDecimal.ZERO);
 		private Amount commission = new Amount(BigDecimal.ZERO);
-		
+
 		public LineItem(String name) {
 			this.name = name;
 		}
@@ -490,18 +604,23 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 		public int getCount() {
 			return count;
 		}
+
 		public void setCount(int count) {
 			this.count = count;
 		}
+
 		public Amount getTxnAmount() {
 			return txnAmount;
 		}
+
 		public void setTxnAmount(Amount txnAmount) {
 			this.txnAmount = txnAmount;
 		}
+
 		public Amount getCommission() {
 			return commission;
 		}
+
 		public void setCommission(Amount commission) {
 			this.commission = commission;
 		}

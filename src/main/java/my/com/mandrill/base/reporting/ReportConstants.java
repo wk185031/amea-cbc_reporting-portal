@@ -56,6 +56,7 @@ public final class ReportConstants {
 	public static final String DATE_FORMAT_07 = "dd";
     public static final String DATE_FORMAT_08 = "HH";
     public static final String DATE_FORMAT_MMDDYYYY = "MM-dd-yyyy";
+    public static final String DATE_FORMAT_MMDDYY = "MMddyy";
 	public static final String DATETIME_FORMAT_01 = "yyyyMMdd HH:mm:ss";
     public static final String DATETIME_FORMAT_02 = "yyyyMMdd hh:mm a";
     public static final String DATETIME_FORMAT_03 = "yyyyMMdd HH:mm a";
@@ -143,7 +144,7 @@ public final class ReportConstants {
 	public static final String CSV_FORMAT = ".csv";
 	public static final String TXT_FORMAT = ".txt";
 	public static final String DPS_FORMAT = ".DPS";
-	public static final String SUM_FORMAT = ".sum";
+	public static final String SUM_FORMAT = ".SUM";
 	public static final String PGP_FORMAT = ".PGP";
 
 	// Report Fields
@@ -244,7 +245,9 @@ public final class ReportConstants {
 	public static final String REASON = "REASON";
 	public static final String MERCHANT_NAME = "MERCHANT NAME";
 	public static final String POS_COMMISSION = "COMMISSION";
+	public static final String POS_TRAILER_COMMISSION = "TRAILER COMMISSION";
 	public static final String POS_REV_COMMISSION = "REV COMMISSION";
+	public static final String POS_TRAILER_REV_COMMISSION = "TRAILER REV COMMISSION";
 	public static final String POS_COMMISSION_AMOUNT = "COMMISSION AMOUNT";
 	public static final String POS_NET_SETT_AMT = "NET SETT AMOUNT";
 	public static final String TRAN_COUNT = "TRAN COUNT";
