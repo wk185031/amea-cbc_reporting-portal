@@ -378,7 +378,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 					"'CBC' AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE");
+					"JOIN BRANCH BRC ON TXNC.TRL_CARD_BRANCH  = BRC.BRC_CODE");
 
 			getGlobalFileFieldsMap().put(ibftCriteria.getFieldName(), ibftCriteria);
 			getGlobalFileFieldsMap().put(fieldCriteria.getFieldName(), fieldCriteria);

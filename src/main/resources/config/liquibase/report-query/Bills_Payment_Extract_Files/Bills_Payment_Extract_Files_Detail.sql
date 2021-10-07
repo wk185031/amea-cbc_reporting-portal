@@ -34,11 +34,7 @@ BEGIN
 {"sequence":15,"sectionName":"15","fieldName":"CARDHOLDER NAME","csvTxtLength":"30","fieldType":"String","bodyHeader":false,"defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},
 {"sequence":16,"sectionName":"16","fieldName":"PAYMENT MODE","csvTxtLength":"1","fieldType":"Number","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},
 {"sequence":17,"sectionName":"17","fieldName":"TERMINAL","csvTxtLength":"8","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
-
- 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Filler 1","csvTxtLength":"69","fieldType":"Number","defaultValue":"9999","firstField":false,"delimiter":"","leftJustified":true,"padFieldLength":"69","decrypt":false,"decryptionKey":null,"padFieldType":"Trailing","padFieldValue":"Zeros"},{"sequence":2,"sectionName":"2","fieldName":"Total Count","csvTxtLength":"16","fieldType":"Number","defaultValue":"","fieldFormat":"","leftJustified":false,"padFieldLength":"16","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":3,"sectionName":"3","fieldName":"Total Payments","csvTxtLength":"12","fieldType":"String","fieldFormat":"","leftJustified":false,"padFieldLength":"12","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":4,"sectionName":"4","fieldName":"Filler 2","csvTxtLength":"60","fieldType":"Number","eol":false,"defaultValue":"0","leftJustified":true,"padFieldLength":"60","decrypt":false,"decryptionKey":null,"padFieldType":"Trailing","padFieldValue":"Zeros"}]');
-	
- 	i_HEADER_FIELDS_CBS := null;
-	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"ISSUER BANK CODE","csvTxtLength":"4","fieldType":"String","defaultValue":"","firstField":false,"bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"ACQUIRER BANK CODE","csvTxtLength":"4","fieldType":"String","defaultValue":"","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"SEQ NUMBER","csvTxtLength":"6","fieldType":"Number","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"DATE","csvTxtLength":"6","fieldType":"Date","defaultValue":"","fieldFormat":"yyMMdd","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"TIME","csvTxtLength":"6","fieldType":"Date","defaultValue":"","fieldFormat":"HHmmss","bodyHeader":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"SUBSCRIBER ACCT NUMBER","csvTxtLength":"20","fieldType":"String","fieldFormat":"","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":"20","decrypt":true,"decryptionKey":"TRL_CUSTOM_DATA_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros","tagValue":"BILLERSUBN"},{"sequence":7,"sectionName":"7","fieldName":"ATM CARD NUMBER","csvTxtLength":"19","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":"19","decrypt":true,"decryptionKey":"TRL_PAN_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":8,"sectionName":"8","fieldName":"FROM ACCOUNT NO","csvTxtLength":"16","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":9,"sectionName":"9","fieldName":"Tran Amount","csvTxtLength":"10","fieldType":"String","bodyHeader":false,"defaultValue":"","fieldFormat":"","leftJustified":false,"padFieldLength":"12","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":10,"sectionName":"10","fieldName":"TELEPHONE NUMBER","csvTxtLength":"7","fieldType":"Number","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"BILLER CODE","csvTxtLength":"3","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"CARDHOLDER NAME","csvTxtLength":"30","fieldType":"String","bodyHeader":false,"defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"PAYMENT MODE","csvTxtLength":"1","fieldType":"Number","bodyHeader":false,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":14,"sectionName":"14","fieldName":"TERMINAL","csvTxtLength":"8","fieldType":"Number","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"Space1","csvTxtLength":"15","fieldType":"String","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
+ 	
  	i_TRAILER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Trailer Indicator ","csvTxtLength":"2","fieldType":"Number","defaultValue":"TR", "firstField":true,"delimiter":"","leftJustified":true},
 	{"sequence":2,"sectionName":"2","fieldName":"Total Count","csvTxtLength":"16","fieldType":"Number","defaultValue":"","fieldFormat":"","leftJustified":false,"padFieldLength":"16","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},
 	{"sequence":3,"sectionName":"3","fieldName":"Total Payments","csvTxtLength":"18","fieldType":"String","fieldFormat":"","leftJustified":false,"padFieldLength":"18","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"}]');
@@ -167,9 +163,11 @@ BEGIN
 	  AND CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
 	  {BILLER CODE}
 	 START SELECT
-      LPAD(COUNT(TXN.TRL_ID), 16, 0) "Total Count",
-      LPAD(SUM((TXN.TRL_AMT_TXN) * 100), 15, 0) "Total Payments"
-    FROM
+      LPAD(COUNT("ID"), 16, 0) "Total Count",
+      LPAD(SUM(("AMT") * 100), 15, 0) "Total Payments"
+    FROM(
+	SELECT DISTINCT TXN.TRL_ID "ID", TXN.TRL_AMT_TXN "AMT"
+	FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID
 	  left JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID
@@ -183,8 +181,8 @@ BEGIN
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {Txn_Date}
-	  AND NVL(CPD.CPD_CODE, ''O'') not IN (''80'',''81'',''82'',''83'')
 	  {BILLER CODE}
+	  AND NVL(CPD.CPD_CODE, ''O'') not IN (''80'',''81'',''82'',''83''))
 	 END'); 
 	  
 	UPDATE REPORT_DEFINITION SET 

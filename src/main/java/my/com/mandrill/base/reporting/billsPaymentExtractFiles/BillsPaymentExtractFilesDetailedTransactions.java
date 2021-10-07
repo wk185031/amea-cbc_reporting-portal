@@ -341,7 +341,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 		String query = getTrailerQuery(rgm).replace("{" + ReportConstants.BP_BILLER_CODE + "}",
 				" AND LPAD(TXNC.TRL_BILLER_CODE, 4, '0') = " + billerCode);
-
+		
 		String totalCount = "0000000000000000";
 		String totalPayment = "000000000000000";
 
