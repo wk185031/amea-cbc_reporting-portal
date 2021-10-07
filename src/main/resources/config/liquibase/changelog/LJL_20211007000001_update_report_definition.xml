@@ -14,22 +14,16 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="LJL_20211007000001_update_report_definition" author="LJL">
+    <changeSet id="LJL_20211007000001_update_report_definition" author="ny">
     	<validCheckSum>any</validCheckSum>
+    	                
+        <!-- 854 -->
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Bills_Payment_Extract_Files/Bills_Payment_Extract_Files_Summary.sql"
+                 path="config/liquibase/REPORT_DEFINITION_20211007.sql"
                  splitStatements="false" 
-                 stripComments="true" />	
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/POS_Transactions/POS_Transactions_Cardholder_Branch.sql"
-                 splitStatements="false" 
-                 stripComments="true" />	
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/RFID_Transactions/Daily_Summary_of_RFID_Channel_Payments.sql"
-                 splitStatements="false" 
-                 stripComments="true" />					 
+                 stripComments="true" />
+				 
+				 
     </changeSet>
 </databaseChangeLog>
