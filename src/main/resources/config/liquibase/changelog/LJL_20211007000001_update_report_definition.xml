@@ -16,14 +16,9 @@
 
     <changeSet id="LJL_20211007000001_update_report_definition" author="ny">
     	<validCheckSum>any</validCheckSum>
-    	                
-        <!-- 854 -->
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/REPORT_DEFINITION_20211007.sql"
-                 splitStatements="false" 
-                 stripComments="true" />
+    	               
 				 
+				 <sql>update REPORT_DEFINITION SET RED_FILE_NAME_PREFIX = 'CBC_' WHERE RED_NAME='Bills Payment Extract Files (Summary)' AND RED_INS_ID=22</sql>
 				 
     </changeSet>
 </databaseChangeLog>
