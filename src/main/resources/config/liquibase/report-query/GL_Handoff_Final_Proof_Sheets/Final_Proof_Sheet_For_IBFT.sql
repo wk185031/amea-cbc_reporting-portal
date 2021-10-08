@@ -6,6 +6,7 @@
 -- CBCAXUPISSLOG-884	24-AUG-2021		NY		Fix wrong CBS branch code in GL
 -- CBCAXUPISSLOG-936	22-AUG-2021		NY		Exclude cash card product
 -- IBFT					07-OCT-2021		NY		Internal finding on 3 GL consistency for BRM/CDM filter
+-- IBFT					08-OCT-2021		NY		IBFT GL to exclude BRM/CDM origin
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -58,6 +59,8 @@ WHERE
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''IBFT'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'') 
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -96,6 +99,8 @@ WHERE
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND {Channel}
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''IBFT'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'') 
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}

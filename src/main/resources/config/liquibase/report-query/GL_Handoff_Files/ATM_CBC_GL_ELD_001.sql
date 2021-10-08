@@ -6,6 +6,7 @@
 -- Eload						06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master
 -- CBCAXUPISSLOG-935			22-SEP-2021		NY		Exclude cash card product
 -- CBCAXUPISSLOG-935			28-SEP-2021		NY		Onus eload using txn code 52, issuer eload using txn code 1 with receiving inst 8882
+-- IBFT					08-OCT-2021		NY		IBFT GL to exclude BRM/CDM origin
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -64,6 +65,7 @@ WHERE
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')  
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
@@ -112,6 +114,7 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Eload'')
       AND GLA.GLA_NAME NOT IN (''ACD Eload SVC Charge Bridge'', ''Accts. Payable - Bancnet Eload Tfee'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')  
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
