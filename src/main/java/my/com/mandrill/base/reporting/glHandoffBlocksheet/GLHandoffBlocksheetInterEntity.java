@@ -731,9 +731,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		String receivableValue = null;
 		String acdIbftValue = null;
 		for (ReportGenerationFields field : fields) {
-			logger.debug("branchCode:" + branchCode);
-			logger.debug("field.getFieldName():" + field.getFieldName());
-			logger.debug("firstRecord all values:" + firstRecord + "|" + payable + "|" + receivable + "|" + acdIbft);
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
