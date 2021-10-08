@@ -3,10 +3,17 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -164,7 +171,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
 	private void processSummaryPerIssuerBranch(ReportGenerationMgr rgm) {
 		logger.debug("In AtmListCardlessWithdrawal.processSummaryPerIssuerBranch()");
-		String branchCode = null;
+		// String branchCode = null;
 		pagination++;
 		try {
 			preProcessing(rgm, false, "issuer");
@@ -176,13 +183,20 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			rgm.writeLine(line.toString().getBytes());
 			writeSummaryBodyHeader(rgm);
 
-			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
-				rgm.setBodyQuery(getSummaryBodyQuery());
+			for (String branchCode : filterByBranchCode(rgm)) {
+				rgm.setBodyQuery(getSummaryIssuerQuery());
 				rgm.setTrailerQuery(getSummaryTrailerQuery());
 				preProcessing(rgm, branchCode, null, "issuerSummary");
 				executeBodyQuery(rgm, true);
 			}
+
+//			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
+//				branchCode = branchCodeMap.getKey();
+//				rgm.setBodyQuery(getSummaryBodyQuery());
+//				rgm.setTrailerQuery(getSummaryTrailerQuery());
+//				preProcessing(rgm, branchCode, null, "issuerSummary");
+//				executeBodyQuery(rgm, true);
+//			}
 			executeTrailerQuery(rgm, true);
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -193,7 +207,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
 	private void processSummaryPerAcquirerBranch(ReportGenerationMgr rgm) {
 		logger.debug("In AtmListCardlessWithdrawal.processSummaryPerAcquirerBranch()");
-		String branchCode = null;
+//		String branchCode = null;
 		pagination++;
 		try {
 			preProcessing(rgm, false, "acquirer");
@@ -204,13 +218,20 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			rgm.writeLine(line.toString().getBytes());
 			writeSummaryBodyHeader(rgm);
 
-			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-				branchCode = branchCodeMap.getKey();
+			for (String branchCode : filterByBranchCode(rgm)) {
 				rgm.setBodyQuery(getSummaryBodyQuery());
 				rgm.setTrailerQuery(getSummaryTrailerQuery());
-				preProcessing(rgm, branchCode, null, "acquirerSummary");
+				preProcessing(rgm, branchCode, null, "issuerSummary");
 				executeBodyQuery(rgm, true);
 			}
+
+//			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
+//				branchCode = branchCodeMap.getKey();
+//				rgm.setBodyQuery(getSummaryBodyQuery());
+//				rgm.setTrailerQuery(getSummaryTrailerQuery());
+//				preProcessing(rgm, branchCode, null, "acquirerSummary");
+//				executeBodyQuery(rgm, true);
+//			}
 			executeTrailerQuery(rgm, true);
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -253,38 +274,45 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", ""));
 		} else {
 			if (summaryType != null) {
-				
+
 				if (summaryType.equals("issuer")) {
+
+					String summaryCriteria = CriteriaParamsUtil.replaceInstitution(
+							" COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_Iss_Name} ", rgm.getInstitution(),
+							ReportConstants.VALUE_ISSUER_NAME);
 					
-					String summaryQuery =  CriteriaParamsUtil.replaceInstitution(
-							" COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_Iss_Name} ",
-					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME);
+					StringBuilder summaryQuery = new StringBuilder();
+					summaryQuery.append(summaryCriteria);
+					summaryQuery.append(" AND ISS_BRC.BRC_CODE IS NOT NULL");
+
+					setSummaryIssuerQuery(
+							getSummaryBodyQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
 					
-					setSummaryBodyQuery(getSummaryBodyQuery().
-							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+					setSummaryIssuerQuery(getSummaryIssuerQuery().replace("ABR.ABR_CODE", "ISS_BRC.BRC_CODE"));
+
+					setSummaryTrailerQuery(
+							getSummaryTrailerQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryCriteria));
 					
-					setSummaryTrailerQuery(getSummaryTrailerQuery().
-							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
-					
+					rgm.setBodyQuery(getSummaryIssuerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+
 					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
-					
+
 				} else {
-					
-					String summaryQuery =  CriteriaParamsUtil.replaceInstitution(
+
+					String summaryQuery = CriteriaParamsUtil.replaceInstitution(
 							" (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = {V_Acqr_Inst_Id}) ",
-					rgm.getInstitution(), ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ACQR_INST_ID);
-					
-					setSummaryBodyQuery(getSummaryBodyQuery().
-							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
-					
-					setSummaryTrailerQuery(getSummaryTrailerQuery().
-							replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
-					
+							rgm.getInstitution(), ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_ACQR_INST_ID);
+
+					setSummaryBodyQuery(
+							getSummaryBodyQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+
+					setSummaryTrailerQuery(
+							getSummaryTrailerQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
+
 					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
+					
+					rgm.setBodyQuery(getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 				}
-				
-				rgm.setBodyQuery(
-						getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			}
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
@@ -295,9 +323,9 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		logger.debug("In AtmListCardlessWithdrawal.preProcessing()");
 		ReportGenerationFields txnCode = null;
 		if (filterByBranchCode != null) {
-				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
-				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null) {
@@ -316,5 +344,60 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			getGlobalFileFieldsMap().put(txnCode.getFieldName(), txnCode);
 		}
 	}
-	
+
+	protected SortedSet<String> filterByBranchCode(ReportGenerationMgr rgm) {
+		logger.debug("In PdfReportProcessor.filterByBranchCode()");
+		String branchCode = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		SortedSet<String> branchCodeList = new TreeSet<>();
+		String query = getBodyQuery(rgm);
+		logger.info("Query to filter branch code: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+
+				while (rs.next()) {
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when getting result", e);
+							continue;
+						}
+						if (result != null) {
+							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
+								branchCode = result.toString();
+								//if(branchCode == null || branchCode )
+								//logger.debug("branchCode:" + branchCode);
+							} 
+						}
+					}
+					branchCodeList.add(branchCode);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the query to get the criteria", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
+		return branchCodeList;
+	}
+
 }
