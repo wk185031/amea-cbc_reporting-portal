@@ -16,10 +16,7 @@
             "createdByLabel": "Create By :",
             "createdDateLabel": "Created Date :",
             "lastModifiedByLabel": "Last Modified By :",
-            "lastModifiedDateLabel": "Last Modified Date :",
-            "reportGeneratedDateLabel": "Report generated date ",
-            "clearButton": "Clear",
-            "searchButton": "Search"
+            "lastModifiedDateLabel": "Last Modified Date :"
         },
         "reportGenerationResult": {
             "generated": "Report Generated",

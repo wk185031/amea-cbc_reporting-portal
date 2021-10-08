@@ -122,8 +122,7 @@
             "edit": "Edit",
             "open": "Open",
             "save": "Save",
-            "view": "View",
-            "download": "Download"
+            "view": "View"
         },
         "detail": {
             "field": "Field",
