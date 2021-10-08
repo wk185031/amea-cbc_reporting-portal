@@ -4,7 +4,10 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Comparator;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,6 +17,10 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +36,14 @@ import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.JobHistory;
+import my.com.mandrill.base.domain.SystemConfiguration;
+import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.search.JobHistorySearchRepository;
+import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
+import my.com.mandrill.base.web.rest.util.PaginationUtil;
 
 /**
  * REST controller for managing JobHistory.
@@ -48,7 +59,7 @@ public class JobHistoryResource {
     private final JobHistoryRepository jobHistoryRepository;
 
     private final JobHistorySearchRepository jobHistorySearchRepository;
-
+    
     public JobHistoryResource(JobHistoryRepository jobHistoryRepository, JobHistorySearchRepository jobHistorySearchRepository) {
         this.jobHistoryRepository = jobHistoryRepository;
         this.jobHistorySearchRepository = jobHistorySearchRepository;
@@ -163,4 +174,55 @@ public class JobHistoryResource {
         return jobHistoryRepository.findFirstByStatusOrderByCreatedDateDesc("COMPLETED");
     }
 
+    @GetMapping("/job-history-generated")
+    @Timed
+    public ResponseEntity<List<JobHistory>> getJobHistoryByDate(@RequestParam(required=false) String query, Pageable pageable) {
+        log.debug("REST request to get JobHistoryByDate : {}");
+        log.debug("date selected:: "+query);
+//        String txnDate = " createdDate >= TO_DATE('20211004 00:00:00', 'YYYYMMDD HH24:MI:SS') and createdDate < TO_DATE('20211005 00:00:00','YYYYMMDD HH24:MI:SS')";
+        String currentUserLogin = SecurityUtils.getCurrentUserLogin().orElse("");
+        
+        Page<JobHistory> page = null;
+        
+        if(query!=null && !query.isEmpty()){
+        	 String startDate = formatDate(query, -1) + " 00:00:00";
+             String endDate = formatDate(query, 1) + " 00:00:00";
+             page = jobHistoryRepository.findReportGenereatedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate);
+        }
+        else{
+        	page = jobHistoryRepository.findLatestReportGenerated(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT);
+        }
+              
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/job-history-generated");
+        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+        
+    }
+    
+    private String formatDate(String dateSelected, int addDays){
+    	
+    	SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+    	SimpleDateFormat format2 = new SimpleDateFormat("yyyyMMdd");
+    	Date date = null;
+    	String strDate = null;
+		try {
+			date = format1.parse(dateSelected);
+			if(addDays > 0){
+				date = addDays(date, 1);
+			}
+			strDate = format2.format(date);
+		} catch (ParseException e) {
+			log.debug("Error formatting date ");
+			e.printStackTrace();
+		}
+		log.debug("date formatted: "+strDate);
+    	return strDate;
+    }
+    
+    private Date addDays(Date date, int days){
+    	
+    	Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
+    }
 }

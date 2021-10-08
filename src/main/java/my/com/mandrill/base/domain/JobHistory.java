@@ -2,9 +2,6 @@ package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -20,12 +17,6 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.elasticsearch.annotations.Document;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 
 import io.swagger.annotations.ApiModel;
 
@@ -69,6 +60,9 @@ public class JobHistory implements Serializable {
 
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+    
+    @Column(name = "details")
+    private String details;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -148,6 +142,14 @@ public class JobHistory implements Serializable {
 		this.lastModifiedDate = lastModifiedDate;
 	}
 
+	public String getDetails() {
+		return details;
+	}
+
+	public void setDetails(String details) {
+		this.details = details;
+	}
+
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 	@Override
@@ -180,6 +182,7 @@ public class JobHistory implements Serializable {
 	            ", createdDate='" + getCreatedDate() + "'" +
 	            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
 	            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+	            ", details='" + getDetails() + "'" +
 	            "}";
 	}
 }

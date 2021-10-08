@@ -16,6 +16,9 @@ export class JobHistoryService {
     private resourceUrl =  SERVER_API_URL + 'api/job-history';
     //private resourceSearchUrl = SERVER_API_URL + 'api/_search/job-history';
     private resourceSearchUrl = SERVER_API_URL + 'api/_searchlatest/job-history';
+    private resourceDownloadReportByDateUrl = SERVER_API_URL + 'api/job-history-generated';
+        
+    jobHistory: JobHistory[] = [];
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
 
@@ -93,5 +96,16 @@ export class JobHistoryService {
         copy.createdDate = this.dateUtils.toDate(jobHistory.createdDate);
 
         return copy;
+    }
+    
+    searchJobHistory(req?: any): Observable<HttpResponse<JobHistory[]>> {
+        const options = createRequestOption(req);
+        return this.http.get<JobHistory[]>(this.resourceDownloadReportByDateUrl, { params: options, observe: 'response' })
+            .map((res: HttpResponse<JobHistory[]>) => res);
+    }
+        
+    testGetData(){
+    	console.log('It works here. size: '+Object.keys(this.jobHistory).length)
+    	return this.jobHistory;
     }
 }

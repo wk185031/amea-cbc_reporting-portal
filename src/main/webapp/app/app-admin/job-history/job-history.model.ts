@@ -8,6 +8,8 @@ export class JobHistory implements BaseEntity {
         public status?: string,
         public createdBy?: string,
         public createdDate?: any,
+        public lastModifiedBy?: string,
+        public lastModifiedDate?: any
     ) {
     }
 }
