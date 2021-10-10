@@ -171,7 +171,6 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
 	private void processSummaryPerIssuerBranch(ReportGenerationMgr rgm) {
 		logger.debug("In AtmListCardlessWithdrawal.processSummaryPerIssuerBranch()");
-		// String branchCode = null;
 		pagination++;
 		try {
 			preProcessing(rgm, false, "issuer");
@@ -185,18 +184,11 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
 			for (String branchCode : filterByBranchCode(rgm)) {
 				rgm.setBodyQuery(getSummaryIssuerQuery());
-				rgm.setTrailerQuery(getSummaryTrailerQuery());
+				rgm.setTrailerQuery(getSummaryIssuerTrailerQuery());
 				preProcessing(rgm, branchCode, null, "issuerSummary");
 				executeBodyQuery(rgm, true);
 			}
 
-//			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-//				branchCode = branchCodeMap.getKey();
-//				rgm.setBodyQuery(getSummaryBodyQuery());
-//				rgm.setTrailerQuery(getSummaryTrailerQuery());
-//				preProcessing(rgm, branchCode, null, "issuerSummary");
-//				executeBodyQuery(rgm, true);
-//			}
 			executeTrailerQuery(rgm, true);
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -207,7 +199,6 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 
 	private void processSummaryPerAcquirerBranch(ReportGenerationMgr rgm) {
 		logger.debug("In AtmListCardlessWithdrawal.processSummaryPerAcquirerBranch()");
-//		String branchCode = null;
 		pagination++;
 		try {
 			preProcessing(rgm, false, "acquirer");
@@ -221,17 +212,10 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			for (String branchCode : filterByBranchCode(rgm)) {
 				rgm.setBodyQuery(getSummaryBodyQuery());
 				rgm.setTrailerQuery(getSummaryTrailerQuery());
-				preProcessing(rgm, branchCode, null, "issuerSummary");
+				preProcessing(rgm, branchCode, null, "acquirerSummary");
 				executeBodyQuery(rgm, true);
 			}
 
-//			for (SortedMap.Entry<String, String> branchCodeMap : filterByBranch(rgm).entrySet()) {
-//				branchCode = branchCodeMap.getKey();
-//				rgm.setBodyQuery(getSummaryBodyQuery());
-//				rgm.setTrailerQuery(getSummaryTrailerQuery());
-//				preProcessing(rgm, branchCode, null, "acquirerSummary");
-//				executeBodyQuery(rgm, true);
-//			}
 			executeTrailerQuery(rgm, true);
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
@@ -280,22 +264,23 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 					String summaryCriteria = CriteriaParamsUtil.replaceInstitution(
 							" COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') = {V_Iss_Name} ", rgm.getInstitution(),
 							ReportConstants.VALUE_ISSUER_NAME);
-					
+
 					StringBuilder summaryQuery = new StringBuilder();
 					summaryQuery.append(summaryCriteria);
-					summaryQuery.append(" AND ISS_BRC.BRC_CODE IS NOT NULL");
 
 					setSummaryIssuerQuery(
 							getSummaryBodyQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
-					
-					setSummaryIssuerQuery(getSummaryIssuerQuery().replace("ABR.ABR_CODE", "ISS_BRC.BRC_CODE"));
 
-					setSummaryTrailerQuery(
-							getSummaryTrailerQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryCriteria));
-					
-					rgm.setBodyQuery(getSummaryIssuerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					setSummaryIssuerQuery(getSummaryIssuerQuery().replace("ABR.ABR_CODE",
+							"CASE WHEN ISS_BRC.BRC_CODE IS NOT NULL THEN ISS_BRC.BRC_CODE ELSE ISS_BRC_A.BRC_CODE END ")
+							.replace("ABR.ABR_NAME",
+									"CASE WHEN ISS_BRC.BRC_NAME IS NOT NULL THEN ISS_BRC.BRC_NAME ELSE ISS_BRC_A.BRC_NAME END "));
 
-					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
+					setSummaryIssuerTrailerQuery(getSummaryTrailerQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}",
+							summaryCriteria));
+
+					rgm.setBodyQuery(
+							getSummaryIssuerQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 
 				} else {
 
@@ -309,9 +294,8 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 					setSummaryTrailerQuery(
 							getSummaryTrailerQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
 
-					logger.debug("getSummaryBodyQuery():" + getSummaryBodyQuery());
-					
-					rgm.setBodyQuery(getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+					rgm.setBodyQuery(
+							getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 				}
 			}
 		}
@@ -323,9 +307,18 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		logger.debug("In AtmListCardlessWithdrawal.preProcessing()");
 		ReportGenerationFields txnCode = null;
 		if (filterByBranchCode != null) {
-			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
-			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			
+			if (txnType.equalsIgnoreCase("issuerSummary")) {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "(ISS_BRC.BRC_CODE = '" + filterByBranchCode
+								+ "' OR ISS_BRC_A.BRC_CODE = '" + filterByBranchCode + "')");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+				
+			}else {
+				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
+						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
+			}
 		}
 
 		if (filterByTerminal != null) {
@@ -377,9 +370,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 						if (result != null) {
 							if (key.equalsIgnoreCase(ReportConstants.BRANCH_CODE)) {
 								branchCode = result.toString();
-								//if(branchCode == null || branchCode )
-								//logger.debug("branchCode:" + branchCode);
-							} 
+							}
 						}
 					}
 					branchCodeList.add(branchCode);
