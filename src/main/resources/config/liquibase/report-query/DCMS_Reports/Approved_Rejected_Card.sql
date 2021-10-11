@@ -467,6 +467,31 @@ Where
 	To_Date(FCR.FCR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	AND STS_ID IN (88, 90, 91)
 	And FCR.FCR_Ins_Id = {Iss_Name}
+UNION ALL
+Select
+	''BULK UPLOAD'' As FUNCTION_NAME,
+	TO_CHAR(BCR.BCR_Created_Ts, ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	STF2.STF_LOGIN_NAME As Checker,
+	BCR.BCR_REMARK As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' FROM_DATA,
+    '''' TO_DATA,
+	CASE WHEN Ms.Sts_Id = 91 THEN ''Approved'' ELSE Ms.Sts_Name END As Status
+From
+	{DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS} BCR
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On BCR.BCR_NUMBER = Ic.CRD_BCR_ID
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On BCR.BCR_STS_ID=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = BCR_CREATED_BY
+    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = BCR_UPDATED_BY
+Where
+	BCR.BCR_Created_Ts >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And BCR.BCR_Created_Ts <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND BCR_STS_ID IN (68,70)
+	And BCR.BCR_Ins_Id = {Iss_Name}
 ) ORDER BY ISSUE_DATE
 	');	
 	i_TRAILER_QUERY := null;
