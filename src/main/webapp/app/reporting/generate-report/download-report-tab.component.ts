@@ -179,7 +179,9 @@ export class DownloadReportTabComponent implements OnInit {
     }
 
     deleteReport(jobId: string) {
-        this.generateReportService.deleteReport(jobId).subscribe();
+        this.generateReportService.deleteReport(jobId).subscribe((response) => {
+            this.loadAll();
+        });
     }
 
     formatDateToString(date) {
