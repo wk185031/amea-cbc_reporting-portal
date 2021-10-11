@@ -156,7 +156,7 @@ export class DownloadReportTabComponent implements OnInit {
                 if (requestEvent instanceof HttpResponse) {
                     if (requestEvent.body) {
                         if (reportName === 'All') {
-                            const fileName = parsedDetail.reportCategory + parsedDetail.transactionStartDate + '.zip';
+                            const fileName = parsedDetail.reportCategory + parsedDetail.transactionStartDate.slice(0, -6) + '.zip';
                             const a: any = document.createElement('a');
                             a.href = window.URL.createObjectURL(requestEvent.body);
                             a.target = '_blank';
