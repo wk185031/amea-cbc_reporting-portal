@@ -24,65 +24,151 @@ BEGIN
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"SPACE","csvTxtLength":"45","pdfLength":"45","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":3,"sectionName":"3","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"fieldName":"TRAILER","csvTxtLength":"30","pdfLength":"30","eol":true,"defaultValue":"*** END OF REPORT ***"}]');
 	
 	i_BODY_QUERY := TO_CLOB('
-SELECT (q1.New_Card_ATM + q1.New_Card_Cash) AS NEW_COUNT,
-	(q1.Replacement_Card_ATM + q1.Replacement_Card_Cash) AS REPLACEMENT_COUNT,
-	NVL(q1.Pre_Generated_Card,0) AS PREGEN_COUNT,
-	(q1.Bulk_Uploaded_Card_ATM + q1.Bulk_Uploaded_Card_Cash) AS BULK_UPLOADED_COUNT,
-  	(q1.New_Card_ATM + q1.New_Card_Cash +q1.Replacement_Card_ATM + q1.Replacement_Card_Cash + NVL(Pre_Generated_Card,0) + 
-    q1.Bulk_Uploaded_Card_ATM + q1.Bulk_Uploaded_Card_Cash) AS TOTAL_COUNT
+SELECT (q1.New_Card_ATM + q1.New_Card_ATM_RENEWAL +q1.New_Cash_Card + q1.New_Cash_Card_RENEWAL )as NEW_COUNT,
+		(q1.DEBIT_BULK_UPLOADED_COUNT + q1.DEBIT_BULK_UPLOADED_COUNT_RENEWAL + q1.CASH_CARD_BULK_UPLOADED_COUNT + q1.CASH_CARD_BULK_UPLOADED_COUNT_RENEWAL) AS BULK_UPLOADED_COUNT,
+		(q1.DEBIT_REPLACE + q1.DEBIT_REPLACE_RENEWAL +q1.CASH_CARD_REPLACE + q1.CASH_CARD_REPLACE_RENEWAL) AS REPLACEMENT_COUNT,
+		(q1.DEBIT_PREGEN_COUNT + q1.DEBIT_PREGEN_COUNT_RENEWAL + q1.CASH_CARD_PREGEN_COUNT + q1.CASH_CARD_PREGEN_COUNT_RENEWAL) AS PREGEN_COUNT,
+  	(q1.New_Card_ATM + q1.New_Card_ATM_RENEWAL +q1.New_Cash_Card + q1.New_Cash_Card_RENEWAL + q1.DEBIT_BULK_UPLOADED_COUNT + 
+    q1.DEBIT_BULK_UPLOADED_COUNT_RENEWAL + q1.CASH_CARD_BULK_UPLOADED_COUNT + q1.CASH_CARD_BULK_UPLOADED_COUNT_RENEWAL +q1.DEBIT_REPLACE 
+	+q1.DEBIT_REPLACE_RENEWAL +q1.CASH_CARD_REPLACE + q1.CASH_CARD_REPLACE_RENEWAL + q1.DEBIT_PREGEN_COUNT + q1.DEBIT_PREGEN_COUNT_RENEWAL + q1.CASH_CARD_PREGEN_COUNT + q1.CASH_CARD_PREGEN_COUNT_RENEWAL) 
+	AS TOTAL_COUNT
 FROM
   	(SELECT
+	--New Card
     	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Ic.CRD_ID = req.DCR_CRD_ID
     		WHERE req.DCR_INS_ID = {Iss_Name}
-			AND DCR_LIFE_CYCLE = 4
+			AND req.DCR_REQUEST_TYPE=''Manual''
 			AND req.DCR_CRN_ID IS NULL
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
     	) AS New_Card_ATM,
 		(SELECT COUNT(*)
-		  FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
-		  WHERE req.CCR_INS_ID = {Iss_Name}
-		  AND req.CCR_LIFE_CYCLE = 4
-		  AND req.CCR_CRN_ID IS NULL
-		  AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-		  ) AS New_Card_Cash,
-    	(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.DCR_CRN_ID
     		WHERE req.DCR_INS_ID = {Iss_Name}
-			AND DCR_LIFE_CYCLE = 4
-			AND req.DCR_CRN_ID IS NOT NULL
-    		And Req.Dcr_Created_Ts Between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Replacement_Card_ATM ,
+			AND req.DCR_REQUEST_TYPE=''Manual''
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS New_Card_ATM_RENEWAL,
+		 (SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Isc  On req.CCR_CLT_Id = Isc.CCM_CLT_ID
+            join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Isc.Ccm_CRD_Id = Ic.Crd_Id
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_REQUEST_TYPE=''Manual''
+			AND req.CCR_CRN_ID IS NULL
+    		AND req.CCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS New_Cash_Card,
 		(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
-		  WHERE req.CCR_INS_ID = {Iss_Name}
-		  AND req.CCR_LIFE_CYCLE = 4
-		  AND req.CCR_CRN_ID IS NOT NULL
-		  AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-		) AS Replacement_Card_Cash,
-		(SELECT SUM(BCR_NUMBER_OF_CARDS)
-    		FROM {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
-    		WHERE BCR_STS_ID = 70
-    		AND BCR_INS_ID = {Iss_Name}
-			AND BCR_LIFE_CYCLE = 4
-    		AND BCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Pre_Generated_Card,
-    	(SELECT COUNT(*)
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.CCR_CRN_ID
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_REQUEST_TYPE=''Manual''
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS New_Cash_Card_RENEWAL,
+		--    	Bulk Upload
+		(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
-    		WHERE req.DCR_REQ_FROM_BATCH = 1
-    		AND req.DCR_INS_ID = {Iss_Name}
-			AND DCR_LIFE_CYCLE = 4
+			join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Ic.CRD_ID = req.DCR_CRD_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_REQUEST_TYPE=''Bulk upload''
+			AND req.DCR_CRN_ID IS NULL
     		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Bulk_Uploaded_Card_ATM,
+    	) AS DEBIT_BULK_UPLOADED_COUNT,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.DCR_CRN_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_REQUEST_TYPE=''Bulk upload''
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS DEBIT_BULK_UPLOADED_COUNT_RENEWAL,
+		    	(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+				Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Isc  On req.CCR_CLT_Id = Isc.CCM_CLT_ID
+            join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Isc.Ccm_CRD_Id = Ic.Crd_Id
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_REQUEST_TYPE=''Bulk upload''
+			AND req.CCR_CRN_ID IS NULL
+    		AND req.CCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_BULK_UPLOADED_COUNT,
 		(SELECT COUNT(*)
     		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
-    		WHERE req.CCR_REQ_FROM_BATCH = 1
-    		AND req.CCR_INS_ID = {Iss_Name}
-			AND req.CCR_LIFE_CYCLE = 4
-    		AND req.CCR_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-    	) AS Bulk_Uploaded_Card_Cash
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.CCR_CRN_ID
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_REQUEST_TYPE=''Bulk upload''
+    	 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_BULK_UPLOADED_COUNT_RENEWAL,
+				--  Replace  	
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Ic.CRD_ID = req.DCR_CRD_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_REQUEST_TYPE=''Replace''
+			AND req.DCR_EMBOSSING_NAME IS NOT NULL
+			AND req.DCR_CRN_ID IS NULL
+    		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS DEBIT_REPLACE,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.DCR_CRN_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_REQUEST_TYPE=''Replace''
+			AND req.DCR_EMBOSSING_NAME IS NOT NULL
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS DEBIT_REPLACE_RENEWAL,
+		    	(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+				Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Isc  On req.CCR_CLT_Id = Isc.CCM_CLT_ID
+            join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Isc.Ccm_CRD_Id = Ic.Crd_Id
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_REQUEST_TYPE=''Replace''
+			AND req.CCR_EMBOSSING_NAME IS NOT NULL
+			AND req.CCR_CRN_ID IS NULL
+    		AND req.CCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_REPLACE,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.DCR_CRN_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_REQUEST_TYPE=''Replace''
+			AND req.DCR_EMBOSSING_NAME IS NOT NULL
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_REPLACE_RENEWAL,
+		--  PREGEN COUNT	
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Ic.CRD_ID = req.DCR_CRD_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_EMBOSSING_NAME IS  NULL
+			AND req.DCR_CRN_ID IS NULL
+    		AND req.DCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS DEBIT_PREGEN_COUNT,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.DCR_CRN_ID
+    		WHERE req.DCR_INS_ID = {Iss_Name}
+			AND req.DCR_EMBOSSING_NAME IS  NULL
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS DEBIT_PREGEN_COUNT_RENEWAL,
+		   (SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+				Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Isc  On req.CCR_CLT_Id = Isc.CCM_CLT_ID
+            join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Isc.Ccm_CRD_Id = Ic.Crd_Id
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_EMBOSSING_NAME IS  NULL
+			AND req.CCR_CRN_ID IS NULL
+    		AND req.CCR_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_PREGEN_COUNT,
+		(SELECT COUNT(*)
+    		FROM {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} req
+			join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} Scr on Scr.CRN_ID = req.CCR_CRN_ID
+    		WHERE req.CCR_INS_ID = {Iss_Name}
+			AND req.CCR_EMBOSSING_NAME IS  NULL
+    		 AND ExtractApprDate2(Scr.CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    	) AS CASH_CARD_PREGEN_COUNT_RENEWAL
   	From Dual
 ) q1
+	
 	');	
 	i_TRAILER_QUERY := null;
 	

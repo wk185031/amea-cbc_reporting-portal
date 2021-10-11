@@ -7,6 +7,7 @@ public final class ReportConstants {
 	
 	// System Configuration
 	public static final String ALLOW_CONCURRENT_LOGIN = "spring.application.allow-concurrent-login";
+	public static final String HOUSEKEEPING_RETENTION_PERIOD = "housekeeping.retention.period";
 
 	// DB Configuration
 	public static final String DB_URL = "spring.datasource.url";
@@ -20,9 +21,11 @@ public final class ReportConstants {
 	// DB Synchronizer
 	public static final String JOB_NAME_DB_SYNC = "DB_SYNC";
 	public static final String JOB_NAME_REPORT_GENERATE = "REPORT_GENERATE";
+	public static final String JOB_NAME_GENERATE_REPORT = "GENERATE_REPORT";
 	public static final String STATUS_IN_PROGRESS = "IN PROGRESS";
 	public static final String STATUS_COMPLETED = "COMPLETED";
 	public static final String STATUS_FAILED = "FAILED";
+	public static final String STATUS_DELETED = "DELETED";
 	public static final String REPORTS_GENERATED = "REPORTS GENERATED";
 	public static final String STATUS_ACTIVE = "ACTIVE";
 	public static final String CREATED_BY_USER = "system";

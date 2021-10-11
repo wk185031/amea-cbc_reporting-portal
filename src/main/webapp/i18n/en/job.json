@@ -48,6 +48,9 @@
             "scheduleTime": "Schedule Time",
             "createdBy": "Created By",
             "createdDate": "Created Date"
+        },
+        "report" : {
+            "deleted": "Reports are deleted with job id {{ param }}"
         }
     }
 }

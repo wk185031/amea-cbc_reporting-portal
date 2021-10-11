@@ -29,7 +29,14 @@ import io.swagger.annotations.ApiModel;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "job")
 public class Job implements Serializable {
+	
 	private static final long serialVersionUID = 1L;
+	
+	public Job() {}
+	
+	public Job(String name) {
+		this.name = name;
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
