@@ -44,6 +44,7 @@
 -- CBCAXUPISSLOG-937	22-SEP-2021		NY		New section for inter-entity
 -- CBCAXUPISSLOG-933	23-SEP-2021		NY		Fix eload/ibft issuing debit leg sum amount, eload under bill payment, ibft under transfer
 -- CBCAXUPISSLOG-933	30-SEP-2021		NY		Fix wrong count for bad txn and amount for no disp
+-- CBCAXUPISSLOG-688	11-OCT-2021		NY		Fix missing BRM inter-entity txn code 40 CDI
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -190,7 +191,7 @@ FROM TRANSACTION_LOG TXN JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID=TXNC.TRL
 WHERE
   TXN.TRL_TQU_ID IN (''F'', ''R'', ''C'')
   AND TXN.TRL_FRD_REV_INST_ID IS NULL 
-  AND TXN.TRL_TSC_CODE NOT IN (40, 42, 44, 45, 46, 47, 48, 49, 52, 252)
+  AND TXN.TRL_TSC_CODE NOT IN (40, 42, 44, 45, 46, 47, 48, 49, 51, 52, 252)
   AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
   AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
   AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
