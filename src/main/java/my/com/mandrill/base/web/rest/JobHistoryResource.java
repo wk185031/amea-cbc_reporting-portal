@@ -179,15 +179,14 @@ public class JobHistoryResource {
     public ResponseEntity<List<JobHistory>> getJobHistoryByDate(@RequestParam(required=false) String query, Pageable pageable) {
         log.debug("REST request to get JobHistoryByDate : {}");
         log.debug("date selected:: "+query);
-//        String txnDate = " createdDate >= TO_DATE('20211004 00:00:00', 'YYYYMMDD HH24:MI:SS') and createdDate < TO_DATE('20211005 00:00:00','YYYYMMDD HH24:MI:SS')";
+
         String currentUserLogin = SecurityUtils.getCurrentUserLogin().orElse("");
-        
         Page<JobHistory> page = null;
         
         if(query!=null && !query.isEmpty()){
         	 String startDate = formatDate(query, -1) + " 00:00:00";
              String endDate = formatDate(query, 1) + " 00:00:00";
-             page = jobHistoryRepository.findReportGenereatedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate);
+             page = jobHistoryRepository.findReportGeneratedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate);
         }
         else{
         	page = jobHistoryRepository.findLatestReportGenerated(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT);
