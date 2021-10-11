@@ -498,7 +498,7 @@ public class ReportGenerationResource {
 		
 		jobHistoryRepository.delete(jobId);
 		
-		return ResponseEntity.ok().headers(HeaderUtil.createAlert("job.deleted", reportPath)).build();
+		return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.job.deleted", jobId.toString())).build();
 	}
 	
 	 public static void deleteDirectory(Path path) {
