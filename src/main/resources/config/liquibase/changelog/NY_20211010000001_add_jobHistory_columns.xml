@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="NY_20211010000001_add_jobHistory_columns" author="ny">
+    	<addColumn tableName="JOB_HISTORY" >
+    	    <column name="REPORT_PATH" type="VARCHAR2(255 BYTE)"/>
+    		<column name="REPORT_START_DATE" type="TIMESTAMP(6)"/>
+			<column name="REPORT_END_DATE" type="TIMESTAMP(6)"/>
+			<column name="GENERATION_START_DATE" type="TIMESTAMP(6)"/>
+			<column name="GENERATION_END_DATE" type="TIMESTAMP(6)"/>
+		</addColumn> 				 
+    </changeSet>
+</databaseChangeLog>

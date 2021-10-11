@@ -2,9 +2,7 @@ package my.com.mandrill.base.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -20,12 +18,6 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.elasticsearch.annotations.Document;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 
 import io.swagger.annotations.ApiModel;
 
@@ -66,9 +58,28 @@ public class JobHistory implements Serializable {
     @Size(max = 100)
     @Column(name = "last_modified_by", length = 100)
     private String lastModifiedBy;
-
+    
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+    
+    @Size(max = 100)
+    @Column(name = "report_path", length = 100)
+    private String reportPath;
+    
+    @Column(name = "report_start_date")
+    private LocalDateTime reportStartDate;
+    
+    @Column(name = "report_end_date")
+    private LocalDateTime reportEndDate;
+    
+    @Column(name = "generation_start_date")
+    private LocalDateTime generationStartDate;
+    
+    @Column(name = "generation_end_date")
+    private LocalDateTime generationEndDate;
+    
+    @Column(name = "details")
+    private String details;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -148,6 +159,54 @@ public class JobHistory implements Serializable {
 		this.lastModifiedDate = lastModifiedDate;
 	}
 
+	public String getReportPath() {
+		return reportPath;
+	}
+
+	public void setReportPath(String reportPath) {
+		this.reportPath = reportPath;
+	}
+
+	public LocalDateTime getReportStartDate() {
+		return reportStartDate;
+	}
+
+	public void setReportStartDate(LocalDateTime reportStartDate) {
+		this.reportStartDate = reportStartDate;
+	}
+
+	public LocalDateTime getReportEndDate() {
+		return reportEndDate;
+	}
+
+	public void setReportEndDate(LocalDateTime reportEndDate) {
+		this.reportEndDate = reportEndDate;
+	}
+
+	public LocalDateTime getGenerationStartDate() {
+		return generationStartDate;
+	}
+
+	public void setGenerationStartDate(LocalDateTime generationStartDate) {
+		this.generationStartDate = generationStartDate;
+	}
+
+	public LocalDateTime getGenerationEndDate() {
+		return generationEndDate;
+	}
+
+	public void setGenerationEndDate(LocalDateTime generationEndDate) {
+		this.generationEndDate = generationEndDate;
+	}
+
+	public String getDetails() {
+		return details;
+	}
+
+	public void setDetails(String details) {
+		this.details = details;
+	}
+
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 	@Override
@@ -180,6 +239,7 @@ public class JobHistory implements Serializable {
 	            ", createdDate='" + getCreatedDate() + "'" +
 	            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
 	            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+	            ", details='" + getDetails() + "'" +
 	            "}";
 	}
 }

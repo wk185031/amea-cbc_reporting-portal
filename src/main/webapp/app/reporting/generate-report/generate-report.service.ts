@@ -20,6 +20,7 @@ export class GenerateReportService {
     private resourcGetParenteUrl = SERVER_API_URL + 'api/reportGeneration-parent-for-reportGeneration-and-user';
     private resourceGetGeneratedReport = SERVER_API_URL + 'api/report-get-generated';
     private resourceDownloadReport = SERVER_API_URL + 'api/download-report';
+    private resourceDeleteReport = SERVER_API_URL + 'api/delete-report';
     public reportDefinition: ReportDefinition[];
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) {
@@ -127,13 +128,18 @@ export class GenerateReportService {
             .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 
-    downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string): any {
+    downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string, jobId: number): any {
         console.log("downloadReport");
-        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}`, {
+        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}/${jobId}`, {
             requestProgress: true,
             responseType: 'blob'
         });
         return req;
+    }
+
+    deleteReport(jobId: string) {
+        console.log("deleteReport");
+        return this.http.delete(`${this.resourceDeleteReport}/${jobId}`, { observe: 'response' });
     }
 
     getReport(institutionId: number, date: string, reportCategoryId: number): Observable<Response> {

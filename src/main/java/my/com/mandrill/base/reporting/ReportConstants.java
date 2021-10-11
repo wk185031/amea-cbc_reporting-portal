@@ -20,6 +20,7 @@ public final class ReportConstants {
 	// DB Synchronizer
 	public static final String JOB_NAME_DB_SYNC = "DB_SYNC";
 	public static final String JOB_NAME_REPORT_GENERATE = "REPORT_GENERATE";
+	public static final String JOB_NAME_GENERATE_REPORT = "GENERATE_REPORT";
 	public static final String STATUS_IN_PROGRESS = "IN PROGRESS";
 	public static final String STATUS_COMPLETED = "COMPLETED";
 	public static final String STATUS_FAILED = "FAILED";

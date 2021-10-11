@@ -351,7 +351,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					instShortCode = "CBS";
 				}
 				reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
-						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false);
+						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
 			}
 		}
 		

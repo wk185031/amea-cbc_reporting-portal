@@ -1,61 +1,84 @@
 <div>
-    <div class="row">
-        <div class="col-4 treeborder">
-            <form name="editForm" role="form" novalidate #editForm="ngForm">
-                <div>
-                    <div>
-                        <label jhiTranslate="baseApp.reportGeneration.reportCategoryLabel"
-                            for="category">Category</label>
-                        <br />
-                        <select class="form-control" [(ngModel)]="category" name="category">
-                            <option [ngValue]="allCategory" selected>All</option>
-                            <option [ngValue]="categoryOption" *ngFor="let categoryOption of categories">
-                                {{categoryOption.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <br />
-                <div>
-                    <label jhiTranslate="baseApp.reportGeneration.reportTypeLabel">Report Type</label>
-                    <br />
-                    <input type="radio" name="reportType" value="daily" [(ngModel)]="reportType" /> Daily
-                    <input type="radio" name="reportType" value="monthly" [(ngModel)]="reportType" /> Monthly
-                </div>
-                <br />
-                <div>
-                    <label jhiTranslate="baseApp.reportGeneration.reportDateLabel">Report Date</label>
-                    <input class="d-flex form-control" *ngIf="reportType === 'daily'" id="reportDate" type="date"
-                        data-date-format="dd MMM yyyy" name="reportDate" [(ngModel)]="reportDate" />
-                    <input class="d-flex form-control" *ngIf="reportType === 'monthly'" id="reportMonth" type="month"
-                        name="reportMonth" [(ngModel)]="reportMonth" />
-                </div>
-                <br />
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" (click)="getReport()">
-                        <span jhiTranslate="baseApp.reportGeneration.find">Find</span>
-                    </button>
-                </div>
-            </form>
+    <jhi-alert></jhi-alert>
+    <div class="col-sm-12">
+           <form name="searchForm" class="form-inline">
+                <label jhiTranslate="baseApp.reportGeneration.reportGeneratedDateLabel">Report Generated Date </label>
+		        <div class="col-2">
+		            <input class="d-flex" type="date" data-date="" data-date-format="dd MMM yyyy"
+		                class="form-control" [(ngModel)]="txnDate" id="txnDate" name="txnDate"/>
+		        </div>
+		        <div class="col-2" *ngIf="searchByDateRange">
+		            <input class="d-flex" id="field_txnStartTime" type="time"
+		                class="form-control" name="txnStartTime" [(ngModel)]="txnStartTime" />
+		        </div>
+		        <div class="col-8">
+			        <button type="submit" class="btn btn-primary" (click)="clear()">
+			            <span jhiTranslate="baseApp.reportGeneration.clearButton">Clear</span>
+			        </button>
+			        <button type="submit" class="btn btn-primary" (click)="searchReportGenerated(txnDate)">
+			            <span jhiTranslate="baseApp.reportGeneration.searchButton" >Search</span>
+			        </button>
+		        </div>
+        	</form>
+    </div>
+    <br/>
+    <div class="table-responsive" *ngIf="jobHistories">
+        <table class="table table-striped">
+            <thead>
+	            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="transition.bind(this)">
+		            <th jhiSortBy="createdDate"><span>Start Date Time</span> <span class="fa fa-sort"></span></th>
+		            <th jhiSortBy="endDate"><span>End Date Time</span> <span class="fa fa-sort"></span></th>
+		            <th jhiSortBy="details"><span>Description</span> <span class="fa fa-sort"></span></th>
+		            <th jhiSortBy="createdBy"><span>User</span> <span class="fa fa-sort"></span></th>
+		            <th jhiSortBy="status"><span>Status</span> <span class="fa fa-sort"></span></th>
+		            <th><span>Action</span> <span class="fa fa-sort"></span></th>
+	            </tr>
+            </thead>
+            <tbody>
+            	<tr *ngFor="let jobHistory of jobHistories ;trackBy: trackId">
+	            	<td>{{jobHistory.createdDate | date:'short'}}</td>
+	            	<td>{{getGeneratedEndDateTime(jobHistory.details) | date:'short'}}</td>
+	            	<td style="width:40%">{{getDetails(jobHistory.details)}}</td>
+	            	<td>{{jobHistory.createdBy}}</td>
+	            	<td>{{jobHistory.status}}</td>
+	            	<td class="text-right">
+						<div class="btn-group flex-btn-group-container">
+	                        <button *ngIf="jobHistory.status == 'COMPLETED'" type="submit"	                            
+	                                class="btn btn-info btn-sm">
+	                            <span class="fa fa-download"></span>
+	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id)">Download</span>
+	                        </button>
+	                        <button *ngIf="jobHistory.status == 'COMPLETED' && this.account.login == jobHistory.createdBy" type="submit"	                             
+	                                replaceUrl="true"
+	                                queryParamsHandling="merge"
+	                                class="btn btn-danger btn-sm">
+	                            <span class="fa fa-remove"></span>
+	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.delete" (click)="deleteReport(jobHistory.id)">Delete</span>
+	                        </button>
+                    	</div>
+                	</td>
+            	</tr>
+<!--             <tr *ngFor="let systemConfiguration of systemConfigurations ;trackBy: trackId"> -->
+<!--                 <td><a [routerLink]="['../system-configuration', systemConfiguration.id ]">{{systemConfiguration.id}}</a></td> -->
+<!--                 <td>{{systemConfiguration.name}}</td> -->
+<!--                 <td>{{systemConfiguration.description}}</td> -->
+<!--                 <td>{{systemConfiguration.config}}</td> -->
+<!--                 <td>{{systemConfiguration.createdBy}}</td> -->
+<!--                 <td>{{systemConfiguration.createdDate | date:'medium'}}</td> -->
+<!--                 <td>{{systemConfiguration.lastModifiedBy}}</td> -->
+<!--                 <td>{{systemConfiguration.lastModifiedDate | date:'medium'}}</td> -->
+<!--                 
+<!--             </tr> -->
+            </tbody>
+        </table>
+    </div>
+    <!-- Pager is not implemented yet, so this is normal pagination instead -->
+    <div *ngIf="jobHistories && jobHistories.length">
+        <div class="row justify-content-center">
+            <jhi-item-count [page]="page" [total]="queryCount" [itemsPerPage]="itemsPerPage"></jhi-item-count>
         </div>
-
-        <div class="col-8">
-            <h2><span>{{downloadReportCategory?.name}}</span></h2>
-            <div *ngIf="!generatedReportDTO?.reportList?.length">
-                <p><i>No available report to download</i></p>
-            </div>
-            <div *ngIf="generatedReportDTO?.reportList?.length  && downloadReportCategory.id !== 0" class="report-custom">
-                <div>
-                    <a (click)="download('All', downloadReportCategory.id)">Download All</a>
-                </div>
-                <div *ngFor="let report of generatedReportDTO.reportList">
-                    <a (click)="download(report, downloadReportCategory.id)">{{report}}</a>
-                </div>
-            </div>
-            <div *ngIf="generatedReportDTO?.reportList?.length && downloadReportCategory.id === 0" class="report-custom">
-                <div>
-                    <a (click)="download('All', downloadReportCategory.id)">Download All</a>
-                </div>
-            </div>
+        <div class="row justify-content-center">
+            <ngb-pagination [collectionSize]="totalItems" [(page)]="page" [pageSize]="itemsPerPage" [maxSize]="5" [rotate]="true" [boundaryLinks]="true" (pageChange)="loadPage(page)"></ngb-pagination>
         </div>
     </div>
 </div>
