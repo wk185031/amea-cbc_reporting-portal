@@ -121,6 +121,7 @@ public class ReportService {
 		if (reportCategoryId == null || reportCategoryId <= 0) {
 			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
 			reportCategory = "ALL";
+			report = "ALL";
 		} else if (reportId == null || reportId <= 0) {
 			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
 			reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
@@ -137,11 +138,10 @@ public class ReportService {
 		log.debug("Process {} reports", aList.size());
 		
 		LocalDateTime currentTs = LocalDateTime.now();
-		String description = "REPORT CATEGORY: " + reportCategory + ", REPORT: " + report +
-								", FROM: " + inputStartDateTime.toString() + " TO: " + inputEndDateTime.toString();
+		String description = "REPORT CATEGORY: " + reportCategory + ", REPORT: " + report + ", FROM: " + inputStartDateTime.toString() + ", TO: " + inputEndDateTime.toString();
 		
 		Job job = jobRepository.findByName("GENERATE_REPORT");
-		JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId.toString(), reportCategoryId != null ? reportCategoryId.toString() : null, reportCategory, 
+		JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId.toString(), reportCategoryId != null ? reportCategoryId.toString() : "0", reportCategory, 
 				report, description, inputStartDateTime.toString(), inputStartDateTime.toString(), inputEndDateTime.toString(), currentTs.toString(), null);
 		
 		long jobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails));
@@ -199,7 +199,7 @@ public class ReportService {
 		
 		JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
 		jobHistoryDetails.setEndDateTime(currentTs.toString());
-		jobHistory.setStatus("COMPLETED");
+		jobHistory.setStatus(ReportConstants.STATUS_COMPLETED);
 		jobHistory.setReportPath(reportGenerationMgr.getFileBaseDirectory());
 		jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
 		jobHistory.setGenerationEndDate(currentTs);
@@ -430,7 +430,7 @@ public class ReportService {
 			conn = dataSource.getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setLong(1, job.getId());
-			stmt.setString(2, "PENDING");
+			stmt.setString(2, ReportConstants.STATUS_IN_PROGRESS);
 			stmt.setString(3, user);
 			stmt.setTimestamp(4, Timestamp.valueOf(currentTs));
 			stmt.setString(5, user);

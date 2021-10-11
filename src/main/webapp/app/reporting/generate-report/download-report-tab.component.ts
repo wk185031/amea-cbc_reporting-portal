@@ -279,7 +279,7 @@ export class DownloadReportTabComponent implements OnInit {
     
     getDetails(detail) {
     	var parsedDetail = JSON.parse(detail);
-		return "Category: "+parsedDetail.reportCategory + ", Report: "+parsedDetail.report;
+		return parsedDetail.description;
 	}
 	
 	getGeneratedEndDateTime(detail){
