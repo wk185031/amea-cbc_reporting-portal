@@ -492,13 +492,14 @@ public class ReportGenerationResource {
     @PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<Void> deleteReport(@PathVariable Long jobId) throws IOException {
 		
-		String reportPath = jobHistoryRepository.findOne(jobId).getReportPath();
-		File directoryToDelete = new File(reportPath);
+		JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+		File directoryToDelete = new File(jobHistory.getReportPath());
 		FileSystemUtils.deleteRecursively(directoryToDelete);
 		
-		jobHistoryRepository.delete(jobId);
+		jobHistory.setStatus(ReportConstants.STATUS_DELETED);
+		jobHistoryRepository.save(jobHistory);
 		
-		return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.job.deleted", jobId.toString())).build();
+		return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.report.deleted", jobId.toString())).build();
 	}
 	
 	 public static void deleteDirectory(Path path) {
