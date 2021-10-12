@@ -6,10 +6,12 @@
 		            <input class="d-flex" type="date" data-date="" data-date-format="dd MMM yyyy"
 		                class="form-control" [(ngModel)]="txnDate" id="txnDate" name="txnDate"/>
 		        </div>
+		        <!--
 		        <div class="col-2" *ngIf="searchByDateRange">
 		            <input class="d-flex" id="field_txnStartTime" type="time"
 		                class="form-control" name="txnStartTime" [(ngModel)]="txnStartTime" />
 		        </div>
+		        -->
 		        <div class="col-8">
 			        <button type="submit" class="btn btn-primary" (click)="clear()">
 			            <span jhiTranslate="baseApp.reportGeneration.clearButton">Clear</span>
