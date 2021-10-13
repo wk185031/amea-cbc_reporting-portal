@@ -239,8 +239,8 @@ SELECT
     "Third Party Tran Description"
 ORDER BY    
 	  "GROUP_ID",
-      "BRANCH CODE",
-	  "Part Tran Indicator" DESC
+	  "Part Tran Indicator" DESC,
+      "BRANCH CODE"	  
 	');	
 	
 	i_TRAILER_QUERY := null;

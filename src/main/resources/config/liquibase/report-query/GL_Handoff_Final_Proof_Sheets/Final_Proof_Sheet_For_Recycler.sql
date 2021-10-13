@@ -230,8 +230,8 @@ SELECT
       GLA.GLA_NAME     
  ORDER BY    
       "GROUP_ID", 
-	  "BRANCH CODE",
-	  "DEBIT CREDIT" DESC
+      "DEBIT CREDIT" DESC,
+	  "BRANCH CODE"
 	');	
 
 	i_TRAILER_QUERY := null;

@@ -306,7 +306,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		log.debug("REST request to Synchronize Database");
 
 		JobHistory incompleteJob = jobHistoryRepo
-				.findFirstByStatusOrderByCreatedDateDesc(ReportConstants.STATUS_IN_PROGRESS);
+				.findFirstByStatusAndJobNameOrderByCreatedDateDesc(ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
 
 		if (incompleteJob != null) {
 			throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync", "dbsync.inprogress");
