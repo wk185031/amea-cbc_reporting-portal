@@ -166,7 +166,7 @@ FROM
 		(SELECT COUNT(*)
     		FROM {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS} req
     		WHERE req.REP_INS_ID = {Iss_Name}
-    		 AND req.REP_CREATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+    		 AND To_Date(Sdrp.Rep_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
     	) AS RESET_PIN
   	From Dual
 ) q1

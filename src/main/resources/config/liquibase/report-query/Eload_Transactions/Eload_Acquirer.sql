@@ -8,6 +8,7 @@
 -- Eload						12-AUG-2021		NY		Fix column not fully display in excel
 -- Eload						15-AUG-2021		NY		Parameterized acq bank
 -- CBCAXUPISSLOG-935			28-AUG-2021		NY		Exclude approved with post completion code R
+-- CBCAXUPISSLOG-933			12-OCT-2021		NY		Include inter-entity transactions
 
 DECLARE
 
@@ -60,7 +61,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -84,7 +85,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
       AND {Txn_Date}
 GROUP BY
       CBA.CBA_CODE,
@@ -111,7 +112,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
       AND {Bank_Code}
       AND {Txn_Date}
 START SELECT
@@ -130,7 +131,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
-      AND TXN.TRL_ISS_NAME IS NULL
+      AND (TXN.TRL_ISS_NAME IS NULL OR TXN.TRL_ISS_NAME = {V_IE_Iss_Name})
       AND {Txn_Date}
 END
 	');
