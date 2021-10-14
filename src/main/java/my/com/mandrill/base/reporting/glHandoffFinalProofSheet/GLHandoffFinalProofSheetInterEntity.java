@@ -273,28 +273,22 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
-//			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-//					ReportGenerationFields.TYPE_STRING,
-//					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + 
-//					"'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
 							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
-//			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
-//					ReportGenerationFields.TYPE_STRING,
-//					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + 
-//					"'  AND (TXN.TRL_DEO_NAME = '" + rgm.getInstitution() + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')");
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
+					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
 							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
+			setDebitBodyQuery(getDebitBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
+			setCreditBodyQuery(getCreditBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
@@ -310,31 +304,14 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffFinalProofSheetInterEntity.separateDebitCreditquery()");
 		if (rgm.getBodyQuery() != null) {
-//			setAcquirerDebitBodyQuery(
-//					rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
-//							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
-//			setAcquirerCreditBodyQuery(rgm.getBodyQuery()
-//					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-//							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-//					.replace(ReportConstants.SUBSTRING_START, ""));
 			setDebitBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			// .replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}",
-			// "").replace("\"BRANCH CODE\" ASC,", "")
-			// .replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",",
-			// "")
-			// .replace("\"BRANCH CODE\",", ""));
 			setCreditBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			// .replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}",
-			// "").replace("\"BRANCH CODE\" ASC,", "")
-			// .replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) \"BRANCH CODE\",",
-			// "")
-			// .replace("\"BRANCH CODE\",", ""));
 			setCriteriaQuery(getDebitBodyQuery());
 		}
 	}
