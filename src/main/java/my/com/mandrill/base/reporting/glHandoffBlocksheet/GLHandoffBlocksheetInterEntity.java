@@ -513,14 +513,14 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					ReportGenerationFields.TYPE_STRING, "\"BRANCH CODE\" = " + filterByBranchCode);
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			getGlobalFileFieldsMap().put(branchAR.getFieldName(), branchAR);
-			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
-					" \"BRANCH CODE\" = " + filterByBranchCode));
+			rgm.setTrailerQuery(rgm.getTrailerQuery()
+					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}"," \"BRANCH CODE\" = " + filterByBranchCode));
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
 							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
@@ -528,9 +528,11 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (44, 48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
+					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
 							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID", "JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_2_ACN_ID"));
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			break;
 		default:
@@ -623,8 +625,6 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		String acdIbftValue = null;
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
-			logger.debug("field.getFieldName():" + field.getFieldName());
-			logger.debug("-----" + firstRecord + "|" + payable + "|" + receivable + "|" + acdIbft);
 
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
