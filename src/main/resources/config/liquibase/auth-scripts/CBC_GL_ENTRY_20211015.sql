@@ -1,6 +1,9 @@
 -- insert InstaPay Receivable account
 Insert into CBC_GL_ACCOUNT (GLA_ID,GLA_NAME,GLA_NUMBER,GLA_LAST_UPDATE_TS) values (CBC_GL_ACCOUNT_SEQUENCE.nextVal,'Accts. Receivable - Bancnet Instapay','50080012221151',current_timestamp);
 
+-- Update IBFT
+update CBC_GL_ENTRY set gle_tran_type=44 where gle_glt_id=9 and gle_main_direction='RECEIVING' and gle_tran_type=41 and gle_tran_channel='BNT';
+
 -- Update InstaPay receivable account
 update CBC_GL_ENTRY set gle_debit_account='Accts. Receivable - Bancnet Instapay' where gle_glt_id=9 and gle_tran_type=21 and gle_tran_channel='PGW';
 
