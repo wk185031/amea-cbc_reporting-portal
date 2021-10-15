@@ -238,26 +238,24 @@ public class GLHandoffFinalProofSheetInterbankFundTransfer extends TxtReportProc
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-							"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name}  OR TXN.TRL_ISS_NAME IS NULL) " +
-							"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
-							"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
-					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
+							"TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' AND TLC.TRL_ORIGIN_CHANNEL = 'BNT' "
+							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND CPD.CPD_CODE NOT IN ('80','81','82','83')",
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id}",
-					rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
+							"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id} AND ATP.ATP_ID != 0", 
+							rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-							"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name}  OR TXN.TRL_ISS_NAME IS NULL) " +
-							"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
-							"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
-					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
+							"TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' AND TLC.TRL_ORIGIN_CHANNEL = 'BNT' "
+							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND CPD.CPD_CODE NOT IN ('80','81','82','83')",
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}

@@ -109,7 +109,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 							contentStream.beginText();
 							contentStream.newLineAtOffset(startX, startY);
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
+									pdfFont, fontSize, glDescription);
 						}
 					} else {
 						rgm.setBodyQuery(getDebitBodyQuery());
@@ -117,7 +117,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 						preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
 						if (executeQuery(rgm)) {
 							pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY,
-									pdfFont, fontSize);
+									pdfFont, fontSize, glDescription);
 						} else {
 							contentStream.endText();
 							contentStream.close();
@@ -138,7 +138,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 						contentStream.beginText();
 						contentStream.newLineAtOffset(startX, startY);
 						pdfProcessingDetail(rgm, contentStream, doc, page, pageSize, leading, startX, startY, pdfFont,
-								fontSize);
+								fontSize, glDescription);
 					}
 					endGroup = true;
 				}
@@ -162,7 +162,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 
 	private void pdfProcessingDetail(ReportGenerationMgr rgm, PDPageContentStream contentStream, PDDocument doc,
 			PDPage page, PDRectangle pageSize, float leading, float startX, float startY, PDFont pdfFont,
-			float fontSize) {
+			float fontSize, String glDescription) {
 		logger.debug("In GLHandoffBlocksheetInterbankFundTransfer.pdfProcessingDetail()");
 		try {
 			writePdfHeader(rgm, contentStream, leading, pagination);
@@ -171,7 +171,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			writePdfBodyHeader(rgm, contentStream, leading);
 			pageHeight += 2;
 			contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
-					pdfFont, fontSize);
+					pdfFont, fontSize, glDescription);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
 			logger.error("Error in pdfProcessingDetail", e);
@@ -198,7 +198,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 				rgm.setTrailerQuery(getDebitTrailerQuery());
 				preProcessing(rgm, glDescription, ReportConstants.DEBIT_IND);
 				if (executeQuery(rgm)) {
-					processingDetail(rgm);
+					processingDetail(rgm, glDescription);
 				}
 
 				firstRecord = true;
@@ -207,7 +207,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 				rgm.setTrailerQuery(getCreditTrailerQuery());
 				preProcessing(rgm, glDescription, ReportConstants.CREDIT_IND);
 				if (executeQuery(rgm)) {
-					processingDetail(rgm);
+					processingDetail(rgm, glDescription);
 				}
 			}
 			rgm.fileOutputStream.flush();
@@ -228,12 +228,12 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		}
 	}
 
-	private void processingDetail(ReportGenerationMgr rgm) {
+	private void processingDetail(ReportGenerationMgr rgm, String glDescription) {
 		logger.debug("In GLHandoffBlocksheetInterbankFundTransfer.processingDetail()");
 		try {
 			writeHeader(rgm, pagination);
 			writeBodyHeader(rgm);
-			executeBodyQuery(rgm);
+			executeBodyQuery(rgm, glDescription);
 			executeTrailerQuery(rgm);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
@@ -270,32 +270,35 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			getGlobalFileFieldsMap().put(glDesc.getFieldName(), glDesc);
 		}
 		
-		
-
 		switch (filterByGlDescription) {
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_DR:
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-						"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name}  OR TXN.TRL_ISS_NAME IS NULL) " +
-						"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
-						"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
-					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
+							"TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' AND TLC.TRL_ORIGIN_CHANNEL = 'BNT' "
+							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND CPD.CPD_CODE NOT IN ('80','81','82','83')",
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id}", 
+					"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id} AND ATP.ATP_ID != 0", 
 					rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
+			
+			if(filterByGlDescription.equals(ReportConstants.BANCNET_INTERBANK_TRANSFER_CR)) {
+				rgm.setBodyQuery(rgm.getBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "TXN.TRL_ACCOUNT_2_ACN_ID \"FROM ACCOUNT NO\",")
+						.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,"));
+				rgm.setTrailerQuery(rgm.getTrailerQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "TXN.TRL_ACCOUNT_2_ACN_ID \"FROM ACCOUNT NO\",")
+						.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "TXN.TRL_ACCOUNT_2_ACN_ID_EKY_ID,"));
+			}
 			break;
 		default:
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-						"TXN.TRL_TSC_CODE IN (1, 44) AND (TXN.TRL_ISS_NAME = {V_Iss_Name} OR TXN.TRL_ISS_NAME IS NULL) " +
-						"AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' " +
-						"AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}",
-					rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
+							"TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' AND TLC.TRL_ORIGIN_CHANNEL = 'BNT' "
+							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND CPD.CPD_CODE NOT IN ('80','81','82','83')",
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}
@@ -315,7 +318,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
 					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
 					.replace(
-							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = 'BANCNET SERVICE CHARGE' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
+							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = 'BANCNET SERVICE CHARGE' THEN 25.00 ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
 							"")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "")
 					.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "").replace("TXN.TRL_AMT_TXN,", "")
@@ -335,8 +338,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		}
 	}
 
-	@Override
-	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap, String glDescription)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		boolean payable = false;
@@ -347,6 +349,9 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
+				if(glDescription.equals(ReportConstants.BANCNET_INTERBANK_TRANSFER_CR)) {
+					field.setDecryptionKey("TRL_ACCOUNT_2_ACN_ID_EKY_ID");
+				}
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
@@ -416,9 +421,8 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		firstRecord = false;
 	}
 
-	@Override
 	protected void writePdfBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
+			PDPageContentStream contentStream, float leading, String glDescription)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		boolean payable = false;
@@ -427,7 +431,10 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 		String payableValue = null;
 		String receivableValue = null;
 		for (ReportGenerationFields field : fields) {
-			if (field.isDecrypt()) {
+			if (field.isDecrypt()) {				
+				if(glDescription.equals(ReportConstants.BANCNET_INTERBANK_TRANSFER_CR)) {
+					field.setDecryptionKey("TRL_ACCOUNT_2_ACN_ID_EKY_ID");
+				}
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
@@ -517,7 +524,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 
 	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
-			PDFont pdfFont, float fontSize) {
+			PDFont pdfFont, float fontSize, String glDescription) {
 		logger.debug("In GLHandoffBlocksheetInterbankFundTransfer.executePdfBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -575,7 +582,7 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 							field.setValue("");
 						}
 					}
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					writePdfBody(rgm, lineFieldsMap, contentStream, leading, glDescription);
 					pageHeight++;
 				}
 				pageHeight += 1;
@@ -628,5 +635,64 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 			}
 		}
 		return false;
+	}
+	
+	protected void executeBodyQuery(ReportGenerationMgr rgm, String glDescription) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.connection.prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				while (rs.next()) {
+					new StringBuffer();
+					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+					for (String key : lineFieldsMap.keySet()) {
+						ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+						Object result;
+						try {
+							result = rs.getObject(field.getSource());
+						} catch (SQLException e) {
+							rgm.errors++;
+							logger.error("An error was encountered when trying to write a line", e);
+							continue;
+						}
+						if (result != null) {
+							if (result instanceof Date) {
+								field.setValue(Long.toString(((Date) result).getTime()));
+							} else if (result instanceof oracle.sql.TIMESTAMP) {
+								field.setValue(
+										Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+							} else if (result instanceof oracle.sql.DATE) {
+								field.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+							} else {
+								field.setValue(result.toString());
+							}
+						} else {
+							field.setValue("");
+						}
+					}
+					writeBody(rgm, lineFieldsMap, glDescription);
+				}
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				try {
+					ps.close();
+					rs.close();
+				} catch (SQLException e) {
+					rgm.errors++;
+					logger.error("Error closing DB resources", e);
+				}
+			}
+		}
 	}
 }
