@@ -54,7 +54,6 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 		PreparedStatement ps = null;
 		int recordCount = 0;
 		int pageCount = 1;
-		String lastDebitCreditFlag = null;
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 		String query = getBodyQuery(rgm);
 		logger.info("Execute query: {}", query);
@@ -68,7 +67,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
+			String lastDebitCreditFlag = null;
+			String lastGlAccount = null;
 			String currentDebitCreditFlag = null;
+			String currentGlAccount = null;
 			boolean newGroup = true;
 			if (rs.next()) {
 				Map<String, BigDecimal> summaryTotal = new HashMap<String, BigDecimal>();
@@ -105,6 +107,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						}
 					}
 					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
+					currentGlAccount = rs.getString(ReportConstants.GL_ACCOUNT_NUMBER);
 
 					if (recordCount >= MAX_RECORD_PER_PAGE) {
 						contentStream.endText();
@@ -114,10 +117,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						recordCount = 0;
 					}
 
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag)) {
+					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount)) {
 						newGroup = false;
 					} else {
-						if (lastDebitCreditFlag != null) {
+						if (lastDebitCreditFlag != null || lastGlAccount != null) {
 							writePdfTrailer(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, summaryTotal);
 							contentStream.endText();
 							contentStream.close();
@@ -128,6 +131,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						}
 						newGroup = true;
 						lastDebitCreditFlag = currentDebitCreditFlag;
+						lastGlAccount = currentGlAccount;
 						// reset total
 						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
 						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
@@ -179,7 +183,6 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 			PreparedStatement ps = null;
 			int recordCount = 0;
 			int pageCount = 1;
-			String lastDebitCreditFlag = null;
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			String query = getBodyQuery(rgm);
 
@@ -188,7 +191,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 
+			String lastDebitCreditFlag = null;
+			String lastGlAccount = null;
 			String currentDebitCreditFlag = null;
+			String currentGlAccount = null;
 			boolean newGroup = true;
 
 			writeHeader(rgm, pageCount);
@@ -230,6 +236,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						}
 					}
 					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
+					currentGlAccount = rs.getString(ReportConstants.GL_ACCOUNT_NUMBER);
 
 //					if (recordCount >= MAX_RECORD_PER_PAGE) {
 //						writeHeader(rgm, pageCount);
@@ -238,10 +245,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 //						recordCount = 0;
 //					}
 
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag)) {
+					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount)) {
 						newGroup = false;
 					} else {
-						if (lastDebitCreditFlag != null) {
+						if (lastDebitCreditFlag != null || lastGlAccount != null) {
 							writeTxtTrailer(rgm, lineFieldsMap, DEFAULT_LEADING, summaryTotal);
 							writeHeader(rgm, pageCount);
 							writeBodyHeader(rgm);
@@ -249,6 +256,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						}
 						newGroup = true;
 						lastDebitCreditFlag = currentDebitCreditFlag;
+						lastGlAccount = currentGlAccount;
 						// reset total
 						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
 						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
