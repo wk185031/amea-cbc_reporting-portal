@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -24,7 +25,7 @@ public class BatchProcessor extends TxtReportProcessor {
 	private final Logger logger = LoggerFactory.getLogger(BatchProcessor.class);
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In BatchProcessor.processTxtRecord()");
 		File file = null;
 		String txnDate = null;
@@ -55,6 +56,7 @@ public class BatchProcessor extends TxtReportProcessor {
 			}
 		} catch (Exception e) {
 			logger.error("Errors in generating " + fileName, e);
+			throw new ReportGenerationException(fileName, e);
 		}
 	}
 

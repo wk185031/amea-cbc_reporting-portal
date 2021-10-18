@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -33,7 +34,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 	String txnDate = null;
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In BillsPaymentExtractFilesDetailedTransactions.processTxtRecord()");
 		if (getEncryptionService() == null) {
 			setEncryptionService(rgm.getEncryptionService());
@@ -87,7 +88,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT, e);
-
+			throw new ReportGenerationException(rgm.getFileNamePrefix() + txnDate + ReportConstants.DPS_FORMAT, e);
 		} finally {
 			try {
 				if (rgm.fileOutputStream != null) {

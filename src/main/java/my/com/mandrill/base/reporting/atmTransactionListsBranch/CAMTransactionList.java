@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -34,7 +35,7 @@ public class CAMTransactionList extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In CAMTransactionList.processPdfRecord()");
 
 		rgm.setBodyQuery(rgm.getFixBodyQuery());
@@ -45,7 +46,7 @@ public class CAMTransactionList extends PdfReportProcessor {
 	}
 
 	private void generateBranchReport(ReportGenerationMgr rgm,
-			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) {
+			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) throws ReportGenerationException {
 		logger.debug("In CAMTransactionList.generateBranchReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -106,6 +107,7 @@ public class CAMTransactionList extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -119,7 +121,7 @@ public class CAMTransactionList extends PdfReportProcessor {
 	}
 
 	private void generateMasterListReport(ReportGenerationMgr rgm,
-			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) {
+			SortedMap<String, Map<String, TreeMap<String, String>>> branchRecords) throws ReportGenerationException {
 		logger.debug("In CAMTransactionList.generateMasterListReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -183,6 +185,7 @@ public class CAMTransactionList extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

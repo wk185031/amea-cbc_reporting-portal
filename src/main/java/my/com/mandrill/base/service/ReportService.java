@@ -36,6 +36,7 @@ import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.JobHistoryDetails;
 import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.processor.IReportProcessor;
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -145,7 +146,11 @@ public class ReportService {
 				report, description, inputStartDateTime.toString(), inputStartDateTime.toString(), inputEndDateTime.toString(), currentTs.toString(), null);
 		
 		long jobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails));
-
+		
+		boolean isFailed = false;
+		boolean isPartialFailed = false;
+		boolean isCompleted = false;
+		
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
@@ -176,7 +181,14 @@ public class ReportService {
 								reportDefinition.isByBusinessDate(), manualGenerate, holidays, jobId);
 						log.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
 								reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
-						runReport(reportGenerationMgr);
+						try {
+							runReport(reportGenerationMgr);
+							isCompleted = true;
+						} catch (ReportGenerationException e) {
+							log.error("Error generating report:" + e);
+							isPartialFailed = true;
+						}
+						
 					}
 
 					if (ReportConstants.MONTHLY.equals(freq)) {
@@ -188,7 +200,13 @@ public class ReportService {
 							log.debug("run monthly report: name={}, start date={}, end date={}",
 									reportDefinition.getName(), reportGenerationMgr.getTxnStartDate(),
 									reportGenerationMgr.getTxnEndDate());
-							runReport(reportGenerationMgr);
+							try {
+								runReport(reportGenerationMgr);
+								isCompleted = true;
+							} catch (ReportGenerationException e) {
+								log.error("Error generating report:" + e);
+								isPartialFailed = true;
+							}
 						}
 					}
 				}
@@ -197,9 +215,19 @@ public class ReportService {
 		
 		currentTs = LocalDateTime.now();
 		
+		String status = null;
+		
+		if(isCompleted && isPartialFailed) {
+			status = ReportConstants.STATUS_PARTIAL_FAILED;
+		} else if(!isCompleted && isPartialFailed) {
+			status = ReportConstants.STATUS_FAILED;
+		} else {
+			status = ReportConstants.STATUS_COMPLETED;
+		}
+		
 		JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
 		jobHistoryDetails.setEndDateTime(currentTs.toString());
-		jobHistory.setStatus(ReportConstants.STATUS_COMPLETED);
+		jobHistory.setStatus(status);
 		jobHistory.setReportPath(reportGenerationMgr.getFileBaseDirectory());
 		jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
 		jobHistory.setGenerationEndDate(currentTs);
@@ -404,7 +432,7 @@ public class ReportService {
 		}
 	}
 
-	private void runReport(ReportGenerationMgr reportGenerationMgr) {
+	private void runReport(ReportGenerationMgr reportGenerationMgr) throws ReportGenerationException {
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 
 		if (reportProcessor != null) {

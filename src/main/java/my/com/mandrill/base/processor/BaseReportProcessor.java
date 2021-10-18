@@ -56,7 +56,7 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 	private DataSource datasource;
 
 	@Override
-	public void process(ReportGenerationMgr rgm) {
+	public void process(ReportGenerationMgr rgm) throws ReportGenerationException {
 		FileOutputStream out = null;
 
         File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),

@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -34,13 +35,13 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In EftAtmTransactionListCashCard.processPdfRecord()");
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);
 	}
 
-	private void generateBranchReport(ReportGenerationMgr rgm) {
+	private void generateBranchReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In EftAtmTransactionListCashCard.generateBranchReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -110,6 +111,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -122,7 +124,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		}
 	}
 
-	private void generateMasterListReport(ReportGenerationMgr rgm) {
+	private void generateMasterListReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In EftAtmTransactionListCashCard.generateMasterListReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -193,6 +195,7 @@ public class EftAtmTransactionListCashCard extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

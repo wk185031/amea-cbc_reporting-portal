@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -39,7 +40,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 	private static final DecimalFormat AMOUNT_FORMATTER = new DecimalFormat(ReportGenerationFields.DEFAULT_DECIMAL_FORMAT);
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;
@@ -194,6 +195,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

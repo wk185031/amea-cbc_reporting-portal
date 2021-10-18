@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -38,7 +39,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DCMSApproveRejectPendingCardReport.processPdfRecord(): " + rgm.getFileNamePrefix());
 		if (getEncryptionService() == null) {
         	setEncryptionService(rgm.getEncryptionService());
@@ -46,7 +47,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		generateReport(rgm);
 	}
 
-	private void generateReport(ReportGenerationMgr rgm) {
+	private void generateReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DCMSApproveRejectPendingCardReport.generateReport(): " + rgm.getFileNamePrefix());
 		pageHeight = DEFAULT_PAGE_HEIGHT;
 		totalHeight = PDRectangle.A4.getWidth();
@@ -98,6 +99,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

@@ -23,6 +23,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -44,12 +45,12 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
     private int pagination = 0;
     
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransmittalSlipForNewPins.processPdfRecord(): " + rgm.getFileNamePrefix());
 		generateReport(rgm);
 	}
 
-	private void generateReport(ReportGenerationMgr rgm) {
+	private void generateReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransmittalSlipForNewPins.generateReport(): " + rgm.getFileNamePrefix());
 		PDPageContentStream contentStream = null;
 		PDFont pdfFont = PDType1Font.COURIER;
@@ -96,6 +97,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -110,7 +112,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 	}
     
     @Override
-    public void processTxtRecord(ReportGenerationMgr rgm) {
+    public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
         logger.debug("In TransmittalSlipForNewPins.processTxtRecord()");
         File file = null;
         String txnDate = null;
@@ -145,6 +147,8 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
             }
         } catch (Exception e) {
             logger.error("Errors in generating " + fileName, e);
+            throw new ReportGenerationException(
+					"Errors when generating: " + fileName, e);
         }
     }
 

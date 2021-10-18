@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
@@ -52,7 +53,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	}
 
 	@Deprecated
-	public void run(String url, String username, String password) {
+	public void run(String url, String username, String password) throws ReportGenerationException {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;
 		this.setFileFormatTmp(this.getFileFormat());

@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -29,7 +30,7 @@ public class Bnob extends TxtReportProcessor {
 	private boolean branchDetails = false;
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In Bnob.processTxtRecord()");
 		File file = null;
 		String txnDate = null;
@@ -60,6 +61,8 @@ public class Bnob extends TxtReportProcessor {
 			}
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.TXT_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.TXT_FORMAT, e);
 		}
 	}
 

@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
@@ -17,7 +18,7 @@ public class TransactionCountReport extends TxtReportProcessor {
 	private final Logger logger = LoggerFactory.getLogger(TransactionCountReport.class);
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransactionCountReport.processTxtRecord()");
 		File file = null;
 		String txnDate = null;
@@ -48,6 +49,8 @@ public class TransactionCountReport extends TxtReportProcessor {
 			}
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.TXT_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.TXT_FORMAT, e);
 		}
 	}
 

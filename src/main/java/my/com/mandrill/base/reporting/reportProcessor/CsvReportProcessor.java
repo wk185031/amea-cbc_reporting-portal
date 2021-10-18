@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.processor.IReportOutputFileName;
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -240,7 +241,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	}
 
 	@Override
-	public void processCsvRecord(ReportGenerationMgr rgm) {
+	public void processCsvRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In CsvReportProcessor.processCsvRecord()");
 		File file = null;
 		String txnDate = null;
@@ -272,6 +273,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 			}
 		} catch (Exception e) {
 			logger.error("Errors in generating " + fileName, e);
+			throw new ReportGenerationException("Errors when generating " + fileName, e);
 		}
 	}
 

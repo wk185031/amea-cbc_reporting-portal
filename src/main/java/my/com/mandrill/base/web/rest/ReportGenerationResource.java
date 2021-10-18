@@ -60,6 +60,7 @@ import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.processor.IReportProcessor;
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -211,7 +212,7 @@ public class ReportGenerationResource {
 		return nextTime.getTime();
 	}
 
-	private void generateDailyReport(Long institutionId, String instShortCode) {
+	private void generateDailyReport(Long institutionId, String instShortCode) throws ReportGenerationException {
 		logger.info("generateDailyReport: institutionId={}, intShortCode={}", institutionId, instShortCode);
 		LocalDate yesterdayDate = LocalDate.now().minusDays(1L);
 
@@ -253,7 +254,7 @@ public class ReportGenerationResource {
 		}
 	}
 
-	private void generateMonthlyReport(Long institutionId, String instShortCode) {
+	private void generateMonthlyReport(Long institutionId, String instShortCode) throws ReportGenerationException {
 		logger.info("In ReportGenerationResource.generateMonthlyReport()");
 		LocalDate firstDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atDay(1);
 		LocalDate lastDayOfMonth = YearMonth.from(LocalDateTime.now().atZone(ZoneId.systemDefault())).atEndOfMonth();
@@ -894,7 +895,7 @@ public class ReportGenerationResource {
 		return new Sort(Sort.Direction.ASC, "id");
 	}
 
-	private void runReport(ReportGenerationMgr reportGenerationMgr) {
+	private void runReport(ReportGenerationMgr reportGenerationMgr) throws ReportGenerationException {
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 
 		if (reportProcessor != null) {

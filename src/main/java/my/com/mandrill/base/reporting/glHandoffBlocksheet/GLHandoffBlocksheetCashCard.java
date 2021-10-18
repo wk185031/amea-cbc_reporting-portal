@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -43,7 +44,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 	private static final int MAX_RECORD_PER_PAGE = 65;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In GLHandoffBlocksheetCashCard.processPdfRecord()");
 		PDDocument doc = new PDDocument();
 		PDPageContentStream contentStream = null;
@@ -144,10 +145,10 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			saveFile(rgm, doc);
 		} catch (SQLException e) {
 			logger.error("Failed to fetch records.", e);
-			throw new RuntimeException(e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} catch (Exception ie) {
 			logger.error("Failed to write file.", ie);
-			throw new RuntimeException(ie);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, ie);
 		} finally {
 			try {
 				if (ps != null) {

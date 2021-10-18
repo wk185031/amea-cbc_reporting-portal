@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -35,13 +36,13 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Pd
 	private int pagination = 0;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.processPdfRecord()");
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);
 	}
 
-	private void generateBranchReport(ReportGenerationMgr rgm) {
+	private void generateBranchReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.generateBranchReport()");
 		totalHeight = PDRectangle.A4.getHeight();
 		PDDocument doc = null;
@@ -108,6 +109,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Pd
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -120,7 +122,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Pd
 		}
 	}
 
-	private void generateMasterListReport(ReportGenerationMgr rgm) {
+	private void generateMasterListReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts.generateMasterListReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -188,6 +190,7 @@ public class TransactionSummaryGrandTotalOnUsAndOtherBranchesAccounts extends Pd
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -38,7 +39,7 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 	private String ie_ins_id = "0000000112";
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In GLHandoffBlocksheetMovingCash.processPdfRecord()");
 		PDDocument doc = null;
 		PDPage page = null;
@@ -211,6 +212,7 @@ public class GLHandoffBlocksheetMovingCash extends TxtReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

@@ -23,6 +23,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -37,7 +38,7 @@ public class GLHandoffFinalProofSheetBeep extends TxtReportProcessor {
 	private double total = 0.00;
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In GLHandoffFinalProofSheetBeep.processPdfRecord()");
 		PDDocument doc = null;
 		pagination = 1;
@@ -92,6 +93,7 @@ public class GLHandoffFinalProofSheetBeep extends TxtReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

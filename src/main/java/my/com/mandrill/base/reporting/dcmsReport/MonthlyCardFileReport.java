@@ -1,5 +1,6 @@
 package my.com.mandrill.base.reporting.dcmsReport;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -47,7 +48,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
     private static final String TOTAL_COUNT = "TOTAL_COUNT";
         
     @Override
-    public void executePdf(ReportGenerationMgr rgm) {
+    public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
         logger.debug("In MonthlyCardFileReport.processPdfRecord()");
 
         PDDocument doc = null;
@@ -103,6 +104,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
         } catch (Exception e) {
             rgm.errors++;
             logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+            throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
         } finally {
             if (doc != null) {
                 try {

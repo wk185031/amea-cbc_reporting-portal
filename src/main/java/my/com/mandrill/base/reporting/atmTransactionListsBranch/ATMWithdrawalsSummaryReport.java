@@ -16,6 +16,8 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import my.com.mandrill.base.domain.Branch;
+import my.com.mandrill.base.processor.ReportGenerationException;
+import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.BranchReportProcessor;
@@ -40,7 +42,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 	DecimalFormat formatter = new DecimalFormat("#,##0.00");
 	
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		List<String> writtenFilePath = new ArrayList<>();
 
 		List<Branch> branches = getAllBranchByInstitution(rgm.getInstitution());
@@ -213,7 +215,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 			logger.error("Failed to generate report. Remove generated files.", e);
 			cleanAllFilesOnError(writtenFilePath);
 			writtenFilePath = new ArrayList<>();
-			throw new RuntimeException(e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		}
 	}
 	

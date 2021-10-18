@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -37,13 +38,13 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 	private Long totalAmt = new Long ("0");
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In ListOfATMWithdrawalsReport.processPdfRecord()");
 		generateBranchReport(rgm);
 		generateMasterListReport(rgm);
 	}
 
-	private void generateBranchReport(ReportGenerationMgr rgm) {
+	private void generateBranchReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In ListOfATMWithdrawalsReport.generateBranchReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -119,6 +120,7 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -131,7 +133,7 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		}
 	}
 
-	private void generateMasterListReport(ReportGenerationMgr rgm) {
+	private void generateMasterListReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In ListOfATMWithdrawalsReport.generateMasterListReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -208,6 +210,7 @@ public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

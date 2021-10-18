@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import my.com.mandrill.base.processor.IReportOutputFileName;
+import my.com.mandrill.base.processor.ReportGenerationException;
+
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 	private final Logger logger = LoggerFactory.getLogger(TxtReportProcessor.class);
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In TxtReportProcessor.processTxtRecord()");
 		File file = null;
 		String txnDate = null;
@@ -54,6 +56,7 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 			}
 		} catch (Exception e) {
 			logger.error("Errors in generating " + fileName, e);
+			throw new ReportGenerationException(fileName, e);
 		}
 	}
 

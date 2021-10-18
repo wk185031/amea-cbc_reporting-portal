@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
@@ -19,7 +20,7 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 	private int pagination = 0;
 
 	@Override
-	public void processTxtRecord(ReportGenerationMgr rgm) {
+	public void processTxtRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In BillsPaymentExtractFilesSummary.processTxtRecord()");
 		File file = null;
 		String txnDate = null;
@@ -68,7 +69,8 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 			
 		} catch (Exception e) {
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + txnDate + ReportConstants.SUM_FORMAT, e);
-			
+			throw new ReportGenerationException(
+					"Errors when generating" + rgm.getFileNamePrefix() + txnDate + ReportConstants.SUM_FORMAT, e);
 		}finally {
 			try {
 				if (rgm.fileOutputStream != null) {

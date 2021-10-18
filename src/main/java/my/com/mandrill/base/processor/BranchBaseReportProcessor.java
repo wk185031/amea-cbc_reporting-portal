@@ -67,7 +67,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 	 * Parent method to execute both CSV and PDF generation
 	 */
 	@Override
-	public void process(ReportGenerationMgr rgm) {
+	public void process(ReportGenerationMgr rgm) throws ReportGenerationException {
 		List<Branch> branches = getAllBranchByInstitution(rgm.getInstitution());
 		
 		String institution = rgm.getInstitution() == null ? "'CBC'" : rgm.getInstitution();
@@ -84,7 +84,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 	/*
 	 * PDF code
 	 */
-	protected void generatePDF(ReportGenerationMgr rgm, List<Branch> branches) {
+	protected void generatePDF(ReportGenerationMgr rgm, List<Branch> branches) throws ReportGenerationException {
 		List<String> writtenFilePath = new ArrayList<>();
 
 		PDDocument masterDoc = null;
@@ -213,7 +213,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 			logger.error("Failed to generate report. Remove generated files.", e);
 			cleanAllFilesOnError(writtenFilePath);
 			writtenFilePath = new ArrayList<>();
-			throw new RuntimeException(e);
+			throw new ReportGenerationException(rgm.getFileName(), e);
 		}			
 	}
 	
@@ -624,7 +624,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 	/*
 	 * CSV code
 	 */
-	protected void generateCSV(ReportGenerationMgr rgm, List<Branch> branches, String institution) {
+	protected void generateCSV(ReportGenerationMgr rgm, List<Branch> branches, String institution) throws ReportGenerationException {
 		FileOutputStream outBranch = null;
 		FileOutputStream outMaster = null;
 		

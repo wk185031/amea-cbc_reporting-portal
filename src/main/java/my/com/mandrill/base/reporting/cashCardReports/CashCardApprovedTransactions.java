@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -52,7 +53,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 	private static final String KEY_CARD_PRODUCT = "CARD PRODUCT";
 
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		PDDocument doc = null;
 		PDPageContentStream contentStream = null;
 
@@ -122,6 +123,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				} catch (Exception e) {
 					rgm.errors++;
 					logger.error("Error trying to execute the body query", e);
+					throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 				} finally {
 					try {
 						ps.close();

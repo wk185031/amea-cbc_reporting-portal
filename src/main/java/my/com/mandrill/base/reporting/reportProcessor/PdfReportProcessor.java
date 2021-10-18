@@ -14,6 +14,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import my.com.mandrill.base.processor.IReportOutputFileName;
+import my.com.mandrill.base.processor.ReportGenerationException;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -247,12 +249,12 @@ public class PdfReportProcessor extends CsvReportProcessor implements IPdfReport
 		this.ieIssTrailerQuery = ieIssTrailerQuery;
 	}
 
-	public void processPdfRecord(ReportGenerationMgr rgm) {
+	public void processPdfRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
 		this.setEncryptionService(rgm.getEncryptionService());
 		executePdf(rgm);
 	}
 
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		// To be overriden
 	}
 

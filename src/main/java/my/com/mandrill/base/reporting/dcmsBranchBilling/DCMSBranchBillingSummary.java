@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -34,12 +35,12 @@ public class DCMSBranchBillingSummary extends PdfReportProcessor {
 	private int pagination = 0;
 		
 	@Override
-	public void executePdf(ReportGenerationMgr rgm) {
+	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DCMSBranchBillingSummary.processPdfRecord()");
 		generateReport(rgm);
 	}
 
-	private void generateReport(ReportGenerationMgr rgm) {
+	private void generateReport(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DCMSBranchBillingSummary.generateReport()");
 		pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 		totalHeight = PDRectangle.A4.getHeight();
@@ -91,6 +92,7 @@ public class DCMSBranchBillingSummary extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {

@@ -25,6 +25,7 @@ public final class ReportConstants {
 	public static final String STATUS_IN_PROGRESS = "IN PROGRESS";
 	public static final String STATUS_COMPLETED = "COMPLETED";
 	public static final String STATUS_FAILED = "FAILED";
+	public static final String STATUS_PARTIAL_FAILED = "PARTIAL FAILED";
 	public static final String STATUS_DELETED = "DELETED";
 	public static final String REPORTS_GENERATED = "REPORTS GENERATED";
 	public static final String STATUS_ACTIVE = "ACTIVE";
