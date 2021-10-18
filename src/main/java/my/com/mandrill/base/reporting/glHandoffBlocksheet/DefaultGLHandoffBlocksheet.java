@@ -69,8 +69,11 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 
 			String lastDebitCreditFlag = null;
 			String lastGlAccount = null;
+			String lastBranch = null;
 			String currentDebitCreditFlag = null;
 			String currentGlAccount = null;
+			String currentBranch = null;
+			
 			boolean newGroup = true;
 			if (rs.next()) {
 				Map<String, BigDecimal> summaryTotal = new HashMap<String, BigDecimal>();
@@ -108,6 +111,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 					}
 					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
 					currentGlAccount = rs.getString(ReportConstants.GL_ACCOUNT_NUMBER);
+					currentBranch = branchCode;
 
 					if (recordCount >= MAX_RECORD_PER_PAGE) {
 						contentStream.endText();
@@ -117,10 +121,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						recordCount = 0;
 					}
 
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount)) {
+					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount) && currentBranch.equals(lastBranch)) {
 						newGroup = false;
 					} else {
-						if (lastDebitCreditFlag != null || lastGlAccount != null) {
+						if (lastDebitCreditFlag != null || lastGlAccount != null || lastBranch != null) {
 							writePdfTrailer(rgm, lineFieldsMap, contentStream, DEFAULT_LEADING, summaryTotal);
 							contentStream.endText();
 							contentStream.close();
@@ -132,6 +136,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						newGroup = true;
 						lastDebitCreditFlag = currentDebitCreditFlag;
 						lastGlAccount = currentGlAccount;
+						lastBranch = currentBranch;
 						// reset total
 						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
 						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
@@ -193,8 +198,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 
 			String lastDebitCreditFlag = null;
 			String lastGlAccount = null;
+			String lastBranch = null;
 			String currentDebitCreditFlag = null;
 			String currentGlAccount = null;
+			String currentBranch = null;
 			boolean newGroup = true;
 
 			writeHeader(rgm, pageCount);
@@ -237,6 +244,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 					}
 					currentDebitCreditFlag = rs.getString(ReportConstants.DEBIT_CREDIT);
 					currentGlAccount = rs.getString(ReportConstants.GL_ACCOUNT_NUMBER);
+					currentBranch = branchCode;
 
 //					if (recordCount >= MAX_RECORD_PER_PAGE) {
 //						writeHeader(rgm, pageCount);
@@ -245,10 +253,10 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 //						recordCount = 0;
 //					}
 
-					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount)) {
+					if (currentDebitCreditFlag.equals(lastDebitCreditFlag) && currentGlAccount.equals(lastGlAccount) && currentBranch.equals(lastBranch)) {
 						newGroup = false;
 					} else {
-						if (lastDebitCreditFlag != null || lastGlAccount != null) {
+						if (lastDebitCreditFlag != null || lastGlAccount != null || lastBranch != null) {
 							writeTxtTrailer(rgm, lineFieldsMap, DEFAULT_LEADING, summaryTotal);
 							writeHeader(rgm, pageCount);
 							writeBodyHeader(rgm);
@@ -257,6 +265,7 @@ public class DefaultGLHandoffBlocksheet extends TxtReportProcessor {
 						newGroup = true;
 						lastDebitCreditFlag = currentDebitCreditFlag;
 						lastGlAccount = currentGlAccount;
+						lastBranch = currentBranch;
 						// reset total
 						summaryTotal.put(ReportConstants.TOTAL_DEBIT, BigDecimal.ZERO);
 						summaryTotal.put(ReportConstants.TOTAL_CREDIT, BigDecimal.ZERO);
