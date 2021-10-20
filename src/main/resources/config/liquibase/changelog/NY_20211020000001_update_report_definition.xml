@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="NY_20211020000001_update_report_definition" author="ny">
+    	<validCheckSum>any</validCheckSum>
+		
+		<!-- 806 -->
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM Transaction List(On-Us_Acquirer).sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Issuer).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Summary).sql"
+                 splitStatements="false" 
+                 stripComments="true" />	
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(On-Us).sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/EFT_ATM_Transaction_List(Other Branch).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/List_of_ATM_Withdrawals_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Summary_of_ATM_Withdrawals_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(Branch)/Txn_Summary_GrandTotal_for_Onus_and_Other_Branches_Acc.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Withdrawal_Transactions/ATM_Withdrawal_as_Acquirer_Bank_Summary.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Interbank)/Acquirer_ATM_Withdrawal_Income.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Billing_Allocation_Reports(Interbank)/On-Us_and_Inter-Branch_ATM_Withdrawal.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/CASA_Transaction_Log/CASA(On-Us).sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Approved_Transactions.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Daily.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Statistic_Per_Channel.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Successful.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Cash_Card_Reports/Cash_Card_Unsuccessful.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+    	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_OnUs.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+				 
+    </changeSet>
+</databaseChangeLog>

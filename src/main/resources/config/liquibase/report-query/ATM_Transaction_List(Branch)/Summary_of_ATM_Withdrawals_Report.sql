@@ -6,6 +6,7 @@
 -- Onus					13-AUG-2021		NY		Cater BRM for cbc_tran_code join 
 -- CBCAXUPISSLOG-868	02-SEP-2021		NY		Generate blank report with header if no data retrieved
 -- CBCAXUPISSLOG-931	29-SEP-2021		NY		Sub-total by each branch, Overall-total by all branches
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -71,7 +72,7 @@ SELECT
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND AST.AST_TERMINAL_TYPE IN (''ATM'', ''BRM'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND ABR.ABR_CODE = {BRANCH_CODE}
       AND {Txn_Date}

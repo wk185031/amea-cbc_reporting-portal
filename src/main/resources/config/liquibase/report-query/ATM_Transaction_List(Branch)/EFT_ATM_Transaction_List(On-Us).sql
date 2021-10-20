@@ -7,6 +7,7 @@
 -- Onus					09-AUG-2021		NY		Fix BRM mnem not print
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 -- CBCAXUPISSLOG-868	02-SEP-2021		NY		Generate blank report with header if no data retrieved
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -66,7 +67,7 @@ BEGIN
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND ABR.ABR_CODE = TXNC.TRL_CARD_BRANCH
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND ABR.ABR_CODE = {BRANCH_CODE}

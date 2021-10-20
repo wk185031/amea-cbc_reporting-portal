@@ -10,6 +10,7 @@
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 -- Onus					25-AUG-2021		NY		Internal finding, approved but reversed not adding bad trans count
 -- CBCAXUPISSLOG-868	02-SEP-2021		NY		Generate blank report with header if no data retrieved
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -77,7 +78,7 @@ BEGIN
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND ABR.ABR_CODE = {BRANCH_CODE}
       AND {Txn_Date}
 	)
@@ -133,7 +134,7 @@ BEGIN
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND CPD.CPD_CODE NOT IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND ABR.ABR_CODE = {BRANCH_CODE}
       AND SUBSTR(AST.AST_TERMINAL_ID, -4) = {TERMINAL}
       AND {Txn_Date}
