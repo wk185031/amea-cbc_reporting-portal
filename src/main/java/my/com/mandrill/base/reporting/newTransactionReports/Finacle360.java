@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
 
@@ -59,5 +62,41 @@ public class Finacle360 extends CsvReportProcessor {
 				.replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 		
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
+	}
+	
+	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			line.append(getFieldValue(rgm, field, fieldsMap));
+			line.append(field.getDelimiter());
+			if (field.isEol()) {
+				line.append(getEol());
+			}
+		}
+
+		rgm.writeLine(line.toString().getBytes());
+	}
+
+	protected void writeBodyHeader(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In CsvReportProcessor.writeBodyHeader()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if(field.isEol()) {
+				line.append(getFieldValue(rgm, field, null));
+				line.append(field.getDelimiter());
+				line.append(getEol());
+			} else {
+				line.append(getFieldValue(rgm, field, null));
+				line.append(field.getDelimiter());
+			}
+		}
+		rgm.writeLine(line.toString().getBytes());
 	}
 }
