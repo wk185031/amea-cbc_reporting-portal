@@ -6,6 +6,7 @@
 -- CBCAXUPISSLOG-822	04-AUG-2021		NY		Fix IBFT transmitting not appear in report
 -- IBFT					15-AUG-2021		NY		Get stan if dest_stan null
 -- CBCAXUPISSLOG-934	24-SEP-2021		NY		Fix wrong subtotal count/amount as compare to details records 
+-- CBCAXUPISSLOG-934	21-OCT-2021		NY		Fix blank branch code
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -44,7 +45,7 @@ BEGIN
 	      TRANSACTION_LOG TXN
 	      LEFT JOIN TRANSACTION_LOG_CUSTOM TXNC ON TXN.TRL_ID = TXNC.TRL_ID 
 	      LEFT JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN
-	      LEFT JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE
+	      LEFT JOIN BRANCH BRC ON TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE
 	WHERE
 	      TXN.TRL_TSC_CODE = 1
 	      AND TXN.TRL_TQU_ID IN (''F'')
