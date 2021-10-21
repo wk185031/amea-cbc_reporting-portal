@@ -19,6 +19,7 @@
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude rejected reversal
 -- Master report		31-AUG-2021		NY		Internal finding, wrong txn code
 -- CBCAXUPISSLOG-550	14-SEP-2021		NY		Fix redundant ACI/ADI for txn code 40, BTC should not contain CBS as receiving bank
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -93,7 +94,7 @@ SELECT
 	  (TXN.TRL_TQU_ID IN (''F'', ''C'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_FRD_REV_INST_ID IS NULL 
 	  AND TXN.TRL_TSC_CODE NOT IN (2, 22)
-      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+      AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
       AND {Bank_Code}

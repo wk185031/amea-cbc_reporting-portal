@@ -3,6 +3,7 @@
 -- Report revision		23-JUL-2021		NY		Update based on excel spec
 -- Report revision		24-JUL-2021		NY		Separate update query to CBC/CBS report definition
 -- Onus					06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master 
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -46,7 +47,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
@@ -75,7 +76,7 @@ WHERE
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}

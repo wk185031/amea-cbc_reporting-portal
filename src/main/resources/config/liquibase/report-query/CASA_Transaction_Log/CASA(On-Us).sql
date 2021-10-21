@@ -3,6 +3,7 @@
 -- Report revision			23-JUL-2021		NY		Update based on excel spec
 -- Onus						06-AUG-2021		NY		Fix null mnem, use TPS mnem if it is not found
 -- Onus						15-AUG-2021		NY		IBFT/Eload for onus to use 44/52 request instead of 01
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
 
@@ -53,7 +54,7 @@ WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND (TXN.TRL_TSC_CODE NOT IN (1, 2, 21, 22, 26, 31, 41, 51, 52, 122, 145, 146, 246) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL))
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0	
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})

@@ -4,6 +4,7 @@
 -- Report revision		24-JUL-2021		NY		Separate update query to CBC/CBS report definition
 -- Acquirer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master 
 -- CBCAXUPISSLOG-531	15-SEP-2021		NY		Exclude IE as there is another report for it
+-- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -49,7 +50,7 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -82,7 +83,7 @@ FROM
 WHERE
       TXN.TRL_TSC_CODE IN (1, 128)
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
-	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != 12345
+	  AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''
       AND TXN.TRL_TQU_ID = ''F''
       AND TXN.TRL_ACTION_RESPONSE_CODE = ''0''
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
