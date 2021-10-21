@@ -141,9 +141,14 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeSummaryHeader(rgm, pagination);
 			writeSummaryBodyHeader(rgm);
+			
 			rgm.setBodyQuery(getSummaryBodyQuery());
-			rgm.setTrailerQuery(getSummaryTrailerQuery());
 			executeBodyQuery(rgm, true);
+			rgm.setBodyQuery(getSummaryPendingBodyQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setTrailerQuery(getSummaryTrailerQuery());
+			
 			executeTrailerQuery(rgm, true);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
@@ -160,6 +165,9 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
+			setSummaryPendingBodyQuery(getSummaryBodyQuery()
+					.replace("'ATM WITHDRAWAL'", "'PENDING MOVING CASH'")
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A'"));
 			setPendingTxnQuery(getTxnBodyQuery()
 					.replace("(TXN.TRL_TQU_ID IN ('F') OR (TXN.TRL_TQU_ID = 'R' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))",
 					" TXN.TRL_TQU_ID = 'A'")

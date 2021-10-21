@@ -51,6 +51,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String atmCardTrailerQuery = null;
 	private String pendingTxnQuery = null;
 	private String pendingTrailerQuery = null;
+	private String summaryPendingBodyQuery = null;
+	private String summaryPendingTrailerQuery = null;
 
 	public String getAcquiringBodyQuery() {
 		return acquiringBodyQuery;
@@ -234,6 +236,22 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setPendingTrailerQuery(String pendingTrailerQuery) {
 		this.pendingTrailerQuery = pendingTrailerQuery;
+	}
+
+	public String getSummaryPendingBodyQuery() {
+		return summaryPendingBodyQuery;
+	}
+
+	public void setSummaryPendingBodyQuery(String summaryPendingBodyQuery) {
+		this.summaryPendingBodyQuery = summaryPendingBodyQuery;
+	}
+
+	public String getSummaryPendingTrailerQuery() {
+		return summaryPendingTrailerQuery;
+	}
+
+	public void setSummaryPendingTrailerQuery(String summaryPendingTrailerQuery) {
+		this.summaryPendingTrailerQuery = summaryPendingTrailerQuery;
 	}
 
 	public Logger getLogger() {

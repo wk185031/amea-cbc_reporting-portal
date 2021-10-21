@@ -6,18 +6,12 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -87,11 +81,16 @@ public class AtmDowntime extends CsvReportProcessor {
 			
 			rgm.fileOutputStream.flush();
 			rgm.fileOutputStream.close();
+			
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
 			logger.error("Error in generating CSV file", e);
 		} finally {
+			
+			rgm.setBodyQuery(rgm.getFixBodyQuery());
+			rgm.setTrailerQuery(rgm.getFixTrailerQuery());
+			
 			try {
 				if (rgm.fileOutputStream != null) {
 					rgm.fileOutputStream.close();
