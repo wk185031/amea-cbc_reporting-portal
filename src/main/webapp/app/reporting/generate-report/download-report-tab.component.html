@@ -6,12 +6,6 @@
 		            <input class="d-flex" type="date" data-date="" data-date-format="dd MMM yyyy"
 		                class="form-control" [(ngModel)]="txnDate" id="txnDate" name="txnDate"/>
 		        </div>
-		        <!--
-		        <div class="col-2" *ngIf="searchByDateRange">
-		            <input class="d-flex" id="field_txnStartTime" type="time"
-		                class="form-control" name="txnStartTime" [(ngModel)]="txnStartTime" />
-		        </div>
-		        -->
 		        <div class="col-8">
 			        <button type="submit" class="btn btn-primary" (click)="clear()">
 			            <span jhiTranslate="baseApp.reportGeneration.clearButton">Clear</span>
@@ -29,6 +23,7 @@
 	            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="transition.bind(this)">
 		            <th jhiSortBy="createdDate"><span>Start Date Time</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="endDate"><span>End Date Time</span> <span class="fa fa-sort"></span></th>
+		            <th jhiSortBy="details"><span>Frequency</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="details"><span>Description</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="createdBy"><span>User</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="status"><span>Status</span> <span class="fa fa-sort"></span></th>
@@ -39,6 +34,7 @@
             	<tr *ngFor="let jobHistory of jobHistories ;trackBy: trackId">
 	            	<td>{{jobHistory.createdDate | date:'short'}}</td>
 	            	<td>{{getGeneratedEndDateTime(jobHistory.details) | date:'short'}}</td>
+	            	<td>{{jobHistory.frequency}}</td>
 	            	<td style="width:40%">{{getDetails(jobHistory.details)}}</td>
 	            	<td>{{jobHistory.createdBy}}</td>
 	            	<td>{{jobHistory.status}}</td>
@@ -59,17 +55,6 @@
                     	</div>
                 	</td>
             	</tr>
-<!--             <tr *ngFor="let systemConfiguration of systemConfigurations ;trackBy: trackId"> -->
-<!--                 <td><a [routerLink]="['../system-configuration', systemConfiguration.id ]">{{systemConfiguration.id}}</a></td> -->
-<!--                 <td>{{systemConfiguration.name}}</td> -->
-<!--                 <td>{{systemConfiguration.description}}</td> -->
-<!--                 <td>{{systemConfiguration.config}}</td> -->
-<!--                 <td>{{systemConfiguration.createdBy}}</td> -->
-<!--                 <td>{{systemConfiguration.createdDate | date:'medium'}}</td> -->
-<!--                 <td>{{systemConfiguration.lastModifiedBy}}</td> -->
-<!--                 <td>{{systemConfiguration.lastModifiedDate | date:'medium'}}</td> -->
-<!--                 
-<!--             </tr> -->
             </tbody>
         </table>
     </div>

@@ -80,6 +80,9 @@ public class JobHistory implements Serializable {
     
     @Column(name = "details")
     private String details;
+    
+    @Column(name = "report_frequency")
+    private String frequency;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -205,6 +208,14 @@ public class JobHistory implements Serializable {
 
 	public void setDetails(String details) {
 		this.details = details;
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
 	}
 
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
