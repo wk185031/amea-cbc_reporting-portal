@@ -43,14 +43,14 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 					separateQuery(rgm);
 					
 					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + "EMV_CASHCARD_" + txnDate +ReportConstants.SUM_FORMAT + ReportConstants.PGP_FORMAT);
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "_02" + ReportConstants.SUM_FORMAT);
 					
 					setQuery(rgm, getCashCardBodyQuery(), getCashCardTrailerQuery());
 					
 					execute(rgm, file);
 					
 					file = new File(
-							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate  + ReportConstants.SUM_FORMAT + ReportConstants.PGP_FORMAT);
+							rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "_01" + ReportConstants.SUM_FORMAT);
 					
 					setQuery(rgm, getAtmCardBodyQuery(), getAtmCardTrailerQuery());
 					

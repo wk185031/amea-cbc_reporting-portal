@@ -60,16 +60,16 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 					separateQuery(rgm);
 
 					// Generate Cash card report
-					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + "EMV_CASHCARD_" + txnDate
-							+ ReportConstants.DPS_FORMAT + ReportConstants.PGP_FORMAT);
+					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "_02" 
+							+ ReportConstants.DPS_FORMAT);
 
 					setQuery(rgm, getCashCardBodyQuery(), getCashCardTrailerQuery());
 
 					execute(rgm, file);
 
 					// Generate ATM card report
-					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate
-							+ ReportConstants.DPS_FORMAT + ReportConstants.PGP_FORMAT);
+					file = new File(rgm.getFileLocation() + rgm.getFileNamePrefix() + txnDate + "_01" 
+							+ ReportConstants.DPS_FORMAT);
 
 					setQuery(rgm, getAtmCardBodyQuery(), getAtmCardTrailerQuery());
 
