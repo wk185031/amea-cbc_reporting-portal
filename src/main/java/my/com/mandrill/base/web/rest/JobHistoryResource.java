@@ -176,20 +176,19 @@ public class JobHistoryResource {
 
     @GetMapping("/job-history-generated")
     @Timed
-    public ResponseEntity<List<JobHistory>> getJobHistoryByDate(@RequestParam(required=false) String query, Pageable pageable) {
+    public ResponseEntity<List<JobHistory>> getJobHistoryByDate(@RequestParam String institutionId, @RequestParam(required=false) String query, Pageable pageable) {
         log.debug("REST request to get JobHistoryByDate : {}");
         log.debug("date selected:: "+query);
 
         String currentUserLogin = SecurityUtils.getCurrentUserLogin().orElse("");
         Page<JobHistory> page = null;
-        
         if(query!=null && !query.isEmpty()){
         	 String startDate = formatDate(query, -1) + " 00:00:00";
              String endDate = formatDate(query, 1) + " 00:00:00";
-             page = jobHistoryRepository.findReportGeneratedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate);
+             page = jobHistoryRepository.findReportGeneratedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
         }
         else{
-        	page = jobHistoryRepository.findLatestReportGenerated(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT);
+        	page = jobHistoryRepository.findLatestReportGenerated(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, institutionId);
         }
               
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/job-history-generated");

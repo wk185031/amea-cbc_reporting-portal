@@ -241,6 +241,7 @@ export class DownloadReportTabComponent implements OnInit {
         if (this.txnDate) {
         	console.log('date selected: '+this.txnDate);
             this.jobHistoryService.searchJobHistory({
+            	institutionId: this.institutionId,
                 page: this.page - 1,
                 query: this.txnDate,
                 size: this.itemsPerPage,
@@ -252,6 +253,7 @@ export class DownloadReportTabComponent implements OnInit {
         }
         console.log('no date selected');
         this.jobHistoryService.searchJobHistory({
+        	institutionId: this.institutionId,
             page: this.page - 1,
             size: this.itemsPerPage,
             sort: this.sort()}).subscribe(

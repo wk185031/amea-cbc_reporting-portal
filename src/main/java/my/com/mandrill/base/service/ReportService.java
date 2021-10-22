@@ -145,11 +145,29 @@ public class ReportService {
 		JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId.toString(), reportCategoryId != null ? reportCategoryId.toString() : "0", reportCategory, 
 				report, description, inputStartDateTime.toString(), inputStartDateTime.toString(), inputEndDateTime.toString(), currentTs.toString(), null);
 		
-		long jobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails));
+		long dailyJobId = 0;
+		long monthlyJobId = 0;
 		
-		boolean isFailed = false;
-		boolean isPartialFailed = false;
-		boolean isCompleted = false;
+		boolean isDailyPartialFailed = false;
+		boolean isDailyCompleted = false;
+		boolean isMonthlyPartialFailed = false;
+		boolean isMonthlyCompleted = false;
+		
+		String dailyReportPath = null;
+		String monthlyReportPath = null;
+		
+		boolean isDailyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Daily"));
+		boolean isMonthlyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Monthly"));
+		
+		if(isDailyFreq) {
+			dailyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
+			dailyReportPath = directory + File.separator + StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator + dailyJobId;		
+		}
+		
+		if(isMonthlyFreq) {
+			monthlyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
+			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
+		}
 		
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
@@ -175,18 +193,19 @@ public class ReportService {
 			} else {
 				String[] frequencies = reportGenerationMgr.getFrequency().split(",");
 				for (String freq : frequencies) {
-					if (ReportConstants.DAILY.equals(freq)) {
+					if (ReportConstants.DAILY.equals(freq)) {					
 						setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime,
 								directory, reportDefinition.getReportCategory().getName(),
-								reportDefinition.isByBusinessDate(), manualGenerate, holidays, jobId);
+								reportDefinition.isByBusinessDate(), manualGenerate, holidays, dailyJobId);
 						log.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
 								reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
+												
 						try {
 							runReport(reportGenerationMgr);
-							isCompleted = true;
+							isDailyCompleted = true;
 						} catch (ReportGenerationException e) {
-							log.error("Error generating report:" + e);
-							isPartialFailed = true;
+							log.error("Error generating report:" + e.getFilename());
+							isDailyPartialFailed = true;
 						}
 						
 					}
@@ -196,25 +215,48 @@ public class ReportService {
 								.isEqual(inputStartDateTime.toLocalDate())) {
 							setTransactionDateRange(reportGenerationMgr, true, inputStartDateTime, inputEndDateTime,
 									directory, reportDefinition.getReportCategory().getName(),
-									reportDefinition.isByBusinessDate(), manualGenerate, holidays, jobId);
+									reportDefinition.isByBusinessDate(), manualGenerate, holidays, monthlyJobId);
 							log.debug("run monthly report: name={}, start date={}, end date={}",
 									reportDefinition.getName(), reportGenerationMgr.getTxnStartDate(),
 									reportGenerationMgr.getTxnEndDate());
 							try {
 								runReport(reportGenerationMgr);
-								isCompleted = true;
+								isMonthlyCompleted = true;
 							} catch (ReportGenerationException e) {
-								log.error("Error generating report:" + e);
-								isPartialFailed = true;
+								log.error("Error generating report:" + e.getFilename());
+								isMonthlyPartialFailed = true;
 							}
+														
 						}
 					}
 				}
 			}
 		}
 		
-		currentTs = LocalDateTime.now();
+		if(dailyJobId != 0) {		
+			updateJobHistoryOnFinish(reportGenerationMgr, dailyJobId, jobHistoryDetails, isDailyCompleted, isDailyPartialFailed, dailyReportPath);
+		}
 		
+		if(monthlyJobId != 0) {			
+			updateJobHistoryOnFinish(reportGenerationMgr, monthlyJobId, jobHistoryDetails, isMonthlyCompleted, isMonthlyPartialFailed, monthlyReportPath);
+		}
+		
+	}
+		
+	private void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails, boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {
+		if(jobId != 0) {			
+			JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+			jobHistoryDetails.setEndDateTime(LocalDateTime.now().toString());
+			jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
+			jobHistory.setReportPath(reportPath);
+			jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
+			jobHistory.setGenerationEndDate(LocalDateTime.now());
+			jobHistory.setLastModifiedDate(Instant.now());
+			jobHistoryRepository.save(jobHistory);
+		}
+	}
+	
+	private String getJobStatus(boolean isCompleted, boolean isPartialFailed) {
 		String status = null;
 		
 		if(isCompleted && isPartialFailed) {
@@ -225,14 +267,7 @@ public class ReportService {
 			status = ReportConstants.STATUS_COMPLETED;
 		}
 		
-		JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
-		jobHistoryDetails.setEndDateTime(currentTs.toString());
-		jobHistory.setStatus(status);
-		jobHistory.setReportPath(reportGenerationMgr.getFileBaseDirectory());
-		jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
-		jobHistory.setGenerationEndDate(currentTs);
-		jobHistory.setLastModifiedDate(Instant.now());
-		jobHistoryRepository.save(jobHistory);
+		return status;
 	}
 
 	private Optional<List<LocalDate>> getHolidayList() {
@@ -444,7 +479,7 @@ public class ReportService {
 		}
 	}
 	
-	private long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details) {
+	private long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {
 
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -453,7 +488,7 @@ public class ReportService {
 		
 		LocalDateTime currentTs = LocalDateTime.now();
 	
-		String sql = "insert into job_history (job_id, status, created_by, created_date, last_modified_by, last_modified_date, details, report_start_date, report_end_date, generation_start_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "insert into job_history (job_id, status, created_by, created_date, last_modified_by, last_modified_date, details, report_start_date, report_end_date, generation_start_date, report_frequency) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try {
 			conn = dataSource.getConnection();
 			stmt = conn.prepareStatement(sql);
@@ -467,6 +502,7 @@ public class ReportService {
 			stmt.setTimestamp(8, Timestamp.valueOf(inputStartDateTime));
 			stmt.setTimestamp(9, Timestamp.valueOf(inputEndDateTime));
 			stmt.setTimestamp(10, Timestamp.valueOf(currentTs));
+			stmt.setString(11, frequency);
 			
 			int row = stmt.executeUpdate();	
 			

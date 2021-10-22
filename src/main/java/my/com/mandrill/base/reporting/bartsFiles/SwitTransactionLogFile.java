@@ -3,7 +3,7 @@ package my.com.mandrill.base.reporting.bartsFiles;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 
@@ -76,13 +76,14 @@ public class SwitTransactionLogFile extends TxtReportProcessor {
 					|| field.getFieldType().equalsIgnoreCase(ReportGenerationFields.TYPE_DECIMAL)) {
 				if (field.getFieldName().equalsIgnoreCase(ReportConstants.AMOUNT)) {
 					String amount = getFieldValue(rgm, field, fieldsMap);
-					if(amount.contains(".")) {
-						amount = amount.trim().replace(".", "");
-						amount = ("00000000000" + amount).substring(amount.length());
-					}else {
-						amount = amount.replace(' ', '0').concat("00");
-					}
-					line.append(amount);
+					
+					DecimalFormat df = new DecimalFormat("0.00");
+				    String amountFormatted = df.format(Double.parseDouble(amount.trim()));
+					amountFormatted = amountFormatted.replace(".", "");
+					amountFormatted = ("00000000000" + amountFormatted).substring(amountFormatted.length());
+
+					line.append(amountFormatted);
+					
 				} else if (field.getFieldName().equalsIgnoreCase(ReportConstants.FROM_ACCOUNT_NO)) {
 					String value = getFieldValue(rgm, field, fieldsMap);
 					
