@@ -39,7 +39,7 @@ BEGIN
 	)
   , TXN_ACTIVITY_Condition as (
   		select * from (select ATA_TRL_ID, ATA_TXN_STATE, ATA_TXN_SEQ_NBR, ATA_AST_ID, ATA_BUS_DATE from ATM_TXN_ACTIVITY_LOG 
-    		where (ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA_TXN_STATE = ''Command reject (Force post reversal)'' OR ATA_TXN_STATE LIKE ''Suspect dispense%'')
+    		where (ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA_TXN_STATE = ''Command reject (Force post reversal)'' OR ATA_TXN_STATE LIKE ''Suspect dispense%'' OR ATA_TXN_STATE LIKE ''Cash take timeout%'')
     		and ATA_LAST_UPDATE_TS >= TO_DATE({Txn_Start_Ts}, ''YYYYMMDD HH24:MI:SS'') AND ATA_LAST_UPDATE_TS < TO_DATE({Txn_End_Ts},''YYYYMMDD HH24:MI:SS'') 
   		)
 	)
@@ -117,7 +117,8 @@ BEGIN
       CBA.CBA_MNEM "BANK MNEM",
       TXN.TRL_AMT_TXN "AMOUNT",
       TXN.TRL_ACTION_RESPONSE_CODE "VOID CODE",
-      CASE WHEN (ATA.ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA.ATA_TXN_STATE = ''Command reject (Force post reversal)'') THEN ''Unable to Dispense''
+      CASE WHEN (ATA.ATA_TXN_STATE = ''Suspect dispense - Cash Retract (No reversal)'' OR ATA.ATA_TXN_STATE = ''Cash take timeout - Cash Retract'') THEN ''Cash Retract''
+        WHEN (ATA.ATA_TXN_STATE = ''Failed dispense (Force post reversal)'' OR ATA.ATA_TXN_STATE = ''Command reject (Force post reversal)'') THEN ''Unable to Dispense''
         WHEN ATA.ATA_TXN_STATE IS NOT NULL THEN ATA.ATA_TXN_STATE 
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 907 THEN ''Issuer or Switch Inoperative''
         WHEN TXN.TRL_ACTION_RESPONSE_CODE = 909 THEN ''System Malfunction''
