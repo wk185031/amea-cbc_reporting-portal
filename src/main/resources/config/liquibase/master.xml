@@ -244,4 +244,5 @@
 	<include file="config/liquibase/changelog/NY_20211021000001_add_jobHistory_columns.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/LJL_20211022000001_update_report_definition.xml" relativeToChangelogFile="false"/>	
 	<include file="config/liquibase/changelog/GS_20211024000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/AM_20211025000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
