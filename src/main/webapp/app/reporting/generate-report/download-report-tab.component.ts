@@ -230,7 +230,7 @@ export class DownloadReportTabComponent implements OnInit {
     }
 	
 	private onSuccess(data, headers) {
-	 	console.log('It works here too i think laa. size: '+JSON.stringify(data));
+	 	//console.log('data: '+JSON.stringify(data));
 	 	this.links = this.parseLinks.parse(headers.get('link'));
         this.totalItems = headers.get('X-Total-Count');
         this.queryCount = this.totalItems;
