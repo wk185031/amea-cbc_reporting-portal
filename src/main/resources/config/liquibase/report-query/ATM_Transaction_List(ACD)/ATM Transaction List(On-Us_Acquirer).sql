@@ -35,7 +35,7 @@
 -- CBCAXUPISSLOG-769	20-SEP-2021		NY 		MBK activation to use tsc code 127 from recent ATM fix, segregate accordingly from 126
 -- CBCAXUPISSLOG-929	21-SEP-2021		NY		Fix eload acq not appear 
 -- CBCAXUPISSLOG-688	11-OCT-2021		NY		Fix missing BRM inter-entity txn code 40 CDI
--- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
+-- CBCAXUPISSLOG-937	26-OCT-2021		NY		Revert the 937 changes
 	
 DECLARE
 	i_HEADER_FIELDS_CBC CLOB;
@@ -288,10 +288,10 @@ SELECT
 	WHERE
       (TXN.TRL_TQU_ID IN (''F'', ''C'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_TSC_CODE IN (40, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
+      AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
       AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
 	  AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
-	  AND (CTR.CTR_DEBIT_CREDIT = ''DEBIT'' or CTRI.CTR_DEBIT_CREDIT = ''DEBIT'')
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Date}
@@ -348,7 +348,7 @@ SELECT
 	WHERE
       (TXN.TRL_TQU_ID IN (''F'', ''C'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
       AND TXN.TRL_TSC_CODE IN (44, 48)
-	  AND (CTR.CTR_DEBIT_CREDIT = ''CREDIT'' or CTRI.CTR_DEBIT_CREDIT = ''CREDIT'')
+      AND CTR.CTR_DEBIT_CREDIT = ''CREDIT''
       AND (TXN.TRL_ISS_NAME IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_IE_Iss_Name})
 	  AND (CBA.CBA_MNEM IS NULL OR CBA.CBA_MNEM != {V_Iss_Name})
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
