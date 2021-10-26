@@ -128,9 +128,9 @@ export class GenerateReportService {
             .map((res: HttpResponse<ReportDefinition[]>) => this.convertArrayDefinitionResponse(res));
     }
 
-    downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string, jobId: number): any {
+    downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string, jobId: number, frequency: string): any {
         console.log("downloadReport");
-        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}/${jobId}`, {
+        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}/${jobId}/${frequency}`, {
             requestProgress: true,
             responseType: 'blob'
         });

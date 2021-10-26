@@ -116,41 +116,11 @@ export class DownloadReportTabComponent implements OnInit {
             });
         }
     }
-
-    download(reportName: string, reportCategoryId: number) {
-        const req = this.generateReportService.downloadReport(this.branchId, this.institutionId,
-            (this.reportType === 'monthly' ? this.reportMonth + '-00' : this.reportDate), reportCategoryId, reportName, 0);
-        this.http.request(req).subscribe(
-            (requestEvent: HttpEvent<Blob[]>) => {
-                if (requestEvent instanceof HttpResponse) {
-                    if (requestEvent.body) {
-                        if (reportName === 'All') {
-                            const fileName = this.category.name + this.reportDate + '.zip';
-                            const a: any = document.createElement('a');
-                            a.href = window.URL.createObjectURL(requestEvent.body);
-                            a.target = '_blank';
-                            a.download = fileName;
-                            document.body.appendChild(a);
-                            a.click();
-                        } else {
-                            const fileName = reportName;
-                            const a: any = document.createElement('a');
-                            a.href = window.URL.createObjectURL(requestEvent.body);
-                            a.target = '_blank';
-                            a.download = fileName;
-                            document.body.appendChild(a);
-                            a.click();
-                        }
-                    }
-                }
-            }
-        );
-    }
     
-    downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number) {
+    downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number, frequency: string) {
     	var parsedDetail = JSON.parse(details);
         const req = this.generateReportService.downloadReport(this.branchId, parsedDetail.institutionId,
-            (parsedDetail.searchByDate ? parsedDetail.transactionStartDate : this.reportMonth + '-00'), parsedDetail.reportCategoryId, parsedDetail.report, jobId);
+            (parsedDetail.searchByDate ? parsedDetail.transactionStartDate : this.reportMonth + '-00'), parsedDetail.reportCategoryId, parsedDetail.report, jobId, frequency);
         this.http.request(req).subscribe(
             (requestEvent: HttpEvent<Blob[]>) => {
                 if (requestEvent instanceof HttpResponse) {

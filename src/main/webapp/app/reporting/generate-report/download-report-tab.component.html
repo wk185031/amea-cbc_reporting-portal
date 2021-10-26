@@ -43,7 +43,7 @@
 	                        <button *ngIf="jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED'" type="submit"	                            
 	                                class="btn btn-info btn-sm">
 	                            <span class="fa fa-download"></span>
-	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id)">Download</span>
+	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id, jobHistory.frequency)">Download</span>
 	                        </button>
 	                        <button *ngIf="(jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED') && this.account.login == jobHistory.createdBy" type="submit"	                             
 	                                replaceUrl="true"

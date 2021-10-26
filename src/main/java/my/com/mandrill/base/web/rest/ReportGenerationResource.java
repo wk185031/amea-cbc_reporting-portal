@@ -511,11 +511,11 @@ public class ReportGenerationResource {
 	      }
 	  }
 	
-	@GetMapping("/download-report/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}/{jobId}")
+	@GetMapping("/download-report/{institutionId}/{reportDate}/{reportCategoryId}/{reportName:.+}/{jobId}/{frequency}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId, @PathVariable String reportDate,
-			@PathVariable Long reportCategoryId, @PathVariable String reportName, @PathVariable Long jobId) throws IOException {
+			@PathVariable Long reportCategoryId, @PathVariable String reportName, @PathVariable Long jobId,  @PathVariable String frequency) throws IOException {
 		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
 
 		Resource resource = null;
@@ -530,6 +530,11 @@ public class ReportGenerationResource {
 		String reportYear = reportDate.substring(0, 4);
 		String reportMonth = reportDate.substring(5, 7);
 		String reportDay = reportDate.substring(8, 10);
+		
+		if(frequency!=null && frequency.equalsIgnoreCase("Monthly")){
+			logger.debug("Downloading "+frequency);
+			reportDay = "00";
+		}
 
 		String branchCode = getUserBranchCode();
 
@@ -616,12 +621,12 @@ public class ReportGenerationResource {
 					outputZipFile = Paths.get(env.getProperty("application.reportDir.path"), institutionId.toString(),
 							reportYear + '-' + reportMonth, reportDay, jobId.toString(), ReportConstants.MAIN_PATH,
 							reportCategory.getName() + ".zip");
-					
+					logger.debug("rootOutputPath: " + rootOutputPath.toString());
 					List<String> filesListInDir = new ArrayList<String>();
 					
 					File directory = new File(rootOutputPath.toString());
 					filesListInDir = populateFilesList(directory, filesListInDir);
-					
+					logger.debug("DIR: " + directory);
 					String zipFile = outputZipFile.toString();
 
 					byte[] buffer = new byte[1024];
