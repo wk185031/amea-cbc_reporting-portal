@@ -389,8 +389,8 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
         rgm.setBodyQuery(rgm.getBodyQuery()
             .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
             .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
-            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + txnStart + "'")
-            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + txnEnd + "'")
+			.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+			.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
             .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
 
         addReportPreProcessingFieldsToGlobalMap(rgm);
