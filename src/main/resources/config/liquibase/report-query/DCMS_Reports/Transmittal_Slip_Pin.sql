@@ -33,7 +33,10 @@ BEGIN
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  DCR_REMARK as REMARKS,
+   case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -56,7 +59,10 @@ select CLT_FIRST_NAME as FIRST_NAME,
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  DCR_REMARK as REMARKS,
+   case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -80,7 +86,10 @@ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  CCR_REMARK as REMARKS,
+     case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -105,7 +114,10 @@ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  CCR_REMARK as REMARKS,
+     case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -130,7 +142,7 @@ where
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  REP_REMARKS as REMARKS,
+  ''PIN PREGENERATION'' as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -154,7 +166,7 @@ where
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  BCR_REMARK as REMARKS,
+  ''New'' as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
