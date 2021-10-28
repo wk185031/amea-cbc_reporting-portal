@@ -54,83 +54,109 @@ BEGIN
 	{"sequence":3,"sectionName":"3","fieldName":"TOTAL","csvTxtLength":"30", "pdfLength":"30", "fieldType":"String", "delimiter":"", "fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	
 	i_BODY_QUERY := TO_CLOB('
+---- ATM Manual, ATM Bulk Upload
 	SELECT bc || ''-'' || update_date as BRANCH_CODE, COUNT(*) AS TOTAL FROM(
 	select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG),''MMddYY'') as update_date
 	from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
-	 join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On CRD_ID = DCR_CRD_ID
+	 LEFT join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On CRD_ID = DCR_CRD_ID
 	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on DCR_INS_ID = INS_ID
 	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = DCR_BRN_ID
 	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = DCR_PRS_ID
-	  join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
+	  LEFT join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
 	where 
 	  INS_ID = {Iss_Id}
 	  AND DCR_CRN_ID is null
-	  AND DCR_STS_ID in (68,70)
+ 	  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
+	  AND DCR_STS_ID not in (67,69)
 	 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 	union all
+-- ATM Renew, ATM Replace
 		select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG),''MMddYY'') as update_date
-	from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
-	join  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS}  on CRN_ID = DCR_CRN_ID
+	from  {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS}  
+	left join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on CRN_ID = DCR_CRN_ID
+    left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID 
 	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on DCR_INS_ID = INS_ID
 	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = DCR_BRN_ID
 	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = DCR_PRS_ID
 	  join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
 	where 
-	  INS_ID = {Iss_Id}
-	  AND DCR_STS_ID not in (67,69)
+   DCR_INS_ID = {Iss_Id}
 	  AND CRN_STS_ID = 91
+AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
 	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 	  union all
+--Cash Card Manual, Cash Card Bulk Upload
 	select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG),''MMddYY'') as update_date
 	from {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS}
-	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}   On CCR_CLT_Id = CCM_CLT_ID
- join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On Ccm_CRD_Id = Crd_Id
-	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
-	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
-	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
-	  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
-	  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
+ left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 	where 
-	  INS_ID = {Iss_Id}
-	  AND CCR_CRN_ID is null
-	  AND CCR_STS_ID in (68,70)
+  CCR_INS_ID = {Iss_Id}
+  AND CCR_CRN_ID is null
+  AND CCR_STS_ID not in (67,69)
+ AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
 	   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	  
 	   union all
+--CASH CARD RENEW, REPLACE
 	  	select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG),''MMddYY'') as update_date
-	from {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS}
-	 join  {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
-	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
-	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
-	  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
-	  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
-	  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
+	from {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS} 
+  left join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
+   left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 	where 
-	  INS_ID = {Iss_Id}
-	  AND CCR_STS_ID not in (67,69)
-	  AND CC_CRN_STS_ID = 91
+  CCR_INS_ID = {Iss_Id}
+   AND CC_CRN_STS_ID = 91
 	 AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	  
 	 union all
+--ATM REPIN
 	  select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG),''MMddYY'') as update_date
 	from {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS}
-	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} on REP_CCM_ID = CCM_ID
+	left JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} on REP_CCM_ID = CCM_ID
+left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
+   left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} ON CCM_CRD_ID  = CRD_ID
 	  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on REP_INS_ID = INS_ID
 	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = REP_BRN_ID
-	  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCM_CLT_ID
 	where 
-	  INS_ID = {Iss_Id}
+ REP_INS_ID = {Iss_Id}
 	  AND REP_STS_ID in (91)
 	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+union all
+--CASH CARD REPIN
+	  select 
+	  BRN_CODE as bc,
+	  to_char({DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG),''MMddYY'') as update_date
+	from {DCMS_Schema}.SUPPORT_CC_REPIN@{DB_LINK_DCMS}
+left JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CC_REP_CAM_ID = CAM_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CAM_CLT_ID = CLT_ID
+   left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ON CAM_CSH_ID  = CSH_ID
+join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CC_REP_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID =  CSH_PRS_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CSH_CCL_ID
+	where 
+  CC_REP_INS_ID = {Iss_Id}
+  AND CC_REP_STS_ID = 91
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 	  UNION ALL
+--ATM PRE-PREGEN
 	  	  select 
 	  BRN_CODE as bc,
 	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG),''MMddYY'') as update_date
@@ -139,9 +165,60 @@ BEGIN
 	 join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on BCR_INS_ID = INS_ID
 	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
 	where 
-	  INS_ID = {Iss_Id}
-	   AND BCR_STS_ID not in (67,69)
+  BCR_INS_ID = {Iss_Id}
+  AND BCR_STS_ID not in (67,69)
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 
+	  UNION ALL
+--CASH CARD PRE-PREGEN
+	  	  select 
+	  BRN_CODE as bc,
+	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG),''MMddYY'') as update_date
+from {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS}
+left join {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS} on CSH_BCR_ID = BCR_NUMBER
+left join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON CSH_ID = CCM_CRD_ID
+left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
+	 join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on BCR_INS_ID = INS_ID
+	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = BCR_PRS_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CSH_CCL_ID
+	where 
+  BCR_INS_ID = {Iss_Id}
+  AND BCR_STS_ID not in (67,69)
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	
+union all
+--ATM Renew Bulk
+select 
+	  BRN_CODE as bc,
+	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG),''MMddYY'') as update_date
+from {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS}
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = DCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = RBC_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = RBC_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID  
+where 
+  RBC_INS_ID = {Iss_Id}
+  AND DCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	
+UNION ALL
+--Cash Card Renew Bulk
+select 
+	  BRN_CODE as bc,
+	  to_char({DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG),''MMddYY'') as update_date
+From {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS} 
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = CCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = RBC_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = RBC_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID  
+where 
+  RBC_INS_ID = {Iss_Id}
+  AND CCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 
 	 )
 	  GROUP BY bc, update_date
 	  ORDER BY bc, update_date

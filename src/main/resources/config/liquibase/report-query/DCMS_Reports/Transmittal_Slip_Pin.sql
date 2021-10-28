@@ -26,7 +26,9 @@ BEGIN
 	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"CARD PRODUCT","csvTxtLength":"20","fieldType":"String","delimiter":"","fieldFormat":"","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"pdfLength":"20"},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","csvTxtLength":"6","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"pdfLength":"6","eol":true},{"sequence":3,"sectionName":"3","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"","firstField":true,"eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"4","fieldName":"Account Name","csvTxtLength":"74","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"ACCOUNT NAME","bodyHeader":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"firstField":true,"pdfLength":"74"},{"sequence":5,"sectionName":"5","fieldName":"Remarks","csvTxtLength":"30","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"REMARKS","bodyHeader":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":true,"pdfLength":"30"},{"sequence":6,"sectionName":"6","fieldName":"ACCOUNT_NAME","csvTxtLength":"74","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"firstField":true,"pdfLength":"74","decryptionKey":null,"tagValue":null},{"sequence":7,"sectionName":"7","fieldName":"REMARKS","csvTxtLength":"30","fieldType":"String","delimiter":"","fieldFormat":"","bodyHeader":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"eol":true,"pdfLength":"30"},{"sequence":8,"sectionName":"8","fieldName":"Space","fieldType":"String","delimiter":"","fieldFormat":"","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"100","pdfLength":"100","firstField":true}]');
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Total For Branch","csvTxtLength":"17","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"TOTAL FOR BRANCH ","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"pdfLength":"17"},{"sequence":2,"sectionName":"2","fieldName":"BRANCH NAME","csvTxtLength":"20","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"pdfLength":"20"},{"sequence":3,"sectionName":"7","fieldName":"Colon","csvTxtLength":"1","pdfLength":"1","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":": ","leftJustified":false,"padFieldLength":0,"decrypt":false},{"sequence":4,"sectionName":"3","fieldName":"OVER-ALL TOTAL","csvTxtLength":"10","fieldType":"String","delimiter":"","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"pdfLength":"10","eol":true},{"sequence":5,"sectionName":"4","fieldName":"Prepared By","csvTxtLength":"40","fieldType":"String","delimiter":"","defaultValue":"PREPARED BY:","firstField":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null,"pdfLength":"40"},{"sequence":6,"sectionName":"6","fieldName":"Date Received","csvTxtLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"DATE RECEIVED:","leftJustified":false,"padFieldLength":0,"decrypt":false,"pdfLength":"40"},{"sequence":7,"sectionName":"5","fieldName":"Received By","csvTxtLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"RECEIVED BY:","leftJustified":false,"padFieldLength":0,"decrypt":false,"pdfLength":"40","eol":true}]');
 	
-	i_BODY_QUERY := TO_CLOB('select CLT_FIRST_NAME as FIRST_NAME,
+	i_BODY_QUERY := TO_CLOB('
+-- ATM Manual, ATM Bulk Upload
+select CLT_FIRST_NAME as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
   CRD_NUMBER as CARD_NUMBER,
@@ -41,7 +43,7 @@ BEGIN
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
 from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} 
-  join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On CRD_ID = DCR_CRD_ID
+  left join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On CRD_ID = DCR_CRD_ID
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on DCR_INS_ID = INS_ID
   join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = DCR_BRN_ID
   join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = DCR_PRS_ID
@@ -49,9 +51,11 @@ from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
 where 
   DCR_INS_ID = {Iss_Id}
   AND DCR_CRN_ID is null
-  AND DCR_STS_ID in (68,70)
+ and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
+  AND DCR_STS_ID not in (67,69)
    AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 union all
+-- ATM Renew, ATM Replace
 select CLT_FIRST_NAME as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
@@ -75,14 +79,15 @@ from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS}
   join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID  
 where 
    DCR_INS_ID = {Iss_Id}
-  AND DCR_STS_ID not in (67,69)
 	  AND CRN_STS_ID = 91
+AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
    AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 UNION ALL
+--Cash Card Manual, Cash Card Bulk Upload
 select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
-  CRD_NUMBER as CARD_NUMBER,
+  CSH_CARD_NUMBER as CARD_NUMBER,
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
@@ -94,8 +99,7 @@ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
 from {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS}
-Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}   On CCR_CLT_Id = CCM_CLT_ID
- join  {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  On Ccm_CRD_Id = Crd_Id
+left join DCMS_OWNER.ISSUANCE_CASH_CARD@CBCDCMS on CSH_ID = CCR_CSH_ID
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CCR_INS_ID = INS_ID
   join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CCR_BRN_ID
   join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = CCR_PRS_ID
@@ -104,9 +108,11 @@ Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}   On CCR_CLT_Id =
 where 
   CCR_INS_ID = {Iss_Id}
   AND CCR_CRN_ID is null
-  AND CCR_STS_ID in (68,70)
+  AND CCR_STS_ID not in (67,69)
+ AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	  
 UNION ALL
+--CASH CARD RENEW, REPLACE
 select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
@@ -131,10 +137,10 @@ from {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS}
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 where 
   CCR_INS_ID = {Iss_Id}
-  AND CCR_STS_ID not in (67,69)
    AND CC_CRN_STS_ID = 91
    AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	  
    union all
+--ATM REPIN
   select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
@@ -147,24 +153,50 @@ where
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
 from {DCMS_Schema}.SUPPORT_REPIN@{DB_LINK_DCMS}
-join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON REP_CCM_ID = CCM_ID
+left join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON REP_CCM_ID = CCM_ID
   left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
-   join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} ON CCM_CRD_ID  = CRD_ID
+   left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} ON CCM_CRD_ID  = CRD_ID
 join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on REP_INS_ID = INS_ID
   join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = REP_BRN_ID
   join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID =  CRD_PRS_ID
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CRD_CCL_ID
 where 
- INS_ID = {Iss_Id}
+ REP_INS_ID = {Iss_Id}
 	  AND REP_STS_ID in (91)
 	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+UNION ALL
+--CASH CARD REPIN
+ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
+  CLT_MIDDLE_NAME as MIDDLE_NAME,
+  CLT_LAST_NAME as LAST_NAME,
+  CSH_CARD_NUMBER as CARD_NUMBER,
+  '' '' as ACCOUNT_NAME,
+  CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
+  INS_CODE AS INSTITUTION_ID,
+  ''PIN PREGENERATION'' as REMARKS,
+  BRN_CODE as Branch_Code,
+  BRN_NAME as Branch_Name,
+  PRS_NAME as PROGRAM_NAME
+from {DCMS_Schema}.SUPPORT_CC_REPIN@{DB_LINK_DCMS}
+left JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CC_REP_CAM_ID = CAM_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CAM_CLT_ID = CLT_ID
+   left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ON CAM_CSH_ID  = CSH_ID
+join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = CC_REP_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID =  CSH_PRS_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CSH_CCL_ID
+where 
+  CC_REP_INS_ID = {Iss_Id}
+  AND CC_REP_STS_ID = 91
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
 	union all
+--ATM PRE-GEN
 	  select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
   CLT_MIDDLE_NAME as MIDDLE_NAME,
   CLT_LAST_NAME as LAST_NAME,
   CRD_NUMBER as CARD_NUMBER,
   '' '' as ACCOUNT_NAME,
-  CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
+  1 as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
   ''New'' as REMARKS,
   BRN_CODE as Branch_Code,
@@ -172,16 +204,99 @@ where
   PRS_NAME as PROGRAM_NAME
 from {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS}
 left join {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS} on CRD_BCR_ID = BCR_NUMBER
-join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON CRD_ID = CCM_CRD_ID
+left join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON CRD_ID = CCM_CRD_ID
 left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = Crd_CCL_ID
 	 join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on BCR_INS_ID = INS_ID
 	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
   join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = BCR_PRS_ID
-  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = Crd_CCL_ID
+
 where 
-	  INS_ID = {Iss_Id}
-	   AND BCR_STS_ID not in (67,69)
+  BCR_INS_ID = {Iss_Id}
+  AND BCR_STS_ID not in (67,69)
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 
+UNION ALL
+--CASH CARD PRE-GEN
+	  select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
+  CLT_MIDDLE_NAME as MIDDLE_NAME,
+  CLT_LAST_NAME as LAST_NAME,
+  CSH_CARD_NUMBER as CARD_NUMBER,
+  '' '' as ACCOUNT_NAME,
+  1 as "ROTATION_NUMBER",
+  INS_CODE AS INSTITUTION_ID,
+  ''New'' as REMARKS,
+  BRN_CODE as Branch_Code,
+  BRN_NAME as Branch_Name,
+  PRS_NAME as PROGRAM_NAME
+from {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS}
+left join {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS} on CSH_BCR_ID = BCR_NUMBER
+left join {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ON CSH_ID = CCM_CRD_ID
+left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
+  left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CSH_CCL_ID
+	 join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on BCR_INS_ID = INS_ID
+	  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = BCR_PRS_ID
+
+where 
+  BCR_INS_ID = {Iss_Id}
+  AND BCR_STS_ID not in (67,69)
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+union all 
+--ATM Renew Bulk
+select CLT_FIRST_NAME as FIRST_NAME,
+  CLT_MIDDLE_NAME as MIDDLE_NAME,
+  CLT_LAST_NAME as LAST_NAME,
+  CRD_NUMBER as CARD_NUMBER,
+  '' '' as ACCOUNT_NAME,
+  1 as "ROTATION_NUMBER",
+  INS_CODE AS INSTITUTION_ID,
+   case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  BRN_CODE as Branch_Code,
+  BRN_NAME as Branch_Name,
+  PRS_NAME as PROGRAM_NAME
+from {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS}
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = DCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = RBC_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = RBC_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID  
+where 
+  RBC_INS_ID = {Iss_Id}
+  AND DCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	
+union all 
+--Cash Card Renew Bulk
+select CLT_FIRST_NAME as FIRST_NAME,
+  CLT_MIDDLE_NAME as MIDDLE_NAME,
+  CLT_LAST_NAME as LAST_NAME,
+  CSH_CARD_NUMBER as CARD_NUMBER,
+  '' '' as ACCOUNT_NAME,
+  1 as "ROTATION_NUMBER",
+  INS_CODE AS INSTITUTION_ID,
+   case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
+  when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
+  when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  BRN_CODE as Branch_Code,
+  BRN_NAME as Branch_Name,
+  PRS_NAME as PROGRAM_NAME
+from {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS} 
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = CCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
+  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = RBC_BRN_ID
+  join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} on PRS_ID = RBC_PRS_ID
+  left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID  
+where 
+  RBC_INS_ID = {Iss_Id}
+  AND CCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 
 	');	
 	i_TRAILER_QUERY := null;
 	

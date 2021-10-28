@@ -327,7 +327,8 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
                             preProcessingBodyHeader(rgm, branchProgramMap.getKey().split(",")[1], branchProgramMap.getValue().size());
         					writePdfBodyHeader(rgm, contentStream, leading);
                             for(HashMap<String,ReportGenerationFields> m: branchProgramMap.getValue()) {
-                                writePdfBody(rgm, m, contentStream, leading);
+                            	float x = 2.5f;
+                                writePdfBody(rgm, m, contentStream, x);
             					pageHeight++;
                                 totalCount++;
                             }
