@@ -48,7 +48,7 @@ where
   AND DCR_CRN_ID is null
   AND DCR_REQUEST_TYPE = ''Manual''
   AND DCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- ATM Bulk Upload
 select 
@@ -66,7 +66,7 @@ where
   AND DCR_CRN_ID is null
   AND DCR_REQUEST_TYPE = ''Bulk upload''
   AND DCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- ATM Replace
 select 
@@ -78,13 +78,13 @@ select
   0 as REPIN_COUNT
 from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} 
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CRN_INS_ID = INS_ID
-  left join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on CRN_ID = DCR_CRN_ID
+  join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on CRN_ID = DCR_CRN_ID
   left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID  
 where 
   CRN_INS_ID = {Iss_Name}
   AND DCR_REQUEST_TYPE = ''Replace''
   AND CRN_STS_ID = 91
-  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all
 -- ATM Renew
 select 
@@ -96,13 +96,31 @@ select
   0 as REPIN_COUNT
 from {DCMS_Schema}.SUPPORT_CARD_RENEWAL@{DB_LINK_DCMS} 
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CRN_INS_ID = INS_ID
-  left join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on CRN_ID = DCR_CRN_ID
+  join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on CRN_ID = DCR_CRN_ID
   left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID
 where 
   CRN_INS_ID = {Iss_Name}
   AND DCR_REQUEST_TYPE = ''Renew''
   AND CRN_STS_ID = 91
-  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+union all
+-- ATM Renew Bulk
+select 
+  0 as NEW_CARD_COUNT,
+  0 as BULK_UPLOAD_COUNT,
+  0 as REPLACE_COUNT,
+  count(*) as RENEW_COUNT,
+  0 as PREGEN_COUNT,
+  0 as REPIN_COUNT
+from {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS} 
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = DCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} on CRD_ID = DCR_CRD_ID
+where 
+  RBC_INS_ID = {Iss_Name}
+  AND DCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- ATM Pregen
 select 
@@ -118,7 +136,7 @@ from {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS}
 where 
   BCR_INS_ID = {Iss_Name}
   AND BCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- Cash Card Manual
 select 
@@ -136,7 +154,7 @@ where
   AND CCR_CRN_ID is null
   AND CCR_REQUEST_TYPE = ''Manual''
   AND CCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- CashCard Bulk Upload
 select 
@@ -154,7 +172,7 @@ where
   AND CCR_CRN_ID is null
   AND CCR_REQUEST_TYPE = ''Bulk upload''
   AND CCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- CashCard Replace
 select 
@@ -166,13 +184,13 @@ select
   0 as REPIN_COUNT
 from {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS} 
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_CRN_INS_ID = INS_ID
-  left join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
+  join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
   left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
 where 
   CC_CRN_INS_ID = {Iss_Name}
   AND CCR_REQUEST_TYPE = ''Replace''
   AND CC_CRN_STS_ID = 91
-  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all
 -- CashCard Renew
 select 
@@ -184,13 +202,31 @@ select
   0 as REPIN_COUNT
 from {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS} 
   join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_CRN_INS_ID = INS_ID
-  left join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
+  join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on CC_CRN_ID = CCR_CRN_ID
   left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
 where 
   CC_CRN_INS_ID = {Iss_Name}
   AND CCR_REQUEST_TYPE = ''Renew''
   AND CC_CRN_STS_ID = 91
-  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+union all
+-- CashCard Renew Bulk
+select 
+  0 as NEW_CARD_COUNT,
+  0 as BULK_UPLOAD_COUNT,
+  0 as REPLACE_COUNT,
+  count(*) as RENEW_COUNT,
+  0 as PREGEN_COUNT,
+  0 as REPIN_COUNT
+from {DCMS_Schema}.ISSUANCE_RENEWAL_BULK_CARDS@{DB_LINK_DCMS} 
+  join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on RBC_INS_ID = INS_ID
+  join {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} on RBC_ID = CCR_RBC_ID
+  left join {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
+where 
+  RBC_INS_ID = {Iss_Name}
+  AND CCR_REQUEST_TYPE = ''Renew''
+  AND RBC_STS_ID = 68
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- CashCard Pregen
 select 
@@ -206,7 +242,7 @@ from {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS}
 where 
   BCR_INS_ID = {Iss_Name}
   AND BCR_STS_ID not in (67,69)
-  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')
+  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 )	
 	');	
 	i_TRAILER_QUERY := null;

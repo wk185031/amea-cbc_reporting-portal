@@ -1,0 +1,7 @@
+-- Update for CDM Inter-Entity
+
+update CBC_GL_ACCOUNT set GLA_NUMBER='50080012221021' where GLA_NAME='Accts. Receivable Inter-Entity Withdrawal' and GLA_INSTITUTION='CBC';
+
+update CBC_GL_ENTRY set GLE_DEBIT_ACCOUNT='Accts. Receivable Inter-Entity Withdrawal',GLE_DEBIT_DESCRIPTION='INTER-ENTITY WITHDRAWAL',GLE_CREDIT_DESCRIPTION='INTER-ENTITY WITHDRAWAL' where GLE_TRAN_CHANNEL='BRM' and GLE_GLT_ID=10 and GLE_TRAN_TYPE=1 and GLE_MAIN_DIRECTION='INTER-ENTITY' and GLE_DEBIT_ACCOUNT='ACD Withdrawal Bridge';
+			
+commit;
