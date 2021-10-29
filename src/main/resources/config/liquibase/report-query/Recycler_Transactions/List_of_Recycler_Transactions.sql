@@ -17,7 +17,7 @@ DECLARE
 	i_BODY_QUERY CLOB;
 	i_TRAILER_QUERY CLOB;
 BEGIN 
-
+--
 -- List of Recycler Transactions
 
 -- CBC header/body/trailer fields
@@ -151,7 +151,7 @@ union all select
 	where 
 	  (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
 	  AND AST.AST_TERMINAL_TYPE = ''BRM''
-	  AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, 0) = {V_Acqr_Inst_Id} OR ISS.ISS_NAME = {V_Iss_Name})
+	  AND (TXN.TRL_TSC_CODE IN (21,26) OR LPAD(TXN.TRL_FRD_REV_INST_ID, 10, 0) = {V_Acqr_Inst_Id} OR ISS.ISS_NAME = {V_Iss_Name})
       AND TXN.TRL_DEO_NAME = {V_Deo_Name}
       AND ABR.ABR_CODE = {BRANCH_CODE}
 	  AND {Txn_Date}
