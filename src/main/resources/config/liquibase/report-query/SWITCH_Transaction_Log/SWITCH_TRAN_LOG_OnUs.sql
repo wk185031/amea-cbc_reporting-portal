@@ -7,6 +7,7 @@
 -- Onus						15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
 -- Onus						22-AUG-2021		NY		Fix update query not pickup the body_fields column
 -- CBCAXUPISSLOG-806		20-OCT-2021		NY		Fix oracle error invalid number
+-- CBCAXUPISSLOG-947		30-OCT-2021		NY		Exclude txn code 1 from EBK/MBK
 
 DECLARE
 
@@ -58,7 +59,7 @@ FROM
       JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
-	  AND (TXN.TRL_TSC_CODE NOT IN (1, 2, 21, 22, 26, 31, 41, 51, 122, 142, 143, 145, 146, 246) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL))
+	  AND (TXN.TRL_TSC_CODE NOT IN (1, 2, 21, 22, 26, 31, 41, 51, 122, 142, 143, 145, 146, 246) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_FRD_REV_INST_ID IS NULL AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''EBK'', ''MBK'')))
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345''	
       AND CTR.CTR_DEBIT_CREDIT = ''DEBIT''
