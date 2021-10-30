@@ -130,7 +130,8 @@ export class GenerateReportService {
 
     downloadReport(branchId:number, institutionId: number, date: string, reportCategoryId: number, reportName: string, jobId: number, frequency: string): any {
         console.log("downloadReport");
-        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${reportName}/${jobId}/${frequency}`, {
+        const rptName = encodeURIComponent('${reportName}');
+        const req = new HttpRequest('GET', `${this.resourceDownloadReport}/${institutionId}/${date}/${reportCategoryId}/${rptName}/${jobId}/${frequency}`, {
             requestProgress: true,
             responseType: 'blob'
         });
