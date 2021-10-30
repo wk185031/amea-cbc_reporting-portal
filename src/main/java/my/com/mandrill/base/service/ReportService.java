@@ -157,14 +157,14 @@ public class ReportService {
 		String monthlyReportPath = null;
 		
 		boolean isDailyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Daily"));
-		boolean isMonthlyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Monthly"));
+		boolean isMonthlyOnlyFreq = aList.stream().anyMatch(p -> p.getFrequency().matches("Monthly"));
 		
 		if(isDailyFreq) {
 			dailyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
 			dailyReportPath = directory + File.separator + StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator + dailyJobId;		
-		}
+		} 
 		
-		if(isMonthlyFreq) {
+		if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
 			monthlyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
 		}
@@ -211,8 +211,7 @@ public class ReportService {
 					}
 
 					if (ReportConstants.MONTHLY.equals(freq)) {
-						if (manualMonthly || YearMonth.from(inputStartDateTime).atEndOfMonth()
-								.isEqual(inputStartDateTime.toLocalDate())) {
+						if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
 							setTransactionDateRange(reportGenerationMgr, true, inputStartDateTime, inputEndDateTime,
 									directory, reportDefinition.getReportCategory().getName(),
 									reportDefinition.isByBusinessDate(), manualGenerate, holidays, monthlyJobId);
@@ -241,6 +240,11 @@ public class ReportService {
 			updateJobHistoryOnFinish(reportGenerationMgr, monthlyJobId, jobHistoryDetails, isMonthlyCompleted, isMonthlyPartialFailed, monthlyReportPath);
 		}
 		
+	}
+	
+	private boolean isGenerateMonthlyReport(boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, LocalDateTime inputStartDateTime) {
+		return (!isDailyFreq && isMonthlyOnlyFreq && manualMonthly) || (!manualMonthly && YearMonth.from(inputStartDateTime).atEndOfMonth()
+				.isEqual(inputStartDateTime.toLocalDate()));
 	}
 		
 	private void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails, boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {
