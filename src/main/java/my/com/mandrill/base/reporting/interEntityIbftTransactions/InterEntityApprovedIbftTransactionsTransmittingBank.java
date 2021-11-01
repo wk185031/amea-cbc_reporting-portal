@@ -227,7 +227,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			if (queryType.equalsIgnoreCase("body")) {
 				ReportGenerationFields corporateCount = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_COUNT, ReportGenerationFields.TYPE_STRING,
-						"CASE WHEN TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TXN.TRL_ID END AS \"CORPORATE COUNT\"");
+						"CASE WHEN TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TRL_ID END AS \"CORPORATE COUNT\"");
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
 						"135.00 * COUNT(\"CORPORATE COUNT\") AS \"CORP. INCOME\"");
@@ -237,7 +237,7 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 			} else {
 				ReportGenerationFields corporateIncome = new ReportGenerationFields(
 						ReportConstants.PARAM_CORPORATE_INCOME, ReportGenerationFields.TYPE_STRING,
-						"SUM(135.00 * COUNT(CASE WHEN TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TXN.TRL_ID END)) AS \"CORP. INCOME\"");
+						"SUM(135.00 * COUNT(CASE WHEN TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971' THEN TRL_ID END)) AS \"CORP. INCOME\"");
 				getGlobalFileFieldsMap().put(corporateIncome.getFieldName(), corporateIncome);
 			}
 		}
@@ -250,7 +250,9 @@ public class InterEntityApprovedIbftTransactionsTransmittingBank extends IbftRep
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+//					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+					"(CASE WHEN CBA.CBA_CODE IS NOT NULL THEN LPAD(CBA.CBA_CODE, 10, '0') ELSE LPAD(CBA_ISS.CBA_CODE, 10, '0') END = LPAD('"
+							+ filterByBankCode + "', 10, '0'))");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}

@@ -522,17 +522,26 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
-							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "'");
+					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+							+ "' AND (((TXN.TRL_DEO_NAME = 'CBC' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000010')"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
+							+ "((TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112')"
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "')"
+							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
+			
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (48, 49) AND TXN.TRL_ISS_NAME = '" + ie_ins_name
-							+ "' AND (TXN.TRL_DEO_NAME IN ('CBS','CBC') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000112','0000000010'))"
-							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
+					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
+					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+					+ " AND (TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112') "
+					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
+					+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
+					+ " AND (TXN.TRL_DEO_NAME IN ('CBC','CBS') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000010','0000000112')) "
+					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
+					
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID", "JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_2_ACN_ID"));
 			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);

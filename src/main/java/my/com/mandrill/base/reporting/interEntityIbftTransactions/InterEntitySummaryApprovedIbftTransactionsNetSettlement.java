@@ -197,7 +197,9 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 				if (filterByBankCode != null) {
 					ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 							ReportGenerationFields.TYPE_STRING,
-							"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+//							"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+							"(CASE WHEN CBA.CBA_CODE IS NOT NULL THEN LPAD(CBA.CBA_CODE, 10, '0') ELSE LPAD(CBA_ISS.CBA_CODE, 10, '0') END = LPAD('"
+									+ filterByBankCode + "', 10, '0'))");
 					getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 				}
 

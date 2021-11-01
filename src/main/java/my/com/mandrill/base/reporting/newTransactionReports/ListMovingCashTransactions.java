@@ -98,6 +98,11 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					executeTrailerQuery(rgm, false);
 				}
 			}
+			
+			if (branchCode == null) {
+				rgm.writeLine(getEol().getBytes());
+			}
+			
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;

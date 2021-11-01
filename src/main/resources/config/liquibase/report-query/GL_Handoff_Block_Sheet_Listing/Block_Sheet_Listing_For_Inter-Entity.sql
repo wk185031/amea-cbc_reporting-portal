@@ -9,8 +9,10 @@ DECLARE
 	i_HEADER_FIELDS CLOB;
     i_BODY_FIELDS CLOB;
     i_TRAILER_FIELDS CLOB;
-	i_BODY_QUERY CLOB;
-	i_TRAILER_QUERY CLOB;
+	i_BODY_QUERY_CBC CLOB;
+	i_BODY_QUERY_CBS CLOB;
+	i_TRAILER_QUERY_CBC CLOB;
+	i_TRAILER_QUERY_CBS CLOB;
 BEGIN 
 
 -- Block Sheet Listing For Inter-Entity
@@ -18,7 +20,7 @@ BEGIN
 	i_BODY_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"BRANCH","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"GL ACCOUNT NUMBER","csvTxtLength":"26","pdfLength":"26","fieldType":"String","defaultValue":"GL ACCOUNT NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"GL ACCOUNT NAME","csvTxtLength":"24","pdfLength":"24","fieldType":"String","defaultValue":"GL ACCOUNT NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"CODE","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"CODE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"DEBIT","csvTxtLength":"13","pdfLength":"13","fieldType":"String","defaultValue":"DEBIT","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"CREDIT","csvTxtLength":"17","pdfLength":"17","fieldType":"String","defaultValue":"CREDIT","bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"ACCOUNT NUMBER","csvTxtLength":"30","pdfLength":"30","fieldType":"String","defaultValue":"ACCOUNT NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"DESCRIPTION","csvTxtLength":"22","pdfLength":"22","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"9","fieldName":"Line1","csvTxtLength":"156","pdfLength":"156","fieldType":"String","defaultValue":"_","firstField":true,"bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"10","fieldName":"BRANCH CODE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","firstField":true,"defaultValue":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"11","fieldName":"GL ACCOUNT NUMBER","csvTxtLength":"19","pdfLength":"19","fieldType":"String","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"12","fieldName":"GL ACCOUNT NAME","csvTxtLength":"28","pdfLength":"28","fieldType":"String","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"13","fieldName":"CODE","csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":false,"padFieldLength":"6","decrypt":false,"decryptionKey":null,"padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":14,"sectionName":"14","fieldName":"DEBIT","csvTxtLength":"17","pdfLength":"17","fieldType":"Decimal","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"15","fieldName":"CREDIT","csvTxtLength":"14","pdfLength":"14","fieldType":"Decimal","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"16","fieldName":"FROM ACCOUNT NO","csvTxtLength":"22","pdfLength":"22","fieldType":"String","leftJustified":false,"padFieldLength":"16","decrypt":true,"decryptionKey":"TRL_ACCOUNT_1_ACN_ID_EKY_ID","padFieldType":"Leading","padFieldValue":"Zeros"},{"sequence":17,"sectionName":"17","fieldName":"DESCRIPTION","csvTxtLength":"36","pdfLength":"36","fieldType":"String","eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
 	i_TRAILER_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space1","csvTxtLength":"67","pdfLength":"67","fieldType":"String","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Line1","csvTxtLength":"29","pdfLength":"29","fieldType":"String","defaultValue":"_","firstField":true,"eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"30","pdfLength":"30","fieldType":"String","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Asterisk1","csvTxtLength":"4","pdfLength":"4","fieldType":"String","defaultValue":"***","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"TOTAL","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TOTAL","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Asterisk2","csvTxtLength":"4","pdfLength":"4","fieldType":"String","defaultValue":"***","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TOTAL DEBIT","csvTxtLength":"38","pdfLength":"38","fieldType":"Decimal","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"TOTAL CREDIT","csvTxtLength":"14","pdfLength":"14","fieldType":"Decimal","defaultValue":"","eol":true,"fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
 	
-	i_BODY_QUERY := TO_CLOB('SELECT * FROM(
+	i_BODY_QUERY_CBC := TO_CLOB('SELECT * FROM(
 	SELECT DISTINCT
       CASE WHEN LENGTH(GLA.GLA_NUMBER) = 14 THEN SUBSTR(GLA.GLA_NUMBER,1,4) ELSE SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) END "BRANCH CODE",
       CASE WHEN LENGTH(GLA.GLA_NUMBER) = 10 THEN SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) || GLA.GLA_NUMBER ELSE GLA.GLA_NUMBER END "GL ACCOUNT NUMBER",
@@ -102,10 +104,85 @@ ORDER BY
       "BRANCH CODE" DESC,
       "CODE" ASC,
       "DESCRIPTION" DESC
-END	
-	');	
+END	');	
+
+	i_BODY_QUERY_CBS := TO_CLOB('SELECT * FROM(
+	SELECT DISTINCT
+      CASE WHEN LENGTH(GLA.GLA_NUMBER) = 14 THEN SUBSTR(GLA.GLA_NUMBER,1,4) ELSE SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) END "BRANCH CODE",
+      CASE WHEN LENGTH(GLA.GLA_NUMBER) = 10 THEN SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) || GLA.GLA_NUMBER ELSE GLA.GLA_NUMBER END "GL ACCOUNT NUMBER",
+      GLA.GLA_NAME "GL ACCOUNT NAME",
+      TXN.TRL_DEST_STAN "CODE",
+      CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "DEBIT",
+      0 AS "CREDIT",
+      TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
+      TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
+	  TXN.TRL_ID,
+      GLE.GLE_DEBIT_DESCRIPTION "DESCRIPTION"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+WHERE
+      TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND {Channel}
+      
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Inter-Entity'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND {GL_Description}
+      AND {Txn_Date}
+	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+
+GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_DEBIT_DESCRIPTION  
+)WHERE "DEBIT" <> 0
+ AND {Branch_Code}
+ORDER BY
+      "BRANCH CODE" DESC,
+      "CODE" ASC,
+      "DESCRIPTION" DESC
+START SELECT * FROM(
+SELECT DISTINCT
+      CASE WHEN LENGTH(GLA.GLA_NUMBER) = 14 THEN SUBSTR(GLA.GLA_NUMBER,1,4) ELSE SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) END "BRANCH CODE",
+      CASE WHEN LENGTH(GLA.GLA_NUMBER) = 10 THEN SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) || GLA.GLA_NUMBER ELSE GLA.GLA_NUMBER END "GL ACCOUNT NUMBER",
+      GLA.GLA_NAME "GL ACCOUNT NAME",
+      TXN.TRL_DEST_STAN "CODE",
+      0 AS "DEBIT",
+      CASE WHEN GLE.GLE_CREDIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "CREDIT",
+      TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
+      TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
+	  TXN.TRL_ID,
+      GLE.GLE_CREDIT_DESCRIPTION "DESCRIPTION"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
+WHERE
+      TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND {Channel}
+      
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Inter-Entity'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND {GL_Description}
+      AND {Txn_Date}
+	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+
+GROUP BY GLA.GLA_NUMBER,GLA.GLA_NAME,GLE.GLE_CREDIT_DESCRIPTION
+)WHERE "CREDIT" <> 0
+ AND {Branch_Code}
+ORDER BY
+      "BRANCH CODE" DESC,
+      "CODE" ASC,
+      "DESCRIPTION" DESC
+END	');	
 	
-	i_TRAILER_QUERY := TO_CLOB('
+	i_TRAILER_QUERY_CBC := TO_CLOB('
 SELECT SUM("DEBIT") AS "TOTAL DEBIT", SUM("CREDIT") AS "TOTAL CREDIT", "DESCRIPTION" FROM(
 SELECT DISTINCT TXN.TRL_ID,
       CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "DEBIT",
@@ -172,22 +249,88 @@ GROUP BY
        "DESCRIPTION", "BRANCH CODE"
 ORDER BY
       "DESCRIPTION" DESC
-END		
-	');
+END	');
+
+	i_TRAILER_QUERY_CBS := TO_CLOB('
+SELECT SUM("DEBIT") AS "TOTAL DEBIT", SUM("CREDIT") AS "TOTAL CREDIT", "DESCRIPTION" FROM(
+SELECT DISTINCT TXN.TRL_ID,
+      CASE WHEN GLE.GLE_DEBIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "DEBIT",
+      0 AS "CREDIT", GLE.GLE_DEBIT_DESCRIPTION "DESCRIPTION",
+	  CASE WHEN LENGTH(GLA.GLA_NUMBER) = 14 THEN SUBSTR(GLA.GLA_NUMBER,1,4) ELSE SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) END "BRANCH CODE"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+WHERE
+      TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND {Channel}
+      
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Inter-Entity'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND {GL_Description}
+      AND {Txn_Date}
+	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+
+)WHERE {Branch_Code}
+GROUP BY
+       "DESCRIPTION", "BRANCH CODE"
+ORDER BY
+      "DESCRIPTION" DESC
+START SELECT SUM("DEBIT") AS "TOTAL DEBIT", SUM("CREDIT") AS "TOTAL CREDIT", "DESCRIPTION" FROM(
+SELECT DISTINCT TXN.TRL_ID,
+      0 AS "DEBIT",
+      CASE WHEN GLE.GLE_CREDIT_DESCRIPTION IN (''INTER-ENTITY AP ATM WITHDRAWAL'', ''INTER-ENTITY AR ATM WITHDRAWAL'', ''INTER-ENTITY FUND TRANSFER DR'', ''INTER-ENTITY FUND TRANSFER CR'') THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ACQ_CHARGE_AMT, 0) END AS "CREDIT", GLE.GLE_DEBIT_DESCRIPTION "DESCRIPTION",
+	  CASE WHEN LENGTH(GLA.GLA_NUMBER) = 14 THEN SUBSTR(GLA.GLA_NUMBER,1,4) ELSE SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) END "BRANCH CODE"
+FROM
+      TRANSACTION_LOG TXN
+	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
+      JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
+      JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
+WHERE
+      TXN.TRL_TQU_ID = ''F''
+      AND TXN.TRL_ACTION_RESPONSE_CODE = 0
+      AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND {Channel}
+     
+      AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Inter-Entity'')
+      AND GLE.GLE_ENTRY_ENABLED = ''Y''
+      AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
+      AND {GL_Description}
+      AND {Txn_Date}
+	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+
+)WHERE {Branch_Code}
+GROUP BY
+       "DESCRIPTION", "BRANCH CODE"
+ORDER BY
+      "DESCRIPTION" DESC
+END	');
 	
 	UPDATE REPORT_DEFINITION SET 
 		RED_HEADER_FIELDS = i_HEADER_FIELDS,
 		RED_BODY_FIELDS = i_BODY_FIELDS,
 		RED_TRAILER_FIELDS = i_TRAILER_FIELDS,
-		RED_BODY_QUERY = i_BODY_QUERY,
-		RED_TRAILER_QUERY = i_TRAILER_QUERY
-	WHERE RED_NAME = i_REPORT_NAME;
+		RED_BODY_QUERY = i_BODY_QUERY_CBC,
+		RED_TRAILER_QUERY = i_TRAILER_QUERY_CBC
+	WHERE RED_NAME = i_REPORT_NAME
+	AND RED_INS_ID = 22;
+	
+	UPDATE REPORT_DEFINITION SET 
+		RED_HEADER_FIELDS = i_HEADER_FIELDS,
+		RED_BODY_FIELDS = i_BODY_FIELDS,
+		RED_TRAILER_FIELDS = i_TRAILER_FIELDS,
+		RED_BODY_QUERY = i_BODY_QUERY_CBS,
+		RED_TRAILER_QUERY = i_TRAILER_QUERY_CBS
+	WHERE RED_NAME = i_REPORT_NAME
+	AND RED_INS_ID = 2;
 	
 	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANK CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = i_REPORT_NAME AND red_ins_id = 2;
 	
 	update report_definition set red_header_fields = REPLACE(red_header_fields, '0010', '0112') WHERE RED_NAME = i_REPORT_NAME AND red_ins_id = 2;
-	
-	--update report_definition set RED_BODY_FIELDS = REPLACE(RED_BODY_FIELDS, '5008', '8001') WHERE RED_NAME = i_REPORT_NAME AND red_ins_id = 2;
 	
 END;
 /

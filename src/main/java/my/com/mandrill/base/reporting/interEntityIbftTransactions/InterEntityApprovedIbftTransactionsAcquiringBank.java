@@ -400,8 +400,8 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 		} else if (indicator.equals(CBS_AT_CBC_TO_OTHER_BANK)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('"
-							+ ins_id + "', '" + ie_ins_id + "')");
+					"TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND NVL(LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0'),0) NOT IN ('"
+							+ ins_id + "')");
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
