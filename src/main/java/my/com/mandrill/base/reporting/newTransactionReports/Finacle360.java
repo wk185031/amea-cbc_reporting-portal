@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
@@ -23,6 +24,41 @@ public class Finacle360 extends CsvReportProcessor {
 	private static final String CBC_BANK_NAME = "CBC01";
 	private static final String CBS_BANK_NAME = "CBC02";
 
+	@Override
+	public void processCsvRecord(ReportGenerationMgr rgm) throws ReportGenerationException {
+		logger.debug("In Finacle360.processCsvRecord()");
+		File file = null;
+		String fileLocation = rgm.getFileLocation();
+		this.setEncryptionService(rgm.getEncryptionService());
+		String fileName = "";
+
+		try {
+			String fileTxnDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+
+            fileName = "ATM_CBC01_CRDUPL_360" + "_" + fileTxnDate + "_" + "001" + ReportConstants.CSV_FORMAT;
+
+			if (rgm.errors == 0) {
+				if (fileLocation != null) {
+					File directory = new File(fileLocation);
+					if (!directory.exists()) {
+						directory.mkdirs();
+					}
+
+					file = new File(rgm.getFileLocation() + fileName);
+					execute(rgm, file);
+					logger.debug("Write file to : {}", file.getAbsolutePath());
+				} else {
+					throw new Exception("Path is not configured.");
+				}
+			} else {
+				throw new Exception("Errors when generating " + fileName);
+			}
+		} catch (Exception e) {
+			logger.error("Errors in generating " + fileName, e);
+			throw new ReportGenerationException("Errors when generating " + fileName, e);
+		}
+	}
+	
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		try {
