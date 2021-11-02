@@ -28,7 +28,7 @@ public class GLHandoffInterEntity extends BatchProcessor {
 	private int success = 0;
 	private double fileHash = 0.00;
 	private String groupIdDate = null;
-	
+
 	private String ie_ins_name = "CBS";
 	private String ie_ins_id = "0000000112";
 	private String ins_id = "0000000010";
@@ -41,28 +41,28 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			separateQuery(rgm);
 			preProcessing(rgm);
-			
+
 			if (rgm.getInstitution().equalsIgnoreCase("CBS")) {
 				ie_ins_name = "CBC";
 				ie_ins_id = "0000000010";
 				ins_id = "0000000112";
 			}
-			
+
 			writeHeader(rgm);
 			Iterator<String> tranParticularItr = filterByGlDescription(rgm).iterator();
 			while (tranParticularItr.hasNext()) {
 				tranParticular = tranParticularItr.next();
-				
+
 				rgm.setBodyQuery(getDebitBodyQuery());
 				preProcessing(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
 				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.DEBIT_IND);
-				
+
 				rgm.setBodyQuery(getCreditBodyQuery());
 				preProcessing(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
 				executeBodyQuery(rgm, tranParticular, branchCode, ReportConstants.CREDIT_IND);
-				
+
 			}
-			
+
 			addPostProcessingFieldsToGlobalMap(rgm);
 			writeTrailer(rgm);
 			rgm.fileOutputStream.flush();
@@ -98,7 +98,7 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			groupIdDate = rgm.getYesterdayDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_03));
 		}
 		addBatchPreProcessingFieldsToGlobalMap(rgm);
-        addPostingDateFieldsToGlobalMap(rgm);
+		addPostingDateFieldsToGlobalMap(rgm);
 	}
 
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
@@ -143,23 +143,27 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-							+ "' AND (((TXN.TRL_DEO_NAME = 'CBC' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000010')"
+							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
-							+ "((TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112')"
-							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "')"
+							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
+							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id
+							+ "','" + ins_id + "')"
 							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
-					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
-					+ " AND (TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112') "
-					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
-					+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
-					+ " AND (TXN.TRL_DEO_NAME IN ('CBC','CBS') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000010','0000000112')) "
-					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
+					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) " + " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id
+							+ "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
+							+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND (TXN.TRL_DEO_NAME IN ('"
+							+ rgm.getInstitution() + "' , '" + ie_ins_name
+							+ "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			break;
@@ -167,8 +171,8 @@ public class GLHandoffInterEntity extends BatchProcessor {
 			ReportGenerationFields defaultChannel = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_TSC_CODE = 31 AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-					+ "'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
-					+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
+							+ "'  AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "')");
 			getGlobalFileFieldsMap().put(defaultChannel.getFieldName(), defaultChannel);
 			break;
 		}

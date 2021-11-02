@@ -84,12 +84,12 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();
-				
+
 				rgm.setBodyQuery(getDebitBodyQuery());
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
 						pdfFont, fontSize, glDescription, ReportConstants.DEBIT_IND);
-				
+
 				rgm.setBodyQuery(getCreditBodyQuery());
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX, startY,
@@ -106,7 +106,8 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
-			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -145,11 +146,11 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 
 			while (glDescriptionItr.hasNext()) {
 				glDescription = glDescriptionItr.next();
-				
+
 				rgm.setBodyQuery(getDebitBodyQuery());
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
-				
+
 				rgm.setBodyQuery(getCreditBodyQuery());
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
 				executeBodyQuery(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
@@ -239,7 +240,6 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-
 	private void preProcessing(ReportGenerationMgr rgm, String filterByGlDescription, String filterByBranchCode,
 			String indicator) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In GLHandoffFinalProofSheetInterEntity.preProcessing()");
@@ -282,24 +282,28 @@ public class GLHandoffFinalProofSheetInterEntity extends TxtReportProcessor {
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
 					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-							+ "' AND (((TXN.TRL_DEO_NAME = 'CBC' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000010')"
+							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
 							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
-							+ "((TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112')"
-							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "')"
+							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
+							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id
+							+ "','" + ins_id + "')"
 							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
-			
+
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
-					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
-					+ " AND (TXN.TRL_DEO_NAME = 'CBS' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '0000000112') "
-					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
-					+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
-					+ " AND (TXN.TRL_DEO_NAME IN ('CBC','CBS') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('0000000010','0000000112')) "
-					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
+					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) " + " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
+							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id
+							+ "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
+							+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND (TXN.TRL_DEO_NAME IN ('"
+							+ rgm.getInstitution() + "' , '" + ie_ins_name
+							+ "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
+							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			break;
