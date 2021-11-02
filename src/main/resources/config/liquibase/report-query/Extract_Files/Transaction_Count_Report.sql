@@ -164,7 +164,7 @@ FROM
 WHERE
 	  TXN.TRL_TQU_ID IN (''F'', ''R'')
       AND TXN.TRL_FRD_REV_INST_ID IS NOT NULL
-      AND TXN.TRL_TSC_CODE IN (42, 43, 44, 45, 46, 47, 48, 49, 51, 52)
+      AND TXN.TRL_TSC_CODE IN (42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 252)
       AND COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '''') = {V_Iss_Name} 
 	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Txn_Date}
