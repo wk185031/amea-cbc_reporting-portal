@@ -281,8 +281,8 @@ public class TransmittalReleaseReportForAllBranches extends TxtReportProcessor {
 						}
 						
 					}
-					
-					writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+					float x = 3.0f;
+					writePdfBody(rgm, lineFieldsMap, contentStream, x);
 					pageHeight++;
 				}
 				
