@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="KW_20211102000001_user_activity_log" author="kw">
+    	<validCheckSum>any</validCheckSum>     
+    	<createTable tableName="DCMS_USER_ACTIVITY" tablespace="AUTH_REPORT_DATA_TS">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="function" type="varchar(100)" />
+            <column name="card_id" type="bigint" />
+            <column name="card_number_enc" type="varchar(100)" />
+            <column name="card_key_rotation_number" type="integer" />
+            <column name="customer_cif_number" type="varchar(20)" />
+            <column name="institution_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_cash_card" type="boolean" valueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+			<column name="description" type="varchar(255)"/>         
+            <column name="created_by" type="varchar(50)" />
+            <column name="created_date" type="timestamp" defaultValueDate="${now}" />
+        </createTable>
+        <createIndex indexName="idx_dcms_user_activity"
+                     tableName="DCMS_USER_ACTIVITY"
+                     unique="false"
+                     tablespace="AUTH_REPORT_INDX_TS">
+            <column name="institution_id" type="integer"/>
+            <column name="created_date" type="timestamp"/>
+        </createIndex>
+
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/Insert_dcms_function_config.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/add_report_user_activity_journal.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/User_activity_Journal.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        
+    </changeSet>
+    
+</databaseChangeLog>

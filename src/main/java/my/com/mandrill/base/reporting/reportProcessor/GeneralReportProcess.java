@@ -518,7 +518,7 @@ public class GeneralReportProcess {
 		ReportGenerationFields decryptedField = null;
 		int ekyId = 0;
 		try {
-			if (fieldsMap.get(field.getFieldName()).getValue() != null
+			if (fieldsMap.containsKey(field.getFieldName()) && fieldsMap.get(field.getFieldName()).getValue() != null
 					&& fieldsMap.get(field.getFieldName()).getValue().trim().length() > 0
 					&& field.getDecryptionKey() != null && field.getDecryptionKey().trim().length() > 0) {
 

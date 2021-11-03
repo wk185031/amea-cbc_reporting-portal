@@ -77,6 +77,7 @@ import my.com.mandrill.base.repository.TaskRepository;
 import my.com.mandrill.base.repository.search.JobSearchRepository;
 import my.com.mandrill.base.repository.search.TaskGroupSearchRepository;
 import my.com.mandrill.base.repository.search.TaskSearchRepository;
+import my.com.mandrill.base.service.DcmsSyncService;
 import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
@@ -110,6 +111,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final ReportService reportService;
 	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
+	private final DcmsSyncService dcmsSyncService;
 
 	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?,?)";
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
@@ -164,7 +166,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
 			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService,
-			InstitutionRepository institutionRepository, DataSource dataSource) {
+			InstitutionRepository institutionRepository, DataSource dataSource, DcmsSyncService dcmsSyncService) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
 		this.taskRepository = taskRepository;
@@ -176,6 +178,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.reportService = reportService;
 		this.institutionRepository = institutionRepository;
 		this.dataSource = dataSource;
+		this.dcmsSyncService = dcmsSyncService;
 	}
 
 	TaskScheduler taskScheduler;
@@ -320,11 +323,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME", "ATD_END_TIMESTAMP");
 			Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
 
+			
 			syncAuthenticTables();
 			Map<String, List<String>> cardBinMap = getCardBinMap();
 			postProcessCardData(cardLastUpdatedTs);
 			postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
 			postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
+			dcmsSyncService.syncDcmsUserActivity();
 
 			dbsyncJob.setStatus(ReportConstants.STATUS_COMPLETED);
 			dbsyncJob.setLastModifiedBy(user);
@@ -689,7 +694,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			conn = dataSource.getConnection();
 
 			stmt = conn.prepareStatement(sql);
-			stmt.setFetchSize(MAX_ROW);
+			//stmt.setFetchSize(MAX_ROW);
 			rs = stmt.executeQuery();
 
 			AtmDowntime lastDowntime = null;
