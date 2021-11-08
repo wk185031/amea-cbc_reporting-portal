@@ -192,7 +192,6 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					.replace("AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'", "")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
 			
-			logger.debug("getSummaryTrailerQuery():" + getSummaryTrailerQuery());
 		}
 	}
 
