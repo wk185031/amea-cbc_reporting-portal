@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -474,6 +475,7 @@ public class ReportService {
 	private void runReport(ReportGenerationMgr reportGenerationMgr) throws ReportGenerationException {
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 
+		long start = System.nanoTime();
 		if (reportProcessor != null) {
 			log.debug("runReport with processor: {}", reportProcessor);
 			reportProcessor.process(reportGenerationMgr);
@@ -481,6 +483,9 @@ public class ReportService {
 			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
 					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
 		}
+		log.debug("ELAPSED TIME: Report {} generated in {}s", reportGenerationMgr.getFileName(),
+				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+
 	}
 	
 	private long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {

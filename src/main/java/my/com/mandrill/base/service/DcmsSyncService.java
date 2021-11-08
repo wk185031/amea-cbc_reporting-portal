@@ -6,10 +6,10 @@ import java.sql.Clob;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
@@ -97,6 +97,7 @@ public class DcmsSyncService {
 		Timestamp dcmsCashCardLastUpdatedTs = getLastUpdatedTs(TABLE_DCMS_CASH_CARD, COL_DCMS_CASH_CARD_UPDATED_TS,
 				true, false);
 
+		long start = System.nanoTime();
 		Map<String, Pattern> patternConfigList = getListOfSupportPatterns();
 		if (patternConfigList == null || patternConfigList.isEmpty()) {
 			log.warn("Pattern config for support function is not configured! Sync DCMS activity log will not proceed.");
@@ -158,6 +159,8 @@ public class DcmsSyncService {
 			syncSupportTable(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CC_UPDATE_EMBOSS_NAME,
 					"Mailing address updated using Address Update", "Update Emboss Name", true);
 		}
+		log.debug("ELAPSED TIME: syncDcmsUserActivity completed in {}s",
+				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 
 	}
 
