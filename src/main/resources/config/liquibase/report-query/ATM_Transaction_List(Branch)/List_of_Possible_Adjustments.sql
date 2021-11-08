@@ -97,6 +97,8 @@ BEGIN
       ))
       AND ABR.ABR_CODE = {BRANCH_CODE}
       AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+      AND TXNC.TRL_ORIGIN_CHANNEL in (''ATM'',''BRM'')
+      AND TXN.TRL_TSC_CODE in (1,142,143)
       AND {Txn_Date}
   UNION ALL
   SELECT
@@ -144,6 +146,8 @@ BEGIN
       AND ATA.ATA_TXN_STATE IS NOT NULL
       AND ABR.ABR_CODE = {BRANCH_CODE}
       AND TXN.TRL_DEO_NAME = {V_Deo_Name}
+      AND TXNC.TRL_ORIGIN_CHANNEL in (''ATM'',''BRM'')
+      AND TXN.TRL_TSC_CODE in (1,142,143)
       AND {Txn_Date}
 	ORDER BY
       "BRANCH CODE" ASC,
