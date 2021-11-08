@@ -172,7 +172,7 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setSummaryPendingBodyQuery(getSummaryBodyQuery()
 					.replace("'ATM WITHDRAWAL'", "'PENDING MOVING CASH'")
-					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A'"));
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A' AND CMV.CMV_STATUS = 'PENDING'"));
 			setPendingTxnQuery(getTxnBodyQuery()
 					.replace("(TXN.TRL_TQU_ID IN ('F') OR (TXN.TRL_TQU_ID = 'R' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))",
 					" TXN.TRL_TQU_ID = 'A'")
@@ -191,6 +191,8 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 			setPendingTrailerQuery(getTxnTrailerQuery().replace("AND TXN.TRL_TQU_ID = 'F'", " AND TXN.TRL_TQU_ID = 'A' ")
 					.replace("AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'", "")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			
+			logger.debug("getSummaryTrailerQuery():" + getSummaryTrailerQuery());
 		}
 	}
 
