@@ -83,7 +83,7 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 						location = terminalMap.getValue();
 						rgm.setBodyQuery(getTxnBodyQuery());
 						rgm.setTrailerQuery(getTxnTrailerQuery());
-						preProcessing(rgm, branchCode, terminal);
+						preProcessing(rgm, branchCode, terminal, branchName);
 						line = new StringBuilder();
 						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 								.append(location).append(";");
@@ -203,12 +203,12 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal)
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByBranchName)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ListMovingCashTransactions.preProcessing()");
 		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "' AND ABR.ABR_NAME = '" + filterByBranchName + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
