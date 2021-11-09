@@ -123,6 +123,7 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND {Branch_Code}
+	  AND {Terminal}
       AND {Txn_Date}
 START SELECT SUM("SA VOL") "SA VOL",
 	SUM("SA AMT") "SA AMT",
