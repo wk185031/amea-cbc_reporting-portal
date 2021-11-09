@@ -268,4 +268,5 @@
 	<include file="config/liquibase/changelog/KW_20211104000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20211108000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20211108000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/LJL_20211109000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
