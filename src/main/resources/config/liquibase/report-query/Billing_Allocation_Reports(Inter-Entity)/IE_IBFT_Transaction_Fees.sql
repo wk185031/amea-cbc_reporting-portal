@@ -1,7 +1,11 @@
 -- Tracking				Date			Name	Description
 -- Revise report		12-AUG-2021		WY		Original script
+-- JIRA 937				11-NOV-2021		WY		Fix format of Overall total section
 
 DECLARE
+
+	i_REPORT_NAME VARCHAR2(100) := 'Inter-Entity IBFT Transaction Fees';
+	i_PROCESSING_CLASS_NAME VARCHAR2(100) := 'my.com.mandrill.base.reporting.billingAllocationReportsInterEntity.InterEntityIbftTransactionFees';
 	i_BODY_QUERY CLOB;
 	
 BEGIN 
@@ -15,7 +19,7 @@ BEGIN
   COUNT("ACQUIRER ID") * 5.00 AS "ACQUIRER INCOME",
   COUNT("RECEIVING ID") AS "RECEIVING COUNT",
   COUNT("RECEIVING ID") * 5.00 AS "RECEIVING INCOME",
-  (COUNT("TRANSMITTING ID")  + COUNT("ACQUIRER ID")  +  COUNT("RECEIVING ID")) * 5.00 AS "TOTAL BILLING"
+  ((COUNT("ACQUIRER ID")  +  COUNT("RECEIVING ID")) - COUNT("TRANSMITTING ID")) * 5.00 AS "TOTAL BILLING"
 FROM (
 SELECT
   CASE WHEN ABR.ABR_CODE IS NOT NULL THEN ABR.ABR_CODE ELSE BRC.BRC_CODE END AS "BRANCH CODE",
@@ -125,10 +129,11 @@ ORDER BY "BRANCH CODE"');
 	
 	
 	UPDATE REPORT_DEFINITION SET 
-		RED_BODY_QUERY = i_BODY_QUERY
-	WHERE RED_NAME = 'Inter-Entity IBFT Transaction Fees';
+		RED_BODY_QUERY = i_BODY_QUERY,
+		RED_PROCESSING_CLASS = i_PROCESSING_CLASS_NAME
+	WHERE RED_NAME = i_REPORT_NAME;
 	
-	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANKING CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = 'Inter-Entity IBFT Transaction Fees' AND red_ins_id = 2;
+	update report_definition set red_header_fields = REPLACE(red_header_fields, 'CHINA BANKING CORPORATION', 'CHINA BANK SAVINGS') WHERE RED_NAME = i_REPORT_NAME AND red_ins_id = 2;
 	
 END;
 /
