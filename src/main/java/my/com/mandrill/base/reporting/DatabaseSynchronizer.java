@@ -100,6 +100,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String ORIGIN_CHANNEL = "A026";
 	private static final String ORIGIN_CHANNEL_OLD = "ORIG_CHAN";
 	private static final String CASH_CARD_CORPORATE_PRODUCT_CODE = "83";
+	private static final String BIN_VISA = "999991";
+	private static final String BIN_MASTERCARD = "999992";
+	private static final String BIN_JCB = "999993";
+	private static final String BIN_UNIONPAY = "999994";
 
 	private final JobRepository jobRepository;
 	private final JobSearchRepository jobSearchRepository;
@@ -114,12 +118,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final DcmsSyncService dcmsSyncService;
 
 	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?,?)";
-	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
+	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP,TRL_APPR_ID from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
 	private static final String SQL_SELECT_PROPERTY_CORPORATE_CARD = "select PTY_VALUE from {DB_SCHEMA}.PROPERTY@{DB_LINK} where PTY_PTS_NAME='CBC_Institution_Info' and PTY_NAME='EBK_CORP_DUMMY_CARD'";
 	private static final String SQL_SELECT_ISSUER_CUSTOM_DATA = "select ISS_CUSTOM_DATA from {DB_SCHEMA}.ISSUER@{DB_LINK} where ISS_STATUS='ACTIVE'";
 	private static final String SQL_SELECT_ATM_STATUS_HISTORY = "select ASH_AST_ID,ASH_BUSINESS_DAY,ASH_COMM_STATUS,ASH_TIMESTAMP,ASH_OPERATION_STATUS,ASH_SERVICE_STATE_REASON from ATM_STATUS_HISTORY {WHERE_CONDITION} order by ASH_AST_ID, ASH_TIMESTAMP";
 	private static final String SQL_INSERT_ATM_DOWNTIME = "insert into ATM_DOWNTIME values(?, ?, ?, ?, ?)";
 	private static final String SQL_SELECT_ALL_BIN = "select CBI_BIN from CBC_BIN";
+	private static final String SQL_SELECT_ALL_AUTH_PRCSS_PROFILE = "select APPR_ID, APPR_NAME from AUTH_PROCESSING_PROFILE";
 	private static final String SQL_TXN_LOG_INSERT = "insert into TRANSACTION_LOG (\r\n"
 			+ "TRL_ID,TRL_EXT_ID,TRL_ACCOUNT_1_ACN_ID,TRL_ACCOUNT_1_ACN_ID_EKY_ID,TRL_ACCOUNT_1_BALANCE_DATA,TRL_ACCOUNT_1_BALANCE_DATE,TRL_ACCOUNT_1_MAX_AVAILABLE,TRL_ACCOUNT_1_SPENT_AMOUNT,TRL_ACCOUNT_2_ACN_ID,TRL_ACCOUNT_2_ACN_ID_EKY_ID\r\n"
 			+ ",TRL_ACCOUNT_2_BALANCE_DATA,TRL_ACCOUNT_2_BALANCE_DATE,TRL_ACCOUNT_2_MAX_AVAILABLE,TRL_ACCOUNT_2_SPENT_AMOUNT,TRL_ACCOUNT_CUR_ISO_ID,TRL_ACCOUNT_TYPE_1_ATP_ID,TRL_ACCOUNT_TYPE_2_ATP_ID,TRL_ACN_STATUS_CODE\r\n"
@@ -359,7 +364,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
 			}
 		}
-
+		
 		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
 				.body(dbsyncJob);
@@ -524,7 +529,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		} else {
 			sql = "insert into " + table + " (select * from " + schemaTableName;
 		}
-
+		
 		if (lastUpdatedTs != null) {
 			String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
 			sql = sql + " where " + lastUpdateColumnName + " > TO_TIMESTAMP('" + formattedTs
@@ -681,7 +686,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		PreparedStatement stmt = null;
 		PreparedStatement stmt_insert = null;
 		ResultSet rs = null;
-		
+
 		long start = System.nanoTime();
 		String sql = SQL_SELECT_ATM_STATUS_HISTORY;
 		if (atmStatusHistoryLastUpdatedTs == null) {
@@ -828,7 +833,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		PreparedStatement stmt = null;
 
 		long start = System.nanoTime();
-		try {		
+		try {
 			conn = dataSource.getConnection();
 
 			stmt = conn.prepareStatement(SQL_INSERT_ATM_DOWNTIME);
@@ -956,13 +961,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 			StringTokenizer corporateCardRange = getCorporateCard(conn);
 			List<String> atmDummyCards = getAtmDummyCard(conn);
+			Map<String, String> listAuthPrProfile = getAuthProcessingProfile();
 
 			while (rs.next()) {
 				TxnLogCustom txnCustom = fromResultSet(cardBinMap, rs.getLong("TRL_ID"), rs.getString("TRL_TSC_CODE"),
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
-						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"));
+						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"), listAuthPrProfile, rs.getLong("TRL_APPR_ID"));
 				log.debug("TRL_ID = {}", txnCustom.getTrlId());
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
@@ -1053,7 +1059,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private TxnLogCustom fromResultSet(Map<String, List<String>> cardBinMap, Long id, String tscCode,
 			String encryptedPan, String acqInstId, String encryptedCustomData, int encryptionKeyId,
 			int panEncryptionKeyId, String originInterchange, String issuerName, String deoName,
-			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp) throws Exception {
+			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp, Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
 
 		log.debug(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
@@ -1079,8 +1085,16 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			o.setInterEntity(isInterEntity(tscCode, acqInstId, issuerName, deoName));
 
 			if (encryptedPan != null) {
-				o.setCardBin(findBin(pan, cardBinMap));
-
+				
+				if(isBinDomestic(listAuthPrProfile, trlApprId)){
+					o.setCardBin(findBin(pan, cardBinMap));
+				}
+				else{
+					String dummyBin = findDummyBin(listAuthPrProfile, trlApprId);
+					log.debug("dummyBin: "+dummyBin);
+					o.setCardBin(dummyBin);
+				}
+				
 				if (isOnUs(issuerName)) {
 					o.setCardProductType(pan.getClear().substring(6, 8));
 					o.setCardBranch(pan.getClear().substring(8, 12));
@@ -1113,7 +1127,43 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 	}
-
+	
+	private boolean isBinDomestic(Map<String, String> listAuthPrProfile, Long trlApprId){
+		
+		for (Map.Entry<String, String> entry : listAuthPrProfile.entrySet()) {
+			
+			if(trlApprId!=null && entry.getKey().equals(trlApprId.toString()) && entry.getValue().equals("Bancnet Domestic")){
+				log.debug("isDomestic true: "+trlApprId.toString());
+				return true;
+			}
+		}		
+		return false;
+	}
+	
+	private String findDummyBin(Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
+		
+		if(trlApprId == null)
+			return BIN_VISA;
+		
+		for (Map.Entry<String, String> entry : listAuthPrProfile.entrySet()) {
+			
+			if(entry.getKey().equals(trlApprId.toString())){
+				
+				switch(entry.getValue()) {
+				  case "Visa":
+					  return BIN_VISA;			
+				  case "Mastercard":
+					  return BIN_MASTERCARD;					 
+				  case "JCB":
+					  return BIN_JCB;					
+				  case "Union Pay":
+					  return BIN_UNIONPAY;				
+				}
+			}
+		}
+		return BIN_VISA;
+	}
+	
 	private boolean isOnUs(String issuerName) {
 		return "CBC".equals(issuerName) || "CBS".equals(issuerName);
 	}
@@ -1333,6 +1383,54 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		return false;
+	}
+
+	private Map<String, String> getAuthProcessingProfile() throws Exception {
+		log.debug("getAuthProcessingProfile");
+
+		Connection conn = dataSource.getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Map<String, String> authPrProfile = new HashMap<>();
+
+		try {
+			stmt = conn.prepareStatement(SQL_SELECT_ALL_AUTH_PRCSS_PROFILE);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				String apprlId = String.valueOf(rs.getLong(1));
+				String apprlName = rs.getString(2);
+				
+				authPrProfile.put(apprlId, apprlName);
+				
+			}
+			log.debug("getAuthProcessingProfile: size={}", authPrProfile.size());
+			return authPrProfile;
+
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+					log.warn("Failed to close rs", e);
+				}
+
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					log.warn("Failed to close conn", e);
+				}
+			}
+		}
 	}
 
 }
