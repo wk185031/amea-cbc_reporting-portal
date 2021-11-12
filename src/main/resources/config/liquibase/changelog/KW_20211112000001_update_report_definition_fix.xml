@@ -72,6 +72,21 @@
                  path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Cash_Card.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM Transaction List(On-Us_Acquirer).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Summary).sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+         <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Extract_Files/Transaction_Count_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />        
     </changeSet>
     
 </databaseChangeLog>
