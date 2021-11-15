@@ -1086,15 +1086,20 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 			if (encryptedPan != null) {
 				
-				if(isBinDomestic(listAuthPrProfile, trlApprId)){
+				boolean isDomestic = true;
+				
+				if(trlApprId!=null){
+					String dummyBin = findDummyBin(listAuthPrProfile, trlApprId);
+					if(dummyBin!=null && !dummyBin.equals("")){
+						log.debug("dummyBin: "+dummyBin);
+						o.setCardBin(dummyBin);
+						isDomestic = false;
+					}
+				}
+				if(isDomestic){
 					o.setCardBin(findBin(pan, cardBinMap));
 				}
-				else{
-					String dummyBin = findDummyBin(listAuthPrProfile, trlApprId);
-					log.debug("dummyBin: "+dummyBin);
-					o.setCardBin(dummyBin);
-				}
-				
+						
 				if (isOnUs(issuerName)) {
 					o.setCardProductType(pan.getClear().substring(6, 8));
 					o.setCardBranch(pan.getClear().substring(8, 12));
@@ -1143,7 +1148,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private String findDummyBin(Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
 		
 		if(trlApprId == null)
-			return BIN_VISA;
+			return null;
 		
 		for (Map.Entry<String, String> entry : listAuthPrProfile.entrySet()) {
 			
@@ -1161,7 +1166,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 		}
-		return BIN_VISA;
+		return "";
 	}
 	
 	private boolean isOnUs(String issuerName) {
