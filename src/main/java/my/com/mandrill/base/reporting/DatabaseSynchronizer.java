@@ -1132,19 +1132,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 	}
-	
-	private boolean isBinDomestic(Map<String, String> listAuthPrProfile, Long trlApprId){
 		
-		for (Map.Entry<String, String> entry : listAuthPrProfile.entrySet()) {
-			
-			if(trlApprId!=null && entry.getKey().equals(trlApprId.toString()) && entry.getValue().equals("Bancnet Domestic")){
-				log.debug("isDomestic true: "+trlApprId.toString());
-				return true;
-			}
-		}		
-		return false;
-	}
-	
 	private String findDummyBin(Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
 		
 		if(trlApprId == null)
