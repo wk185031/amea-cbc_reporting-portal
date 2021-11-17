@@ -33,10 +33,10 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(DCMSApproveRejectPendingCardReport.class);
-	private float DEFAULT_PAGE_HEIGHT = 10;
-	private float pageHeight = DEFAULT_PAGE_HEIGHT;
-	private float totalHeight = PDRectangle.A4.getWidth();
-	private int pagination = 0;
+	protected float DEFAULT_PAGE_HEIGHT = 10;
+	protected float pageHeight = DEFAULT_PAGE_HEIGHT;
+	protected float totalHeight = PDRectangle.A4.getWidth();
+	protected int pagination = 0;
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
@@ -113,7 +113,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		}
 	}
 
-	private PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
+	protected PDPageContentStream executePdfBodyQuery(ReportGenerationMgr rgm, PDDocument doc, PDPage page,
 			PDPageContentStream contentStream, PDRectangle pageSize, float leading, float startX, float startY,
 			PDFont pdfFont, float fontSize) {
 		logger.debug("In DCMSApproveRejectPendingCardReport.generateReport(): " + rgm.getFileNamePrefix());
@@ -211,7 +211,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		return contentStream;
 	}
 	
-	private String extractAccountNumberFromJson(String jsonString, String institutionCode) {
+	protected String extractAccountNumberFromJson(String jsonString, String institutionCode) {
 		if (jsonString != null && jsonString.trim().isEmpty()) {
 			return jsonString;
 		}
@@ -370,7 +370,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		}
 	}
 
-	private void addTotalNoOfItemToGlobalParam(int count) {
+	protected void addTotalNoOfItemToGlobalParam(int count) {
 		ReportGenerationFields total = new ReportGenerationFields(ReportConstants.TOTAL,
 				ReportGenerationFields.TYPE_NUMBER, String.valueOf(count));
 		getGlobalFileFieldsMap().put(total.getFieldName(), total);
