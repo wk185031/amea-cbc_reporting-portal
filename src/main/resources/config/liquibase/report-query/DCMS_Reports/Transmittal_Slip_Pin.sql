@@ -50,6 +50,9 @@ from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
   join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID  
 where 
   DCR_INS_ID = {Iss_Id}
+  AND CRD_KIT_NUMBER IS NOT NULL
+  AND CRD_IS_LINKED not in ( ''1'' )
+  AND PRS_ID NOT IN(4)
   AND DCR_CRN_ID is null
  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
   AND DCR_STS_ID not in (67,69)
@@ -107,6 +110,9 @@ left join DCMS_OWNER.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 where 
   CCR_INS_ID = {Iss_Id}
+ AND CSH_KIT_NUMBER IS NOT NULL
+  AND CSH_IS_LINKED not in ( ''1'' )
+AND PRS_ID NOT IN(4)
   AND CCR_CRN_ID is null
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')

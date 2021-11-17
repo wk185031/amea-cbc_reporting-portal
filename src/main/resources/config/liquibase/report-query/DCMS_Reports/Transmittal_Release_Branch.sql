@@ -11,22 +11,7 @@ DECLARE
 	i_TRAILER_QUERY CLOB;
 BEGIN 
 	
-	i_HEADER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"",
-"leftJustified":true,"padFieldLength":0,"firstField":true},
-{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"",
-"defaultValue":"0010 CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"eol":true},
-{"sequence":3,"sectionName":"3","fieldName":"Space","csvTxtLength":"90","pdfLength":"90","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"",
-"leftJustified":true,"padFieldLength":0,"firstField":true},
-{"sequence":4,"sectionName":"4","fieldName":"File Name1","csvTxtLength":"120", "pdfLength":"120", "fieldType":"String","delimiter":"","fieldFormat":"",
-"defaultValue":"NEW PINS TRANSMITTAL RELEASE REPORT - ALL BRANCHES","eol":true,"leftJustified":true,"padFieldLength":0},
-{"sequence":5,"sectionName":"5","fieldName":"Space","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"",
-"leftJustified":true,"padFieldLength":0,"firstField":true},
-{"sequence":6,"sectionName":"6","fieldName":"As of Date Value","csvTxtLength":"20","pdfLength":"20","fieldType":"Date", "defaultValue":"","delimiter":"",
-"fieldFormat":"dd MMM yyyy","leftJustified":false,"padFieldLength":0,"eol":true},
-{"sequence":7,"sectionName":"7","fieldName":"Space", "csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"","eol":true, 
-"leftJustified":true, "padFieldLength":0},
-{"sequence":8,"sectionName":"8", "fieldName":"Space", "csvTxtLength":"10", "pdfLength":"10", "fieldType":"String", "delimiter":"", "fieldFormat":"", "eol":true, 
-"leftJustified":true,"padFieldLength":0}]');
+	i_HEADER_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space","csvTxtLength":"100","pdfLength":"70","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"100","pdfLength":"70","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"0010 CHINA BANK CORPORATION","leftJustified":true,"padFieldLength":0,"eol":true},{"sequence":3,"sectionName":"3","fieldName":"Space","csvTxtLength":"90","pdfLength":"60","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":4,"sectionName":"4","fieldName":"File Name1","csvTxtLength":"120","pdfLength":"70","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"NEW PINS TRANSMITTAL RELEASE REPORT - ALL BRANCHES","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":5,"sectionName":"5","fieldName":"Space","csvTxtLength":"100","pdfLength":"70","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":6,"sectionName":"6","fieldName":"As of Date Value","csvTxtLength":"20","pdfLength":"20","fieldType":"Date","defaultValue":"","delimiter":"","fieldFormat":"dd MMM yyyy","leftJustified":false,"padFieldLength":0,"eol":true},{"sequence":7,"sectionName":"7","fieldName":"Space","csvTxtLength":"100","pdfLength":"100","fieldType":"String","delimiter":"","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0},{"sequence":8,"sectionName":"8","fieldName":"Space","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":"","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0}]');
 	
 	i_BODY_FIELDS_CBC := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space","csvTxtLength":"5","pdfLength":"5", "fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"",
 "firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},
@@ -67,6 +52,9 @@ BEGIN
 	  LEFT join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
 	where 
 	  INS_ID = {Iss_Id}
+  AND CRD_KIT_NUMBER IS NOT NULL
+  AND CRD_IS_LINKED not in ( ''1'' )
+  AND PRS_ID NOT IN(4)
 	  AND DCR_CRN_ID is null
  	  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
 	  AND DCR_STS_ID not in (67,69)
@@ -101,7 +89,11 @@ AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
   left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = CCR_CLT_ID
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 	where 
-  CCR_INS_ID = {Iss_Id}
+   CCR_CRN_ID is null
+  AND CSH_KIT_NUMBER IS NOT NULL
+  AND CSH_IS_LINKED not in ( ''1'' )
+AND PRS_ID NOT IN(4)
+ and CCR_INS_ID = {Iss_Id}
   AND CCR_CRN_ID is null
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
