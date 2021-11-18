@@ -328,6 +328,8 @@ public final class ReportConstants {
 	public static final String SUBSTRING_SECOND_QUERY_START = "START SELECT";
 	public static final String SUBSTRING_END_BODY = "END BODY";
 	public static final String SUBSTRING_END_CRITERIA = "END CRITERIA";
+	public static final String SUBSTRING_END_DEPOSIT = "END DEPOSIT";
+	public static final String SUBSTRING_END_SUMMARY = "END SUMMARY";
 	
 	public static final String SUBSTRING_START_ACQ = "START ACQ";
 	public static final String SUBSTRING_START_ISS = "START ISS";

@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,11 +99,11 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 					executeTrailerQuery(rgm, false);
 				}
 			}
-			
+
 			if (branchCode == null) {
 				rgm.writeLine(getEol().getBytes());
 			}
-			
+
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IOException
 				| JSONException e) {
 			rgm.errors++;
@@ -114,7 +115,7 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 		logger.debug("In ListMovingCashTransactions.processingPendingDetails()");
 
 		try {
-			
+
 			pagination++;
 			writePendingSectionHeader(rgm, pagination);
 
@@ -129,8 +130,30 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 
 			rgm.setBodyQuery(getPendingTxnQuery());
 			executeBodyQuery(rgm, false);
-			
+
 			rgm.setTrailerQuery(getPendingTrailerQuery());
+			executeTrailerQuery(rgm, false);
+
+			StringBuilder payoutMerchantLine = new StringBuilder();
+			payoutMerchantLine.append("MODE : ").append(";").append("PAYOUT MERCHANT").append(";");
+			payoutMerchantLine.append(getEol());
+			rgm.writeLine(payoutMerchantLine.toString().getBytes());
+
+			writeBodyHeader(rgm);
+
+			StringBuilder depositToAccLine = new StringBuilder();
+
+			depositToAccLine.append(getEol());
+			depositToAccLine.append("MODE : ").append(";").append("DEPOSIT TO ACCOUNT").append(";");
+			depositToAccLine.append(getEol());
+			rgm.writeLine(depositToAccLine.toString().getBytes());
+
+			writeBodyHeader(rgm);
+
+			rgm.setBodyQuery(getPendingDepositTxnQuery());
+			executeBodyQuery(rgm, false);
+
+			rgm.setTrailerQuery(getPendingDepositTrailerQuery());
 			executeTrailerQuery(rgm, false);
 
 		} catch (IOException | JSONException e) {
@@ -146,14 +169,39 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			writeSummaryHeader(rgm, pagination);
 			writeSummaryBodyHeader(rgm);
-			
+
 			rgm.setBodyQuery(getSummaryBodyQuery());
 			executeBodyQuery(rgm, true);
+
 			rgm.setBodyQuery(getSummaryPendingBodyQuery());
 			executeBodyQuery(rgm, true);
 			
-			rgm.setTrailerQuery(getSummaryTrailerQuery());
+			rgm.setBodyQuery(getSummaryExpiredBodyQuery());
+			executeBodyQuery(rgm, true);
 			
+			rgm.setBodyQuery(getSummaryBlockedBodyQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setBodyQuery(getSummaryCancelledBodyQuery());
+			executeBodyQuery(rgm, true);
+
+			rgm.setBodyQuery(getSummaryPendingDepositTxnQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setBodyQuery(getSummaryExpiredDepositTxnQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setBodyQuery(getSummaryBlockedDepositTxnQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setBodyQuery(getSummaryCancelledDepositTxnQuery());
+			executeBodyQuery(rgm, true);
+			
+			rgm.setBodyQuery(getSummaryPayoutMerchantTxnQuery());
+			executeBodyQuery(rgm, true);
+
+			rgm.setTrailerQuery(getSummaryTrailerQuery());
+
 			executeTrailerQuery(rgm, true);
 		} catch (IOException | JSONException e) {
 			rgm.errors++;
@@ -163,21 +211,47 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In ListMovingCashTransactions.separateQuery()");
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
+
+		String criteria = "CMV.CMV_CREATED_TS >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+				+ "') AND CMV.CMV_CREATED_TS < TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE + "')";
+
 		if (rgm.getBodyQuery() != null) {
 			setTxnBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryBodyQuery(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
+							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_BODY))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setSummaryPendingBodyQuery(getSummaryBodyQuery()
-					.replace("'ATM WITHDRAWAL'", "'PENDING MOVING CASH'")
+			setSummaryPendingBodyQuery(getSummaryBodyQuery().replace("'ATM WITHDRAWAL'", "'PENDING MOVING CASH'")
 					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A' AND CMV.CMV_STATUS = 'PENDING'"));
+			setSummaryExpiredBodyQuery(getSummaryBodyQuery().replace("'ATM WITHDRAWAL'", "'EXPIRED MOVING CASH'")
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A' AND CMV.CMV_STATUS = 'EXPIRED'"));
+			setSummaryBlockedBodyQuery(getSummaryBodyQuery().replace("'ATM WITHDRAWAL'", "'BLOCKED MOVING CASH'")
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A' AND CMV.CMV_STATUS = 'BLOCKED'"));
+			setSummaryCancelledBodyQuery(getSummaryBodyQuery().replace("'ATM WITHDRAWAL'", "'CANCELLED MOVING CASH'")
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'A' AND CMV.CMV_STATUS = 'CANCELLED'"));
+			setSummaryPayoutMerchantTxnQuery(getSummaryBodyQuery().replace("'ATM WITHDRAWAL'", "'PAYOUT MERCHANT'")
+					.replace("TXN.TRL_TQU_ID = 'F'", "TXN.TRL_TQU_ID = 'P' AND CMV.CMV_STATUS = 'P'"));
 			setPendingTxnQuery(getTxnBodyQuery()
 					.replace("(TXN.TRL_TQU_ID IN ('F') OR (TXN.TRL_TQU_ID = 'R' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))",
-					" TXN.TRL_TQU_ID = 'A'")
+							" TXN.TRL_TQU_ID = 'A'")
 					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
 					.replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", ""));
+			setPendingDepositTxnQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_END_BODY),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_END_DEPOSIT))
+					.replace(ReportConstants.SUBSTRING_END_BODY, "").replace("{Deposit_Date}", criteria));
+			setSummaryPendingDepositTxnQuery(rgm.getBodyQuery()
+					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_END_DEPOSIT),
+							rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_END_SUMMARY))
+					.replace(ReportConstants.SUBSTRING_END_DEPOSIT, "").replace("{Deposit_Date}", criteria));
+			setSummaryExpiredDepositTxnQuery(getSummaryPendingDepositTxnQuery().replace("PENDING" , "EXPIRED"));
+			setSummaryBlockedDepositTxnQuery(getSummaryPendingDepositTxnQuery().replace("PENDING" , "BLOCKED"));
+			setSummaryCancelledDepositTxnQuery(getSummaryPendingDepositTxnQuery().replace("PENDING" , "CANCELLED"));
 		}
 
 		if (rgm.getTrailerQuery() != null) {
@@ -186,12 +260,18 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
 			setSummaryTrailerQuery(rgm.getTrailerQuery()
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
-							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
-					.replace(ReportConstants.SUBSTRING_START, ""));
-			setPendingTrailerQuery(getTxnTrailerQuery().replace("AND TXN.TRL_TQU_ID = 'F'", " AND TXN.TRL_TQU_ID = 'A' ")
-					.replace("AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'", "")
-					.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
-			
+							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_BODY))
+					.replace(ReportConstants.SUBSTRING_START, "")
+					.replace("{Deposit_Date}", criteria));
+			setPendingTrailerQuery(
+					getTxnTrailerQuery().replace("AND TXN.TRL_TQU_ID = 'F'", " AND TXN.TRL_TQU_ID = 'A' ")
+							.replace("AND NVL(TXN.TRL_POST_COMPLETION_CODE, 'O') != 'R'", "")
+							.replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", ""));
+			setPendingDepositTrailerQuery(rgm.getTrailerQuery()
+					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_END_BODY),
+							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_END_DEPOSIT))
+					.replace(ReportConstants.SUBSTRING_END_BODY, "").replace("{Deposit_Date}", criteria));
+
 		}
 	}
 
@@ -203,12 +283,13 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal, String filterByBranchName)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,
+			String filterByBranchName) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ListMovingCashTransactions.preProcessing()");
 		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "' AND ABR.ABR_NAME = '" + filterByBranchName + "'");
+					ReportGenerationFields.TYPE_STRING,
+					"ABR.ABR_CODE = '" + filterByBranchCode + "' AND ABR.ABR_NAME = '" + filterByBranchName + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
@@ -280,7 +361,7 @@ public class ListMovingCashTransactions extends MovingCashReportProcessor {
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
 	}
-	
+
 	private void writePendingSectionHeader(ReportGenerationMgr rgm, int pagination) throws IOException, JSONException {
 		logger.debug("In MovingCashReportProcessor.writePendingSectionHeader()");
 		List<ReportGenerationFields> fields = extractHeaderFields(rgm);

@@ -53,6 +53,16 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 	private String pendingTrailerQuery = null;
 	private String summaryPendingBodyQuery = null;
 	private String summaryPendingTrailerQuery = null;
+	private String pendingDepositTxnQuery = null;
+	private String pendingDepositTrailerQuery = null;
+	private String summaryPendingDepositTxnQuery = null;
+	private String summaryExpiredDepositTxnQuery = null;
+	private String summaryBlockedDepositTxnQuery = null;
+	private String summaryCancelledDepositTxnQuery = null;
+	private String summaryExpiredBodyQuery = null;
+	private String summaryBlockedBodyQuery = null;
+	private String summaryCancelledBodyQuery = null;
+	private String summaryPayoutMerchantTxnQuery = null;
 
 	public String getAcquiringBodyQuery() {
 		return acquiringBodyQuery;
@@ -252,6 +262,86 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	public void setSummaryPendingTrailerQuery(String summaryPendingTrailerQuery) {
 		this.summaryPendingTrailerQuery = summaryPendingTrailerQuery;
+	}
+
+	public String getPendingDepositTxnQuery() {
+		return pendingDepositTxnQuery;
+	}
+
+	public void setPendingDepositTxnQuery(String pendingDepositTxnQuery) {
+		this.pendingDepositTxnQuery = pendingDepositTxnQuery;
+	}
+
+	public String getPendingDepositTrailerQuery() {
+		return pendingDepositTrailerQuery;
+	}
+
+	public void setPendingDepositTrailerQuery(String pendingDepositTrailerQuery) {
+		this.pendingDepositTrailerQuery = pendingDepositTrailerQuery;
+	}
+
+	public String getSummaryPendingDepositTxnQuery() {
+		return summaryPendingDepositTxnQuery;
+	}
+
+	public void setSummaryPendingDepositTxnQuery(String summaryPendingDepositTxnQuery) {
+		this.summaryPendingDepositTxnQuery = summaryPendingDepositTxnQuery;
+	}
+
+	public String getSummaryExpiredDepositTxnQuery() {
+		return summaryExpiredDepositTxnQuery;
+	}
+
+	public void setSummaryExpiredDepositTxnQuery(String summaryExpiredDepositTxnQuery) {
+		this.summaryExpiredDepositTxnQuery = summaryExpiredDepositTxnQuery;
+	}
+
+	public String getSummaryBlockedDepositTxnQuery() {
+		return summaryBlockedDepositTxnQuery;
+	}
+
+	public void setSummaryBlockedDepositTxnQuery(String summaryBlockedDepositTxnQuery) {
+		this.summaryBlockedDepositTxnQuery = summaryBlockedDepositTxnQuery;
+	}
+
+	public String getSummaryCancelledDepositTxnQuery() {
+		return summaryCancelledDepositTxnQuery;
+	}
+
+	public void setSummaryCancelledDepositTxnQuery(String summaryCancelledDepositTxnQuery) {
+		this.summaryCancelledDepositTxnQuery = summaryCancelledDepositTxnQuery;
+	}
+
+	public String getSummaryExpiredBodyQuery() {
+		return summaryExpiredBodyQuery;
+	}
+
+	public void setSummaryExpiredBodyQuery(String summaryExpiredBodyQuery) {
+		this.summaryExpiredBodyQuery = summaryExpiredBodyQuery;
+	}
+
+	public String getSummaryBlockedBodyQuery() {
+		return summaryBlockedBodyQuery;
+	}
+
+	public void setSummaryBlockedBodyQuery(String summaryBlockedBodyQuery) {
+		this.summaryBlockedBodyQuery = summaryBlockedBodyQuery;
+	}
+
+	public String getSummaryCancelledBodyQuery() {
+		return summaryCancelledBodyQuery;
+	}
+
+	public void setSummaryCancelledBodyQuery(String summaryCancelledBodyQuery) {
+		this.summaryCancelledBodyQuery = summaryCancelledBodyQuery;
+	}
+
+	public String getSummaryPayoutMerchantTxnQuery() {
+		return summaryPayoutMerchantTxnQuery;
+	}
+
+	public void setSummaryPayoutMerchantTxnQuery(String summaryPayoutMerchantTxnQuery) {
+		this.summaryPayoutMerchantTxnQuery = summaryPayoutMerchantTxnQuery;
 	}
 
 	public Logger getLogger() {
