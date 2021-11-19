@@ -2,6 +2,8 @@ package my.com.mandrill.base.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Authority;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.domain.UserExtra;
@@ -63,19 +65,23 @@ public class UserExtraResource {
     private final UserService userService;
     
     private final MailService mailService;
+    
+    private final AuditActionService auditActionService;
 
     public UserExtraResource(UserExtraRepository userExtraRepository,
     		UserExtraSearchRepository userExtraSearchRepository,
     		UserRepository userRepository,
     		AuthorityRepository authorityRepository,
     		UserService userService,
-    		MailService mailService) {
+    		MailService mailService,
+    		AuditActionService auditActionService) {
         this.userExtraRepository = userExtraRepository;
         this.userExtraSearchRepository = userExtraSearchRepository;
         this.userRepository = userRepository;
         this.authorityRepository = authorityRepository;
         this.userService = userService;
         this.mailService = mailService;
+        this.auditActionService = auditActionService;
     }
 
     /**
@@ -95,33 +101,38 @@ public class UserExtraResource {
         }
         
         User pseudoUser = userExtra.getUser();
-        
-        if (userRepository.findOneByLogin(pseudoUser.getLogin().toLowerCase()).isPresent()) {
-            return ResponseEntity.badRequest()
-                .headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userexists", "Login already in use"))
-                .body(null);
-        }
-        
-        if (userRepository.findOneByEmailIgnoreCase(pseudoUser.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest()
-                .headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "emailexists", "Email already in use"))
-                .body(null);
-        }
-        
-        Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);
-        Set<Authority> authoritySet = new HashSet<>();
-        authoritySet.add(userAuthority);
-        
-        pseudoUser.setAuthorities(authoritySet);
-        User savedUser = userService.createUser(new UserDTO(pseudoUser));
-        
-        userExtra.setUser(savedUser);
-        UserExtra result = userExtraRepository.save(userExtra);
-        mailService.sendCreationEmail(savedUser);
-        userExtraSearchRepository.save(result);
-        return ResponseEntity.created(new URI("/api/user-extras/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+		try {
+
+			if (userRepository.findOneByLogin(pseudoUser.getLogin().toLowerCase()).isPresent()) {
+				return ResponseEntity.badRequest()
+						.headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userexists", "Login already in use"))
+						.body(null);
+			}
+
+			if (userRepository.findOneByEmailIgnoreCase(pseudoUser.getEmail()).isPresent()) {
+				return ResponseEntity.badRequest()
+						.headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "emailexists", "Email already in use"))
+						.body(null);
+			}
+
+			Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);
+			Set<Authority> authoritySet = new HashSet<>();
+			authoritySet.add(userAuthority);
+
+			pseudoUser.setAuthorities(authoritySet);
+			User savedUser = userService.createUser(new UserDTO(pseudoUser));
+
+			userExtra.setUser(savedUser);
+			UserExtra result = userExtraRepository.save(userExtra);
+			mailService.sendCreationEmail(savedUser);
+			userExtraSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.USER_CREATE, userExtra.getName());
+			return ResponseEntity.created(new URI("/api/user-extras/" + result.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.USER_CREATE, userExtra.getName(), e);
+			throw e;
+		}
     }
 
     /**
@@ -145,19 +156,25 @@ public class UserExtraResource {
         	UserExtra usrExtra = userExtraRepository.findOne(userExtra.getId());
         	userExtra.setCreatedDate(usrExtra.getCreatedDate());
         }
-        
-        Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);
-        Set<Authority> authoritySet = new HashSet<>();
-        authoritySet.add(userAuthority);
-        userExtra.getUser().setAuthorities(authoritySet);
-        
-        userService.updateUser(new UserDTO(userExtra.getUser()));
-        UserExtra result = userExtraRepository.save(userExtra);
-        userExtraSearchRepository.save(result);
-        
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, userExtra.getId().toString()))
-            .body(result);
+		try {
+
+			Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);
+			Set<Authority> authoritySet = new HashSet<>();
+			authoritySet.add(userAuthority);
+			userExtra.getUser().setAuthorities(authoritySet);
+
+			userService.updateUser(new UserDTO(userExtra.getUser()));
+			UserExtra result = userExtraRepository.save(userExtra);
+			userExtraSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, userExtra.getName());
+
+			return ResponseEntity.ok()
+					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, userExtra.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.USER_UPDATE, userExtra.getName(), e);
+			throw e;
+		}
     }
 
     /**
@@ -209,16 +226,22 @@ public class UserExtraResource {
     @DeleteMapping("/user-extras/{id}")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+DELETE+"')")
-    public ResponseEntity<Void> deleteUserExtra(@PathVariable Long id) {
-        log.debug("REST request to delete UserExtra : {}", id);
-        UserExtra userExtra = userExtraRepository.findOneWithEagerRelationships(id);
-        
-        userExtraRepository.delete(id);
-        userExtraSearchRepository.delete(id);
-        userService.deleteUser(userExtra.getUser().getLogin());
-        
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
-    }
+	public ResponseEntity<Void> deleteUserExtra(@PathVariable Long id) {
+		log.debug("REST request to delete UserExtra : {}", id);
+		UserExtra userExtra = userExtraRepository.findOneWithEagerRelationships(id);
+
+		try {
+			userExtraRepository.delete(id);
+			userExtraSearchRepository.delete(id);
+			userService.deleteUser(userExtra.getUser().getLogin());
+			auditActionService.addSuccessEvent(AuditActionType.USER_DELETE, userExtra.getName());
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
+					.build();
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.USER_DELETE, userExtra.getName(), e);
+			throw e;
+		}
+	}
 
     /**
      * SEARCH  /_search/user-extras?query=:query : search for the userExtra corresponding

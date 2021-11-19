@@ -4,11 +4,11 @@ import { RouterModule } from '@angular/router';
 import { BaseSharedModule } from '../shared';
 import { BaseElasticsearchReindexModule } from './elasticsearch-reindex/elasticsearch-reindex.module';
 import { EntityAuditModule } from './entity-audit/entity-audit.module';
+import { AuditsModule } from './audits/audits.module';
 /* jhipster-needle-add-admin-module-import - JHipster will add admin modules imports here */
 
 import {
     adminState,
-    AuditsComponent,
     UserMgmtComponent,
     UserDialogComponent,
     UserDeleteDialogComponent,
@@ -38,10 +38,10 @@ import {
         RouterModule.forChild(adminState),
         BaseElasticsearchReindexModule,
         EntityAuditModule,
+        AuditsModule,
         /* jhipster-needle-add-admin-module - JHipster will add admin modules here */
     ],
     declarations: [
-        AuditsComponent,
         UserMgmtComponent,
         UserDialogComponent,
         UserDeleteDialogComponent,
@@ -63,7 +63,6 @@ import {
         JhiMetricsMonitoringModalComponent,
     ],
     providers: [
-        AuditsService,
         JhiConfigurationService,
         JhiHealthService,
         JhiMetricsService,

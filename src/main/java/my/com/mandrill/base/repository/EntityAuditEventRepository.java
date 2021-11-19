@@ -22,7 +22,7 @@ public interface EntityAuditEventRepository extends JpaRepository<EntityAuditEve
     @Query("SELECT DISTINCT (a.entityType) from EntityAuditEvent a")
     List<String> findAllEntityTypes();
 
-    Page<EntityAuditEvent> findAllByEntityType(String entityType, Pageable pageRequest);
+    Page<EntityAuditEvent> findAllByEntityTypeOrderByIdDesc(String entityType, Pageable pageRequest);
 
     @Query("SELECT ae FROM EntityAuditEvent ae where ae.entityType = :type and ae.entityId = :entityId and " +
         "ae.commitVersion =(SELECT max(a.commitVersion) FROM EntityAuditEvent a where a.entityType = :type and " +

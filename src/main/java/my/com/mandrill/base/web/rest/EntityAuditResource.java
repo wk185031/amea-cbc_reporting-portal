@@ -71,7 +71,7 @@ public class EntityAuditResource {
         throws URISyntaxException {
         log.debug("REST request to get a page of EntityAuditEvents");
         Pageable pageRequest = createPageRequest(limit);
-        Page<EntityAuditEvent> page = entityAuditEventRepository.findAllByEntityType(entityType, pageRequest);
+        Page<EntityAuditEvent> page = entityAuditEventRepository.findAllByEntityTypeOrderByIdDesc(entityType, pageRequest);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/audits/entity/changes");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 

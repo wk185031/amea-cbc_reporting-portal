@@ -37,7 +37,7 @@
                 "tasksManagement": "Tasks Management",
                 "jobManagement": "Jobs Management",
                 "logs": "Logs",
-                "audits": "Audits",
+                "audits": "Action Audit",
                 "apidocs": "API",
                 "database": "Database",
                 "elasticsearch-reindex": "Reindex Elasticsearch",

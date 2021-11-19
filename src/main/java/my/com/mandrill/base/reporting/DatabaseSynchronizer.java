@@ -60,6 +60,8 @@ import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
 
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.AtmDowntime;
 import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
@@ -116,6 +118,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
 	private final DcmsSyncService dcmsSyncService;
+	private final AuditActionService auditActionService;
 
 	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?,?)";
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP,TRL_APPR_ID from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
@@ -171,7 +174,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
 			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService,
-			InstitutionRepository institutionRepository, DataSource dataSource, DcmsSyncService dcmsSyncService) {
+			InstitutionRepository institutionRepository, DataSource dataSource, DcmsSyncService dcmsSyncService,
+			AuditActionService auditActionService) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
 		this.taskRepository = taskRepository;
@@ -184,6 +188,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.institutionRepository = institutionRepository;
 		this.dataSource = dataSource;
 		this.dcmsSyncService = dcmsSyncService;
+		this.auditActionService = auditActionService;
 	}
 
 	TaskScheduler taskScheduler;
@@ -313,6 +318,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user) throws Exception {
 		log.debug("REST request to Synchronize Database");
 
+		try {
+
 		JobHistory incompleteJob = jobHistoryRepo.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
 				ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
 
@@ -351,7 +358,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
 		String instShortCode = null;
-
+	
 		List<Institution> institutions = institutionRepository.findAll();
 		for (Institution institution : institutions) {
 			if ("Institution".equals(institution.getType())) {
@@ -364,10 +371,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
 			}
 		}
+		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
 		
 		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
 				.body(dbsyncJob);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
+			throw e;
+		}
 
 	}
 

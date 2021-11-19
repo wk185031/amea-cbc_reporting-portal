@@ -40,6 +40,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.search.ReportCategorySearchRepository;
@@ -63,12 +65,15 @@ public class ReportCategoryResource {
 
 	private final ReportCategorySearchRepository reportCategorySearchRepository;
 	
+	private final AuditActionService auditActionService;
+	
 	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportCategoryResource(ReportCategoryRepository reportCategoryRepository,
-			ReportCategorySearchRepository reportCategorySearchRepository) {
+			ReportCategorySearchRepository reportCategorySearchRepository, AuditActionService auditActionService) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportCategorySearchRepository = reportCategorySearchRepository;
+		this.auditActionService = auditActionService;
 	}
 
 	/**
@@ -94,10 +99,17 @@ public class ReportCategoryResource {
 			throw new BadRequestAlertException("A new report category cannot already have an ID", ENTITY_NAME,
 					"idexists");
 		}
-		ReportCategory result = reportCategoryRepository.save(reportCategory);
-		reportCategorySearchRepository.save(result);
-		return ResponseEntity.created(new URI("/api/reportCategory/" + result.getId()))
-				.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		try {
+			ReportCategory result = reportCategoryRepository.save(reportCategory);
+			reportCategorySearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName());
+			return ResponseEntity.created(new URI("/api/reportCategory/" + result.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);			
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName(), e);
+			throw e;
+		}
+
 	}
 
 	/**
@@ -123,11 +135,18 @@ public class ReportCategoryResource {
 		if (reportCategory.getId() == null) {
 			return createReportCategory(reportCategory);
 		}
-		ReportCategory result = reportCategoryRepository.save(reportCategory);
-		reportCategorySearchRepository.save(result);
-		return ResponseEntity.ok()
-				.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportCategory.getId().toString()))
-				.body(result);
+		try {
+			ReportCategory result = reportCategoryRepository.save(reportCategory);
+			reportCategorySearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName());
+			return ResponseEntity.ok()
+					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportCategory.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName(), e);
+			throw e;
+		}
+		
 	}
 
 	/**
@@ -218,9 +237,16 @@ public class ReportCategoryResource {
 	public ResponseEntity<Void> deleteReportCategory(@PathVariable Long id) {
 		log.debug("User: {}, REST request to delete ReportCategory: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				id);
-		reportCategoryRepository.delete(id);
-		reportCategorySearchRepository.delete(id);
-		return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		try {
+			reportCategoryRepository.delete(id);
+			reportCategorySearchRepository.delete(id);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_DELETE, String.valueOf(id));
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_DELETE, id.toString(), e);
+			throw e;
+		}
+		
 	}
 
 	/**

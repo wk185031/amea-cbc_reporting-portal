@@ -1,6 +1,9 @@
 package my.com.mandrill.base.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.RoleExtra;
 
 import my.com.mandrill.base.repository.RoleExtraRepository;
@@ -45,10 +48,14 @@ public class RoleExtraResource {
     private final RoleExtraRepository roleExtraRepository;
 
     private final RoleExtraSearchRepository roleExtraSearchRepository;
+    
+    private final AuditActionService auditActionService;
 
-    public RoleExtraResource(RoleExtraRepository roleExtraRepository, RoleExtraSearchRepository roleExtraSearchRepository) {
+    public RoleExtraResource(RoleExtraRepository roleExtraRepository, RoleExtraSearchRepository roleExtraSearchRepository,
+    		AuditActionService auditActionService) {
         this.roleExtraRepository = roleExtraRepository;
         this.roleExtraSearchRepository = roleExtraSearchRepository;
+        this.auditActionService = auditActionService;
     }
 
     /**
@@ -66,11 +73,16 @@ public class RoleExtraResource {
         if (roleExtra.getId() != null) {
             throw new BadRequestAlertException("A new roleExtra cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        RoleExtra result = roleExtraRepository.save(roleExtra);
-        roleExtraSearchRepository.save(result);
-        return ResponseEntity.created(new URI("/api/role-extras/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+		try {
+			RoleExtra result = roleExtraRepository.save(roleExtra);
+			roleExtraSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_CREATE, roleExtra.getName());
+			return ResponseEntity.created(new URI("/api/role-extras/" + result.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.ROLE_CREATE, roleExtra.getName(), e);
+			throw e;
+		}
     }
 
     /**
@@ -90,11 +102,18 @@ public class RoleExtraResource {
         if (roleExtra.getId() == null) {
             return createRoleExtra(roleExtra);
         }
-        RoleExtra result = roleExtraRepository.save(roleExtra);
-        roleExtraSearchRepository.save(result);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, roleExtra.getId().toString()))
-            .body(result);
+        
+		try {
+			RoleExtra result = roleExtraRepository.save(roleExtra);
+			roleExtraSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName());
+			return ResponseEntity.ok()
+					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, roleExtra.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName(), e);
+			throw e;
+		}
     }
 
 
@@ -149,9 +168,16 @@ public class RoleExtraResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER_ROLE+DOT+DELETE+"')")
     public ResponseEntity<Void> deleteRoleExtra(@PathVariable Long id) {
         log.debug("REST request to delete RoleExtra : {}", id);
-        roleExtraRepository.delete(id);
-        roleExtraSearchRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		try {
+			roleExtraRepository.delete(id);
+			roleExtraSearchRepository.delete(id);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_DELETE, id.toString());
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
+					.build();
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.ROLE_DELETE, id.toString(), e);
+			throw e;
+		}
     }
 
     /**

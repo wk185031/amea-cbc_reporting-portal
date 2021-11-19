@@ -1,6 +1,9 @@
 package my.com.mandrill.base.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.SystemConfiguration;
 
 import my.com.mandrill.base.repository.SystemConfigurationRepository;
@@ -45,10 +48,14 @@ public class SystemConfigurationResource {
     private final SystemConfigurationRepository systemConfigurationRepository;
 
     private final SystemConfigurationSearchRepository systemConfigurationSearchRepository;
+    
+    private final AuditActionService auditActionService;
 
-    public SystemConfigurationResource(SystemConfigurationRepository systemConfigurationRepository, SystemConfigurationSearchRepository systemConfigurationSearchRepository) {
+    public SystemConfigurationResource(SystemConfigurationRepository systemConfigurationRepository, SystemConfigurationSearchRepository systemConfigurationSearchRepository,
+    		AuditActionService auditActionService) {
         this.systemConfigurationRepository = systemConfigurationRepository;
         this.systemConfigurationSearchRepository = systemConfigurationSearchRepository;
+        this.auditActionService = auditActionService;
     }
 
     /**
@@ -63,14 +70,22 @@ public class SystemConfigurationResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_SYSTEM_CONFIGURATION+DOT+CREATE+"')")
     public ResponseEntity<SystemConfiguration> createSystemConfiguration(@Valid @RequestBody SystemConfiguration systemConfiguration) throws URISyntaxException {
         log.debug("REST request to save SystemConfiguration : {}", systemConfiguration);
-        if (systemConfiguration.getId() != null) {
-            throw new BadRequestAlertException("A new systemConfiguration cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
-        systemConfigurationSearchRepository.save(result);
-        return ResponseEntity.created(new URI("/api/system-configurations/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+		if (systemConfiguration.getId() != null) {
+			throw new BadRequestAlertException("A new systemConfiguration cannot already have an ID", ENTITY_NAME,
+					"idexists");
+		}
+		try {
+			SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
+			systemConfigurationSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.SYSTEM_CONFIGURATION_CREATE,
+					systemConfiguration.getName());
+			return ResponseEntity.created(new URI("/api/system-configurations/" + result.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.SYSTEM_CONFIGURATION_CREATE,
+					systemConfiguration.getName(), e);
+			throw e;
+		}
     }
 
     /**
@@ -90,11 +105,19 @@ public class SystemConfigurationResource {
         if (systemConfiguration.getId() == null) {
             return createSystemConfiguration(systemConfiguration);
         }
-        SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
-        systemConfigurationSearchRepository.save(result);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, systemConfiguration.getId().toString()))
-            .body(result);
+		try {
+			SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
+			systemConfigurationSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.SYSTEM_CONFIGURATION_UPDATE,
+					systemConfiguration.getName());
+			return ResponseEntity.ok()
+					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, systemConfiguration.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.SYSTEM_CONFIGURATION_UPDATE,
+					systemConfiguration.getName(), e);
+			throw e;
+		}
     }
 
     /**
@@ -139,9 +162,18 @@ public class SystemConfigurationResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_SYSTEM_CONFIGURATION+DOT+DELETE+"')")
     public ResponseEntity<Void> deleteSystemConfiguration(@PathVariable Long id) {
         log.debug("REST request to delete SystemConfiguration : {}", id);
-        systemConfigurationRepository.delete(id);
-        systemConfigurationSearchRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		try {
+			systemConfigurationRepository.delete(id);
+			systemConfigurationSearchRepository.delete(id);
+			auditActionService.addSuccessEvent(AuditActionType.SYSTEM_CONFIGURATION_DELETE,
+					id.toString());
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
+					.build();
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.SYSTEM_CONFIGURATION_DELETE,
+					id.toString(), e);
+			throw e;
+		}
     }
 
     /**

@@ -46,6 +46,8 @@ import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.config.ApplicationProperties;
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.ReportCategory;
 import my.com.mandrill.base.domain.ReportDefinition;
@@ -88,13 +90,16 @@ public class ReportDefinitionResource {
 	
 	private final AppService appService;
 	
+	private final AuditActionService auditActionService;
+	
 	private static final String MASTER_BRANCH_ID = "2247";
 
 	public ReportDefinitionResource(ReportCategoryRepository reportCategoryRepository,
 			ReportDefinitionRepository reportDefinitionRepository,
 			//ReportDefinitionSearchRepository reportDefinitionSearchRepository,
 			ApplicationProperties applicationProperties,
-			AppService appService, UserService userService, UserExtraRepository userExtraRepository) {
+			AppService appService, UserService userService, UserExtraRepository userExtraRepository,
+			 AuditActionService auditActionService) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		//this.reportDefinitionSearchRepository = reportDefinitionSearchRepository;
@@ -102,6 +107,7 @@ public class ReportDefinitionResource {
 		this.appService = appService;
 		this.userService = userService;
 		this.userExtraRepository = userExtraRepository;
+		this.auditActionService = auditActionService;
 	}
 
 	/**
@@ -126,10 +132,18 @@ public class ReportDefinitionResource {
 		if (reportDefinition.getId() != null) {
 			throw new BadRequestAlertException("A new report cannot already have an ID", ENTITY_NAME, "idexists");
 		}
-		ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
-		//reportDefinitionSearchRepository.save(result);
-		return ResponseEntity.created(new URI("/api/reportDefinition/" + result.getId()))
-				.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		
+		try {
+			ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
+			//reportDefinitionSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName());
+			return ResponseEntity.created(new URI("/api/reportDefinition/" + result.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName(), e);
+			throw e;
+		}
+		
 	}
 
 	/**
@@ -155,11 +169,19 @@ public class ReportDefinitionResource {
 		if (reportDefinition.getId() == null) {
 			return createReportDefinition(reportDefinition);
 		}
-		ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
-		//reportDefinitionSearchRepository.save(result);
-		return ResponseEntity.ok()
-				.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportDefinition.getId().toString()))
-				.body(result);
+		
+		try {
+			ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
+			// reportDefinitionSearchRepository.save(result);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName());
+			return ResponseEntity.ok()
+					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportDefinition.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName(), e);
+			throw e;
+		}
+		
 	}
 
 	/**
@@ -265,9 +287,15 @@ public class ReportDefinitionResource {
 	public ResponseEntity<Void> deleteReportdDefinition(@PathVariable Long id) {
 		log.debug("User: {}, REST request to delete ReportDefinition: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), id);
-		reportDefinitionRepository.delete(id);
-		//reportDefinitionSearchRepository.delete(id);
-		return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		try {
+			reportDefinitionRepository.delete(id);
+			//reportDefinitionSearchRepository.delete(id);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString());
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), e);
+			throw e;
+		}	
 	}
 
 //	/**

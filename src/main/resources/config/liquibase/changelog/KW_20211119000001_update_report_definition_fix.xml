@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="KW_20211119000001_update_report_definition_fix" author="kw">
+    	<validCheckSum>any</validCheckSum>  
+        <sql>delete from dcms_user_activity</sql>   
+        <modifyDataType
+        	columnName="description"
+        	newDataType="varchar(3000)"
+        	tableName="dcms_user_activity"/>
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/KW_update_permission_20211118.sql"
+                 splitStatements="true" 
+                 stripComments="true" />  
+               
+    </changeSet>
+    
+</databaseChangeLog>

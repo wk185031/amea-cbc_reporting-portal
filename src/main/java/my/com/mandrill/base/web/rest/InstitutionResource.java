@@ -1,6 +1,9 @@
 package my.com.mandrill.base.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Attachment;
 import my.com.mandrill.base.domain.AttachmentGroup;
 import my.com.mandrill.base.domain.Institution;
@@ -58,6 +61,8 @@ public class InstitutionResource {
     private final InstitutionRepository institutionRepository;
 
     private final InstitutionSearchRepository institutionSearchRepository;
+    
+    private final AuditActionService auditActionService;
 
     private final AppService appService;
 
@@ -66,11 +71,13 @@ public class InstitutionResource {
     public InstitutionResource(InstitutionRepository institutionRepository,
     		InstitutionSearchRepository institutionSearchRepository,
     		AppService appService,
-            AttachmentService attachmentService) {
+            AttachmentService attachmentService,
+            AuditActionService auditActionService) {
         this.institutionRepository = institutionRepository;
         this.institutionSearchRepository = institutionSearchRepository;
         this.appService = appService;
         this.attachmentService = attachmentService;
+        this.auditActionService = auditActionService;
     }
 
     /**
@@ -88,11 +95,19 @@ public class InstitutionResource {
         if (institution.getId() != null) {
             throw new BadRequestAlertException("A new institution cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Institution result = institutionRepository.save(institution);
-        institutionSearchRepository.save(result);
-        return ResponseEntity.created(new URI("/api/institutions/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        
+        try {
+        	Institution result = institutionRepository.save(institution);
+            institutionSearchRepository.save(result);
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_CREATE, institution.getName());
+            return ResponseEntity.created(new URI("/api/institutions/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
+                .body(result);
+        } catch (Exception e) {
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_CREATE, institution.getName(), e);
+        	throw e;
+        }
+        
     }
 
     /**
@@ -112,11 +127,18 @@ public class InstitutionResource {
         if (institution.getId() == null) {
             return createInstitution(institution);
         }
-        Institution result = institutionRepository.save(institution);
-        institutionSearchRepository.save(result);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, institution.getId().toString()))
-            .body(result);
+        try {
+        	Institution result = institutionRepository.save(institution);
+            institutionSearchRepository.save(result);
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName());
+            return ResponseEntity.ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, institution.getId().toString()))
+                .body(result);
+        } catch (Exception e) {
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName(), e);
+        	throw e;
+        }
+        
     }
 
     /**
@@ -173,9 +195,16 @@ public class InstitutionResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_INSTITUTION+DOT+DELETE+"')")
     public ResponseEntity<Void> deleteInstitution(@PathVariable Long id) {
         log.debug("REST request to delete Institution : {}", id);
-        institutionRepository.delete(id);
-        institutionSearchRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+        try {
+        	institutionRepository.delete(id);
+            institutionSearchRepository.delete(id);
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id));
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+        } catch (Exception e) {
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id), e);
+        	throw e;
+        }
+        
     }
 
     /**

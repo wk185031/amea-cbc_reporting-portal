@@ -4,6 +4,7 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.reporting.DatabaseSynchronizer;
 import my.com.mandrill.base.repository.JobRepository;
@@ -50,11 +53,15 @@ public class JobResource {
     private final JobSearchRepository jobSearchRepository;
 
     private final DatabaseSynchronizer databaseSynchronizer;
+    
+    private final AuditActionService auditActionService;
 
-    public JobResource(JobRepository jobRepository, JobSearchRepository jobSearchRepository, DatabaseSynchronizer databaseSynchronizer) {
+    public JobResource(JobRepository jobRepository, JobSearchRepository jobSearchRepository, DatabaseSynchronizer databaseSynchronizer,
+    		AuditActionService auditActionService) {
         this.jobRepository = jobRepository;
         this.jobSearchRepository = jobSearchRepository;
         this.databaseSynchronizer = databaseSynchronizer;
+        this.auditActionService = auditActionService;
     }
 
     /**
@@ -97,7 +104,13 @@ public class JobResource {
         Job result = jobRepository.save(job);
         jobSearchRepository.save(result);
         if (job.getName().equalsIgnoreCase("DB_SYNC")) {
-        	databaseSynchronizer.refreshCronSchedule();
+			try {
+				databaseSynchronizer.refreshCronSchedule();
+				auditActionService.addSuccessEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null);
+			} catch (Exception e) {
+				auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e);
+				throw e;
+			}
         }
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, job.getId().toString()))
@@ -111,10 +124,23 @@ public class JobResource {
      */
     @GetMapping("/jobs")
     @Timed
-    public List<Job> getAllJobs() {
-        log.debug("REST request to get all Jobs");
-        return jobRepository.findAll();
-        }
+	public List<Job> getAllJobs(@RequestParam(required = false) String name) {
+		log.debug("REST request to get all Jobs");
+		
+		List<Job> allJobs = jobRepository.findAll();
+		if (name != null && !name.trim().isEmpty()) {
+			List<Job> jobs = new ArrayList<Job>();
+			for (Job o : allJobs) {
+				if (name.equalsIgnoreCase(o.getName())) {
+					jobs.add(o);
+				}
+			}
+			return jobs;
+		} else {
+			return allJobs;
+		}
+		
+	}
 
     /**
      * GET  /jobs/:id : get the "id" Job.
