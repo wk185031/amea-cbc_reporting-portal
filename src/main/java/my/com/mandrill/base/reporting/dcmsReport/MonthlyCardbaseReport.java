@@ -55,6 +55,8 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     private static final String SUSPICIOUS_CARDS = "SUSPICIOUS_CARDS";
     private static final String TOTAL_COUNT = "TOTAL_COUNT";
     
+//    private static final String 
+    
     @Override
     public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
         logger.debug("In MonthlyCardbaseReport.processPdfRecord()");
@@ -183,7 +185,9 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                 ps = rgm.connection.prepareStatement(query);
                 rs = ps.executeQuery();
                 fieldsMap = rgm.getQueryResultStructure(rs);
-
+                
+                logger.info("Query for body line export: fieldsMap {}"+ fieldsMap);
+                
                 while (rs.next()) {
                     lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
                     if (pageHeight > totalHeight) {
@@ -243,15 +247,29 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 
                     str.setLength(0);
                 }
-
-
+                
+                //if no data
+                if(productToLineFieldsMap == null){
+                	return contentStream;
+                }
+                
                 for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> productMap: productToLineFieldsMap.entrySet()) {
                 	if (pageHeight > totalHeight) {
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 						contentStream = newPage(rgm, doc, contentStream);
 					}
                     preProcessingBodyHeader(rgm, productMap.getKey().split(",")[0], productMap.getKey().split(",")[1]);
-                    writePdfBodyHeader(rgm, contentStream, leading);
+                                        
+                    boolean isSummary = false;
+                    
+                    if(productMap.getKey().split(",")[0].equals("Z")){
+                    	writePdfBodyHeaderMonthlyCardSummary(rgm, contentStream, leading);
+                    	isSummary = true;
+                    }
+                    else{
+                    	 writePdfBodyHeader(rgm, contentStream, leading);
+                    }
+                   
                     pageHeight += 2;
 
                     // 3. initialize all the grand total to sum by card product
@@ -270,7 +288,12 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                     int grandTotalTotal = 0;
 
                     for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
-                        writePdfBody(rgm, m, contentStream, leading);
+                    	if(isSummary){
+                    		writePdfBodySummary(rgm, m, contentStream, leading);
+                    	}
+                    	else{
+                    		 writePdfBody(rgm, m, contentStream, leading);
+                    	}                       
                         pageHeight+=2;
                         grandTotalExceed += Integer.parseInt(m.get(EXCEED_CARDS).getValue());
                         grandTotalUnusual += Integer.parseInt(m.get(UNUSUAL_CARDS).getValue());
@@ -291,11 +314,16 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 
                     preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
                     		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
-                    writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+                    if(isSummary){
+                    	writePdfTrailerMonthlyCardSummary(rgm, lineFieldsMap, contentStream, leading);
+                    }
+                    else{
+                    	writePdfTrailer(rgm, lineFieldsMap, contentStream, leading);
+                    }                    
                     contentStream.newLineAtOffset(0, -leading);
                     pageHeight += 2;
                 }
-
+                
             } catch (Exception e) {
                 rgm.errors++;
                 logger.error("Error trying to execute the body query", e);
@@ -311,6 +339,84 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
         }
         return contentStream;
     }
+    
+    protected void writePdfBodyHeaderMonthlyCardSummary(ReportGenerationMgr rgm, PDPageContentStream contentStream, float leading)
+			throws IOException, JSONException {
+		logger.debug("In MonthlyCardbaseReport.writePdfBodyHeaderMonthlyCard()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+		for (ReportGenerationFields field : fields) {
+						
+			boolean isExclude = false;
+			if(field.getFieldName()!=null){
+				if(field.getFieldName().equals("CARD TYPE")){
+					field.setDefaultValue("SUMMARY MONTHLY CARD BASE ");
+				}
+				else if(field.getFieldName().equals("PRODUCT_CODE")){
+					field.setDefaultValue("REPORT");
+				}
+				else if(field.getFieldName().equals("BRANCH CODE") || field.getFieldName().equals("CD")){
+					isExclude = true;
+				}
+				else if(field.getFieldName().equals("BRANCH NAME")){
+					field.setDefaultValue("PRODUCT CODE");
+				}				
+			}
+			
+			if(!isExclude){
+				if (field.isEol()) {
+					contentStream.showText(getGlobalFieldValue(rgm, field));
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(getGlobalFieldValue(rgm, field));
+				}
+			}
+		}
+	}
+    
+    protected void writePdfBodySummary(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		for (ReportGenerationFields field : fields) {
+						
+			boolean isExclude = false;
+			if(field.getFieldName()!=null && field.getFieldName().equals("BRANCH_CODE")){
+				isExclude = true;
+			}
+			if(!isExclude){
+				if (field.isDecrypt()) {
+					decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+				}				
+				if (field.isEol()) {
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				}
+			}		
+		}
+	}
+    
+    protected void writePdfTrailerMonthlyCardSummary(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
+					throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In PdfReportProcessor.writePdfTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		for (ReportGenerationFields field : fields) {
+			boolean isExclude = false;
+			if(field.getFieldName()!=null && field.getFieldName().equals("filler1")){
+				isExclude = true;
+			}
+			if(!isExclude){
+				if (field.isEol()) {
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					contentStream.newLineAtOffset(0, -leading);
+				} else {
+					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				}
+			}
+		}
+	}
     
     private PDPageContentStream newPage(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream)
 			throws Exception {
@@ -411,47 +517,72 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                     str.setLength(0);
                 }
 
+                //if no data
+                if(productToLineFieldsMap != null){
+                	
+                	for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> productMap: productToLineFieldsMap.entrySet()) {
+                        preProcessingBodyHeader(rgm, productMap.getKey().split(",")[0], productMap.getKey().split(",")[1]);
+                        
+                        boolean isSummary = false;
+                        
+                        if(productMap.getKey().split(",")[0].equals("Z")){
+                        	writeBodyHeaderMonthlyCardSummary(rgm);
+                        	isSummary = true;
+                        }
+                        else{
+                        	 writeBodyHeader(rgm);
+                        }
+                        
+                        // 3. initialize all the grand total to sum by card product
+                        int grandTotalExceed = 0;
+                        int grandTotalUnusual = 0;
+                        int grandTotalActive = 0;
+                        int grandTotalInactive = 0;
+                        int grandTotalStolen = 0;
+                        int grandTotalLost = 0;
+                        int grandTotalDamaged = 0;
+                        int grandTotalBlocked = 0;
+                        int grandTotalReplaced = 0;
+                        int grandTotalClosed = 0;
+                        int grandTotalCaptured = 0;
+                        int grandTotalSuspicious = 0;
+                        int grandTotalTotal = 0;
 
-                for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> productMap: productToLineFieldsMap.entrySet()) {
-                    preProcessingBodyHeader(rgm, productMap.getKey().split(",")[0], productMap.getKey().split(",")[1]);
-                    writeBodyHeader(rgm);
-
-                    // 3. initialize all the grand total to sum by card product
-                    int grandTotalExceed = 0;
-                    int grandTotalUnusual = 0;
-                    int grandTotalActive = 0;
-                    int grandTotalInactive = 0;
-                    int grandTotalStolen = 0;
-                    int grandTotalLost = 0;
-                    int grandTotalDamaged = 0;
-                    int grandTotalBlocked = 0;
-                    int grandTotalReplaced = 0;
-                    int grandTotalClosed = 0;
-                    int grandTotalCaptured = 0;
-                    int grandTotalSuspicious = 0;
-                    int grandTotalTotal = 0;
-
-                    for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
-                        writeBody(rgm, m);
-
-                        grandTotalExceed += Integer.parseInt(m.get(EXCEED_CARDS).getValue());
-                        grandTotalUnusual += Integer.parseInt(m.get(UNUSUAL_CARDS).getValue());
-                        grandTotalActive += Integer.parseInt(m.get(ACTIVE_CARDS).getValue());
-                        grandTotalInactive += Integer.parseInt(m.get(INACTIVE_CARDS).getValue());
-                        grandTotalStolen += Integer.parseInt(m.get(STOLEN_CARDS).getValue());
-                        grandTotalLost += Integer.parseInt(m.get(LOST_CARDS).getValue());
-                        grandTotalDamaged += Integer.parseInt(m.get(DAMAGED_CARDS).getValue());
-                        grandTotalBlocked += Integer.parseInt(m.get(BLOCKED_CARDS).getValue());
-                        grandTotalReplaced += Integer.parseInt(m.get(REPLACED_CARDS).getValue());
-                        grandTotalClosed += Integer.parseInt(m.get(CLOSED_CARDS).getValue());
-                        grandTotalCaptured += Integer.parseInt(m.get(CAPTURED_CARDS).getValue());
-                        grandTotalSuspicious += Integer.parseInt(m.get(SUSPICIOUS_CARDS).getValue());
-                        grandTotalTotal += Integer.parseInt(m.get(TOTAL_COUNT).getValue());
+                        for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
+                        	
+                        	if(isSummary){
+                        		writeBodyMonthlyCardSummary(rgm, m);
+                        	}
+                        	else{
+                        		writeBody(rgm, m);
+                        	}
+                        	
+                            grandTotalExceed += Integer.parseInt(m.get(EXCEED_CARDS).getValue());
+                            grandTotalUnusual += Integer.parseInt(m.get(UNUSUAL_CARDS).getValue());
+                            grandTotalActive += Integer.parseInt(m.get(ACTIVE_CARDS).getValue());
+                            grandTotalInactive += Integer.parseInt(m.get(INACTIVE_CARDS).getValue());
+                            grandTotalStolen += Integer.parseInt(m.get(STOLEN_CARDS).getValue());
+                            grandTotalLost += Integer.parseInt(m.get(LOST_CARDS).getValue());
+                            grandTotalDamaged += Integer.parseInt(m.get(DAMAGED_CARDS).getValue());
+                            grandTotalBlocked += Integer.parseInt(m.get(BLOCKED_CARDS).getValue());
+                            grandTotalReplaced += Integer.parseInt(m.get(REPLACED_CARDS).getValue());
+                            grandTotalClosed += Integer.parseInt(m.get(CLOSED_CARDS).getValue());
+                            grandTotalCaptured += Integer.parseInt(m.get(CAPTURED_CARDS).getValue());
+                            grandTotalSuspicious += Integer.parseInt(m.get(SUSPICIOUS_CARDS).getValue());
+                            grandTotalTotal += Integer.parseInt(m.get(TOTAL_COUNT).getValue());
+                        }
+                        preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
+                        		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
+                        
+                        if(isSummary){
+                        	writeBodyMonthlyCardSummary(rgm, null);
+                        }
+                        else{
+                        	writeTrailer(rgm, null);
+                        }                    
                     }
-                    preProcessingBodyTrailer(rgm, grandTotalExceed, grandTotalUnusual, grandTotalActive, grandTotalInactive, grandTotalStolen, grandTotalLost, grandTotalDamaged, 
-                    		grandTotalBlocked, grandTotalReplaced, grandTotalClosed, grandTotalCaptured, grandTotalSuspicious, grandTotalTotal);
-                    writeTrailer(rgm, null);
                 }
+
             } catch (Exception e) {
                 rgm.errors++;
                 logger.error("Error trying to execute the body query", e);
@@ -466,11 +597,101 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
             }
         }
     }
+    
+    protected void writeBodyHeaderMonthlyCardSummary(ReportGenerationMgr rgm) throws IOException, JSONException {
+		logger.debug("In CsvReportProcessor.writeBodyHeader()");
+		List<ReportGenerationFields> fields = extractBodyHeaderFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			
+			boolean isExclude = false;
+			if(field.getFieldName()!=null){
+				if(field.getFieldName().equals("CARD TYPE")){
+					field.setDefaultValue("SUMMARY MONTHLY CARD BASE ");
+				}
+				else if(field.getFieldName().equals("PRODUCT_CODE")){
+					field.setDefaultValue("REPORT");
+				}
+				else if(field.getFieldName().equals("BRANCH CODE") || field.getFieldName().equals("CD")){
+					isExclude = true;
+				}
+				else if(field.getFieldName().equals("BRANCH NAME")){
+					field.setDefaultValue("PRODUCT CODE");
+				}				
+			}
+			if(!isExclude){
+				if(field.isEol()) {
+					line.append("\"" + getFieldValue(rgm, field, null) + "\"");
+					line.append(field.getDelimiter());
+					line.append(getEol());
+				} else {
+					line.append("\"" + getFieldValue(rgm, field, null) + "\"");
+					line.append(field.getDelimiter());
+				}
+			}
+		}
+		rgm.writeLine(line.toString().getBytes());
+	}
+    
+	protected void writeBodyMonthlyCardSummary(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			boolean isExclude = false;
+			if(field.getFieldName()!=null && field.getFieldName().equals("BRANCH_CODE")){
+				isExclude = true;
+			}
+			if(!isExclude){
+				if (field.isDecrypt()) {
+					decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+				}
+
+				line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
+				line.append(field.getDelimiter());
+				if (field.isEol()) {
+					line.append(getEol());
+				}
+			}
+		}
+		//line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
+	
+	protected void writeTrailerMonthlyCardSummary(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException {
+		logger.debug("In CsvReportProcessor.writeTrailer()");
+		List<ReportGenerationFields> fields = extractTrailerFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			
+			boolean isExclude = false;
+			if(field.getFieldName()!=null && field.getFieldName().equals("filler1")){
+				isExclude = true;
+			}
+			if(!isExclude){
+				if (field.isEol()) {
+					if (field.getFieldName().contains(ReportConstants.LINE)) {
+						line.append(getEol());
+					} else {
+						line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
+						line.append(field.getDelimiter());
+						line.append(getEol());
+					}
+				} else {
+					line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
+					line.append(field.getDelimiter());
+				}
+			}
+		}
+		line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
 
     private void preProcessingBodyTrailer(ReportGenerationMgr rgm, int grandTotalExceed, int grandTotalUnusual, int grandTotalActive, int grandTotalInactive, int grandTotalStolen, int grandTotalLost, int grandTotalDamaged, 
     		int grandTotalBlocked, int grandTotalReplaced, int grandTotalClosed, int grandTotalCaptured, int grandTotalSuspicious, int grandTotalTotal)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        logger.debug("In TransmittalSlipForNewPins.preProcessingBodyTrailer()");
+        logger.debug("In MonthlyCardbaseReport.preProcessingBodyTrailer()");
 
         ReportGenerationFields totalExceed = new ReportGenerationFields("TOTAL_EXCEED",
                 ReportGenerationFields.TYPE_STRING, String.valueOf(grandTotalExceed));
