@@ -70,13 +70,13 @@
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.fileFormatLabel"
                     for="field_fileFormat" required>File Format</label>
                 <br />
-                <input type="checkbox" name="pdf" id="field_pdf" [(ngModel)]="pdfFormat" (click)="valueChange()" />
+                <input type="checkbox" disabled="true" name="pdf" id="field_pdf" [(ngModel)]="pdfFormat" (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.pdfLabel"
                     for="field_pdf">PDF</label>
-                <input type="checkbox" name="csv" id="field_csv" [(ngModel)]="csvFormat" (click)="valueChange()" />
+                <input type="checkbox" disabled="true" name="csv" id="field_csv" [(ngModel)]="csvFormat" (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.csvLabel"
                     for="field_csv">CSV</label>
-                <input type="checkbox" name="txt" id="field_txt" [(ngModel)]="txtFormat" (click)="valueChange()" />
+                <input type="checkbox" disabled="true" name="txt" id="field_txt" [(ngModel)]="txtFormat" (click)="valueChange()" />
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.txtLabel"
                     for="field_txt">TXT</label>
             </div>
@@ -113,7 +113,7 @@
                     </small>
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group" [hidden]="true">
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.fileOutputLocationLabel"
                     for="field_fileLocation">File Output Location</label>
                 <input type="text" [disabled]="true" class="form-control" name="fileLocation" id="field_fileLocation" maxlength="255"
@@ -134,7 +134,7 @@
                     <option>master</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" [hidden]="true">
                 <label class="form-control-label" jhiTranslate="baseApp.reportDefinition.scheduleTimeLabel"
                     for="field_scheduleTime">Schedule Time</label>
                 <div *ngIf="scheduleFlag">

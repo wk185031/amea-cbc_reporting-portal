@@ -13,7 +13,7 @@
             "create": "Create New Report Definition",
             "edit": "Edit",
             "delete": "Delete",
-            "nameLabel": "File Name : ",
+            "nameLabel": "Report Name : ",
             "descriptionLabel": "Description : ",
             "categoryLabel": "Category : ",
             "fileNamePrefixLabel": "File Name Prefix : ",
