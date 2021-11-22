@@ -38,8 +38,10 @@ public class AuditActionService {
 				dataMap.put("name", name);
 			}
 
-			AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
-			customAuditEventRepository.add(event);
+			if (SecurityUtils.getCurrentUserLogin().isPresent()) {
+				AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
+				customAuditEventRepository.add(event);
+			}		
 		} catch (Exception e) {
 			log.warn("Failed to write Action Audit", e);
 		}
@@ -54,8 +56,10 @@ public class AuditActionService {
 				dataMap.put("name", name);
 			}
 
-			AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
-			customAuditEventRepository.add(event);
+			if (SecurityUtils.getCurrentUserLogin().isPresent()) {
+				AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
+				customAuditEventRepository.add(event);
+			}	
 		} catch (Exception ex) {
 			log.warn("Failed to write Action Audit", ex);
 		}
