@@ -31,6 +31,7 @@ export class GenerateReportTabComponent implements OnInit {
     txnEndDate: string;
     txnEndTime: string;
     generated: String;
+    ongoingGenerate: String;
     failed: String;
     searchByDateRange: boolean = false;
 
@@ -66,6 +67,7 @@ export class GenerateReportTabComponent implements OnInit {
         this.registerChangeInReportGeneration();
         this.category = this.categories[0];
         this.generated = 'baseApp.reportGenerationResult.generated';
+        this.ongoingGenerate = 'baseApp.reportGeneration.ongoingGenerate';
         this.failed = 'baseApp.reportGenerationResult.failed';
     }
 
@@ -76,12 +78,12 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     private onSuccess(msg: any) {
-        this.ngxLoader.stop();
+        //this.ngxLoader.stop();
         this.jhiAlertService.success(msg, null, null);
     }
 
     private onError(msg: any) {
-        this.ngxLoader.stop();
+        //this.ngxLoader.stop();
         this.jhiAlertService.error(msg, null, null);
     }
 
@@ -102,7 +104,7 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     generate() {
-            this.ngxLoader.start();
+            //this.ngxLoader.start();
 
             if (!this.searchByDateRange) {
               this.txnStartTime = '00:00';
@@ -126,7 +128,7 @@ export class GenerateReportTabComponent implements OnInit {
             this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, 
             this.category ? this.category.id : 0, this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
                 (res: HttpResponse<ReportDefinition[]>) => {
-                    this.onSuccess(this.generated);
+                    this.onSuccess(this.ongoingGenerate);
                 },
                 (res: HttpErrorResponse) => {
                 	this.onError(res.error.message);
