@@ -19,11 +19,15 @@
             "lastModifiedDateLabel": "Last Modified Date :",
             "reportGeneratedDateLabel": "Report generated date ",
             "clearButton": "Clear",
-            "searchButton": "Search"
+            "searchButton": "Search",
+            "ongoingGenerate": "Report generation is in progress. Kindly check the status in Report Download tab."
         },
         "reportGenerationResult": {
             "generated": "Report Generated",
             "failed": "Operation completed."
+        },
+        "reportDownload": {
+            "dateIsEmpty": "Please select report generated date."
         }
     }
 }
