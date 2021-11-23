@@ -39,7 +39,6 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
     private final PDFont DEFAULT_FONT = PDType1Font.COURIER;
 	private final float DEFAULT_FONT_SIZE = 6;
 	private final float DEFAULT_MARGIN = 30;
-	
     private float pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
     private float totalHeight = PDRectangle.A4.getHeight();
     private int pagination = 0;
@@ -86,7 +85,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 				contentStream.endText();
 				contentStream.close();
 				saveFile(rgm, doc);
-			} else {
+			} else {	
 				contentStream = executePdfBodyQuery(rgm, doc, page, contentStream, pageSize, leading, startX,
 						startY, pdfFont, fontSize, width, margin);
 				pageHeight += 1;
@@ -263,7 +262,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 						String encLastName = lineFieldsMap.get("LAST_NAME").getValue();
 						String institutionCode = lineFieldsMap.get("INSTITUTION_ID").getValue();
 						int rotationNumber = Integer.parseInt(lineFieldsMap.get("ROTATION_NUMBER").getValue());
-
+						
 						String decryptFirstName = encryptionService.decryptDcms(encFirstName, institutionCode,
 								rotationNumber);
 						String decryptMiddleName = encryptionService.decryptDcms(encMiddleName, institutionCode,
@@ -271,6 +270,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 						String decryptLastName = encryptionService.decryptDcms(encLastName, institutionCode,
 								rotationNumber);
 
+						
 						if (decryptFirstName == null) {
 							decryptFirstName = encFirstName;
 						}
@@ -280,9 +280,10 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 						if (decryptLastName == null) {
 							decryptLastName = encLastName;
 						}
-
+						String decryptLastNameTab = decryptLastName.replaceAll("\t", " ");		
+						
 						lineFieldsMap.get("ACCOUNT_NAME")
-								.setValue(decryptFirstName + " " + decryptMiddleName + " " + decryptLastName);
+								.setValue(decryptFirstName + " " + decryptMiddleName + " " + decryptLastNameTab);
 
 						if (programToLineFieldsMap == null) {
 							programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
@@ -302,7 +303,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 				} else {
 					writePdfHeader(rgm, contentStream, leading, pagination);
     				contentStream.newLineAtOffset(0, -leading);
-					contentStream.showText(ReportConstants.NO_RECORD);
+					contentStream.showText(ReportConstants.NO_RECORD);		
 				}
 				
                 for(String branch: branchSet) {
@@ -358,10 +359,9 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 		}
 		return contentStream;
 	}
-	
+
     private PDPageContentStream newPage(ReportGenerationMgr rgm, PDDocument doc, PDPageContentStream contentStream)
 			throws Exception {
-
 		if (contentStream != null) {
 			contentStream.endText();
 			contentStream.close();
