@@ -21,6 +21,7 @@ export class GenerateReportService {
     private resourceGetGeneratedReport = SERVER_API_URL + 'api/report-get-generated';
     private resourceDownloadReport = SERVER_API_URL + 'api/download-report';
     private resourceDeleteReport = SERVER_API_URL + 'api/delete-report';
+    private jobDetail = '';
     public reportDefinition: ReportDefinition[];
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) {
@@ -147,5 +148,13 @@ export class GenerateReportService {
         console.log("getReport");
         return this.http.get(`${this.resourceGetGeneratedReport}/${institutionId}/${date}/${reportCategoryId}`)
             .map((res: any) => res);
+    }
+    
+    setJobDetail(parseDetail){
+    	this.jobDetail = parseDetail;
+    }
+    
+    getJobDetail(){
+    	return this.jobDetail;
     }
 }

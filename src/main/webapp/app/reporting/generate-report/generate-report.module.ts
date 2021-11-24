@@ -31,18 +31,18 @@ const ENTITY_STATES = [
         GenerateReportComponent,
         GenerateReportTabComponent,
         DownloadReportTabComponent,
-        // ReportStatusComponent
+         ReportStatusComponent
     ],
     entryComponents: [
         GenerateReportComponent,
         GenerateReportTabComponent,
         DownloadReportTabComponent,
-         // ReportStatusComponent
+          ReportStatusComponent
     ],
     providers: [
         GenerateReportService,
         GenerateReportResolvePagingParams,
-         // ReportStatusModalService
+          ReportStatusModalService
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

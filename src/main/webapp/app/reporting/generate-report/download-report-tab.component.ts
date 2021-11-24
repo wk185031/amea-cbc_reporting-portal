@@ -45,6 +45,7 @@ export class DownloadReportTabComponent implements OnInit {
     txnDate: any;
     account: Account;
     modalRef: NgbModalRef;
+    id: number;
 
     constructor(
         private generateReportService: GenerateReportService,
@@ -196,6 +197,7 @@ export class DownloadReportTabComponent implements OnInit {
     }
     
     searchReportGenerated(query) {
+    console.log(query);
         
         this.page = 0;
         this.txnDate = query;
@@ -269,9 +271,13 @@ export class DownloadReportTabComponent implements OnInit {
 		return parsedDetail.endDateTime;
 	}
 	
-	reportStatus() {
-         this.modalRef = this.reportStatusService.open();
-        // alert("gotFunction");
+	reportStatus(id:number, detail) {
+		const parsedDetail = JSON.parse(detail);
+		const reportStatusMap = parsedDetail.reportStatusMap;
+			
+		this.generateReportService.setJobDetail(reportStatusMap);
+        this.modalRef = this.reportStatusService.open();
     }
-  
 }
+
+

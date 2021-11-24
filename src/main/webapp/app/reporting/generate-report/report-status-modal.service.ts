@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
-import { ReportStatusComponent } from './report-status.component';
+ import { ReportStatusComponent } from './report-status.component';
 
 @Injectable()
 export class ReportStatusModalService {

@@ -1,49 +1,51 @@
-import { Component, AfterViewInit, Renderer, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, Renderer, ElementRef } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { JhiEventManager } from 'ng-jhipster';
-import * as CryptoJS from 'crypto-js';
-// import { E2E_KEY } from '..';
 
-// import { LoginService } from './login.service';
-// import { StateStorageService } from '../auth/state-storage.service';
+import { JobHistory } from '../../app-admin/job-history/job-history.model';
 
 import { ProfileService } from '../../layouts/profiles/profile.service';
+import { GenerateReportService } from './generate-report.service';
+
 @Component({
     selector: 'jhi-report-status-modal',
-     templateUrl: './report-status-component.html'
-    //templateUrl: '../../reporting/generate-report/reportStatus.html'
+     templateUrl: './report-status.component.html'
 })
-export class ReportStatusComponent implements AfterViewInit {
-    authenticationError: boolean;
-    password: string;
-    rememberMe: boolean;
-    username: string;
-    credentials: any;
 
-    isSelfRegistration: boolean;
+export class ReportStatusComponent implements OnInit {
 
+	reportStatuses = [];
+    
     constructor(
+    	private generateReportService: GenerateReportService,
         private eventManager: JhiEventManager,
-        // private loginService: LoginService,
-        // private stateStorageService: StateStorageService,
         private elementRef: ElementRef,
         private renderer: Renderer,
         private router: Router,
         public activeModal: NgbActiveModal,
-        private profileService: ProfileService
+       
     ) {
-        this.credentials = {};
-        this.profileService.getProfileInfo().then((profileInfo) => {
-            this.isSelfRegistration = profileInfo.selfRegistration;
-        });
+       
     }
 
-    ngAfterViewInit() {
-        this.renderer.invokeElementMethod(this.elementRef.nativeElement.querySelector('#username'), 'focus', []);
+    ngOnInit() {
+        console.log('After init');
+       	this.getReportStatus();
     }
 
     cancel() {
         this.activeModal.dismiss('cancel');
+    }
+    
+    getReportStatus(){
+    	 console.log('generateReportService.getJobDetail():' + this.generateReportService.getJobDetail());
+    	 
+    	 let jsonDetailObject = this.generateReportService.getJobDetail();
+   		 
+   		for (var key of Object.keys(jsonDetailObject)) {
+    		console.log(key + " -> " + jsonDetailObject[key])
+    		this.reportStatuses.push(key + ' - ' + jsonDetailObject[key]);
+		}
     }
 }

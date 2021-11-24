@@ -40,9 +40,7 @@
 	            	<!--<td>{{jobHistory.status}}</td>-->
 	            	<!-- <td><a class="alert-link" (click)="reportStatus()">{{jobHistory.status}}</a></td> -->
 	            	<td *ngIf="jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED' else failedStatus" >
-	            		  <a class="alert-link" (click)="reportStatus()">{{jobHistory.status}}</a> 
-	            		<!-- <a routerLink="/reportStatus">{{jobHistory.status}}</a> -->
-	            		 <!-- <a [routerLink]="['/', { outlets: { popup: ['reportStatus'] } }]">{{jobHistory.status}}</a> -->
+	            		  <a class="alert-link" (click)="reportStatus(jobHistory.id, jobHistory.details)">{{jobHistory.status}}</a> 
 	            	</td>
 	            	<ng-template #failedStatus>
 	            		<td>{{jobHistory.status}}</td>
