@@ -3,12 +3,17 @@ import { HttpResponse, HttpErrorResponse, HttpClient } from '@angular/common/htt
 import { HttpEvent } from '@angular/common/http/src/response';
 import { GenerateReportService } from './generate-report.service';
 import { GeneratedReportDTO } from './generatedReportDTO.dto';
+// import { LoginModalService } from './login-modal.service';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { JobHistory } from '../../app-admin/job-history/job-history.model';
 import { JobHistoryService } from '../../app-admin/job-history/job-history.service';
 import { JhiEventManager, JhiParseLinks, JhiAlertService } from 'ng-jhipster';
 import { ITEMS_PER_PAGE, Principal } from '../../shared';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+ import { ReportStatusModalService } from './report-status-modal.service';
+
+
 @Component({
     selector: 'jhi-download-report-tab',
     templateUrl: './download-report-tab.component.html'
@@ -39,7 +44,7 @@ export class DownloadReportTabComponent implements OnInit {
     jobHistories: JobHistory[];
     txnDate: any;
     account: Account;
-    dateIsEmpty: string;
+    modalRef: NgbModalRef;
 
     constructor(
         private generateReportService: GenerateReportService,
@@ -50,6 +55,8 @@ export class DownloadReportTabComponent implements OnInit {
         private activatedRoute: ActivatedRoute,
         private router: Router,
         private parseLinks: JhiParseLinks,
+        // private loginService: LoginModalService,
+         private reportStatusService: ReportStatusModalService
     ) {
     	this.itemsPerPage = ITEMS_PER_PAGE;
         this.routeData = this.activatedRoute.data.subscribe((data) => {
@@ -68,7 +75,6 @@ export class DownloadReportTabComponent implements OnInit {
         this.reportType = 'daily';
         this.category = this.allCategory;
         this.generatedReportDTO = new GeneratedReportDTO();
-        this.dateIsEmpty = 'baseApp.reportDownload.dateIsEmpty';
         this.principal.identity().then((account) => {
             this.institutionId = this.principal.getSelectedInstitutionId();
             this.branchId = this.principal.getSelectedBranchId();
@@ -190,23 +196,15 @@ export class DownloadReportTabComponent implements OnInit {
     }
     
     searchReportGenerated(query) {
-    
-    	this.page = 0;
+        
+        this.page = 0;
         this.txnDate = query;
-    	if (this.txnDate) {
-    		this.page = 0;
-	        this.router.navigate(['/generate-report', {
-	            search: this.txnDate,
-	            page: this.page,
-	            sort: this.predicate + ',' + (this.reverse ? 'asc' : 'desc')
-	        }]);
-	        this.loadAll();
-    	}
-    	else{
-	    	console.log('no date selected');
-	    	this.jhiAlertService.warning(this.dateIsEmpty, null, null);
-    	}
-       	
+        this.router.navigate(['/generate-report', {
+            search: this.txnDate,
+            page: this.page,
+            sort: this.predicate + ',' + (this.reverse ? 'asc' : 'desc')
+        }]);
+        this.loadAll();
     }
 	
 	private onSuccess(data, headers) {
@@ -270,5 +268,10 @@ export class DownloadReportTabComponent implements OnInit {
 		var parsedDetail = JSON.parse(detail);
 		return parsedDetail.endDateTime;
 	}
- 
+	
+	reportStatus() {
+         this.modalRef = this.reportStatusService.open();
+        // alert("gotFunction");
+    }
+  
 }
