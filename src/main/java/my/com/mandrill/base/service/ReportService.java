@@ -172,6 +172,8 @@ public class ReportService {
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
 		}
 		
+		log.debug("Generate Report [START] {}", dailyJobId);
+		
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
@@ -260,6 +262,8 @@ public class ReportService {
 			jobHistory.setGenerationEndDate(LocalDateTime.now());
 			jobHistory.setLastModifiedDate(Instant.now());
 			jobHistoryRepository.save(jobHistory);
+			
+			log.debug("Generate Report [END] {} : {}", jobId, jobHistory.getStatus());
 		}
 	}
 	
