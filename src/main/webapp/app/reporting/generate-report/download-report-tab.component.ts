@@ -39,7 +39,6 @@ export class DownloadReportTabComponent implements OnInit {
     jobHistories: JobHistory[];
     txnDate: any;
     account: Account;
-    dateIsEmpty: string;
 
     constructor(
         private generateReportService: GenerateReportService,
@@ -68,7 +67,6 @@ export class DownloadReportTabComponent implements OnInit {
         this.reportType = 'daily';
         this.category = this.allCategory;
         this.generatedReportDTO = new GeneratedReportDTO();
-        this.dateIsEmpty = 'baseApp.reportDownload.dateIsEmpty';
         this.principal.identity().then((account) => {
             this.institutionId = this.principal.getSelectedInstitutionId();
             this.branchId = this.principal.getSelectedBranchId();
@@ -190,23 +188,15 @@ export class DownloadReportTabComponent implements OnInit {
     }
     
     searchReportGenerated(query) {
-    
-    	this.page = 0;
+        
+        this.page = 0;
         this.txnDate = query;
-    	if (this.txnDate) {
-    		this.page = 0;
-	        this.router.navigate(['/generate-report', {
-	            search: this.txnDate,
-	            page: this.page,
-	            sort: this.predicate + ',' + (this.reverse ? 'asc' : 'desc')
-	        }]);
-	        this.loadAll();
-    	}
-    	else{
-	    	console.log('no date selected');
-	    	this.jhiAlertService.warning(this.dateIsEmpty, null, null);
-    	}
-       	
+        this.router.navigate(['/generate-report', {
+            search: this.txnDate,
+            page: this.page,
+            sort: this.predicate + ',' + (this.reverse ? 'asc' : 'desc')
+        }]);
+        this.loadAll();
     }
 	
 	private onSuccess(data, headers) {
