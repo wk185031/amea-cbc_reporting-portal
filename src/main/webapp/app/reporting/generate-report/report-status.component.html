@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h4 class="modal-title" jhiTranslate="baseApp.reportGeneration.listOfReports">List of Report(s)</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                (click)="clear()">&times;</button>
+</div>
+
+<div class="modal-body">
+	<ul>
+		<li>Report 1</li>
+		<li>Report 2</li>
+		<li>Report 3</li>
+		<li>Report 4</li>
+	</ul>
+</div>
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="clear()">
+            <span class="fa fa-ban"></span>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+</div>
