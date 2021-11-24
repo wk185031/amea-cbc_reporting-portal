@@ -165,15 +165,15 @@ public class ReportService {
 		if(isDailyFreq) {
 			dailyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
 			dailyReportPath = directory + File.separator + StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator + dailyJobId;		
+			log.debug("Generate Report [START] {}", dailyJobId);
 		} 
 		
 		if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
 			monthlyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
+			log.debug("Generate Report [START] {}", monthlyJobId);
 		}
-		
-		log.debug("Generate Report [START] {}", dailyJobId);
-		
+				
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
