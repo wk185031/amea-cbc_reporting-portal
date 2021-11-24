@@ -3,12 +3,17 @@ import { HttpResponse, HttpErrorResponse, HttpClient } from '@angular/common/htt
 import { HttpEvent } from '@angular/common/http/src/response';
 import { GenerateReportService } from './generate-report.service';
 import { GeneratedReportDTO } from './generatedReportDTO.dto';
+// import { LoginModalService } from './login-modal.service';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { JobHistory } from '../../app-admin/job-history/job-history.model';
 import { JobHistoryService } from '../../app-admin/job-history/job-history.service';
 import { JhiEventManager, JhiParseLinks, JhiAlertService } from 'ng-jhipster';
 import { ITEMS_PER_PAGE, Principal } from '../../shared';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+ import { ReportStatusModalService } from './report-status-modal.service';
+
+
 @Component({
     selector: 'jhi-download-report-tab',
     templateUrl: './download-report-tab.component.html'
@@ -39,6 +44,8 @@ export class DownloadReportTabComponent implements OnInit {
     jobHistories: JobHistory[];
     txnDate: any;
     account: Account;
+    modalRef: NgbModalRef;
+    id: number;
 
     constructor(
         private generateReportService: GenerateReportService,
@@ -49,6 +56,8 @@ export class DownloadReportTabComponent implements OnInit {
         private activatedRoute: ActivatedRoute,
         private router: Router,
         private parseLinks: JhiParseLinks,
+        // private loginService: LoginModalService,
+         private reportStatusService: ReportStatusModalService
     ) {
     	this.itemsPerPage = ITEMS_PER_PAGE;
         this.routeData = this.activatedRoute.data.subscribe((data) => {
@@ -188,7 +197,6 @@ export class DownloadReportTabComponent implements OnInit {
     }
     
     searchReportGenerated(query) {
-        
         this.page = 0;
         this.txnDate = query;
         this.router.navigate(['/generate-report', {
@@ -260,5 +268,14 @@ export class DownloadReportTabComponent implements OnInit {
 		var parsedDetail = JSON.parse(detail);
 		return parsedDetail.endDateTime;
 	}
- 
+	
+	reportStatus(id:number, detail) {
+		const parsedDetail = JSON.parse(detail);
+		const reportStatusMap = parsedDetail.reportStatusMap;
+			
+		this.generateReportService.setJobDetail(reportStatusMap);
+        this.modalRef = this.reportStatusService.open();
+    }
 }
+
+

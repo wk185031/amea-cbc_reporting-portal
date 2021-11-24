@@ -14,7 +14,9 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -118,6 +120,7 @@ public class ReportService {
 				+ institutionId + File.separator + yearMonth;
 
 		List<ReportDefinition> aList = new ArrayList<>();
+		Map<String,String> reportStatusMap = new HashMap<String,String>();
 		
 		String reportCategory = null;
 		String report = null;
@@ -188,7 +191,7 @@ public class ReportService {
 
 			handleExceptionFilePrefix(reportGenerationMgr, reportDefinition.getFileNamePrefix(), inputStartDateTime,
 					inputEndDateTime);
-
+			
 			Optional<List<LocalDate>> holidays = getHolidayList();
 			if (!manualGenerate && reportDefinition.isByBusinessDate()
 					&& !BusinessDay.isWorkingDay(inputStartDateTime.toLocalDate(), holidays)) {
@@ -204,12 +207,14 @@ public class ReportService {
 								reportDefinition.isByBusinessDate(), manualGenerate, holidays, dailyJobId);
 						log.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
 								reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
-												
+						
 						try {
 							runReport(reportGenerationMgr);
+							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
 							isDailyCompleted = true;
 						} catch (ReportGenerationException e) {
 							log.error("Error generating report:" + e.getFilename());
+							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
 							isDailyPartialFailed = true;
 						}
 						
@@ -225,9 +230,11 @@ public class ReportService {
 									reportGenerationMgr.getTxnEndDate());
 							try {
 								runReport(reportGenerationMgr);
+								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
 								isMonthlyCompleted = true;
 							} catch (ReportGenerationException e) {
 								log.error("Error generating report:" + e.getFilename());
+								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
 								isMonthlyPartialFailed = true;
 							}
 														
@@ -236,6 +243,8 @@ public class ReportService {
 				}
 			}
 		}
+		
+		jobHistoryDetails.setReportStatusMap(reportStatusMap);
 		
 		if(dailyJobId != 0) {		
 			updateJobHistoryOnFinish(reportGenerationMgr, dailyJobId, jobHistoryDetails, isDailyCompleted, isDailyPartialFailed, dailyReportPath);

@@ -20,7 +20,8 @@
             "reportGeneratedDateLabel": "Report generated date ",
             "clearButton": "Clear",
             "searchButton": "Search",
-            "ongoingGenerate": "Report generation is in progress. Kindly check the status in Report Download tab."
+            "ongoingGenerate": "Report generation is in progress. Kindly check the status in Report Download tab.",
+            "reportStatus": "Report Status"
         },
         "reportGenerationResult": {
             "generated": "Report Generated",
