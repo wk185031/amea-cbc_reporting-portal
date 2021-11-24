@@ -11,6 +11,8 @@ import { GenerateReportService } from './generate-report.service';
 import { GenerateReportComponent } from './generate-report.component';
 import { GenerateReportTabComponent } from './generate-report-tab.component';
 import { DownloadReportTabComponent } from './download-report-tab.component';
+import { ReportStatusModalService } from './report-status-modal.service';
+import { ReportStatusComponent } from './report-status.component';
 
 const ENTITY_STATES = [
     ...generateReportRoute,
@@ -23,21 +25,24 @@ const ENTITY_STATES = [
         BaseAdminModule,
         RouterModule.forChild(ENTITY_STATES),
         AppCommonModule,
-        NgxUiLoaderModule,
+        NgxUiLoaderModule
     ],
     declarations: [
         GenerateReportComponent,
         GenerateReportTabComponent,
-        DownloadReportTabComponent
+        DownloadReportTabComponent,
+        // ReportStatusComponent
     ],
     entryComponents: [
         GenerateReportComponent,
         GenerateReportTabComponent,
-        DownloadReportTabComponent
+        DownloadReportTabComponent,
+         // ReportStatusComponent
     ],
     providers: [
         GenerateReportService,
-        GenerateReportResolvePagingParams
+        GenerateReportResolvePagingParams,
+         // ReportStatusModalService
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
