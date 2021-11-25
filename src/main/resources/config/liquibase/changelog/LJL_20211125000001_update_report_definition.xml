@@ -23,11 +23,6 @@
                  stripComments="true" />	
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List_ACD.sql"
-                 splitStatements="false" 
-                 stripComments="true" />	
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
                  path="config/liquibase/report-query/ATM_Transaction_List(ACD)/ATM_Transaction_List(Issuer).sql"
                  splitStatements="false" 
                  stripComments="true" />
