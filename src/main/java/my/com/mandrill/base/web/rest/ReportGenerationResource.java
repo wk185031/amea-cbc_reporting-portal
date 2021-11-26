@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -168,32 +169,39 @@ public class ReportGenerationResource {
 											jobHistoryList.getStatus(), jobHistoryList.getCreatedDate(), yesterdayDate,
 											currentDate);
 
-									String instShortCode = null;
-
-									List<Institution> institutions = institutionRepository.findAll();
-									for (Institution institution : institutions) {
-										if ("Institution".equals(institution.getType())) {
-											if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-												instShortCode = "CBC";
-											} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-												instShortCode = "CBS";
-											}
-										}
+									for (Map.Entry<Long, String> mapEntry : reportService
+											.getAllInstitutionIdAndShortCode().entrySet()) {
 										try {
-											reportService.autoGenerateAllReports(
-													LocalDate.now().minusDays(1L).atStartOfDay(),
-													LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(),
-													instShortCode, false, ReportConstants.CREATED_BY_USER);
+											reportService.generateReport(LocalDate.now().minusDays(1L).atStartOfDay(),
+													LocalDate.now().minusDays(1L).atTime(23, 59), mapEntry.getKey(),
+													mapEntry.getValue(), null, null, false, false,
+													ReportConstants.CREATED_BY_USER);
 										} catch (JsonProcessingException e) {
-											logger.debug("Error processing Json string");
+											throw new RuntimeException(e);
 										}
-
-//										generateDailyReport(institution.getId(), instShortCode);
-//										if (yesterdayDate.equals(lastDayOfMonth)) {
-//											generateMonthlyReport(institution.getId(), instShortCode);
-//										}
-
 									}
+									
+//									String instShortCode = null;
+//
+//									List<Institution> institutions = institutionRepository.findAll();
+//									for (Institution institution : institutions) {
+//										if ("Institution".equals(institution.getType())) {
+//											if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//												instShortCode = "CBC";
+//											} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//												instShortCode = "CBS";
+//											}
+//										}
+//										try {
+//											reportService.autoGenerateAllReports(
+//													LocalDate.now().minusDays(1L).atStartOfDay(),
+//													LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(),
+//													instShortCode, false, ReportConstants.CREATED_BY_USER);
+//										} catch (JsonProcessingException e) {
+//											logger.debug("Error processing Json string");
+//										}
+//
+//									}
 									executed = true;
 									jobHistoryList.setStatus(ReportConstants.REPORTS_GENERATED);
 									jobHistoryRepository.save(jobHistoryList);

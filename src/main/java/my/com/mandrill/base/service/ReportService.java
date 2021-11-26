@@ -2,10 +2,6 @@ package my.com.mandrill.base.service;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +40,7 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
@@ -78,6 +75,9 @@ public class ReportService {
 	@Autowired
 	private JobHistoryRepository jobHistoryRepository;
 		
+	@Autowired
+	private InstitutionRepository institutionRepository;
+	
 	@Autowired
 	private EntityManager em;
 	
@@ -176,7 +176,7 @@ public class ReportService {
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
 			log.debug("Generate Report [START] {}", monthlyJobId);
 		}
-				
+
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
@@ -229,7 +229,7 @@ public class ReportService {
 									reportDefinition.getName(), reportGenerationMgr.getTxnStartDate(),
 									reportGenerationMgr.getTxnEndDate());
 							try {
-								runReport(reportGenerationMgr);
+								runReport(reportGenerationMgr);								
 								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
 								isMonthlyCompleted = true;
 							} catch (ReportGenerationException e) {
@@ -503,70 +503,100 @@ public class ReportService {
 
 	}
 	
+	public Map<Long, String> getAllInstitutionIdAndShortCode() {
+		Map<Long, String> institutionMap = new HashMap<>();
+		
+		institutionRepository.findAll().forEach(i -> {
+			if ("Institution".equals(i.getType())) {
+				if (ReportConstants.CBC_INSTITUTION.equals(i.getName())) {
+					institutionMap.put(i.getId(), "CBC");
+				} else if (ReportConstants.CBS_INSTITUTION.equals(i.getName())) {
+					institutionMap.put(i.getId(), "CBS");
+				}
+			}
+		});		
+		return institutionMap;
+	}
+	
 	private long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		Connection conn = null;
-		long jobId = 0;
 		
 		LocalDateTime currentTs = LocalDateTime.now();
-	
-		String sql = "insert into job_history (job_id, status, created_by, created_date, last_modified_by, last_modified_date, details, report_start_date, report_end_date, generation_start_date, report_frequency) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		try {
-			conn = dataSource.getConnection();
-			stmt = conn.prepareStatement(sql);
-			stmt.setLong(1, job.getId());
-			stmt.setString(2, ReportConstants.STATUS_IN_PROGRESS);
-			stmt.setString(3, user);
-			stmt.setTimestamp(4, Timestamp.valueOf(currentTs));
-			stmt.setString(5, user);
-			stmt.setTimestamp(6, Timestamp.valueOf(currentTs));
-			stmt.setString(7, details);
-			stmt.setTimestamp(8, Timestamp.valueOf(inputStartDateTime));
-			stmt.setTimestamp(9, Timestamp.valueOf(inputEndDateTime));
-			stmt.setTimestamp(10, Timestamp.valueOf(currentTs));
-			stmt.setString(11, frequency);
-			
-			int row = stmt.executeUpdate();	
-			
-			stmt.close();
-			
-			if(row > 0) {
-				sql = "select max(id) from job_history";
-				stmt = conn.prepareStatement(sql);
-				rs = stmt.executeQuery();
-				
-				if(rs.next()) {
-					jobId = rs.getLong(1);
-				}
-			}
-			
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to insert job history", e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (Exception e) {
-				}
-			}
+		
+		JobHistory jobHistory = new JobHistory();
+		jobHistory.setCreatedBy(user);
+		jobHistory.setCreatedDate(Instant.now());
+		jobHistory.setDetails(details);
+		jobHistory.setFrequency(frequency);
+		jobHistory.setGenerationStartDate(currentTs);
+		jobHistory.setJob(job);
+		jobHistory.setReportEndDate(inputEndDateTime);
+		jobHistory.setReportStartDate(inputStartDateTime);
+		jobHistory.setStatus(ReportConstants.STATUS_IN_QUEUE);
+		
+		jobHistory = jobHistoryRepository.saveAndFlush(jobHistory);
+//
+//		PreparedStatement stmt = null;
+//		ResultSet rs = null;
+//		Connection conn = null;
+//		long jobId = 0;
+//		
+//		
+//	
+//		String sql = "insert into job_history (job_id, status, created_by, created_date, last_modified_by, last_modified_date, details, report_start_date, report_end_date, generation_start_date, report_frequency) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+//		try {
+//			conn = dataSource.getConnection();
+//			stmt = conn.prepareStatement(sql);
+//			stmt.setLong(1, job.getId());
+//			stmt.setString(2, ReportConstants.STATUS_IN_PROGRESS);
+//			stmt.setString(3, user);
+//			stmt.setTimestamp(4, Timestamp.valueOf(currentTs));
+//			stmt.setString(5, user);
+//			stmt.setTimestamp(6, Timestamp.valueOf(currentTs));
+//			stmt.setString(7, details);
+//			stmt.setTimestamp(8, Timestamp.valueOf(inputStartDateTime));
+//			stmt.setTimestamp(9, Timestamp.valueOf(inputEndDateTime));
+//			stmt.setTimestamp(10, Timestamp.valueOf(currentTs));
+//			stmt.setString(11, frequency);
+//			
+//			int row = stmt.executeUpdate();	
+//			
+//			stmt.close();
+//			
+//			if(row > 0) {
+//				sql = "select max(id) from job_history";
+//				stmt = conn.prepareStatement(sql);
+//				rs = stmt.executeQuery();
+//				
+//				if(rs.next()) {
+//					jobId = rs.getLong(1);
+//				}
+//			}
+//			
+//		} catch (Exception e) {
+//			throw new RuntimeException("Failed to insert job history", e);
+//		} finally {
+//			if (stmt != null) {
+//				try {
+//					stmt.close();
+//				} catch (Exception e) {
+//				}
+//			}
+//
+//			if (rs != null) {
+//				try {
+//					rs.close();
+//				} catch (Exception e) {
+//				}
+//			}
+//			if (conn != null) {
+//				try {
+//					conn.close();
+//				} catch (Exception e) {
+//					log.warn("Failed to close conn", e);
+//				}
+//			}
+//		}
 
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e) {
-				}
-			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (Exception e) {
-					log.warn("Failed to close conn", e);
-				}
-			}
-		}
-
-		return jobId;
+		return jobHistory.getId();
 	}
 }
