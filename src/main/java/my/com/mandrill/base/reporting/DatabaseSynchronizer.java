@@ -59,6 +59,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
@@ -357,21 +358,36 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
-		String instShortCode = null;
-	
-		List<Institution> institutions = institutionRepository.findAll();
-		for (Institution institution : institutions) {
-			if ("Institution".equals(institution.getType())) {
-				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-					instShortCode = "CBC";
-				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-					instShortCode = "CBS";
-				}
-				reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
-						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
+		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+
+		for (Map.Entry<Long, String> mapEntry : reportService
+				.getAllInstitutionIdAndShortCode().entrySet()) {
+			try {
+				reportService.generateReport(LocalDate.now().minusDays(1L).atStartOfDay(),
+						LocalDate.now().minusDays(1L).atTime(23, 59), mapEntry.getKey(),
+						mapEntry.getValue(), null, null, false, false,
+						ReportConstants.CREATED_BY_USER);
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
 			}
 		}
-		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+//		
+//		
+//		List<Institution> institutions = institutionRepository.findAll();
+//		for (Institution institution : institutions) {
+//			if ("Institution".equals(institution.getType())) {
+//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//					instCodes.put(institution.getId(), "CBC");
+//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//					instCodes.put(institution.getId(), "CBS");
+//				}
+//			}
+//		}
+//		
+//		
+//		reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
+//				LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
+		
 		
 		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
@@ -380,7 +396,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
 			throw e;
 		}
-
 	}
 
 	private Map<String, List<String>> getCardBinMap() throws Exception {
