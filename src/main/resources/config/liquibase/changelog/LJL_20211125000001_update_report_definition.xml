@@ -160,11 +160,6 @@
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/Eload_Transactions/Eload_OnUs.sql"
                  splitStatements="false" 
-                 stripComments="true" />
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Eload_Transactions/Eload_Transactions.sql"
-                 splitStatements="false" 
                  stripComments="true" />	
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
@@ -276,11 +271,6 @@
                  path="config/liquibase/report-query/RFID_Transactions/List_of_RFID_Payments.sql"
                  splitStatements="false" 
                  stripComments="true" />
-		<sqlFile dbms="oracle" 
-        		 encoding="UTF-8"
-                 path="config/liquibase/report-query/RFID_Transactions/List_of_RFID_Payments.sql"
-                 splitStatements="false" 
-                 stripComments="true" />	
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
                  path="config/liquibase/report-query/SWITCH_Transaction_Log/SWITCH_TRAN_LOG_Acquirer.sql"
