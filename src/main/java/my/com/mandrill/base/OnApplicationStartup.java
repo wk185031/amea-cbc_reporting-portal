@@ -6,10 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import my.com.mandrill.base.reporting.ReportConstants;
 
 @Component
 public class OnApplicationStartup {
@@ -23,10 +24,11 @@ public class OnApplicationStartup {
 	@EventListener(ApplicationReadyEvent.class)
 	@Transactional
 	public void resetJobHistoryStatus() {
-		// Reset IN PROGRESS status in JOB HISTORY to FAILED
+		// Reset IN PROGRESS and IN QUEUE status in JOB HISTORY to FAILED
 		try {
 			int updateCount = em.createNativeQuery(
-					"update JOB_HISTORY set status='FAILED', last_modified_by='system', last_modified_date=current_timestamp where status = 'IN PROGRESS'")
+					"update JOB_HISTORY set status='FAILED', last_modified_by='system', last_modified_date=current_timestamp "
+					+ "where status IN ('"+ReportConstants.STATUS_IN_PROGRESS+"','"+ReportConstants.STATUS_IN_QUEUE+"')")
 					.executeUpdate();
 			log.debug("Reset {} JOB HISTORY records.", updateCount);
 
