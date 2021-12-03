@@ -52,9 +52,6 @@ BEGIN
 	  LEFT join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID
 	where 
 	  INS_ID = {Iss_Id}
-  AND CRD_KIT_NUMBER IS NOT NULL
-  AND CRD_IS_LINKED not in ( ''1'' )
-  AND PRS_ID NOT IN(4)
 	  AND DCR_CRN_ID is null
  	  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
 	  AND DCR_STS_ID not in (67,69)
@@ -90,9 +87,6 @@ AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 	where 
    CCR_CRN_ID is null
-  AND CSH_KIT_NUMBER IS NOT NULL
-  AND CSH_IS_LINKED not in ( ''1'' )
-AND PRS_ID NOT IN(4)
  and CCR_INS_ID = {Iss_Id}
   AND CCR_CRN_ID is null
   AND CCR_STS_ID not in (67,69)
@@ -114,6 +108,7 @@ AND PRS_ID NOT IN(4)
 	where 
   CCR_INS_ID = {Iss_Id}
    AND CC_CRN_STS_ID = 91
+AND CCR_REQUEST_TYPE IN (''Renew'',''Replace'')
 	 AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')-1	  
 	 union all
 --ATM REPIN
@@ -159,6 +154,8 @@ join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
 	where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
+  AND CRD_KIT_NUMBER IS NOT NULL
+  AND CRD_IS_LINKED NOT IN (''1'')
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	-1 
 	  UNION ALL
 --CASH CARD PRE-PREGEN
@@ -176,6 +173,8 @@ left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
 	where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
+  AND CSH_KIT_NUMBER IS NOT NULL
+  AND CSH_IS_LINKED NOT IN (''1'')
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	-1
 union all
 --ATM Renew Bulk
