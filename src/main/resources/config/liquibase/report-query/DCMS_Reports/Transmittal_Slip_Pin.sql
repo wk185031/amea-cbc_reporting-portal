@@ -38,7 +38,7 @@ select CLT_FIRST_NAME as FIRST_NAME,
    case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -50,9 +50,6 @@ from {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS}
   join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CLT_ID = DCR_CLT_ID  
 where 
   DCR_INS_ID = {Iss_Id}
-  AND CRD_KIT_NUMBER IS NOT NULL
-  AND CRD_IS_LINKED not in ( ''1'' )
-  AND PRS_ID NOT IN(4)
   AND DCR_CRN_ID is null
  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
   AND DCR_STS_ID not in (67,69)
@@ -69,7 +66,7 @@ select CLT_FIRST_NAME as FIRST_NAME,
    case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -97,7 +94,7 @@ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
      case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -110,9 +107,6 @@ left join DCMS_OWNER.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} on CSH_ID = CCR_CSH_ID
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 where 
   CCR_INS_ID = {Iss_Id}
- AND CSH_KIT_NUMBER IS NOT NULL
-  AND CSH_IS_LINKED not in ( ''1'' )
-AND PRS_ID NOT IN(4)
   AND CCR_CRN_ID is null
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
@@ -129,7 +123,7 @@ select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
      case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -143,6 +137,7 @@ from {DCMS_Schema}.SUPPORT_CC_RENEWAL@{DB_LINK_DCMS}
   left join {DCMS_Schema}.MASTER_CORPORATE_CLIENT@{DB_LINK_DCMS} on CCL_ID = CCR_CCL_ID
 where 
   CCR_INS_ID = {Iss_Id}
+AND CCR_REQUEST_TYPE IN (''Renew'',''Replace'')
    AND CC_CRN_STS_ID = 91
    AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1	  
    union all
@@ -154,7 +149,7 @@ where
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  ''PIN PREGENERATION'' as REMARKS,
+  ''PIN REGENERATION'' as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -179,7 +174,7 @@ UNION ALL
   '' '' as ACCOUNT_NAME,
   CLT_KEY_ROTATION_NO as "ROTATION_NUMBER",
   INS_CODE AS INSTITUTION_ID,
-  ''PIN PREGENERATION'' as REMARKS,
+  ''PIN REGENERATION'' as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -220,6 +215,8 @@ left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
 where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
+  AND CRD_KIT_NUMBER IS NOT NULL
+  AND CRD_IS_LINKED NOT IN (''1'')
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 - 1
 UNION ALL
 --CASH CARD PRE-GEN
@@ -246,6 +243,8 @@ left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
 where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
+  AND CSH_KIT_NUMBER IS NOT NULL
+  AND CSH_IS_LINKED NOT IN (''1'')
 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 --ATM Renew Bulk
@@ -259,7 +258,7 @@ select CLT_FIRST_NAME as FIRST_NAME,
    case when DCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when DCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when DCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when DCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME
@@ -287,7 +286,7 @@ select CLT_FIRST_NAME as FIRST_NAME,
    case when CCR_REQUEST_TYPE=''Manual'' then ''New Card'' 
   when CCR_REQUEST_TYPE =''Renew'' then ''Renewal'' 
   when CCR_REQUEST_TYPE = ''Replace'' then ''Replacement'' 
-  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN PREGENERATION''end as REMARKS,
+  when CCR_REQUEST_TYPE = ''Bulk Upload'' then ''New Card'' else  ''PIN REGENERATION''end as REMARKS,
   BRN_CODE as Branch_Code,
   BRN_NAME as Branch_Name,
   PRS_NAME as PROGRAM_NAME

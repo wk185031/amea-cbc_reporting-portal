@@ -1,17 +1,11 @@
 package my.com.mandrill.base.service;
 
 import java.io.File;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.sql.DataSource;
@@ -30,7 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +40,7 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
@@ -52,7 +49,6 @@ import my.com.mandrill.base.service.util.BusinessDay;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
 @Service
-@Transactional
 public class ReportService {
 
 	private final Logger log = LoggerFactory.getLogger(ReportService.class);
@@ -79,104 +75,48 @@ public class ReportService {
 	private JobHistoryRepository jobHistoryRepository;
 		
 	@Autowired
+	private InstitutionRepository institutionRepository;
+	
+	@Autowired
 	private EntityManager em;
 	
 	@Autowired
 	private DataSource dataSource;
+	
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+	
+	private TransactionTemplate transactionTemplate;
 
 	private ObjectMapper mapper = new ObjectMapper();
 	
-	public void autoGenerateAllReports(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime,
-			Long institutionId, String instShortCode, boolean manualGenerate, String user) throws JsonProcessingException {
-
-		log.debug(
-				"Generate report for institution={} [inputStartDateTime={}, inputEndDateTime={}, Report Generation date={}",
-				institutionId, inputStartDateTime, inputEndDateTime);
-
-		generateReport(inputStartDateTime, inputEndDateTime, institutionId, instShortCode, null, null, false, false, user);
+	@PostConstruct
+	private void init() {
+		transactionTemplate = new TransactionTemplate(transactionManager);
 	}
 	
 	@Async
-	public void generateReport(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, Long institutionId,
-			String instShortCode, Long reportCategoryId, Long reportId, boolean manualMonthly, boolean manualGenerate, String user) throws JsonProcessingException {
-		log.debug(
-				"Generate report for institution={} [inputStartDateTime={}, inputEndDateTime={}, institutionId={}, instShortCode={}, reportCategoryId={}, reportId={}, includeMonthly={}, manualGenerate={}",
-				institutionId, inputStartDateTime, inputEndDateTime, institutionId, instShortCode, reportCategoryId,
-				reportId, manualMonthly, manualGenerate);
+	public void generateReport(ReportGenerationMgr reportGenerationMgr, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, List<ReportDefinition> aList, boolean manualGenerate,
+			String directory, long dailyJobId, long monthlyJobId, boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, 
+			JobHistoryDetails jobHistoryDetails, String dailyReportPath, String monthlyReportPath, String user, Job job) throws JsonProcessingException {
 
-		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
-		reportGenerationMgr.setInstitution(instShortCode);
-		reportGenerationMgr.setGenerate(manualGenerate);
-		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
-		reportGenerationMgr.setYesterdayDate(LocalDate.now().minusDays(1L));
-		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
-		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
-		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
-		reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
-		reportGenerationMgr.setEncryptionService(encryptionService);
-
-		String yearMonth = inputStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + yearMonth;
-
-		List<ReportDefinition> aList = new ArrayList<>();
 		Map<String,String> reportStatusMap = new HashMap<String,String>();
-		
-		String reportCategory = null;
-		String report = null;
 
-		if (reportCategoryId == null || reportCategoryId <= 0) {
-			aList = reportDefinitionRepository.findReportDefinitionByInstitution(institutionId);
-			reportCategory = "ALL";
-			report = "ALL";
-		} else if (reportId == null || reportId <= 0) {
-			aList = reportDefinitionRepository.findAllByCategoryIdAndInstitutionId(reportCategoryId, institutionId);
-			reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
-			report = "ALL";
-		} else {
-			ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
-			if (reportDefinition != null) {
-				aList.add(reportDefinition);
-			}
-			
-			reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
-			report = reportDefinition.getName();
-		}
-		log.debug("Process {} reports", aList.size());
-		
-		LocalDateTime currentTs = LocalDateTime.now();
-		String description = "REPORT CATEGORY: " + reportCategory + ", REPORT: " + report + ", FROM: " + inputStartDateTime.toString() + ", TO: " + inputEndDateTime.toString();
-		
-		Job job = jobRepository.findByName("GENERATE_REPORT");
-		JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId.toString(), reportCategoryId != null ? reportCategoryId.toString() : "0", reportCategory, 
-				report, description, inputStartDateTime.toString(), inputStartDateTime.toString(), inputEndDateTime.toString(), currentTs.toString(), null);
-		
-		long dailyJobId = 0;
-		long monthlyJobId = 0;
-		
 		boolean isDailyPartialFailed = false;
 		boolean isDailyCompleted = false;
 		boolean isMonthlyPartialFailed = false;
 		boolean isMonthlyCompleted = false;
-		
-		String dailyReportPath = null;
-		String monthlyReportPath = null;
-		
-		boolean isDailyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Daily"));
-		boolean isMonthlyOnlyFreq = aList.stream().anyMatch(p -> p.getFrequency().matches("Monthly"));
-		
+				
 		if(isDailyFreq) {
-			dailyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
+			updateJobHistoryInProgress(dailyJobId, user);
 			dailyReportPath = directory + File.separator + StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator + dailyJobId;		
-			log.debug("Generate Report [START] {}", dailyJobId);
 		} 
 		
 		if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
-			monthlyJobId = createJobHistory(job, user, inputStartDateTime, inputEndDateTime, mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
+			updateJobHistoryInProgress(monthlyJobId, user);
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
-			log.debug("Generate Report [START] {}", monthlyJobId);
 		}
-				
+
 		for (ReportDefinition reportDefinition : aList) {
 			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
 			reportGenerationMgr.setFileName(reportDefinition.getName());
@@ -229,7 +169,7 @@ public class ReportService {
 									reportDefinition.getName(), reportGenerationMgr.getTxnStartDate(),
 									reportGenerationMgr.getTxnEndDate());
 							try {
-								runReport(reportGenerationMgr);
+								runReport(reportGenerationMgr);								
 								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
 								isMonthlyCompleted = true;
 							} catch (ReportGenerationException e) {
@@ -256,23 +196,43 @@ public class ReportService {
 		
 	}
 	
-	private boolean isGenerateMonthlyReport(boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, LocalDateTime inputStartDateTime) {
+	public boolean isGenerateMonthlyReport(boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, LocalDateTime inputStartDateTime) {
 		return (!isDailyFreq && isMonthlyOnlyFreq && manualMonthly) || (!manualMonthly && YearMonth.from(inputStartDateTime).atEndOfMonth()
 				.isEqual(inputStartDateTime.toLocalDate()));
 	}
-		
-	private void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails, boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {
+
+	public void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails, boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {		
 		if(jobId != 0) {			
-			JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
-			jobHistoryDetails.setEndDateTime(LocalDateTime.now().toString());
-			jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
-			jobHistory.setReportPath(reportPath);
-			jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
-			jobHistory.setGenerationEndDate(LocalDateTime.now());
-			jobHistory.setLastModifiedDate(Instant.now());
-			jobHistoryRepository.save(jobHistory);
-			
-			log.debug("Generate Report [END] {} : {}", jobId, jobHistory.getStatus());
+			Long id = transactionTemplate.execute(status -> {
+				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+				jobHistoryDetails.setEndDateTime(LocalDateTime.now().toString());
+				jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
+				jobHistory.setReportPath(reportPath);
+				try {
+					jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}				
+				jobHistory.setGenerationEndDate(LocalDateTime.now());
+				jobHistory.setLastModifiedDate(Instant.now());
+				jobHistory = jobHistoryRepository.save(jobHistory);
+				log.debug("Generate Report [END] {} : {}", jobId, jobHistory.getStatus());
+				return jobHistory.getId();
+			});		
+		}
+	}
+	
+	public void updateJobHistoryInProgress(long jobId, String user) throws JsonProcessingException {		
+		if(jobId != 0) {			
+			Long id = transactionTemplate.execute(status -> {
+				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+				jobHistory.setStatus(ReportConstants.STATUS_IN_PROGRESS);
+				jobHistory.setLastModifiedDate(Instant.now());
+				jobHistory.setLastModifiedBy(user);
+				jobHistory = jobHistoryRepository.save(jobHistory);
+				log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobId);
+				return jobHistory.getId();
+			});		
 		}
 	}
 	
@@ -503,70 +463,42 @@ public class ReportService {
 
 	}
 	
-	private long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		Connection conn = null;
-		long jobId = 0;
+	public Map<Long, String> getAllInstitutionIdAndShortCode() {
+		Map<Long, String> institutionMap = new HashMap<>();
 		
-		LocalDateTime currentTs = LocalDateTime.now();
-	
-		String sql = "insert into job_history (job_id, status, created_by, created_date, last_modified_by, last_modified_date, details, report_start_date, report_end_date, generation_start_date, report_frequency) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		try {
-			conn = dataSource.getConnection();
-			stmt = conn.prepareStatement(sql);
-			stmt.setLong(1, job.getId());
-			stmt.setString(2, ReportConstants.STATUS_IN_PROGRESS);
-			stmt.setString(3, user);
-			stmt.setTimestamp(4, Timestamp.valueOf(currentTs));
-			stmt.setString(5, user);
-			stmt.setTimestamp(6, Timestamp.valueOf(currentTs));
-			stmt.setString(7, details);
-			stmt.setTimestamp(8, Timestamp.valueOf(inputStartDateTime));
-			stmt.setTimestamp(9, Timestamp.valueOf(inputEndDateTime));
-			stmt.setTimestamp(10, Timestamp.valueOf(currentTs));
-			stmt.setString(11, frequency);
-			
-			int row = stmt.executeUpdate();	
-			
-			stmt.close();
-			
-			if(row > 0) {
-				sql = "select max(id) from job_history";
-				stmt = conn.prepareStatement(sql);
-				rs = stmt.executeQuery();
-				
-				if(rs.next()) {
-					jobId = rs.getLong(1);
+		institutionRepository.findAll().forEach(i -> {
+			if ("Institution".equals(i.getType())) {
+				if (ReportConstants.CBC_INSTITUTION.equals(i.getName())) {
+					institutionMap.put(i.getId(), "CBC");
+				} else if (ReportConstants.CBS_INSTITUTION.equals(i.getName())) {
+					institutionMap.put(i.getId(), "CBS");
 				}
 			}
-			
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to insert job history", e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (Exception e) {
-				}
-			}
+		});		
+		return institutionMap;
+	}
 
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e) {
-				}
-			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (Exception e) {
-					log.warn("Failed to close conn", e);
-				}
-			}
-		}
+	public long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {
+		
+		Long id = transactionTemplate.execute(status -> {
+			LocalDateTime currentTs = LocalDateTime.now();
+			
+			JobHistory jobHistory = new JobHistory();
+			jobHistory.setCreatedBy(user);
+			jobHistory.setCreatedDate(Instant.now());
+			jobHistory.setDetails(details);
+			jobHistory.setFrequency(frequency);
+			jobHistory.setGenerationStartDate(currentTs);
+			jobHistory.setJob(job);
+			jobHistory.setReportEndDate(inputEndDateTime);
+			jobHistory.setReportStartDate(inputStartDateTime);
+			jobHistory.setStatus(ReportConstants.STATUS_IN_QUEUE);
+			
+			jobHistory = jobHistoryRepository.saveAndFlush(jobHistory);
+			log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobHistory.getId());
+			return jobHistory.getId();
+		});
 
-		return jobId;
+		return id;
 	}
 }

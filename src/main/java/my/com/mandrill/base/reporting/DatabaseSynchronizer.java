@@ -59,6 +59,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
@@ -81,6 +82,7 @@ import my.com.mandrill.base.repository.search.TaskGroupSearchRepository;
 import my.com.mandrill.base.repository.search.TaskSearchRepository;
 import my.com.mandrill.base.service.DcmsSyncService;
 import my.com.mandrill.base.service.ReportService;
+import my.com.mandrill.base.web.rest.ReportGenerationResource;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.mapper.ChannelMapper;
@@ -115,6 +117,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final TaskSearchRepository taskSearchRepository;
 	private final JobHistoryRepository jobHistoryRepo;
 	private final ReportService reportService;
+	private final ReportGenerationResource reportGenerationResource;
 	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
 	private final DcmsSyncService dcmsSyncService;
@@ -173,7 +176,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
-			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService,
+			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService, ReportGenerationResource reportGenerationResource,
 			InstitutionRepository institutionRepository, DataSource dataSource, DcmsSyncService dcmsSyncService,
 			AuditActionService auditActionService) {
 		this.jobRepository = jobRepository;
@@ -185,6 +188,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.jobHistoryRepo = jobHistoryRepo;
 		this.env = env;
 		this.reportService = reportService;
+		this.reportGenerationResource = reportGenerationResource;
 		this.institutionRepository = institutionRepository;
 		this.dataSource = dataSource;
 		this.dcmsSyncService = dcmsSyncService;
@@ -357,21 +361,37 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 		log.debug("Database synchronizer done. Start generate report tasks.");
-		String instShortCode = null;
-	
-		List<Institution> institutions = institutionRepository.findAll();
-		for (Institution institution : institutions) {
-			if ("Institution".equals(institution.getType())) {
-				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-					instShortCode = "CBC";
-				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-					instShortCode = "CBS";
-				}
-				reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
-						LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
+		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+
+		for (Map.Entry<Long, String> mapEntry : reportService
+				.getAllInstitutionIdAndShortCode().entrySet()) {
+			try {
+				reportGenerationResource.preGenerateReport(LocalDate.now().minusDays(1L).atStartOfDay(),
+						LocalDate.now().minusDays(1L).atTime(23, 59), mapEntry.getKey(),
+						mapEntry.getValue(), null, null, false, false,
+						ReportConstants.CREATED_BY_USER);
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
 			}
 		}
-		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+		
+//		
+//		
+//		List<Institution> institutions = institutionRepository.findAll();
+//		for (Institution institution : institutions) {
+//			if ("Institution".equals(institution.getType())) {
+//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
+//					instCodes.put(institution.getId(), "CBC");
+//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
+//					instCodes.put(institution.getId(), "CBS");
+//				}
+//			}
+//		}
+//		
+//		
+//		reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
+//				LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
+		
 		
 		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
@@ -380,7 +400,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
 			throw e;
 		}
-
 	}
 
 	private Map<String, List<String>> getCardBinMap() throws Exception {

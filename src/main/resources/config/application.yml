@@ -185,7 +185,10 @@ jhipster:
             host: localhost
             port: 5000
             queue-size: 512
-
+    async:
+        core-pool-size: 5 # Initial pool size
+        max-pool-size: 50 # Maximum pool size
+        queue-capacity: 10000 # Queue capacity of the pool
 
 # ===================================================================
 # Application specific properties
