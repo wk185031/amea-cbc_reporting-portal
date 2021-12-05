@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -13,6 +14,9 @@ import java.util.HashMap;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Async;
 
 import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
@@ -35,7 +39,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private EncryptionService encryptionService;
 	private String lastGlAccount;
 	private LocalDate postingDate;
-
+	
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
 	}
@@ -58,16 +62,20 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		errors = 0;
 		this.setFileFormatTmp(this.getFileFormat());
 		
+		insertDcmsIssData(url, username, password);
+
 		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
-		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), 
-				institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, 
-				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_INTER_ACQUIRER_NAME,
-				ReportConstants.VALUE_GLA_INST, ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
+		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
+				ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME,
+				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME,
+				ReportConstants.VALUE_INTER_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST,
+				ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
 				ReportConstants.VALUE_RECV_INST_ID, ReportConstants.VALUE_INTER_RECV_INST_ID));
-		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), 
-				institution, ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME, 
-				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME, ReportConstants.VALUE_INTER_ACQUIRER_NAME,
-				ReportConstants.VALUE_GLA_INST, ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
+		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), institution,
+				ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME,
+				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME,
+				ReportConstants.VALUE_INTER_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST,
+				ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
 				ReportConstants.VALUE_RECV_INST_ID, ReportConstants.VALUE_INTER_RECV_INST_ID));
 
 		setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(getBodyQuery(), institution));
@@ -100,7 +108,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
 		try {
 			connection = DriverManager.getConnection(url, username, password);
-			connection.setAutoCommit(false);			
+			connection.setAutoCommit(false);
 		} catch (Exception e) {
 			errors++;
 			logger.error("Error in establishing database connection: ", e);
@@ -212,5 +220,63 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 	public void setPostingDate(LocalDate postingDate) {
 		this.postingDate = postingDate;
+	}
+
+	private void insertDcmsIssData(String url, String username, String password) {
+
+		truncateDcmsIssData(url, username, password);
+
+		String sql = "INSERT INTO DCMS_ISSUANCE_CARD (SELECT CRD_ID, CRD_NUMBER, CRD_AUDIT_LOG FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} "
+				+ "WHERE CRD_AUDIT_LOG LIKE '%Account Delinked%')";
+
+		sql = sql.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", this.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", this.getDbLink());
+
+		PreparedStatement ps = null;
+
+		try {
+
+			this.connection = DriverManager.getConnection(url, username, password);
+			
+			ps = this.connection.prepareStatement(sql);
+			ps.executeUpdate();
+
+		} catch (Exception e) {
+			logger.error("Error trying to execute insertDcmsIssData", e);
+		} finally {
+			try {
+				ps.close();
+				this.connection.setAutoCommit(true);
+				this.connection.close();
+			} catch (SQLException e) {
+				logger.error("Error closing DB resources", e);
+			}
+		}
+	}
+
+	private void truncateDcmsIssData(String url, String username, String password) {
+
+		String truncateSql = "TRUNCATE TABLE DCMS_ISSUANCE_CARD";
+
+		PreparedStatement ps = null;
+
+		try {
+
+			this.connection = DriverManager.getConnection(url, username, password);
+
+			ps = this.connection.prepareStatement(truncateSql);
+			ps.executeUpdate();
+
+		} catch (Exception e) {
+			logger.error("Error trying to execute truncateDcmsIssData", e);
+		} finally {
+			try {
+				ps.close();
+				this.connection.setAutoCommit(true);
+				this.connection.close();
+			} catch (SQLException e) {
+				logger.error("Error closing DB resources", e);
+			}
+		}
 	}
 }
