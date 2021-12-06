@@ -30,7 +30,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
-import javax.swing.text.BadLocationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -64,7 +63,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.AtmDowntime;
-import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.Task;
@@ -320,10 +318,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	@SuppressWarnings("resource")
 	@PostMapping("/synchronize-database/{user}")
 	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user) throws Exception {
-		log.debug("REST request to Synchronize Database");
+		log.info("synchronizeDatabase: DB URL={}", env.getProperty("spring.datasource.url"));
 
 		try {
-
+	
 		JobHistory incompleteJob = jobHistoryRepo.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
 				ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
 
