@@ -91,7 +91,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 						location = terminalMap.getValue();
 						rgm.setBodyQuery(getTxnBodyQuery());
 						rgm.setTrailerQuery(getTxnTrailerQuery());
-						preProcessing(rgm, branchCode, terminal, "emergencyCash");
+						preProcessing(rgm, branchCode, branchName, terminal, "emergencyCash");
 						line = new StringBuilder();
 						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 								.append(location).append(";");
@@ -147,7 +147,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 						location = terminalMap.getValue();
 						rgm.setBodyQuery(getTxnBodyQuery());
 						rgm.setTrailerQuery(getTxnTrailerQuery());
-						preProcessing(rgm, branchCode, terminal, "payToMobile");
+						preProcessing(rgm, branchCode, branchName, terminal, "payToMobile");
 						line = new StringBuilder();
 						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";")
 								.append(location).append(";");
@@ -185,7 +185,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			for (String branchCode : filterByBranchCode(rgm)) {
 				rgm.setBodyQuery(getSummaryIssuerQuery());
 				rgm.setTrailerQuery(getSummaryIssuerTrailerQuery());
-				preProcessing(rgm, branchCode, null, "issuerSummary");
+				preProcessing(rgm, branchCode, null, null, "issuerSummary");
 				executeBodyQuery(rgm, true);
 			}
 
@@ -212,7 +212,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			for (String branchCode : filterByBranchCode(rgm)) {
 				rgm.setBodyQuery(getSummaryBodyQuery());
 				rgm.setTrailerQuery(getSummaryTrailerQuery());
-				preProcessing(rgm, branchCode, null, "acquirerSummary");
+				preProcessing(rgm, branchCode, null, null, "acquirerSummary");
 				executeBodyQuery(rgm, true);
 			}
 
@@ -302,7 +302,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 
-	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByTerminal,
+	private void preProcessing(ReportGenerationMgr rgm, String filterByBranchCode, String filterByBranchName, String filterByTerminal,
 			String txnType) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In AtmListCardlessWithdrawal.preProcessing()");
 		ReportGenerationFields txnCode = null;
@@ -319,6 +319,13 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			}
+		}
+		
+		if (filterByBranchName != null) {
+			
+			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
+			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null) {

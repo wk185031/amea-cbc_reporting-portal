@@ -568,6 +568,7 @@ UNION ALL
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	WHERE Scr.CRN_INS_ID = {Iss_Id} AND SCR.CRN_STS_ID = 91
 	AND TRUNC(CRD_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scr.CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
 	UNION ALL
 	select CLT.CLT_CIF_NUMBER AS "CIF",
 	''{Iss_Name}'' AS "BANK ID",
