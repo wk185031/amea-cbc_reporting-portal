@@ -177,6 +177,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 						overallTotalOnusOtherBranch += subTotalOnusOtherBranch;
 						overallTotalInterEntity += subTotalInterEntity;
 						overallTotalOtherBank += subTotalOtherBank;
+						overallTotalCashCard += subTotalCashCard;
 						overallTotalMovingCashNow += subTotalMovingCashNow;
 						overallTotalMovingCashJump += subTotalMovingCashJump;
 						overallTotalSum += subTotalSum;
