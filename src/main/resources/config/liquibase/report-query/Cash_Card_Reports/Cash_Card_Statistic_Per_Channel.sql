@@ -1,6 +1,7 @@
 -- Tracking				Date			Name	Description
 -- Rel-20210805			05-Aug-2021		KW		Revise report based on specification
 -- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
+-- CBCAXUPISSLOG-947	13-DEC-2021		GS		Remove reverse transactions
 
 DECLARE
     i_REPORT_NAME VARCHAR2(100) := 'Cash Card Successful and Unsuccessful Statistics per Channel';
@@ -75,6 +76,7 @@ WHERE
     AND TXN.TRL_TSC_CODE not in (26,41,246,250,251,252)
   AND CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
   AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''A'' AND TXNC.TRL_ORIGIN_CHANNEL=''OTC'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
+  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
   AND {Txn_Date}
 UNION ALL 
 SELECT
@@ -118,6 +120,7 @@ WHERE
     )
   AND CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
   AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''A'' AND TXNC.TRL_ORIGIN_CHANNEL=''OTC'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
+  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
   AND txn.trl_tsc_code != 1
   AND {Txn_Date}
 )

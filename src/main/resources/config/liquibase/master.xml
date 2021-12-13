@@ -293,4 +293,5 @@
 	<include file="config/liquibase/changelog/AM_20211206000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20211207000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20211210000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/GS_20211213000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
