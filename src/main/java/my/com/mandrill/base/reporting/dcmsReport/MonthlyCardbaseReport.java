@@ -196,6 +196,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 					}
 
                     for (String key : lineFieldsMap.keySet()) {
+                    	                    	
                         ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
                         Object result;
                         try {
@@ -254,10 +255,12 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                 }
                 
                 for(Map.Entry<String, List<HashMap<String,ReportGenerationFields>>> productMap: productToLineFieldsMap.entrySet()) {
+                	
                 	if (pageHeight > totalHeight) {
 						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
 						contentStream = newPage(rgm, doc, contentStream);
 					}
+                	
                     preProcessingBodyHeader(rgm, productMap.getKey().split(",")[0], productMap.getKey().split(",")[1]);
                                         
                     boolean isSummary = false;
@@ -288,6 +291,10 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                     int grandTotalTotal = 0;
 
                     for(HashMap<String,ReportGenerationFields> m: productMap.getValue()) {
+                    	if (pageHeight > totalHeight) {
+    						pageHeight = PDRectangle.A4.getHeight() - ReportConstants.PAGE_HEIGHT_THRESHOLD;
+    						contentStream = newPage(rgm, doc, contentStream);
+    					}
                     	if(isSummary){
                     		writePdfBodySummary(rgm, m, contentStream, leading);
                     	}
@@ -743,7 +750,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
 
         // replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Id} to actual value
         rgm.setBodyQuery(rgm.getBodyQuery()
-            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+//            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
             .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
             .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
             .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
