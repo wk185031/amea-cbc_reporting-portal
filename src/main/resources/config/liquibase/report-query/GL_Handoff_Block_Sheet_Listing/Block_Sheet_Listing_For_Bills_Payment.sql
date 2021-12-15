@@ -6,6 +6,7 @@
 -- Rel-20210730			30-JUL-2021		KW		Update for CBS
 -- CBCAXUPISSLOG-756	03-AUG-2021		NY		CBS branch header of 8001, instead of 5008
 -- CBCAXUPISSLOG-898	09-SEP-2021		KW		Include all biller for CBS
+-- CBCAXUPISSLOG-947	13-DEC-2021		GS		Remove checking on the deo_name
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(200) := 'Block Sheet Listing For Bills Payment';
@@ -58,7 +59,7 @@ SELECT
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -99,7 +100,7 @@ SELECT
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -139,7 +140,7 @@ i_TRAILER_QUERY_CBC := TO_CLOB('
 	  AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
-      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
+      OR TRL_ISS_NAME={V_Iss_Name})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -167,7 +168,7 @@ i_TRAILER_QUERY_CBC := TO_CLOB('
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
 	  AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -214,7 +215,7 @@ SELECT
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -254,7 +255,7 @@ SELECT
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -293,7 +294,7 @@ i_TRAILER_QUERY_CBS := TO_CLOB('
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND ((TRL_DEO_NAME={V_Deo_Name} and NVL(trl_iss_name, '''') != {V_IE_Iss_Name})
-      OR (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})))
+      OR TRL_ISS_NAME={V_Iss_Name})
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY
@@ -320,7 +321,7 @@ i_TRAILER_QUERY_CBS := TO_CLOB('
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 	GROUP BY

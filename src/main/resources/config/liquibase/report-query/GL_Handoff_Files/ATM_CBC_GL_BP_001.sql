@@ -5,6 +5,7 @@
 -- CBCAXUPISSLOG-742	06-JUL-2021		NY		Sort debit/credit accordingly
 -- Rel-20210730			30-JUL-2021		KW		Cater for CBS
 -- CBCAXUPISSLOG-898	09-SEP-2021		KW		Include all biller for CBS
+-- CBCAXUPISSLOG-947	13-DEC-2021		GS		Remove checking on the deo_name
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(200) := 'ATM CBC GL BP 001';
@@ -67,7 +68,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 )
@@ -117,7 +118,7 @@ WHERE
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND BIL.CBL_SETTLEMENT_TYPE = ''AP''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 ORDER BY
@@ -182,7 +183,7 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 )
@@ -231,7 +232,7 @@ WHERE
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''Bills Payment'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
-      AND (TRL_ISS_NAME={V_Iss_Name} and (NVL(TRL_DEO_NAME, '''') != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id}))
+      AND TRL_ISS_NAME={V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
 ORDER BY
