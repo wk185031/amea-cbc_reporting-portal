@@ -64,7 +64,8 @@ WHERE
       AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE =''0''))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
+      --AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
+	  AND {Channel}
       AND {Bank_Code}
       AND {Txn_Date}
 ORDER BY
@@ -109,7 +110,8 @@ WHERE
       AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE =''0''))
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
+      --AND TXNC.TRL_ORIGIN_CHANNEL IN (''ATM'',''CDM'',''BRM'')
+	  AND {Channel}
       AND {Bank_Code}
       AND {Txn_Date}
 START SELECT
