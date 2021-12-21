@@ -53,7 +53,7 @@ where
   AND DCR_CRN_ID is null
  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
   AND DCR_STS_ID not in (67,69)
-   AND CRD_LIFE_CYCLE NOT IN (5)
+ AND CRD_KIT_NUMBER IS NULL
    AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all
 -- ATM Renew, ATM Replace
@@ -111,7 +111,7 @@ where
   AND CCR_CRN_ID is null
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
- AND CSH_LIFE_CYCLE NOT IN (5)
+ AND CSH_KIT_NUMBER IS NULL
  AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1	  
 UNION ALL
 --CASH CARD RENEW, REPLACE
