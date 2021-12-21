@@ -50,8 +50,7 @@ where
   AND DCR_REQUEST_TYPE = ''Manual''
   AND DCR_STS_ID not in (67,69)
   AND PRS_ID NOT IN (''4'')
-  AND CRD_KIT_NUMBER IS NOT NULL
-  AND CRD_IS_LINKED NOT IN (''1'')
+  AND CRD_LIFE_CYCLE NOT IN (5)
   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- ATM Bulk Upload
@@ -172,8 +171,7 @@ where
   AND PRS_ID NOT IN (''4'')
   AND CCR_REQUEST_TYPE = ''Manual''
   AND CCR_STS_ID not in (67,69)
-  AND CSH_KIT_NUMBER IS NOT NULL
-  AND CSH_IS_LINKED NOT IN (''1'')
+  AND CSH_LIFE_CYCLE NOT IN (5)
   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 -- CashCard Bulk Upload
