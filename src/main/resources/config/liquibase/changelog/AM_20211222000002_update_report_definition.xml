@@ -14,7 +14,7 @@
     <property name="floatType" value="float4" dbms="postgresql, h2"/>
     <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
 
-    <changeSet id="AM_20211220000002_update_report_definition" author="am">
+    <changeSet id="AM_20211222000002_update_report_definition" author="am">
     	<validCheckSum>any</validCheckSum>
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
