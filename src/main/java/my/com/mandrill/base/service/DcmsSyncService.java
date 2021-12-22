@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +89,10 @@ public class DcmsSyncService {
 	private static final String SQL_SELECT_AUDIT_LOG_CC_UPDATE_EMBOSS_NAME = "select CSH_ID, null as CLT_CIF_NUMBER, UEN_CC_INS_ID, UEN_CC_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.SUPPORT_CC_UPDATE_EMBOSS_NAME@{DB_LINK} left join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} on UEN_CC_CSH_ID=CSH_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on UEN_CC_UPDATED_BY=STF_ID or UEN_CC_CREATED_BY=STF_ID where TO_TIMESTAMP(UEN_CC_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS')  > ? and UEN_CC_STS_ID in (88,91)";
 
 	private static final String SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT = "select null as CRD_ID, CLT_CIF_NUMBER, CLT_INS_ID, CLT_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CLT_AUDIT_LOG from {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CLT_UPDATED_BY=STF_ID or CLT_CREATED_BY=STF_ID where CLT_AUDIT_LOG is not null and CLT_UPDATED_TS > ?";
-
+	
+	private static final String SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET = "select null as CRD_ID, null as CTS_CIF, CTS_INS_ID, CTS_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CTS_AUDIT_LOG "
+			+ "from {DB_SCHEMA}.CARD_TRANSACTION_SET@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CTS_UPDATED_BY=STF_ID where CTS_AUDIT_LOG is not null and CTS_UPDATED_TS > ?";
+	
 	private static final String SQL_SELECT_FUNCTION_PATTERN = "select name,config from SYSTEM_CONFIGURATION where name like 'dcms.function.pattern%'";
 
 	private static final String FUNCTION_FETCH_CIF = "Fetch CIF";
@@ -178,24 +182,34 @@ public class DcmsSyncService {
 		if (dcmsIssuanceClientLastUpdatedTs.after(userActivityLastUpdatedTs)) {
 			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", TABLE_ISSUANCE_CLIENT,
 					userActivityLastUpdatedTs, dcmsIssuanceClientLastUpdatedTs);
-			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT, FUNCTION_FETCH_CIF);
+			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT, FUNCTION_FETCH_CIF, false);
 		}
-
+						
+		//sync transaction data
+		Timestamp dcmsTxnSetLastUpdatedTs = getLastUpdatedTs("CARD_TRANSACTION_SET", "CTS_UPDATED_TS",
+				true, false);
+		if (dcmsTxnSetLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", "CARD_TRANSACTION_SET",
+					userActivityLastUpdatedTs, dcmsTxnSetLastUpdatedTs);
+			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET, "UPD TXN SET", true);
+		}
+		
 		log.debug("ELAPSED TIME: syncDcmsUserActivity completed in {}s",
 				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 
 	}
 
 	@Transactional
-	private void syncIssuanceClient(Timestamp userActivityLastUpdatedTs, String sql, String function) {
+	private void syncIssuanceClient(Timestamp userActivityLastUpdatedTs, String sql, String function, boolean isApproveReject) {
 
 		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
 				.getResultList();
 		ObjectMapper mapper = new ObjectMapper();
-
+		log.debug("APPROVED/REJECTED: resultList: {}"+resultList.size());
 		for (Object[] resultRow : resultList) {
 			DcmsUserActivity row = new DcmsUserActivity();
 			Object cardId = resultRow[0];
+			
 			if (cardId != null) {
 				row.setCardId(((BigDecimal) cardId).toBigInteger());
 			}
@@ -241,7 +255,12 @@ public class DcmsSyncService {
 			row.setFunction(function);
 			row.setCashCard(false);
 
-			insertClientActivityLog(row, userActivityLastUpdatedTs, false, mapper);
+			if(isApproveReject){
+				insertApprovedRejectedLog(row, userActivityLastUpdatedTs, false, mapper);
+			}else{
+				insertClientActivityLog(row, userActivityLastUpdatedTs, false, mapper);
+			}
+			
 
 		}
 	}
@@ -283,6 +302,82 @@ public class DcmsSyncService {
 					}
 				}
 
+			} catch (Exception e) {
+				log.warn("Failed to parse audit log for card: cardId={}", clientRow.getCardId(), e);
+			}
+		}
+	}
+	
+	private void insertApprovedRejectedLog(DcmsUserActivity clientRow, Timestamp userActivityLastUpdatedTs,
+			boolean isCashCard, ObjectMapper mapper) {
+		String auditLog = clientRow.getAuditLog();
+		log.debug("APPROVED/REJECTED: auditLog: {}"+auditLog);
+		if (auditLog != null && !auditLog.trim().isEmpty()) {
+			List<Map<String, String>> clientHistories = null;
+			try {
+				clientHistories = mapper.readValue(auditLog, new TypeReference<List<Map<String, String>>>() {
+				});
+				boolean insert = false;
+				String status = "A";
+				String maker = "";
+				Timestamp historyDate = null;
+				DcmsUserActivity activity = new DcmsUserActivity();
+				
+				for (Map<String, String> history : clientHistories) {
+					
+					String description = history.get("description");
+					
+					historyDate = getHistoryDate(history);
+					if (historyDate.after(userActivityLastUpdatedTs)) {
+						
+						if (description != null){
+							
+							if(description.contains("Approved")
+									|| description.contains("Rejected")){
+								insert = true;
+								historyDate = getHistoryDate(history);
+								String createdBy = getMapValueWithKeys(history, "username", "usernam");
+								
+								activity.setCardId(clientRow.getCardId());
+								activity.setInstitutionId(clientRow.getInstitutionId());
+								activity.setCashCard(isCashCard);
+								if (createdBy != null) {
+									activity.setCreatedBy(createdBy);
+								} else {
+									activity.setCreatedBy(clientRow.getCreatedBy());
+								}
+								activity.setCustomerCifNumber(clientRow.getCustomerCifNumber());
+								activity.setCreatedDate(historyDate.toInstant());
+								activity.setDescription(description);
+								activity.setFunction(clientRow.getFunction());
+								activity.setCardKeyRotationNumber(clientRow.getCardKeyRotationNumber());
+								activity.setCardNumberEnc(clientRow.getCardNumberEnc());
+								if(description.contains("Rejected")){
+									status = "R";
+								}								
+							}
+						}
+					}
+					if(description != null && description.contains("raised")){
+						maker = getMapValueWithKeys(history, "username", "usernam");
+					}
+					
+				}
+				
+				if(insert){
+					String jsonString = new JSONObject()
+			                  .put("card_type", "")
+			                  .put("date_update", Timestamp.valueOf(LocalDateTime.from(FORMATTER_DDMMYY.parse(historyDate.toString()))).toInstant())
+			                  .put("maker", maker)
+			                  .put("checker", activity.getCreatedBy())
+			                  .put("status", status)
+			                  .put("ref", status)
+			                  .toString();
+					activity.setDetails(jsonString);
+					log.debug("APPROVED/REJECTED: jsonString: {} "+jsonString);
+					userActivityRepo.save(activity);
+				}
+				
 			} catch (Exception e) {
 				log.warn("Failed to parse audit log for card: cardId={}", clientRow.getCardId(), e);
 			}

@@ -48,6 +48,8 @@ public class DcmsUserActivity implements Serializable {
 	private String cardNumberEnc;
 
 	private String customerCifNumber;
+	
+	private String details;
 
 	@Transient
 	private String auditLog;
@@ -146,6 +148,14 @@ public class DcmsUserActivity implements Serializable {
 
 	public void setCustomerCifNumber(String customerCifNumber) {
 		this.customerCifNumber = customerCifNumber;
+	}
+
+	public String getDetails() {
+		return details;
+	}
+
+	public void setDetails(String details) {
+		this.details = details;
 	}
 
 }
