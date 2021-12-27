@@ -26,28 +26,5 @@
                  path="config/liquibase/report-query/Pay_to_Mobile_Transactions/ATM_List_of_Cardless_Withdrawal.sql"
                  splitStatements="false" 
                  stripComments="true" />
-        <sql> create or replace FUNCTION get_accno
-                (
-                    json_val clob
-                ) 
-                RETURN Varchar2
-                IS
-                    V_DATE_TXN   VARCHAR2(50);
-                BEGIN
-                select name into V_DATE_TXN
-                    from json_table(
-                        json_val,
-                        '$.bankAccountCollection[*]'
-                        columns
-                        (
-                            name varchar2(100 char) path '$.bacAccountNumber',
-                            value varchar2(100 char) path '$.bacOverallDefault'
-                        )
-                    )
-                    where value = 1;
-
-                    RETURN V_DATE_TXN;
-                END;
-</sql>
     </changeSet>
 </databaseChangeLog>
