@@ -37,6 +37,9 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	protected float pageHeight = DEFAULT_PAGE_HEIGHT;
 	protected float totalHeight = PDRectangle.A4.getWidth();
 	protected int pagination = 0;
+	private static String DCMS_ENCRYPTION_KEY = "DCMS_ENCRYPTION_KEY";
+	protected static String DCMS_ROTATION_NUMBER_KEY = "ROTATION_NUMBER";
+	private static String DCMS_INSTITUTION_ID_KEY = "INSTITUTION_ID";
 
 	@Override
 	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
@@ -178,14 +181,21 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
+							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+							String functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
+							logger.debug("keyRotationStr = {} functionName= {}", keyRotationStr, functionName);
 							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							}
+//							else if ("CARD_NO".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+//								field.setValue(extractCardNo(field.getValue(), rgm.getInstitution(), keyRotationStr));
+//							}
+							
 						}
 
-						writePdfBody(rgm, lineFieldsMap, contentStream, leading);
+						writePdfBodyApprovedRejected(rgm, lineFieldsMap, contentStream, leading);
 						pageHeight++;
 						recordCount++;
 					} while (rs.next());
@@ -211,9 +221,18 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		return contentStream;
 	}
 	
-	protected String extractAccountNumberFromJson(String jsonString, String institutionCode) {
+	protected String extractAccountNumberFromJson(String jsonString, String institutionCode, String keyRotationStr) {
 		if (jsonString != null && jsonString.trim().isEmpty()) {
 			return jsonString;
+		}
+//		String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+		int keyRotationNumber = 0;
+		try {
+			if(keyRotationStr!=null){
+				keyRotationNumber = Integer.parseInt(keyRotationStr);
+			}						
+		} catch (NumberFormatException e) {
+			logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY");
 		}
 		String accountListStr = "";
 
@@ -227,17 +246,42 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 					sb.append(",");
 				}
 				//FIXME: How to retrieve rotation key from BAC_ID without hardcode?
-				sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode, 1));
+				sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode, keyRotationNumber));
 			}			
 			accountListStr = sb.toString();
 
 		} catch (Exception e) {
 			logger.debug("Failed to decrypt string:{}", jsonString, e);
+			accountListStr = jsonString;
 		}
 		
 		return accountListStr;
 	}
-
+	
+	protected String extractCardNo(String jsonString, String institutionCode, String rotationKey) {
+		if (jsonString != null && jsonString.trim().isEmpty()) {
+			return jsonString;
+		}
+		String decryptVal = "";
+		int keyRotationNumber = 0;
+		try {
+			if(rotationKey!=null && !rotationKey.isEmpty()){
+				keyRotationNumber = Integer.parseInt(rotationKey);
+			}						
+		} catch (NumberFormatException e) {
+			logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY");
+			return jsonString;
+		}
+		try {			
+			decryptVal = getEncryptionService().decryptDcms(decryptVal, institutionCode, keyRotationNumber);
+		} catch (Exception e) {
+			logger.debug("Failed to decrypt string:{}", jsonString, e);
+			decryptVal = jsonString;
+		}
+		
+		return decryptVal;
+	}
+	
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
@@ -339,13 +383,16 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
+							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
 							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+							} else if ("CARD_NO".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractCardNo(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							}
 						}
-						writeBody(rgm, lineFieldsMap);
+						writeBodyApprovedReject(rgm, lineFieldsMap);
 						recordCount++;
 					} while (rs.next());
 				} else {
@@ -369,6 +416,25 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			}
 		}
 	}
+	
+	protected void writeBodyApprovedReject(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		StringBuilder line = new StringBuilder();
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
+			line.append(field.getDelimiter());
+			if (field.isEol()) {
+				line.append(getEol());
+			}
+		}
+		//line.append(getEol());
+		rgm.writeLine(line.toString().getBytes());
+	}
 
 	protected void addTotalNoOfItemToGlobalParam(int count) {
 		ReportGenerationFields total = new ReportGenerationFields(ReportConstants.TOTAL,
@@ -376,4 +442,21 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		getGlobalFileFieldsMap().put(total.getFieldName(), total);
 	}
 
+	protected void writePdfBodyApprovedRejected(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
+			PDPageContentStream contentStream, float leading)
+					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+		List<ReportGenerationFields> fields = extractBodyFields(rgm);
+		for (ReportGenerationFields field : fields) {
+			if (field.isDecrypt()) {
+				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+
+			if (field.isEol()) {
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream.newLineAtOffset(0, -leading);
+			} else {
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+			}
+		}
+	}
 }

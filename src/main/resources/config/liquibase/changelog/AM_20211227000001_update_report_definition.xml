@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="AM_20211227000001_update_report_definition" author="am">
+    	<validCheckSum>any</validCheckSum>
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/Approved_Rejected_Card.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/Pay_to_Mobile_Transactions/ATM_List_of_Cardless_Withdrawal.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sql> create or replace FUNCTION get_accno
+                (
+                    json_val clob
+                ) 
+                RETURN Varchar2
+                IS
+                    V_DATE_TXN   VARCHAR2(50);
+                BEGIN
+                select name into V_DATE_TXN
+                    from json_table(
+                        json_val,
+                        '$.bankAccountCollection[*]'
+                        columns
+                        (
+                            name varchar2(100 char) path '$.bacAccountNumber',
+                            value varchar2(100 char) path '$.bacOverallDefault'
+                        )
+                    )
+                    where value = 1;
+
+                    RETURN V_DATE_TXN;
+                END;
+</sql>
+    </changeSet>
+</databaseChangeLog>

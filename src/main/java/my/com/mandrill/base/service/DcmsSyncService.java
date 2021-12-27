@@ -4,6 +4,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -90,7 +91,7 @@ public class DcmsSyncService {
 
 	private static final String SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT = "select null as CRD_ID, CLT_CIF_NUMBER, CLT_INS_ID, CLT_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CLT_AUDIT_LOG from {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CLT_UPDATED_BY=STF_ID or CLT_CREATED_BY=STF_ID where CLT_AUDIT_LOG is not null and CLT_UPDATED_TS > ?";
 	
-	private static final String SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET = "select null as CRD_ID, null as CTS_CIF, CTS_INS_ID, CTS_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CTS_AUDIT_LOG "
+	private static final String SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET = "select cts_id as CRD_ID, null as CTS_CIF, CTS_INS_ID, CTS_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CTS_AUDIT_LOG, CTS_NAME "
 			+ "from {DB_SCHEMA}.CARD_TRANSACTION_SET@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CTS_UPDATED_BY=STF_ID where CTS_AUDIT_LOG is not null and CTS_UPDATED_TS > ?";
 	
 	private static final String SQL_SELECT_FUNCTION_PATTERN = "select name,config from SYSTEM_CONFIGURATION where name like 'dcms.function.pattern%'";
@@ -256,6 +257,12 @@ public class DcmsSyncService {
 			row.setCashCard(false);
 
 			if(isApproveReject){
+				if(resultRow[8]!=null){
+					Object ctsName = resultRow[8];
+					if(ctsName!=null){
+						row.setDescription((String)ctsName);
+					}
+				}				
 				insertApprovedRejectedLog(row, userActivityLastUpdatedTs, false, mapper);
 			}else{
 				insertClientActivityLog(row, userActivityLastUpdatedTs, false, mapper);
@@ -321,6 +328,7 @@ public class DcmsSyncService {
 				String status = "A";
 				String maker = "";
 				Timestamp historyDate = null;
+				String ctsName = clientRow.getDescription();
 				DcmsUserActivity activity = new DcmsUserActivity();
 				
 				for (Map<String, String> history : clientHistories) {
@@ -366,12 +374,11 @@ public class DcmsSyncService {
 				
 				if(insert){
 					String jsonString = new JSONObject()
-			                  .put("card_type", "")
-			                  .put("date_update", Timestamp.valueOf(LocalDateTime.from(FORMATTER_DDMMYY.parse(historyDate.toString()))).toInstant())
+			                  .put("cts_name", ctsName)
+			                  .put("date_update", historyDate.toLocalDateTime().format(FORMATTER_DDMMYY))
 			                  .put("maker", maker)
 			                  .put("checker", activity.getCreatedBy())
 			                  .put("status", status)
-			                  .put("ref", status)
 			                  .toString();
 					activity.setDetails(jsonString);
 					log.debug("APPROVED/REJECTED: jsonString: {} "+jsonString);

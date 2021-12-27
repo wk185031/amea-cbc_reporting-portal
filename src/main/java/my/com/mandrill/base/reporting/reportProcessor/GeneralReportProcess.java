@@ -39,9 +39,9 @@ public class GeneralReportProcess {
 
 	private final Logger logger = LoggerFactory.getLogger(GeneralReportProcess.class);
 
-	private static String DCMS_ENCRYPTION_KEY = "DCMS_ENCRYPTION_KEY";
-	private static String DCMS_ROTATION_NUMBER_KEY = "ROTATION_NUMBER";
-	private static String DCMS_INSTITUTION_ID_KEY = "INSTITUTION_ID";
+	protected static String DCMS_ENCRYPTION_KEY = "DCMS_ENCRYPTION_KEY";
+	protected static String DCMS_ROTATION_NUMBER_KEY = "ROTATION_NUMBER";
+	protected static String DCMS_INSTITUTION_ID_KEY = "INSTITUTION_ID";
 
 
 	private EncryptionService encryptionService;
@@ -565,7 +565,69 @@ public class GeneralReportProcess {
 			logger.error("Failed to decrypt value.", e);
 		}
 	}
+	
+	public void decryptValuesApprovedReject(ReportGenerationFields field, HashMap<String, ReportGenerationFields> fieldsMap,
+			HashMap<String, ReportGenerationFields> globalFieldsMap) {
+		ReportGenerationFields decryptedField = null;
+		int ekyId = 0;
+		try {
+			if (fieldsMap.containsKey(field.getFieldName()) && fieldsMap.get(field.getFieldName()).getValue() != null
+					&& fieldsMap.get(field.getFieldName()).getValue().trim().length() > 0
+					&& field.getDecryptionKey() != null && field.getDecryptionKey().trim().length() > 0) {
 
+				if (DCMS_ENCRYPTION_KEY.equals(field.getDecryptionKey())) {
+					int keyRotationNumber = 0;
+					String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+					String encryptedValue = fieldsMap.get(field.getFieldName()).getValue();
+					try {
+						if(keyRotationStr!=null && !keyRotationStr.isEmpty()){
+							keyRotationNumber = Integer.parseInt(keyRotationStr);
+							String institutionCode = fieldsMap.get(DCMS_INSTITUTION_ID_KEY).getValue();
+							
+
+							decryptedField = new ReportGenerationFields(field.getFieldName(),
+									ReportGenerationFields.TYPE_STRING,
+									encryptionService.decryptDcms(encryptedValue, institutionCode, keyRotationNumber));
+						}	
+						else{
+							decryptedField = new ReportGenerationFields(field.getFieldName(),
+									ReportGenerationFields.TYPE_STRING, encryptedValue);
+						}
+					} catch (NumberFormatException e) {
+						logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY");
+					}
+					
+				} else {
+					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
+
+					if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
+						logger.debug("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
+						String decryptedCustomData = encryptionService
+								.decryptAuthenticTag(fieldsMap.get(field.getFieldName()).getValue(), ekyId);
+						logger.debug("decrypted custom data: {}", decryptedCustomData);
+						
+						decryptedField = new ReportGenerationFields(field.getFieldName(),
+								ReportGenerationFields.TYPE_STRING,
+								getTaggedData(decryptedCustomData, field.getTagValue()));
+					} else {
+						decryptedField = new ReportGenerationFields(field.getFieldName(),
+								ReportGenerationFields.TYPE_STRING, encryptionService
+										.decryptAuthenticField(fieldsMap.get(field.getFieldName()).getValue(), ekyId));
+					}
+				}
+			} else {
+				decryptedField = new ReportGenerationFields(field.getFieldName(), ReportGenerationFields.TYPE_STRING,
+						"");
+			}
+
+			if (decryptedField != null) {
+				globalFieldsMap.put(decryptedField.getFieldName(), decryptedField);
+			}
+		} catch (Throwable e) {
+			logger.error("Failed to decrypt value.", e);
+		}
+	}
+	
 	public String getTaggedData(String customData, String tag) {
 		if (customData == null || tag == null) {
 			return null;

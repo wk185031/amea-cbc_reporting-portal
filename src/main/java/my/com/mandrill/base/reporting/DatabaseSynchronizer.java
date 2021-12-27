@@ -215,7 +215,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				try {
 					synchronizeDatabase(ReportConstants.CREATED_BY_USER);
 				} catch (Exception e) {
-					log.error("Exception in nextExecutionTime.", e);
+					log.error("Exception in scheduleSyncDbJob.", e);
 				}
 			}
 		}, new Trigger() {
@@ -228,14 +228,14 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					int hour = calendar.get(Calendar.HOUR_OF_DAY);
 					int minute = calendar.get(Calendar.MINUTE);
 					String cronExp = "0 " + minute + " " + hour + " * * ?";
-					log.debug(cronExp.toString());
+					log.debug("nextExecutionTime {}", cronExp.toString());
 					return new CronTrigger(cronExp).nextExecutionTime(triggerContext);
 				}
 
 				try {
 					createSyncDbJob();
 				} catch (Exception e) {
-					log.error("Exception in nextExecutionTime.", e);
+					log.error("Exception in createSyncDbJob.", e);
 				}
 				return new CronTrigger("0 30 0 * * ?").nextExecutionTime(triggerContext);
 			}

@@ -92,10 +92,12 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 							} else {
 								field.setValue("");
 							}
+							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+							logger.debug("keyRotationStr = {}", keyRotationStr);
 							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution()));
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							}
 						}
 

@@ -202,7 +202,7 @@ WHERE
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
       AND {Branch_Code}
-	  AND {Branch_Name}
+	  AND {Terminal}
       AND {Txn_Criteria}
       AND {Txn_Date}
 START SELECT
