@@ -21,5 +21,10 @@
                  path="config/liquibase/report-query/DCMS_Reports/Approved_Rejected_Card.sql"
                  splitStatements="false" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/Transmittal_Slip_Pin.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
 </databaseChangeLog>
