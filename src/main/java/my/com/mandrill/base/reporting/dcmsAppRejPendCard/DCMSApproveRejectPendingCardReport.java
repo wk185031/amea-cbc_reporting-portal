@@ -179,15 +179,25 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-							String functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
-													
+							boolean isExtractToAccNo = false;
+							
+//							if(field.getFieldName()!=null && "FUNCTION_NAME".equals(field.getFieldName())){
+//								if(field.getValue().equals("ACCOUNT LINKING") || field.getValue().equals("ACCOUNT DE-LINKING")){
+//									isExtractToAccNo = true;
+//								}
+//								if(field.getValue().equals("UPD TXN SET")){
+//									lineFieldsMap.get("CLIENT_NAME").setDecrypt(false);
+//								}
+//							}
+//							if(isExtractToAccNo){
+							String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
 							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								logger.debug("functionName= {}", functionName);
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+								
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							}
+							} 
+//							}
 							
 						}
 
@@ -224,16 +234,17 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 //		String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
 		int keyRotationNumber = 0;
 		try {
-			if(keyRotationStr!=null){
+			if(keyRotationStr!=null && !keyRotationStr.isEmpty()){
 				keyRotationNumber = Integer.parseInt(keyRotationStr);
 			}						
 		} catch (NumberFormatException e) {
-			logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY");
+			logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY: {}", keyRotationNumber);
 		}
 		String accountListStr = "";
 
 		try {
 			StringBuilder sb = new StringBuilder();
+			//FIXME: How to only parse for Account Linking/Delinking
 			JsonNode jsonNode = new  ObjectMapper().readTree(jsonString);
 			List<String> accountList = jsonNode.findValuesAsText("bacAccountNumber");
 			logger.debug("bacAccountNumber = {}", accountList);
@@ -252,7 +263,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				return jsonString;
 			}
 		} catch (Exception e) {
-			logger.debug("Failed to decrypt string:{}", jsonString, e);			
+			logger.warn("Failed to decrypt string:{}", jsonString);			
+			return jsonString;
 		}
 		
 		return accountListStr;
@@ -359,14 +371,29 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-
-							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} 
+							boolean isExtractToAccNo = false;
+						
+//							if(field.getFieldName()!=null && "FUNCTION_NAME".equals(field.getFieldName())){
+//								if(field.getFieldName().equals("ACCOUNT LINKING") || field.getFieldName().equals("ACCOUNT DE-LINKING")){
+//									isExtractToAccNo = true;
+//								}
+//								if(field.getFieldName().equals("UPD TXN SET")){
+//									field.setDecrypt(false);
+//								}
+//							}
+//							if(isExtractToAccNo){
+								String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+								if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+									field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+									
+								} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+									field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+								} 
+//							}
+							
+							
 						}
+//						logger.debug("lineFieldsMap: {}", lineFieldsMap);
 						writeBodyApprovedReject(rgm, lineFieldsMap);
 						recordCount++;
 					} while (rs.next());
@@ -422,6 +449,27 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
+			
+//			boolean isExtractAccNo = false;
+//			boolean isDecrypt = true;
+//			if(field.getFieldName()!=null && field.getFieldName().equals("FUNCTION_NAME") && field.getValue()!=null){
+//				if((field.getValue().equals("UPD TXN SET"))){
+//					isDecrypt = false;
+//				}	
+//				if(field.getValue().equals("ACCOUNT LINKING") || field.getValue().equals("ACCOUNT DE-LINKING")){
+//					isExtractAccNo = true;
+//				}				
+//			}
+//			
+//			if(isExtractAccNo){
+//				String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+//				if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+//					field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+//					
+//				} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+//					field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+//				} 
+//			}
 			
 			if (field.isDecrypt()) {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
