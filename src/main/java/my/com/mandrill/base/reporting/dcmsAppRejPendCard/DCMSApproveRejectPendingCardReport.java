@@ -245,26 +245,28 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		try {
 			StringBuilder sb = new StringBuilder();
 			//FIXME: How to only parse for Account Linking/Delinking
-			JsonNode jsonNode = new  ObjectMapper().readTree(jsonString);
-			List<String> accountList = jsonNode.findValuesAsText("bacAccountNumber");
-			logger.debug("bacAccountNumber = {}", accountList);
-			if(accountList.size()>0){
-				for (int i=0; i<accountList.size(); i++) {
-					if (i > 0) {
-						sb.append(",");
-					}
-					//FIXME: How to retrieve rotation key from BAC_ID without hardcode?
-					sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode, keyRotationNumber));
-				}			
-				accountListStr = sb.toString();
-			}
+			if(jsonString.contains("bacAccountNumber")){
+				JsonNode jsonNode = new  ObjectMapper().readTree(jsonString);
+				List<String> accountList = jsonNode.findValuesAsText("bacAccountNumber");
+				logger.debug("bacAccountNumber = {}", accountList);
+				if(accountList.size()>0){
+					for (int i=0; i<accountList.size(); i++) {
+						if (i > 0) {
+							sb.append(",");
+						}
+						//FIXME: How to retrieve rotation key from BAC_ID without hardcode?
+						sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode, keyRotationNumber));
+					}			
+					accountListStr = sb.toString();
+				}
+			}			
 			else{ 
 				logger.debug("bacAccountNumber not found");
 				return jsonString;
 			}
 		} catch (Exception e) {
 			logger.warn("Failed to decrypt string:{}", jsonString);			
-			return jsonString;
+			// return jsonString;
 		}
 		
 		return accountListStr;
