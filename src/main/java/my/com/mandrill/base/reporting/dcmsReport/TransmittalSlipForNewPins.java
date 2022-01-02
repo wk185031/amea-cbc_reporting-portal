@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -184,7 +185,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
-        HashSet<String> branchSet = new HashSet<String>();
+		LinkedHashSet<String> branchSet = new LinkedHashSet<String>();
         HashMap<String, List<HashMap<String, ReportGenerationFields>>> programToLineFieldsMap = null;
         List< HashMap<String, ReportGenerationFields>> lineFieldsMapList = null;
 		String query = getBodyQuery(rgm);
@@ -235,7 +236,7 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 						}
 
 						if (branchSet == null) {
-							branchSet = new HashSet<String>();
+							branchSet = new LinkedHashSet<String>();
 						}
 
 						if (str == null) {
