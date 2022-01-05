@@ -380,5 +380,6 @@ public final class ReportConstants {
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
 
-	
+	//Report Category
+	public static final String GL_HANDOFF_FILES = "GL Handoff Files";
 }

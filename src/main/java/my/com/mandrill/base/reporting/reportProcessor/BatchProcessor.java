@@ -32,12 +32,19 @@ public class BatchProcessor extends TxtReportProcessor {
 		String fileLocation = rgm.getFileLocation();
         String fileName = "";
 
-		try {
-            //TODO - Please double check this report need to change or not
-            fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
-                rgm.getTxnStartDate(),
-                rgm.getReportTxnEndDate(),
-                ReportConstants.TXT_FORMAT);
+		try {            
+			if(rgm.getReportCategory().equals(ReportConstants.GL_HANDOFF_FILES)){
+								
+				String fileTxnDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+	            fileName = rgm.getFileNamePrefix() + "_" + fileTxnDate + ReportConstants.TXT_FORMAT;
+				
+			}else{
+				//TODO - Please double check this report need to change or not
+				fileName = generateDateRangeOutputFileName(rgm.getFileNamePrefix(),
+		                rgm.getTxnStartDate(),
+		                rgm.getReportTxnEndDate(),
+		                ReportConstants.TXT_FORMAT);
+			}
 
 			if (rgm.errors == 0) {
 				if (fileLocation != null) {
