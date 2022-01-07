@@ -179,17 +179,11 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-							boolean isExtractToAccNo = false;
 							
-//							if(field.getFieldName()!=null && "FUNCTION_NAME".equals(field.getFieldName())){
-//								if(field.getValue().equals("ACCOUNT LINKING") || field.getValue().equals("ACCOUNT DE-LINKING")){
-//									isExtractToAccNo = true;
-//								}
-//								if(field.getValue().equals("UPD TXN SET")){
-//									lineFieldsMap.get("CLIENT_NAME").setDecrypt(false);
-//								}
-//							}
-//							if(isExtractToAccNo){
+							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
+							}
+							
 							String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
 							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
@@ -197,7 +191,6 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
 							} 
-//							}
 							
 						}
 
@@ -270,6 +263,52 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		}
 		
 		return accountListStr;
+	}
+	
+	protected String extractAccountNumberFromCifResponse(String jsonString) {
+		if (jsonString != null && jsonString.trim().isEmpty()) {
+			return jsonString;
+		}
+		
+		String accNo = "";
+		
+		try {
+
+			if(jsonString.contains("bacAccountNumber")){
+				JsonNode jsonBac = new  ObjectMapper().readTree(jsonString);
+				
+//				logger.debug("jsonString: {}", jsonString);
+//				logger.debug("jsonBac: {}", jsonBac);
+				
+				if(jsonBac.isArray()){
+//					logger.debug("jsonBac is Array");
+					for (final JsonNode objNode : jsonBac) {
+						int bacOverallDefault = objNode.get("bacOverallDefault").asInt();
+						
+//						logger.debug("bacOverallDefault: {}", bacOverallDefault);
+						if(bacOverallDefault == 1){
+							return objNode.get("bacAccountNumber").asText();
+						}
+				    }
+				}
+				else{
+					int bacOverallDefault = jsonBac.get("bacOverallDefault").asInt();
+					if(bacOverallDefault == 1){
+						return jsonBac.get("bacAccountNumber").asText();
+					}
+//					logger.debug("bacOverallDefault: {}", bacOverallDefault);
+				}
+			}			
+			else{ 
+				logger.debug("bankAccountCollection not found");
+				return jsonString;
+			}
+		} catch (Exception e) {
+			logger.warn("Failed to extractAccountNumberFromCifResponse:{}", jsonString);			
+			// return jsonString;
+		}
+		
+		return accNo;
 	}
 	
 	private void preProcessing(ReportGenerationMgr rgm)
@@ -373,25 +412,17 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-							boolean isExtractToAccNo = false;
+							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
+							}
 						
-//							if(field.getFieldName()!=null && "FUNCTION_NAME".equals(field.getFieldName())){
-//								if(field.getFieldName().equals("ACCOUNT LINKING") || field.getFieldName().equals("ACCOUNT DE-LINKING")){
-//									isExtractToAccNo = true;
-//								}
-//								if(field.getFieldName().equals("UPD TXN SET")){
-//									field.setDecrypt(false);
-//								}
-//							}
-//							if(isExtractToAccNo){
-								String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-								if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-									field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-									
-								} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-									field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-								} 
-//							}
+							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+								
+							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+							} 
 							
 							
 						}
@@ -451,27 +482,6 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
-			
-//			boolean isExtractAccNo = false;
-//			boolean isDecrypt = true;
-//			if(field.getFieldName()!=null && field.getFieldName().equals("FUNCTION_NAME") && field.getValue()!=null){
-//				if((field.getValue().equals("UPD TXN SET"))){
-//					isDecrypt = false;
-//				}	
-//				if(field.getValue().equals("ACCOUNT LINKING") || field.getValue().equals("ACCOUNT DE-LINKING")){
-//					isExtractAccNo = true;
-//				}				
-//			}
-//			
-//			if(isExtractAccNo){
-//				String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-//				if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-//					field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-//					
-//				} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-//					field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-//				} 
-//			}
 			
 			if (field.isDecrypt()) {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
