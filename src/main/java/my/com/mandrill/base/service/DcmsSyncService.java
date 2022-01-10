@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -74,9 +75,21 @@ public class DcmsSyncService {
 	private static final String COL_DCMS_CC_UPDATE_EMBOSS_NAME_TS = "UEN_CC_UPDATED_TS";
 
 	private static final String TABLE_ISSUANCE_CLIENT = "ISSUANCE_CLIENT";
+	
+	private static final String TABLE_ISSUANCE_MODIFY_CIF = "ISSUANCE_MODIFY_CIF";
+	
+	private static final String TABLE_ISSUANCE_CASH_CARD_ACCOUNT = "ISSUANCE_CASH_CARD_ACCOUNT";
+	
+	private static final String TABLE_ISSUANCE_CASH_CARD_BALANCE = "ISSUANCE_CASH_CARD_BALANCE";
 
 	private static final String COL_DCMS_ISSUANCE_CLIENT_TS = "CLT_UPDATED_TS";
-
+	
+	private static final String COL_DCMS_ISSUANCE_MODIFY_CIF_TS = "MOC_UPDATED_TS";
+	
+	private static final String COL_DCMS_ISSUANCE_CASH_CARD_ACCOUNT_TS = "CAC_UPDATED_TS";
+	
+	private static final String COL_DCMS_ISSUANCE_CASH_CARD_BALANCE_TS = "CCB_UPDATED_TS";
+	
 	private static final String SQL_SELECT_AUDIT_LOG_DEBIT_CARD = "select CRD_ID, CRD_AUDIT_LOG, CRD_INS_ID, CRD_UPDATED_TS, STF_LOGIN_NAME, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CRD_UPDATED_BY=STF_ID or CRD_CREATED_BY=STF_ID where CRD_UPDATED_TS  > ?";
 
 	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD = "select CSH_ID, CSH_AUDIT_LOG, CSH_INS_ID, CSH_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CSH_UPDATED_BY=STF_ID or CSH_CREATED_BY=STF_ID  where CSH_UPDATED_TS  > ?";
@@ -102,9 +115,29 @@ public class DcmsSyncService {
 	
 	private static final String FUNCTION_UPDATE_ADDRESS = "Update Address";
 	
+	private static final String FUNCTION_MODIFY_CIF = "Modify CIF";
+	
+	private static final String FUNCTION_UPDATE_CC_BALANCE = "Update CC Balance";
+	
+	private static final String FUNCTION_UPDATE_CC_ACC_STATUS = "Update CC Acc Sts";
+	
 	private DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	private DateTimeFormatter FORMATTER_DDMMYY = DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss");
+	
+	private static final String RESET_PIN_COUNTER_PATTERN_STR = ".*(Reset Pin).*";
+	
+	private static final Pattern RESET_PIN_COUNTER_PATTERN = Pattern.compile(RESET_PIN_COUNTER_PATTERN_STR);
+	
+	private static final String REPIN_PATTERN_STR = ".*(Repin).*";
+	
+	private static final Pattern REPIN_PATTERN = Pattern.compile(REPIN_PATTERN_STR);
+	
+	private static final String SQL_SELECT_AUDIT_LOG_MODIFY_CIF = "select MOC_AUDIT_LOGS, MOC_INS_ID, MOC_UPDATED_TS, STF_LOGIN_NAME, MOC_CIF_NUMBER from {DB_SCHEMA}.ISSUANCE_MODIFY_CIF@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on MOC_CREATED_BY=STF_ID where MOC_UPDATED_TS  > ? ";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD_BALANCE = "select CSH_ID, CCB_AUDIT_LOG, CCB_INS_ID, TO_TIMESTAMP (CCB_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS'), STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD_BALANCE@{DB_LINK} join {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK} ON CAM_ID = CCB_CAM_ID join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} ON CSH_ID = CAM_CSH_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CCB_UPDATED_BY=STF_ID where TO_TIMESTAMP(CCB_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS') > ? AND CCB_AUDIT_LOG IS NOT NULL ";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD_ACC_STATUS = "select CSH_ID, CAC_AUDIT_LOG, CAC_INS_ID, CAC_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK} join {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK} on CAM_CAC_ID = CAC_ID join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} ON CSH_ID = CAM_CSH_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CAC_UPDATED_BY=STF_ID where CAC_UPDATED_TS > ? AND CAC_AUDIT_LOG IS NOT NULL ";
 
 	public void syncDcmsUserActivity() {
 		Timestamp userActivityLastUpdatedTs = getLastUpdatedTs(TABLE_LOCAL_USER_ACTIVITY,
@@ -193,6 +226,33 @@ public class DcmsSyncService {
 			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", "CARD_TRANSACTION_SET",
 					userActivityLastUpdatedTs, dcmsTxnSetLastUpdatedTs);
 			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET, "UPD TXN SET", true);
+		}
+		
+		//sync modify CIF
+		Timestamp dcmsModifyCIFLastUpdatedTs = getLastUpdatedTs(TABLE_ISSUANCE_MODIFY_CIF, COL_DCMS_ISSUANCE_MODIFY_CIF_TS,
+				true, false);
+		if (dcmsModifyCIFLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", TABLE_ISSUANCE_MODIFY_CIF,
+					userActivityLastUpdatedTs, dcmsModifyCIFLastUpdatedTs);
+			syncIssuanceModifyCIF(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_MODIFY_CIF, FUNCTION_MODIFY_CIF, patternConfigList);
+		}
+		
+		//sync update cash card balance
+		Timestamp dcmsCCBalanceLastUpdatedTs = getLastUpdatedTs(TABLE_ISSUANCE_CASH_CARD_BALANCE, COL_DCMS_ISSUANCE_CASH_CARD_BALANCE_TS,
+				true, false);
+		if (dcmsCCBalanceLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", TABLE_ISSUANCE_CASH_CARD_BALANCE,
+					userActivityLastUpdatedTs, dcmsCCBalanceLastUpdatedTs);
+			syncIssuanceCashCardAccStatBalance(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CASH_CARD_BALANCE, FUNCTION_UPDATE_CC_BALANCE, patternConfigList);
+		}
+		
+		//sync update cash card account status
+		Timestamp dcmsCCAccStatLastUpdatedTs = getLastUpdatedTs(TABLE_ISSUANCE_CASH_CARD_ACCOUNT, COL_DCMS_ISSUANCE_CASH_CARD_ACCOUNT_TS,
+				true, false);
+		if (dcmsCCBalanceLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", COL_DCMS_ISSUANCE_CASH_CARD_ACCOUNT_TS,
+					userActivityLastUpdatedTs, dcmsCCAccStatLastUpdatedTs);
+			syncIssuanceCashCardAccStatBalance(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CASH_CARD_ACC_STATUS, FUNCTION_UPDATE_CC_ACC_STATUS, patternConfigList);
 		}
 		
 		log.debug("ELAPSED TIME: syncDcmsUserActivity completed in {}s",
@@ -480,6 +540,63 @@ public class DcmsSyncService {
 		}
 
 	}
+	
+	
+	@Transactional
+	private void syncIssuanceModifyCIF(Timestamp userActivityLastUpdatedTs, String sql, String function, Map<String, Pattern> patternConfigList) {
+
+		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
+				.getResultList();
+		// List<DcmsUserActivity> recentUpdatedCards = new ArrayList<>();
+		ObjectMapper mapper = new ObjectMapper();
+
+		for (Object[] resultRow : resultList) {
+			DcmsUserActivity row = new DcmsUserActivity();
+//			row.setCardId(((BigDecimal) resultRow[0]).toBigInteger());
+			Clob auditLogRaw = (Clob) resultRow[0];
+			if (auditLogRaw != null) {
+				row.setAuditLog(clobToString(auditLogRaw));
+			}
+			row.setInstitutionId(((BigDecimal) resultRow[1]).toBigInteger());
+			row.setCreatedDate(((Timestamp) resultRow[2]).toInstant());
+			row.setCreatedBy((String) resultRow[3]);
+			row.setCustomerCifNumber((String) resultRow[4]);
+			row.setFunction(function);
+			
+			insertActivityLog(row, userActivityLastUpdatedTs, patternConfigList, false, mapper);
+		}
+	}
+	
+	@Transactional
+	private void syncIssuanceCashCardAccStatBalance(Timestamp userActivityLastUpdatedTs, String sql, String function, Map<String, Pattern> patternConfigList) {
+
+		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
+				.getResultList();
+		// List<DcmsUserActivity> recentUpdatedCards = new ArrayList<>();
+		ObjectMapper mapper = new ObjectMapper();
+		
+		for (Object[] resultRow : resultList) {
+			DcmsUserActivity row = new DcmsUserActivity();
+			row.setCardId(((BigDecimal) resultRow[0]).toBigInteger());
+			Clob auditLogRaw = (Clob) resultRow[1];
+			if (auditLogRaw != null) {
+				row.setAuditLog(clobToString(auditLogRaw));
+			}
+			row.setInstitutionId(((BigDecimal) resultRow[2]).toBigInteger());
+			row.setCreatedDate(((Timestamp) resultRow[3]).toInstant());
+			row.setCreatedBy((String) resultRow[4]);
+			row.setCardNumberEnc((String) resultRow[5]);
+			Object keyRotationNumber = resultRow[6];
+			if (keyRotationNumber != null) {
+				row.setCardKeyRotationNumber(((BigDecimal) resultRow[6]).intValue());
+			}
+			
+			row.setFunction(function);
+			
+			insertActivityLog(row, userActivityLastUpdatedTs, patternConfigList, true, mapper);
+		}
+
+	}
 
 	private void insertActivityLog(DcmsUserActivity cardRow, Timestamp userActivityLastUpdatedTs,
 			Map<String, Pattern> patternConfigList, boolean isCashCard, ObjectMapper mapper) {
@@ -509,7 +626,8 @@ public class DcmsSyncService {
 							}
 							activity.setCustomerCifNumber(cardRow.getCustomerCifNumber());
 							activity.setCreatedDate(historyDate.toInstant());
-							activity.setDescription(description);
+							activity.setDescription(function.equalsIgnoreCase(FUNCTION_MODIFY_CIF)? 
+									getActivityDescription(function, description, cardRow.getCustomerCifNumber()) : description);
 							activity.setFunction(function);
 							activity.setCardKeyRotationNumber(cardRow.getCardKeyRotationNumber());
 							activity.setCardNumberEnc(cardRow.getCardNumberEnc());
@@ -568,14 +686,24 @@ public class DcmsSyncService {
 
 	private String determineSupportFunction(String description, Map<String, Pattern> patternConfigList) {
 		for (Map.Entry<String, Pattern> pattern : patternConfigList.entrySet()) {
-
-			if (pattern.getValue().matcher(description).matches()) {
-				log.debug("Match pattern: description={}, pattern = {} -> SUCCESS!", description,
-						pattern.getValue().pattern());
-				return pattern.getKey().substring(pattern.getKey().lastIndexOf(".") + 1).replace("_", " ");
-			} else {
-				log.trace("Match pattern: description={}, pattern = {} -> FAILED!", description,
-						pattern.getValue().pattern());
+			
+			if (description != null) {
+				if (pattern.getValue().matcher(description).matches()) {
+					log.debug("Match pattern: description={}, pattern = {} -> SUCCESS!", description,
+							pattern.getValue().pattern());
+					
+					String function = pattern.getKey().substring(pattern.getKey().lastIndexOf(".") + 1).replace("_", " ");
+					
+					if (function.matches(".*Change Card Status") && RESET_PIN_COUNTER_PATTERN.matcher(description).matches()) {
+						return "Reset Pin Counter";
+					}else {
+						return function;
+					}
+					
+				} else {
+					log.trace("Match pattern: description={}, pattern = {} -> FAILED!", description,
+							pattern.getValue().pattern());
+				}
 			}
 		}
 		return null;
@@ -622,7 +750,7 @@ public class DcmsSyncService {
 	private Map<String, Pattern> getListOfSupportPatterns() {
 		Query q = em.createNativeQuery(SQL_SELECT_FUNCTION_PATTERN);
 
-		Map<String, Pattern> supportPatternConfigs = new HashMap<>();
+		Map<String, Pattern> supportPatternConfigs = new TreeMap<>();
 
 		List<Object[]> patterns = q.getResultList();
 		for (Object[] config : patterns) {
@@ -630,7 +758,7 @@ public class DcmsSyncService {
 			String configValue = config[1].toString();
 			String function = configName.substring(configName.lastIndexOf(".") + 1).replace("_", " ");
 			Pattern p = Pattern.compile(configValue);
-
+			
 			supportPatternConfigs.put(function, p);
 		}
 
@@ -670,5 +798,17 @@ public class DcmsSyncService {
 		}
 
 		return sb.toString();
+	}
+	
+	private String getActivityDescription(String function, String originalDescription, String newValue) {
+		
+		StringBuilder sb = new StringBuilder(originalDescription);
+		
+		if (function.equalsIgnoreCase(FUNCTION_MODIFY_CIF)){
+			sb = sb.append(" to " + newValue);
+			return sb.toString();
+		}else {
+			return originalDescription;
+		}
 	}
 }

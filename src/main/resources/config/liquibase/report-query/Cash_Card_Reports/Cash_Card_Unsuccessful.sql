@@ -75,7 +75,7 @@ BEGIN
       )
       AND TXN.TRL_TSC_CODE not in (26,41,246,250,251,252)
   	  AND CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
-  	  AND (TXN.TRL_TQU_ID = ''F''  OR (TXN.TRL_TQU_ID = ''A'' AND TXNC.TRL_ORIGIN_CHANNEL=''OTC''))
+  	  AND (TXN.TRL_TQU_ID = ''F''  )
   	  AND TXN.TRL_ACTION_RESPONSE_CODE != 0
   	  AND {Txn_Date}
   	UNION ALL 
@@ -121,7 +121,7 @@ BEGIN
           OR (TXNC.TRL_ORIGIN_CHANNEL != ''BNT'' AND TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345'')
       )
       AND CPD.CPD_CODE IN (''80'',''81'',''82'',''83'')
-  	  AND (TXN.TRL_TQU_ID = ''F''  OR (TXN.TRL_TQU_ID = ''A'' AND TXNC.TRL_ORIGIN_CHANNEL=''OTC''))
+  	  AND (TXN.TRL_TQU_ID = ''F''  )
   	  AND txn.trl_tsc_code != 1
   	  AND TXN.TRL_ACTION_RESPONSE_CODE != 0
   	  AND {Txn_Date}
