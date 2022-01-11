@@ -44,7 +44,7 @@ BEGIN
 	  left join CBC_TRAN_CODE CTR on TXN.TRL_TSC_CODE=CTR.CTR_CODE and TXNC.TRL_ORIGIN_CHANNEL=CTR.CTR_CHANNEL 
 	where 
 	  CPD.CPD_CODE in (''80'', ''81'', ''82'', ''83'')
-      AND (TXN.TRL_TQU_ID = ''F'' OR (TXN.TRL_TQU_ID = ''A'' AND TXNC.TRL_ORIGIN_CHANNEL=''OTC''))  
+      AND (TXN.TRL_TQU_ID = ''F'' )  
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
 	  AND TXN.TRL_SYSTEM_TIMESTAMP < {Txn_End_Date}
 	group by 
