@@ -512,9 +512,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		log.debug("sync full table:{}, sql={}", table, insertSql);
 		try {
-			stmt = conn.prepareStatement("truncate table " + table);
-			stmt.execute();
-
+			stmt = conn.prepareStatement("delete from " + table);
+			int deletedCount = stmt.executeUpdate();
+			log.debug("{} records deleted from {}", deletedCount, table);
+			
 			stmt1 = conn.prepareStatement(insertSql);
 			stmt1.execute();
 
