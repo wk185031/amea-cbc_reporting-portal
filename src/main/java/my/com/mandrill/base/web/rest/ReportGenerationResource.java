@@ -855,9 +855,9 @@ public class ReportGenerationResource {
 				if (reportCategoryId.equals(new Long(0))) {
 
 					branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
-							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode);
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(), branchCode);
 					branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
-							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode + ".zip");
+							institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(), branchCode + ".zip");
 
 					List<String> filesListInDir = new ArrayList<String>();
 					List<File> directoryList = new ArrayList<>();
@@ -903,24 +903,68 @@ public class ReportGenerationResource {
 					}
 				} else {
 					// job having specific report category
-
+					logger.debug("reportName " + reportName);
 					// job having specific report
 					if (!reportName.equalsIgnoreCase("All")) {
 
 						ReportCategory reportCategory = reportCategoryRepository.findOne(reportCategoryId);
-						Path outputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
-								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode,
+						branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
+								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(), branchCode,
+								reportCategory.getName(), reportName);
+						branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
+								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(), branchCode,
 								reportCategory.getName(), reportName + ".zip");
 
-						logger.debug(outputZipFile.toString());
-						resource = new FileSystemResource(outputZipFile.toFile());
+						List<String> filesListInDir = new ArrayList<String>();
+						List<File> directoryList = new ArrayList<>();
+
+						File branchDirectory = new File(branchOutputPath.toString());
+
+						File directory = new File(branchOutputPath.toString());
+						filesListInDir = populateFilesList(directory, filesListInDir);
+						directoryList.add(directory);
+
+						String zipFile = branchOutputZipFile.toString();
+
+						byte[] buffer = new byte[1024];
+						FileOutputStream fout = null;
+						ZipOutputStream zout = null;
+
+						try {
+
+							fout = new FileOutputStream(zipFile);
+							zout = new ZipOutputStream(fout);
+
+							for (int j = 0; j < filesListInDir.size(); j++) {
+								logger.debug("Zipping " + filesListInDir.get(j));
+								zout.putNextEntry(new ZipEntry(
+										filesListInDir.get(j).substring(branchDirectory.getAbsolutePath().length() - 4,
+												filesListInDir.get(j).length())));
+
+								FileInputStream fin = new FileInputStream(filesListInDir.get(j));
+								int length;
+								while ((length = fin.read(buffer)) > 0) {
+									zout.write(buffer, 0, length);
+								}
+								zout.closeEntry();
+								fin.close();
+							}
+							zout.close();
+							fout.close();
+							resource = new FileSystemResource(branchOutputZipFile.toFile());
+						} catch (IOException e) {
+							e.printStackTrace();
+						} finally {
+							IOUtils.closeQuietly(zout);
+							IOUtils.closeQuietly(fout);
+						}
 					}
 					// job having 'All' reports from given category
 					else {
 						branchOutputPath = Paths.get(env.getProperty("application.reportDir.path"),
-								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, branchCode);
+								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(), branchCode);
 						branchOutputZipFile = Paths.get(env.getProperty("application.reportDir.path"),
-								institutionId.toString(), reportYear + '-' + reportMonth, reportDay,
+								institutionId.toString(), reportYear + '-' + reportMonth, reportDay, jobId.toString(),
 								branchCode + ".zip");
 
 						List<String> filesListInDir = new ArrayList<String>();
