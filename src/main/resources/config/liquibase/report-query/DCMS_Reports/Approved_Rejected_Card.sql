@@ -171,7 +171,7 @@ BEGIN
 		Select
 			''CARD RENEWAL'' As FUNCTION_NAME,
 			''DEBIT'' AS CARD_TYPE,
-			TO_CHAR(TO_TIMESTAMP(Scr.CRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+			TO_CHAR(TO_TIMESTAMP(Scr.CRN_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 			Ic.CRD_NUMBER_ENC,
 			INS.INS_CODE AS INSTITUTION_ID,
 			Ic.CRD_KEY_ROTATION_NUMBER ROTATION_NUMBER,
@@ -184,15 +184,15 @@ BEGIN
 			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
 		From
 			{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
-			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
-			Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+			Left Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
+			Left Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS}  Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 			Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Scr.Crn_Sts_Id=Ms.Sts_Id
 			JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CRN_UPDATED_BY
 		Where
-			To_Date(Scr.CRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-			AND STS_ID IN (90, 91)
+			To_Date(Scr.CRN_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			AND STS_ID IN (88, 90, 91)
 			And Scr.Crn_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
 		UNION ALL
@@ -340,7 +340,7 @@ BEGIN
 		Select
 			''CC CARD RENEWAL'' FUNCTION_NAME,
 			''CASH'' AS CARD_TYPE,
-			TO_CHAR(TO_TIMESTAMP(Sccr.CC_CRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+			TO_CHAR(TO_TIMESTAMP(Sccr.CC_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
 			ICC.CSH_CARD_NUMBER, 
 			INS.INS_CODE AS INSTITUTION_ID,
 			ICC.CSH_KEY_ROTATION_NUMBER ROTATION_NUMBER,
@@ -360,8 +360,8 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CRN_UPDATED_BY
 		Where
-			To_Date(Sccr.CC_CRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
-			AND STS_ID IN (90, 91)
+			To_Date(Sccr.CC_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			AND STS_ID IN (88, 90, 91)
 			And Sccr.Cc_Crn_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
 		UNION ALL
@@ -622,22 +622,23 @@ BEGIN
 			''FETCH CIF'' As FUNCTION_NAME,
 			''DEBIT'' AS CARD_TYPE,
 			TO_CHAR(TO_TIMESTAMP(FCR.FCR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
-			Ic.CRD_NUMBER_ENC,
+			FCR.FCR_REQ_ID,
 			INS.INS_CODE AS INSTITUTION_ID,
-			COALESCE(Ic.CRD_KEY_ROTATION_NUMBER, 0) ROTATION_NUMBER,
+			COALESCE(CLT.CLT_KEY_ROTATION_NO, 0) ROTATION_NUMBER,
 			STF1.STF_LOGIN_NAME As Maker,
 			STF2.STF_LOGIN_NAME As Checker,
 			FCR.FCR_COMMENT As Remarks,
-			Ic.Crd_Cardholder_Name As CLIENT_NAME,
+			CLT.CLT_FIRST_NAME As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
 			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
 		From
 			{DCMS_Schema}.SUPPORT_FETCH_CIF_REQUEST@{DB_LINK_DCMS} FCR
-			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On FCR.FCR_CLT_ID = Iccm.Ccm_CLT_Id
-			Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+			--Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On FCR.FCR_CLT_ID = Iccm.Ccm_CLT_Id
+			--Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+			Join {DCMS_Schema}.Issuance_Client@{DB_LINK_DCMS} CLT on FCR.FCR_CLT_ID = CLT.CLT_ID
 			Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On FCR.FCR_STS_ID=Ms.Sts_Id
-			JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+			JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON FCR.FCR_INS_ID = INS.INS_ID
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = FCR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = FCR_UPDATED_BY
 		Where
