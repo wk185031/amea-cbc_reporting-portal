@@ -9,15 +9,17 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+
+import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.Async;
 
+import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.reportProcessor.ICsvReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
@@ -39,6 +41,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private EncryptionService encryptionService;
 	private String lastGlAccount;
 	private LocalDate postingDate;
+	private long jobId;
 	
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
@@ -54,6 +57,62 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 	public void setFixTrailerQuery(String fixTrailerQuery) {
 		this.fixTrailerQuery = fixTrailerQuery;
+	}
+	
+	public long getJobId() {
+		return jobId;
+	}
+
+	public void setJobId(long jobId) {
+		this.jobId = jobId;
+	}
+	
+	@Deprecated
+	public void run(DataSource ds) throws ReportGenerationException {
+		logger.debug("In ReportGenerationMgr.run()");
+		errors = 0;
+		this.setFileFormatTmp(this.getFileFormat());
+		
+		insertDcmsIssData(ds);
+
+		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
+		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
+				ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME,
+				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME,
+				ReportConstants.VALUE_INTER_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST,
+				ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
+				ReportConstants.VALUE_RECV_INST_ID, ReportConstants.VALUE_INTER_RECV_INST_ID));
+		setTrailerQuery(CriteriaParamsUtil.replaceInstitution(getTrailerQuery(), institution,
+				ReportConstants.VALUE_DEO_NAME, ReportConstants.VALUE_INTER_DEO_NAME, ReportConstants.VALUE_ISSUER_NAME,
+				ReportConstants.VALUE_INTER_ISSUER_NAME, ReportConstants.VALUE_ACQUIRER_NAME,
+				ReportConstants.VALUE_INTER_ACQUIRER_NAME, ReportConstants.VALUE_GLA_INST,
+				ReportConstants.VALUE_ACQR_INST_ID, ReportConstants.VALUE_INTER_ACQR_INST_ID,
+				ReportConstants.VALUE_RECV_INST_ID, ReportConstants.VALUE_INTER_RECV_INST_ID));
+
+		setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(getBodyQuery(), institution));
+		setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(getTrailerQuery(), institution));
+
+		setFixBodyQuery(getBodyQuery());
+		setFixTrailerQuery(getTrailerQuery());
+
+		if (this.getFileFormatTmp().contains(ReportConstants.FILE_PDF)) {
+			initialiseDBConnection(ds);
+			this.setFileFormat(ReportConstants.FILE_PDF);
+			createPdfReportInstance(this);
+			pdfReportProcessor.processPdfRecord(this);
+		}
+		if (this.getFileFormatTmp().contains(ReportConstants.FILE_CSV)) {
+			initialiseDBConnection(ds);
+			this.setFileFormat(ReportConstants.FILE_CSV);
+			createCsvReportInstance(this);
+			csvReportProcessor.processCsvRecord(this);
+		}
+		if (this.getFileFormatTmp().contains(ReportConstants.FILE_TXT)) {
+			initialiseDBConnection(ds);
+			this.setFileFormat(ReportConstants.FILE_TXT);
+			createTxtReportInstance(this);
+			txtReportProcessor.processTxtRecord(this);
+		}
 	}
 
 	@Deprecated
@@ -101,6 +160,17 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			this.setFileFormat(ReportConstants.FILE_TXT);
 			createTxtReportInstance(this);
 			txtReportProcessor.processTxtRecord(this);
+		}
+	}
+	
+	public void initialiseDBConnection(DataSource ds) {
+		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
+		try {
+			connection = ds.getConnection();
+			connection.setAutoCommit(false);
+		} catch (Exception e) {
+			errors++;
+			logger.error("Error in establishing database connection: ", e);
 		}
 	}
 
@@ -278,5 +348,92 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 				logger.error("Error closing DB resources", e);
 			}
 		}
+	}
+	
+	private void insertDcmsIssData(DataSource ds) {
+
+		truncateDcmsIssData(ds);
+
+		String sql = "INSERT INTO DCMS_ISSUANCE_CARD (SELECT CRD_ID, CRD_NUMBER, CRD_AUDIT_LOG FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} "
+				+ "WHERE CRD_AUDIT_LOG LIKE '%Account Delinked%')";
+
+		sql = sql.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", this.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", this.getDbLink());
+
+		PreparedStatement ps = null;
+
+		try {
+
+			this.connection = ds.getConnection();
+			
+			ps = this.connection.prepareStatement(sql);
+			ps.executeUpdate();
+
+		} catch (Exception e) {
+			logger.error("Error trying to execute insertDcmsIssData", e);
+		} finally {
+			try {
+				ps.close();
+				this.connection.setAutoCommit(true);
+				this.connection.close();
+			} catch (SQLException e) {
+				logger.error("Error closing DB resources", e);
+			}
+		}
+	}
+
+	private void truncateDcmsIssData(DataSource ds) {
+
+		String truncateSql = "TRUNCATE TABLE DCMS_ISSUANCE_CARD";
+
+		PreparedStatement ps = null;
+
+		try {
+
+			this.connection = ds.getConnection();
+
+			ps = this.connection.prepareStatement(truncateSql);
+			ps.executeUpdate();
+
+		} catch (Exception e) {
+			logger.error("Error trying to execute truncateDcmsIssData", e);
+		} finally {
+			try {
+				ps.close();
+				this.connection.setAutoCommit(true);
+				this.connection.close();
+			} catch (SQLException e) {
+				logger.error("Error closing DB resources", e);
+			}
+		}
+	}
+
+	public static ReportGenerationMgr create(String instShortCode, boolean manualGenerate,
+			LocalDateTime inputStartDateTime, Environment env, EncryptionService encryptionService, ReportDefinition def) {
+		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		reportGenerationMgr.setInstitution(instShortCode);
+		reportGenerationMgr.setGenerate(manualGenerate);
+		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
+		reportGenerationMgr.setYesterdayDate(LocalDate.now().minusDays(1L));
+		reportGenerationMgr.setDcmsDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_DCMS));
+		reportGenerationMgr.setDbLink(env.getProperty(ReportConstants.DB_LINK_DCMS));
+		reportGenerationMgr.setAuthenticDbSchema(env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC));
+		reportGenerationMgr.setAuthenticDbLink(env.getProperty(ReportConstants.DB_LINK_AUTHENTIC));
+		reportGenerationMgr.setEncryptionService(encryptionService);
+		
+		if (def != null) {
+			reportGenerationMgr.setReportCategory(def.getReportCategory().getName());
+			reportGenerationMgr.setFileName(def.getName());
+			reportGenerationMgr.setFileFormat(def.getFileFormat());
+			reportGenerationMgr.setProcessingClass(def.getProcessingClass());
+			reportGenerationMgr.setHeaderFields(def.getHeaderFields());
+			reportGenerationMgr.setBodyFields(def.getBodyFields());
+			reportGenerationMgr.setTrailerFields(def.getTrailerFields());
+			reportGenerationMgr.setFrequency(def.getFrequency());
+			reportGenerationMgr.setBodyQuery(def.getBodyQuery());
+			reportGenerationMgr.setTrailerQuery(def.getTrailerQuery());
+		}
+
+		return reportGenerationMgr;
 	}
 }

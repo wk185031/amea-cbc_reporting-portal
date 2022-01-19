@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.JobHistoryDetails;
@@ -42,7 +43,6 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
-import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.service.util.BusinessDay;
@@ -55,27 +55,27 @@ public class ReportService {
 
 	@Autowired
 	private Environment env;
-	
-	@Autowired
-	private ReportCategoryRepository reportCategoryRepository;
-
-	@Autowired
-	private ReportDefinitionRepository reportDefinitionRepository;
 
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
-
+	
 	@Autowired
-	private EncryptionService encryptionService;
-		
+	private ReportCategoryRepository reportCategoryRepository;
+	
 	@Autowired
-	private JobRepository jobRepository;
+	private ReportDefinitionRepository reportDefinitionRepository;
 	
 	@Autowired
 	private JobHistoryRepository jobHistoryRepository;
 		
 	@Autowired
 	private InstitutionRepository institutionRepository;
+	
+	@Autowired
+	private EncryptionService encryptionService;
+	
+	@Autowired
+	private ReportAsyncService reportAsyncService;
 	
 	@Autowired
 	private EntityManager em;
@@ -95,8 +95,111 @@ public class ReportService {
 		transactionTemplate = new TransactionTemplate(transactionManager);
 	}
 	
+	public void generateReport(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, Long reportCategoryId,
+			Long reportId, boolean manualGenerate, String reportFrequency, Long institutionId, String user) {
+
+		//TODO: move to execute job
+		// Check db sync job is in progress
+		if (isDbSyncRunning()) {
+			throw new IllegalStateException("Database sync is in progress. Please try again later.");
+		}
+		
+		// Get list of reports to generate
+		String institutionCode = findInstitutionCode(institutionId);
+		Optional<List<LocalDate>> holidays = getHolidayList();
+		List<ReportDefinition> aList = getReportsByCategoryIdOrReportId(reportCategoryId, reportId, institutionId, reportFrequency);
+		
+		for (ReportDefinition def : aList) {
+			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(), inputStartDateTime.toLocalDate(),
+					holidays)) {
+				log.debug("Skip report generation [reportId={}, reportName={}]", def.getId(), def.getName());
+				continue;
+			} else {
+				ReportGenerationMgr mgr = ReportGenerationMgr.create(institutionCode, manualGenerate, inputStartDateTime,
+						env, encryptionService, def);
+				handleExceptionFilePrefix(mgr, def.getFileNamePrefix(), inputStartDateTime,
+						inputEndDateTime);
+				try {
+					reportAsyncService.runReport(mgr);
+				} catch (Exception e) {
+					// update failed status in job history
+				}				
+			}
+		}
+		
+		
+		
+		// Is Daily/Monthly 
+		// Update job history status to IN PROGRESS: Daily + Monthly
+		// Loop reports:
+			// handleExceptionFilePrefix
+			// check holiday
+			// create ReportMgr
+			// run report
+			// update job status
+		
+	}
+
+	public boolean isDbSyncRunning() {
+		JobHistory dbsyncJob = jobHistoryRepository.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
+				ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
+		if (dbsyncJob != null) {
+			return true;
+		}
+		return false;
+	}
+	
+	private String findInstitutionCode(Long institutionId) {
+
+		Institution inst = institutionRepository.findOne(institutionId);
+		if (ReportConstants.CBS_INSTITUTION.equals(inst.getName())) {
+			return "CBS";
+		} else {
+			return "CBC";
+		}
+	}
+	
+	private boolean skipReportGeneration(boolean isManualGenerate, boolean isFinancialReport, LocalDate reportStartDate, Optional<List<LocalDate>> holidays) {		
+		boolean isWorkingDay = BusinessDay.isWorkingDay(reportStartDate, holidays);
+		boolean toSkip = !isManualGenerate && isFinancialReport && !isWorkingDay;
+		
+		log.debug("skipReportGeneration [reportStartDate={}, isManualGenerate={}, isFinancialReport={}, isWorkingDay={}] => {}", reportStartDate, isManualGenerate, isFinancialReport, isWorkingDay, toSkip);
+		
+		return toSkip;
+	}
+	
+	private List<ReportDefinition> getReportsByCategoryIdOrReportId(Long reportCategoryId, Long reportId, Long institutionId, String frequency) {
+		if (reportCategoryId == null || reportCategoryId <= 0) {
+			if (frequency != null) {
+				return reportDefinitionRepository.findByInstitutionIdAndFrequencyContainsOrderByName(institutionId, frequency);
+			} else {
+				return reportDefinitionRepository.findByInstitutionIdOrderByName(institutionId);
+			}
+			
+		}  else if (reportId == null || reportId <= 0) {
+			if (frequency != null) {
+				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdAndFrequencyContainsOrderByName(reportCategoryId, institutionId, frequency);
+			} else {
+				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdOrderByName(reportCategoryId, institutionId);
+			}			
+		} else {
+			List<ReportDefinition> aList = new ArrayList<>();
+			ReportDefinition def = reportDefinitionRepository.findOne(reportId);
+			
+			if (frequency == null || frequency.trim().isEmpty()) {
+				aList.add(reportDefinitionRepository.findOne(reportId));
+				return aList;
+			} else if (def.getFrequency().contains(frequency)) {
+				aList.add(reportDefinitionRepository.findOne(reportId));
+				return aList;
+			} else {
+				return aList;
+			}			
+		}
+	}
+
 	@Async
-	public void generateReport(ReportGenerationMgr reportGenerationMgr, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, List<ReportDefinition> aList, boolean manualGenerate,
+	public void generateReport(ReportGenerationMgr reportGenerationMgr, ReportDefinition reportDefinition, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, List<ReportDefinition> aList, boolean manualGenerate,
 			String directory, long dailyJobId, long monthlyJobId, boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, 
 			JobHistoryDetails jobHistoryDetails, String dailyReportPath, String monthlyReportPath, String user, Job job) throws JsonProcessingException {
 
@@ -117,17 +220,17 @@ public class ReportService {
 			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
 		}
 
-		for (ReportDefinition reportDefinition : aList) {
-			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-			reportGenerationMgr.setFileName(reportDefinition.getName());
-			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
-			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
+//		for (ReportDefinition reportDefinition : aList) {
+//			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
+//			reportGenerationMgr.setFileName(reportDefinition.getName());
+//			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
+//			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
+//			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
+//			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
+//			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
+//			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
+//			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+//			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
 
 			handleExceptionFilePrefix(reportGenerationMgr, reportDefinition.getFileNamePrefix(), inputStartDateTime,
 					inputEndDateTime);
@@ -137,7 +240,8 @@ public class ReportService {
 					&& !BusinessDay.isWorkingDay(inputStartDateTime.toLocalDate(), holidays)) {
 				log.debug("Non working day:{}. System will not auto generate report: {}",
 						inputStartDateTime.toLocalDate(), reportDefinition.getName());
-				continue;
+				//continue;
+				return;
 			} else {
 				String[] frequencies = reportGenerationMgr.getFrequency().split(",");
 				for (String freq : frequencies) {
@@ -182,7 +286,7 @@ public class ReportService {
 					}
 				}
 			}
-		}
+//		}
 		
 		jobHistoryDetails.setReportStatusMap(reportStatusMap);
 		
@@ -205,7 +309,7 @@ public class ReportService {
 		if(jobId != 0) {			
 			Long id = transactionTemplate.execute(status -> {
 				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
-				jobHistoryDetails.setEndDateTime(LocalDateTime.now().toString());
+				//jobHistoryDetails.setEndDateTime(LocalDateTime.now());
 				jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
 				jobHistory.setReportPath(reportPath);
 				try {
@@ -323,119 +427,6 @@ public class ReportService {
 		}
 	}
 
-	/*
-	 * private void calculateTxnDateTime(ReportGenerationMgr reportGenerationMgr,
-	 * LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, boolean
-	 * byBusinessDate, boolean isMonthly) { List<LocalDate> holidays =
-	 * getHolidayList().isPresent() ? getHolidayList().get() : new ArrayList<>(); if
-	 * (byBusinessDate) { LocalDate inputStartDate =
-	 * inputStartDateTime.toLocalDate(); LocalDate inputEndtDate =
-	 * inputEndDateTime.toLocalDate(); DayOfWeek DayOfWeekinputStartDateTimee =
-	 * inputStartDateTime.getDayOfWeek(); DayOfWeek DayOfWeekinputEndDateTimee =
-	 * inputEndDateTime.getDayOfWeek();
-	 * 
-	 * if (isMonthly == false) { // 3.Date range selection (end date is a holiday)
-	 * for (LocalDate holidaydates : holidays) { if
-	 * (inputEndtDate.equals(holidaydates)) { // If end date is a holiday and is a
-	 * weekend if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2)); } else if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L
-	 * )); }
-	 * 
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L
-	 * )); } } // 2.Date range selection (end date is a weekend) if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2)); } else if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1));
-	 * 
-	 * } // 4. Date range selection (start date is a holiday, end date is working)
-	 * else if ((holidays.contains(inputStartDate)) &
-	 * (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY ||
-	 * DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
-	 * 
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
-	 * 
-	 * } // 5. Date range selection (start date is a weekend, end date is working)
-	 * else if ((DayOfWeekinputStartDateTimee.name() == ReportConstants.SATURDAY ||
-	 * DayOfWeekinputStartDateTimee.name() == ReportConstants.SUNDAY) &
-	 * (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY ||
-	 * DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
-	 * 
-	 * } else { // 1.Date range selection (end date is a working day)
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L)); }
-	 * 
-	 * // TODO: Skip auto file generation on weekend or holiday // TODO: Confirm
-	 * with CBC on generation with date range
-	 * 
-	 * // TODO: If inputStartDateTime is on Monday, set the txnStartDate to last //
-	 * Saturday // eg: inputStartDate = Monday 00:00:00 -> txnStartDate = Sat
-	 * 00:00:00, // txnEndDate = Tue 00:00:00 // TODO: If previous day(s) is
-	 * holiday, include previous day(s) // DayOfWeek DayOfWeekinputStartDateTime =
-	 * inputStartDateTime.getDayOfWeek(); // if(DayOfWeekinputStartDateTime.name()
-	 * == ReportConstants.MONDAY) { //
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime.minusDays(2)); //
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L)); // }else
-	 * { // reportGenerationMgr.setTxnStartDate(inputStartDateTime); //
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L)); // }
-	 * 
-	 * } else { for (LocalDate holidaydates : holidays) {
-	 * 
-	 * if (inputEndtDate.equals(holidaydates)) { if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(2)); } else if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L
-	 * )); }
-	 * 
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusDays(1).plusMinutes(1L
-	 * )); } }
-	 * 
-	 * // 2.Date range selection (end date is a weekend) if
-	 * (DayOfWeekinputEndDateTimee.name() == ReportConstants.SATURDAY) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.minusDays(1).plusMinutes(
-	 * 1L)); } else if (DayOfWeekinputEndDateTimee.name() == ReportConstants.SUNDAY)
-	 * { reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.minusDays(2).plusMinutes(
-	 * 1L));
-	 * 
-	 * } else if ((holidays.contains(inputStartDate)) &
-	 * (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY ||
-	 * DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
-	 * 
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
-	 * 
-	 * } else if ((DayOfWeekinputStartDateTimee.name() == ReportConstants.SATURDAY
-	 * || DayOfWeekinputStartDateTimee.name() == ReportConstants.SUNDAY) &
-	 * (DayOfWeekinputEndDateTimee.name() != ReportConstants.SATURDAY ||
-	 * DayOfWeekinputEndDateTimee.name() != ReportConstants.SUNDAY)) {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L));
-	 * 
-	 * } else { reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L)); } }
-	 * 
-	 * // FIXME: to set posting date appropriately
-	 * reportGenerationMgr.setPostingDate(LocalDate.now()); } else {
-	 * reportGenerationMgr.setTxnStartDate(inputStartDateTime);
-	 * reportGenerationMgr.setTxnEndDate(inputEndDateTime.plusMinutes(1L)); } }
-	 */
-
 	private void handleExceptionFilePrefix(ReportGenerationMgr reportGenerationMgr, String filePrefix,
 			LocalDateTime startDateTime, LocalDateTime endDateTime) {
 		long noOfDaysBetween = ChronoUnit.DAYS.between(startDateTime, endDateTime);
@@ -455,8 +446,7 @@ public class ReportService {
 			log.debug("runReport with processor: {}", reportProcessor);
 			reportProcessor.process(reportGenerationMgr);
 		} else {
-			reportGenerationMgr.run(env.getProperty(ReportConstants.DB_URL),
-					env.getProperty(ReportConstants.DB_USERNAME), env.getProperty(ReportConstants.DB_PASSWORD));
+			reportGenerationMgr.run(dataSource);
 		}
 		log.debug("ELAPSED TIME: Report {} generated in {}s", reportGenerationMgr.getFileName(),
 				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));

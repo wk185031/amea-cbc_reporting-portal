@@ -25,14 +25,22 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     @Query("select r from ReportDefinition r where to_char(r.scheduleTime, 'HH24:MI') = ?1")
     List<ReportDefinition> findReportDefinitionByTime(String time);
     
-    @Query("select r from ReportDefinition r where r.institutionId = ?1 order by r.name") 
-    List<ReportDefinition> findReportDefinitionByInstitution(Long instId);
+    //@Query("select r from ReportDefinition r where r.institutionId = ?1 order by r.name") 
+    List<ReportDefinition> findByInstitutionIdOrderByName(Long instId);
     
-    @Query("select r from ReportDefinition r where r.category.id = ?1 and r.institutionId = ?2 order by r.name") 
-    List<ReportDefinition> findAllByCategoryIdAndInstitutionId(Long categoryId, Long instId);
+    //@Query("select r from ReportDefinition r where r.institutionId = ?1 and r.frequency order by r.name") 
+    List<ReportDefinition> findByInstitutionIdAndFrequencyContainsOrderByName(Long instId, String frequency);
+    
+    //@Query("select r from ReportDefinition r where r.category.id = ?1 and r.institutionId = ?2 order by r.name") 
+    List<ReportDefinition> findByCategoryIdAndInstitutionIdOrderByName(Long categoryId, Long instId);
+    
+    List<ReportDefinition> findByCategoryIdAndInstitutionIdAndFrequencyContainsOrderByName(Long categoryId, Long instId, String frequency);
     
     List<ReportDefinition> findAllByCategoryId(Long categoryId);
     
     List<ReportDefinition> findAllByInstitutionId(Long institutionId);
+    
+    long countByInstitutionIdAndFrequencyContains(Long instId, String frequency);
 
+    long countByInstitutionIdAndCategoryIdAndFrequencyContains(Long instId, Long categoryId, String frequency);
 }

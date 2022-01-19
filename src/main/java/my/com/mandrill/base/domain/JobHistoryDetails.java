@@ -1,50 +1,46 @@
 package my.com.mandrill.base.domain;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JobHistoryDetails {
 
-	String institutionId;
-	String reportCategoryId;
+	Long institutionId;
+	Long reportCategoryId;
 	String reportCategory;
+	Long reportId;
 	String report;
 	String description;
-	String searchByDate;
-	String transactionStartDate;
-	String transactionEndDate;
-	String startDateTime;
-	String endDateTime;
+	LocalDateTime transactionStartDate;
+	LocalDateTime transactionEndDate;
+	String frequency;
 	Map<String,String> reportStatusMap = new HashMap<String,String>();
 
-	public JobHistoryDetails(String institutionId, String reportCategoryId, String reportCategory, String report, String description,
-			String searchByDate, String transactionStartDate, String transactionEndDate, String startDateTime,
-			String endDateTime) {
+	public JobHistoryDetails(Long institutionId, Long reportCategoryId, String reportCategory, Long reportId,
+			String report, String description, LocalDateTime transactionStartDate, LocalDateTime transactionEndDate) {
 		this.institutionId = institutionId;
 		this.reportCategoryId = reportCategoryId;
 		this.reportCategory = reportCategory;
 		this.report = report;
 		this.description = description;
-		this.searchByDate = searchByDate;
 		this.transactionStartDate = transactionStartDate;
 		this.transactionEndDate = transactionEndDate;
-		this.startDateTime = startDateTime;
-		this.endDateTime = endDateTime;
 	}
 
-	public String getInstitutionId() {
+	public Long getInstitutionId() {
 		return institutionId;
 	}
 
-	public void setInstitutionId(String institutionId) {
+	public void setInstitutionId(Long institutionId) {
 		this.institutionId = institutionId;
 	}
 
-	public String getReportCategoryId() {
+	public Long getReportCategoryId() {
 		return reportCategoryId;
 	}
 
-	public void setReportCategoryId(String reportCategoryId) {
+	public void setReportCategoryId(Long reportCategoryId) {
 		this.reportCategoryId = reportCategoryId;
 	}
 
@@ -65,51 +61,17 @@ public class JobHistoryDetails {
 	}
 
 	public String getDescription() {
+		if (description == null) {
+			StringBuffer sb = new StringBuffer();
+			sb.append("REPORT CATEGORY: ").append(getReportCategory()).append(", REPORT: ").append(getReport())
+					.append(", FROM: ").append(transactionStartDate).append(", TO: ").append(transactionEndDate);
+			setDescription(sb.toString());
+		}
 		return description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public String getSearchByDate() {
-		return searchByDate;
-	}
-
-	public void setSearchByDate(String searchByDate) {
-		this.searchByDate = searchByDate;
-	}
-
-	public String getTransactionStartDate() {
-		return transactionStartDate;
-	}
-
-	public void setTransactionStartDate(String transactionStartDate) {
-		this.transactionStartDate = transactionStartDate;
-	}
-
-	public String getTransactionEndDate() {
-		return transactionEndDate;
-	}
-
-	public void setTransactionEndDate(String transactionEndDate) {
-		this.transactionEndDate = transactionEndDate;
-	}
-
-	public String getStartDateTime() {
-		return startDateTime;
-	}
-
-	public void setStartDateTime(String startDateTime) {
-		this.startDateTime = startDateTime;
-	}
-
-	public String getEndDateTime() {
-		return endDateTime;
-	}
-
-	public void setEndDateTime(String endDateTime) {
-		this.endDateTime = endDateTime;
 	}
 
 	public Map<String, String> getReportStatusMap() {
@@ -119,4 +81,45 @@ public class JobHistoryDetails {
 	public void setReportStatusMap(Map<String, String> reportStatusMap) {
 		this.reportStatusMap = reportStatusMap;
 	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	public Long getReportId() {
+		return reportId;
+	}
+
+	public void setReportId(Long reportId) {
+		this.reportId = reportId;
+	}
+
+	public LocalDateTime getTransactionStartDate() {
+		return transactionStartDate;
+	}
+
+	public void setTransactionStartDate(LocalDateTime transactionStartDate) {
+		this.transactionStartDate = transactionStartDate;
+	}
+
+	public LocalDateTime getTransactionEndDate() {
+		return transactionEndDate;
+	}
+
+	public void setTransactionEndDate(LocalDateTime transactionEndDate) {
+		this.transactionEndDate = transactionEndDate;
+	}
+	
+	public boolean isAllCategory() {
+		return getReportCategoryId() == null || getReportCategoryId() <= 0L;
+	}
+	
+	public boolean isAllReport() {
+		return getReportId() == null || getReportId() <= 0L;
+	}
+
 }

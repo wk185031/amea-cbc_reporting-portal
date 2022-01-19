@@ -215,7 +215,7 @@ public class ReportDefinitionResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + READ
 			+ "')")
 	public ResponseEntity<List<ReportDefinition>> getAllReportDefinitionNoPaging() {		
-		List<ReportDefinition> reportDefinition = reportDefinitionRepository.findReportDefinitionByInstitution(getInstitutionId());
+		List<ReportDefinition> reportDefinition = reportDefinitionRepository.findAllByInstitutionId(getInstitutionId());
 		
 		return new ResponseEntity<>(reportDefinition, HttpStatus.OK);
 	}
@@ -351,7 +351,7 @@ public class ReportDefinitionResource {
 		List<ReportCategory> parents = reportCategoryRepository.findAll(orderByNameAsc());
 		List<ReportDefinition> children = null;
 		//HQ User branch ID
-		children = reportDefinitionRepository.findReportDefinitionByInstitution(getInstitutionId());
+		children = reportDefinitionRepository.findAllByInstitutionId(getInstitutionId());
 		List<TreeStructure> structures = new ArrayList<>();
 		Long incrementNumber = new Long(1);
 		for (ReportCategory parent : parents) {

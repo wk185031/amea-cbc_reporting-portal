@@ -70,7 +70,6 @@ import my.com.mandrill.base.domain.TaskGroup;
 import my.com.mandrill.base.domain.TxnLogCustom;
 import my.com.mandrill.base.reporting.security.SecurePANField;
 import my.com.mandrill.base.reporting.security.SecureString;
-import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.TaskGroupRepository;
@@ -116,7 +115,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final JobHistoryRepository jobHistoryRepo;
 	private final ReportService reportService;
 	private final ReportGenerationResource reportGenerationResource;
-	private final InstitutionRepository institutionRepository;
 	private final DataSource dataSource;
 	private final DcmsSyncService dcmsSyncService;
 	private final AuditActionService auditActionService;
@@ -175,7 +173,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
 			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService, ReportGenerationResource reportGenerationResource,
-			InstitutionRepository institutionRepository, DataSource dataSource, DcmsSyncService dcmsSyncService,
+			DataSource dataSource, DcmsSyncService dcmsSyncService,
 			AuditActionService auditActionService) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
@@ -187,7 +185,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.env = env;
 		this.reportService = reportService;
 		this.reportGenerationResource = reportGenerationResource;
-		this.institutionRepository = institutionRepository;
 		this.dataSource = dataSource;
 		this.dcmsSyncService = dcmsSyncService;
 		this.auditActionService = auditActionService;
@@ -321,79 +318,56 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		log.info("synchronizeDatabase: DB URL={}", env.getProperty("spring.datasource.url"));
 
 		try {
-	
-		JobHistory incompleteJob = jobHistoryRepo.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
-				ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
 
-		if (incompleteJob != null) {
-			throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync",
-					"dbsync.inprogress");
-		}
+			JobHistory incompleteJob = jobHistoryRepo.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
+					ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
 
-		JobHistory dbsyncJob = createJobHistory(ReportConstants.JOB_NAME_DB_SYNC, ReportConstants.STATUS_IN_PROGRESS,
-				user);
-
-		try {
-			Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
-			Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME", "ATD_END_TIMESTAMP");
-			Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
-
-			syncAuthenticTables();
-			Map<String, List<String>> cardBinMap = getCardBinMap();
-			postProcessCardData(cardLastUpdatedTs);
-			postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
-			postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
-			dcmsSyncService.syncDcmsUserActivity();
-
-			dbsyncJob.setStatus(ReportConstants.STATUS_COMPLETED);
-			dbsyncJob.setLastModifiedBy(user);
-			dbsyncJob.setLastModifiedDate(Instant.now());
-			jobHistoryRepo.save(dbsyncJob);
-		} catch (Exception e) {
-			log.error("Failed to sync database.", e);
-			dbsyncJob.setStatus(ReportConstants.STATUS_FAILED);
-			dbsyncJob.setLastModifiedBy(user);
-			dbsyncJob.setLastModifiedDate(Instant.now());
-			jobHistoryRepo.save(dbsyncJob);
-			throw e;
-		}
-
-		log.debug("Database synchronizer done. Start generate report tasks.");
-		auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
-
-		for (Map.Entry<Long, String> mapEntry : reportService
-				.getAllInstitutionIdAndShortCode().entrySet()) {
-			try {
-				reportGenerationResource.preGenerateReport(LocalDate.now().minusDays(1L).atStartOfDay(),
-						LocalDate.now().minusDays(1L).atTime(23, 59), mapEntry.getKey(),
-						mapEntry.getValue(), null, null, false, false,
-						ReportConstants.CREATED_BY_USER);
-			} catch (JsonProcessingException e) {
-				throw new RuntimeException(e);
+			if (incompleteJob != null) {
+				throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync",
+						"dbsync.inprogress");
 			}
-		}
-		
-//		
-//		
-//		List<Institution> institutions = institutionRepository.findAll();
-//		for (Institution institution : institutions) {
-//			if ("Institution".equals(institution.getType())) {
-//				if (institution.getName().equals(ReportConstants.CBC_INSTITUTION)) {
-//					instCodes.put(institution.getId(), "CBC");
-//				} else if (institution.getName().equals(ReportConstants.CBS_INSTITUTION)) {
-//					instCodes.put(institution.getId(), "CBS");
-//				}
-//			}
-//		}
-//		
-//		
-//		reportService.autoGenerateAllReports(LocalDate.now().minusDays(1L).atStartOfDay(),
-//				LocalDate.now().minusDays(1L).atTime(23, 59), institution.getId(), instShortCode, false, user);
-		
-		
-		return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
-				.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
-				.body(dbsyncJob);
+
+			JobHistory dbsyncJob = createJobHistory(ReportConstants.JOB_NAME_DB_SYNC,
+					ReportConstants.STATUS_IN_PROGRESS, user);
+
+			try {
+				Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
+				Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME", "ATD_END_TIMESTAMP");
+				Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
+
+				syncAuthenticTables();
+				Map<String, List<String>> cardBinMap = getCardBinMap();
+				postProcessCardData(cardLastUpdatedTs);
+				postProcessTransactionLogData(trxLogLastUpdatedTs, cardBinMap);
+				postProcessAtmDowntime(atmDowntimeLastUpdatedTs);
+				dcmsSyncService.syncDcmsUserActivity();
+
+				dbsyncJob.setStatus(ReportConstants.STATUS_COMPLETED);
+				dbsyncJob.setLastModifiedBy(user);
+				dbsyncJob.setLastModifiedDate(Instant.now());
+				jobHistoryRepo.save(dbsyncJob);
+			} catch (Exception e) {
+				log.error("Failed to sync database.", e);
+				dbsyncJob.setStatus(ReportConstants.STATUS_FAILED);
+				dbsyncJob.setLastModifiedBy(user);
+				dbsyncJob.setLastModifiedDate(Instant.now());
+				jobHistoryRepo.save(dbsyncJob);
+				throw e;
+			}
+
+			log.debug("Database synchronizer done. Start generate report tasks.");
+			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+
+			for (Map.Entry<Long, String> mapEntry : reportService.getAllInstitutionIdAndShortCode().entrySet()) {
+				reportGenerationResource.generateReportByInstitutionAndCategory(
+						LocalDate.now().minusDays(1L).atStartOfDay(), LocalDate.now().minusDays(1L).atTime(23, 59),
+						mapEntry.getKey(), mapEntry.getValue(), null, null, false, false,
+						ReportConstants.CREATED_BY_USER);
+			}
+
+			return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
+					.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
+					.body(dbsyncJob);
 		} catch (Exception e) {
 			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
 			throw e;
