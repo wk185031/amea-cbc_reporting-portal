@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class JobHistoryDetails {
 
 	Long institutionId;
@@ -12,8 +14,11 @@ public class JobHistoryDetails {
 	Long reportId;
 	String report;
 	String description;
+	@JsonIgnore
 	LocalDateTime transactionStartDate;
+	@JsonIgnore
 	LocalDateTime transactionEndDate;
+	@JsonIgnore
 	String frequency;
 	Map<String,String> reportStatusMap = new HashMap<String,String>();
 
@@ -114,10 +119,12 @@ public class JobHistoryDetails {
 		this.transactionEndDate = transactionEndDate;
 	}
 	
+	@JsonIgnore
 	public boolean isAllCategory() {
 		return getReportCategoryId() == null || getReportCategoryId() <= 0L;
 	}
 	
+	@JsonIgnore
 	public boolean isAllReport() {
 		return getReportId() == null || getReportId() <= 0L;
 	}
