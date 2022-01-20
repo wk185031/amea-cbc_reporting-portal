@@ -131,7 +131,12 @@ export class GenerateReportTabComponent implements OnInit {
                     this.onSuccess(this.ongoingGenerate);
                 },
                 (res: HttpErrorResponse) => {
-                	this.onError(res.error.message);
+                	if (res.error.detail) {
+                		this.onError(res.error.detail);
+                	} else {
+                		this.onError(res.error.message);
+                	}
+                	
                 });
     }
     

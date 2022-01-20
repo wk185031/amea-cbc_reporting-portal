@@ -54,12 +54,16 @@ public class JobHistoryService {
 
 		boolean generateForDaily = checkGenerateForFrequency(jobHistoryDetails, ReportConstants.DAILY);
 		boolean generateForMonthly = checkGenerateForFrequency(jobHistoryDetails, ReportConstants.MONTHLY);
-		
+
 		if (generateForDaily) {
 			jobList.add(createReportGenerationJob(jobHistory, ReportConstants.DAILY));
 		}
 		if (generateForMonthly) {
 			jobList.add(createReportGenerationJob(jobHistory, ReportConstants.MONTHLY));
+		}
+		
+		if (jobList.size() == 0) {
+			throw new RuntimeException("error.report.noJobInQueue");
 		}
 
 		return jobList;
@@ -89,7 +93,7 @@ public class JobHistoryService {
 			jobHistory.setCreatedBy("system");
 		}
 		jobHistory.setCreatedDate(Instant.now());
-		
+
 		String details = null;
 		try {
 			details = new ObjectMapper().writeValueAsString(jobHistoryDetails);
@@ -107,10 +111,12 @@ public class JobHistoryService {
 	}
 
 	private boolean checkGenerateForFrequency(JobHistoryDetails jobHistoryDetails, String frequency) {
-		log.debug("checkGenerateForFrequency {}: [startDate={}, endDate={}, presetFrequency={}]", frequency,
-				jobHistoryDetails.getTransactionStartDate(), jobHistoryDetails.getTransactionEndDate(),
-				jobHistoryDetails.getFrequency());
-		if (jobHistoryDetails != null && jobHistoryDetails.getFrequency() != null && frequency.contentEquals(jobHistoryDetails.getFrequency())) {
+		log.debug(
+				"checkGenerateForFrequency {}: [startDate={}, endDate={}, presetFrequency={}, isAllCategory={}, isAllReport={}]",
+				frequency, jobHistoryDetails.getTransactionStartDate(), jobHistoryDetails.getTransactionEndDate(),
+				jobHistoryDetails.getFrequency(), jobHistoryDetails.isAllCategory(), jobHistoryDetails.isAllReport());
+		if (jobHistoryDetails != null && jobHistoryDetails.getFrequency() != null
+				&& frequency.contentEquals(jobHistoryDetails.getFrequency())) {
 			return true;
 		} else {
 			if (ReportConstants.MONTHLY.contentEquals(frequency)) {
@@ -149,7 +155,8 @@ public class JobHistoryService {
 
 		cloneJobHistory.setFrequency(frequency);
 		cloneJobHistory = jobHistoryRepository.saveAndFlush(cloneJobHistory);
-		log.debug("Queue report generation job for frequency:{}, jobHistoryId = {}", frequency, cloneJobHistory.getId());
+		log.debug("Queue report generation job for frequency:{}, jobHistoryId = {}", frequency,
+				cloneJobHistory.getId());
 
 		return cloneJobHistory;
 	}

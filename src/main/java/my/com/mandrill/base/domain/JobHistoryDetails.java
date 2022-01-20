@@ -27,6 +27,7 @@ public class JobHistoryDetails {
 		this.institutionId = institutionId;
 		this.reportCategoryId = reportCategoryId;
 		this.reportCategory = reportCategory;
+		this.reportId = reportId;
 		this.report = report;
 		this.description = description;
 		this.transactionStartDate = transactionStartDate;
