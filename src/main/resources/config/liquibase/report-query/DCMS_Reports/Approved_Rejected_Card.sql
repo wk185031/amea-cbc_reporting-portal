@@ -181,7 +181,7 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
 		From
 			{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
 			Left Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
@@ -350,7 +350,7 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
 		From
 			{DCMS_Schema}.Support_CC_Renewal@{DB_LINK_DCMS} Sccr
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccr.CC_CRN_CAM_ID = ICCAM.CAM_ID
