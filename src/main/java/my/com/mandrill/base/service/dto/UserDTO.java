@@ -8,6 +8,7 @@ import my.com.mandrill.base.domain.User;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.persistence.Column;
 import javax.validation.constraints.*;
 import java.time.Instant;
 import java.util.Set;
@@ -52,6 +53,14 @@ public class UserDTO {
     private Instant lastModifiedDate;
 
     private Set<String> authorities;
+    
+    @Size(max = 50)
+    private String deactivateReason;
+    
+    private Instant deactivateDate;
+    
+    @NotNull
+    private int retryCount;
 
     public UserDTO() {
         // Empty constructor needed for Jackson.
@@ -73,6 +82,9 @@ public class UserDTO {
         this.authorities = user.getAuthorities().stream()
             .map(Authority::getName)
             .collect(Collectors.toSet());
+        this.deactivateReason = user.getDeactivateReason();
+        this.deactivateDate = user.getDeactivateDate();
+        this.retryCount = user.getRetryCount();
     }
 
     public Long getId() {
@@ -179,7 +191,31 @@ public class UserDTO {
         this.authorities = authorities;
     }
 
-    @Override
+    public String getDeactivateReason() {
+		return deactivateReason;
+	}
+
+	public void setDeactivateReason(String deactivateReason) {
+		this.deactivateReason = deactivateReason;
+	}
+
+	public Instant getDeactivateDate() {
+		return deactivateDate;
+	}
+
+	public void setDeactivateDate(Instant deactivateDate) {
+		this.deactivateDate = deactivateDate;
+	}
+
+	public int getRetryCount() {
+		return retryCount;
+	}
+
+	public void setRetryCount(int retryCount) {
+		this.retryCount = retryCount;
+	}
+
+	@Override
     public String toString() {
         return "UserDTO{" +
             "login='" + login + '\'' +

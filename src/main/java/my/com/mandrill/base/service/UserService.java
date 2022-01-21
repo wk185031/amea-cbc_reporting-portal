@@ -3,11 +3,15 @@ package my.com.mandrill.base.service;
 import my.com.mandrill.base.config.CacheConfiguration;
 import my.com.mandrill.base.domain.Authority;
 import my.com.mandrill.base.domain.RoleExtra;
+import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.SpringContext;
 import my.com.mandrill.base.repository.AuthorityRepository;
 import my.com.mandrill.base.config.Constants;
 import my.com.mandrill.base.repository.RoleExtraRepository;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.repository.UserRepository;
 import my.com.mandrill.base.repository.search.UserExtraSearchRepository;
@@ -333,5 +337,67 @@ public class UserService {
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).collect(Collectors.toList());
     }
+    
+    /**
+     * Set status as dormant is user not login within x number of days .
+     * <p>
+     * This is scheduled to get fired everyday, at 04:00 (am).
+     */
+    @Scheduled(cron = "0 0 4 * * ?")
+    public void updateUserDormantStatus() {
+    	
+    	SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
+    	SystemConfiguration config = configRepo.findByName(ReportConstants.SECURITY_DORMANT_PERIOD);
+    	
+    	if (config != null) {
+    		int dormantConfig = Integer.parseInt(config.getConfig());
+    		List<UserExtra> userExtraList = userExtraRepository.findAllByLastLoginTsIsNotNull();
+    		
+    		 for (UserExtra userExtra : userExtraList) {
+    			 
+    			 if (userExtra.getLastLoginTs().toInstant().isBefore(Instant.now().minus(dormantConfig, ChronoUnit.DAYS))) {
+        			 
+        			 User user = userExtra.getUser();
+        			 user.setDeactivateDate(Instant.now());
+        			 user.setDeactivateReason(ReportConstants.DEACTIVATE_DORMANT);
+        			 user.setLastModifiedBy("system");
+        			 
+        			 userRepository.save(user);
+    			 }
+    		 }
+    	}
+    }
+    
+    /**
+     * Set status as password expired if password not reset within x number of days
+     * <p>
+     * This is scheduled to get fired everyday, at 05:00 (am).
+     */
+    @Scheduled(cron = "0 0 5 * * ?")
+	public void updateUserPasswordExpiry() {
+		
+		SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
+    	SystemConfiguration config = configRepo.findByName(ReportConstants.SECURITY_PASSWORD_EXPIRY);
+    	
+    	if (config != null) {
+    		int passwordExpiryConfig = Integer.parseInt(config.getConfig());
+    		List<User> userList = userRepository.findAllByActivatedIsTrue();
+    		
+    		 for (User user : userList) {
+    			 
+    			 Instant passwordResetDate = user.getResetKey()!=null ? user.getResetDate() : user.getCreatedDate();
+    			 
+    			 if (passwordResetDate.isBefore(Instant.now().minus(passwordExpiryConfig, ChronoUnit.DAYS))) {
+    				 
+    				 user.setDeactivateDate(Instant.now());
+        			 user.setDeactivateReason(ReportConstants.DEACTIVATE_PASSWORD_EXPIRED);
+        			 user.setLastModifiedBy("system");
+        			 
+        			 userRepository.save(user);
+    			 }
+    		 }
+    	}
+
+	}
 
 }

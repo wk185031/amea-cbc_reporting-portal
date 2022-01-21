@@ -1,6 +1,7 @@
 package my.com.mandrill.base.security;
 
 import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,17 @@ public class DomainUserDetailsService implements UserDetailsService {
     }
 
     private org.springframework.security.core.userdetails.User createSpringSecurityUser(String lowercaseLogin, User user) {
-        if (!user.getActivated()) {
-            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
-        }
+    	
+    	 if (!user.getActivated()) {
+             throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+		}else if (user.getActivated() && user.getDeactivateReason()!= null && user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_LOCKED)) {
+    		throw new UserNotActivatedException("The user is locked by system, contact administrator");
+    	}else if (user.getActivated() && user.getDeactivateReason()!= null && user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_DORMANT)) {
+    		throw new UserNotActivatedException("The user is suspended, contact administrator");
+    	}else if (user.getActivated() && user.getDeactivateReason()!= null && user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_PASSWORD_EXPIRED)) {
+    		throw new UserNotActivatedException("Your password is expired. Please reset your password");
+    	}
+    	
         List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
             .map(authority -> new SimpleGrantedAuthority(authority.getName()))
             .collect(Collectors.toList());

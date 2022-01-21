@@ -46,6 +46,9 @@ public class UserMapper {
             if (authorities != null) {
                 user.setAuthorities(authorities);
             }
+            user.setDeactivateReason(userDTO.getDeactivateReason());
+            user.setDeactivateDate(userDTO.getDeactivateDate());
+            user.setRetryCount(userDTO.getRetryCount());
             return user;
         }
     }
