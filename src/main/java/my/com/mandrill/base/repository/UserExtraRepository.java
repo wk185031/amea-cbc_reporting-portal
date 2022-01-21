@@ -5,6 +5,8 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,4 +28,6 @@ public interface UserExtraRepository extends JpaRepository<UserExtra, Long> {
 	UserExtra findByUser(@Param("userId") Long userId);
     
 	List<UserExtra> findByUserLogin(String username);
+	
+	List<UserExtra> findAllByLastLoginTsIsNotNull();
 }

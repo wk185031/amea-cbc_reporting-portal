@@ -85,7 +85,18 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     @Column(name = "reset_date")
     private Instant resetDate = null;
-
+    
+    @Size(max = 50)
+    @Column(name = "deactivate_reason", length = 50)
+    private String deactivateReason;
+    
+    @Column(name = "deactivate_date")
+    private Instant deactivateDate;
+    
+    @NotNull
+    @Column(name = "retry_count")
+    private int retryCount;
+    
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -201,7 +212,31 @@ public class User extends AbstractAuditingEntity implements Serializable {
         this.authorities = authorities;
     }
 
-    @Override
+    public String getDeactivateReason() {
+		return deactivateReason;
+	}
+
+	public void setDeactivateReason(String deactivateReason) {
+		this.deactivateReason = deactivateReason;
+	}
+
+	public Instant getDeactivateDate() {
+		return deactivateDate;
+	}
+
+	public void setDeactivateDate(Instant deactivateDate) {
+		this.deactivateDate = deactivateDate;
+	}
+
+	public int getRetryCount() {
+		return retryCount;
+	}
+
+	public void setRetryCount(int retryCount) {
+		this.retryCount = retryCount;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

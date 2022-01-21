@@ -1,6 +1,7 @@
 package my.com.mandrill.base.repository;
 
 import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -44,4 +45,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findOneWithAuthoritiesByEmail(String email);
 
     Page<User> findAllByLoginNot(Pageable pageable, String login);
+    
+    List<User> findAllByActivatedIsTrue();
 }

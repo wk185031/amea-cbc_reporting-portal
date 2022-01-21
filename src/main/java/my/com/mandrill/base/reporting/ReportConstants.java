@@ -382,4 +382,13 @@ public final class ReportConstants {
 
 	//Report Category
 	public static final String GL_HANDOFF_FILES = "GL Handoff Files";
+	
+	//Security
+	public static final String SECURITY_PASSWORD_EXPIRY  = "security.password.expiry";
+	public static final String SECURITY_MAX_LOGIN_RETRY  = "security.max.login.retry";
+	public static final String SECURITY_DORMANT_PERIOD  = "security.dormant.period";
+	
+	public static final String DEACTIVATE_DORMANT = "Dormant";
+	public static final String DEACTIVATE_LOCKED = "Locked";
+	public static final String DEACTIVATE_PASSWORD_EXPIRED = "Password Expired";
 }

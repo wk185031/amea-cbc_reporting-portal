@@ -1,0 +1,1 @@
+update jhi_user set reset_date = current_timestamp where reset_date is null and activated = 1;
