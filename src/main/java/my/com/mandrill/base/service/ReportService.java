@@ -1,23 +1,28 @@
 package my.com.mandrill.base.service;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.sql.DataSource;
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +46,12 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.ReportGenerationResult;
 import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
+import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.util.BusinessDay;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
@@ -58,86 +65,140 @@ public class ReportService {
 
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
-	
+
 	@Autowired
 	private ReportCategoryRepository reportCategoryRepository;
-	
+
 	@Autowired
 	private ReportDefinitionRepository reportDefinitionRepository;
-	
+
 	@Autowired
 	private JobHistoryRepository jobHistoryRepository;
-		
+
 	@Autowired
 	private InstitutionRepository institutionRepository;
-	
+
 	@Autowired
 	private EncryptionService encryptionService;
-	
+
 	@Autowired
 	private ReportAsyncService reportAsyncService;
-	
+
 	@Autowired
 	private EntityManager em;
-	
+
 	@Autowired
 	private DataSource dataSource;
-	
+
 	@Autowired
 	private PlatformTransactionManager transactionManager;
-	
+
 	private TransactionTemplate transactionTemplate;
 
 	private ObjectMapper mapper = new ObjectMapper();
-	
+
 	@PostConstruct
 	private void init() {
 		transactionTemplate = new TransactionTemplate(transactionManager);
 	}
-	
-	public void generateReport(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, Long reportCategoryId,
-			Long reportId, boolean manualGenerate, String reportFrequency, Long institutionId, String user) {
 
-		//TODO: move to execute job
-		// Check db sync job is in progress
-		if (isDbSyncRunning()) {
-			throw new IllegalStateException("Database sync is in progress. Please try again later.");
-		}
-		
+	public void generateReport(long jobHistoryId, boolean manualGenerate, JobHistoryDetails jobHistoryDetails,
+			String user) {
+
 		// Get list of reports to generate
-		String institutionCode = findInstitutionCode(institutionId);
+		String institutionCode = findInstitutionCode(jobHistoryDetails.getInstitutionId());
 		Optional<List<LocalDate>> holidays = getHolidayList();
-		List<ReportDefinition> aList = getReportsByCategoryIdOrReportId(reportCategoryId, reportId, institutionId, reportFrequency);
-		
+		List<ReportDefinition> aList = getReportsByCategoryIdOrReportId(jobHistoryDetails.getReportCategoryId(),
+				jobHistoryDetails.getReportId(), jobHistoryDetails.getInstitutionId(),
+				jobHistoryDetails.getFrequency());
+		List<CompletableFuture<ReportGenerationResult>> futures = new ArrayList<>();
+		String yearMonth = jobHistoryDetails.getTransactionStartDate().toLocalDate()
+				.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+				+ jobHistoryDetails.getInstitutionId() + File.separator + yearMonth;
+
 		for (ReportDefinition def : aList) {
-			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(), inputStartDateTime.toLocalDate(),
-					holidays)) {
+			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),
+					jobHistoryDetails.getTransactionStartDate().toLocalDate(), holidays)) {
 				log.debug("Skip report generation [reportId={}, reportName={}]", def.getId(), def.getName());
 				continue;
 			} else {
-				ReportGenerationMgr mgr = ReportGenerationMgr.create(institutionCode, manualGenerate, inputStartDateTime,
-						env, encryptionService, def);
-				handleExceptionFilePrefix(mgr, def.getFileNamePrefix(), inputStartDateTime,
-						inputEndDateTime);
-				try {
-					reportAsyncService.runReport(mgr);
-				} catch (Exception e) {
-					// update failed status in job history
-				}				
+				ReportGenerationMgr mgr = ReportGenerationMgr.create(jobHistoryId, institutionCode, manualGenerate,
+						jobHistoryDetails.getTransactionStartDate(), env, encryptionService, def);
+				handleExceptionFilePrefix(mgr, def.getFileNamePrefix(), jobHistoryDetails.getTransactionStartDate(),
+						jobHistoryDetails.getTransactionEndDate());
+
+				setTransactionDateRange(mgr, false, jobHistoryDetails.getTransactionStartDate(),
+						jobHistoryDetails.getTransactionEndDate(), baseDirectory, def.getReportCategory().getName(),
+						def.isByBusinessDate(), manualGenerate, holidays, jobHistoryId);
+				futures.add(reportAsyncService.runReport(mgr));
 			}
 		}
-		
-		
-		
-		// Is Daily/Monthly 
-		// Update job history status to IN PROGRESS: Daily + Monthly
-		// Loop reports:
-			// handleExceptionFilePrefix
-			// check holiday
-			// create ReportMgr
-			// run report
-			// update job status
-		
+
+		int successCount = 0;
+		int failedCount = 0;
+
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[aList.size()])).join();
+		for (CompletableFuture<ReportGenerationResult> f : futures) {
+			try {
+				ReportGenerationResult r = f.get();
+				if (r.isSuccess()) {
+					successCount++;
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), ReportConstants.STATUS_COMPLETED);
+				} else {
+					failedCount++;
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), ReportConstants.STATUS_FAILED);
+				}
+			} catch (Exception e) {
+				log.error("Failed to complete report.", e);
+			}
+		}
+
+		postUpdateReportGeneration(jobHistoryId, jobHistoryDetails, baseDirectory, successCount, failedCount);
+	}
+
+	public void postUpdateReportGeneration(long jobHistoryId, JobHistoryDetails jobHistoryDetails, String baseDirectory,
+			int successCount, int failedCount) {
+
+		JobHistory result = transactionTemplate.execute(status -> {
+			JobHistory jobHistory = jobHistoryRepository.getOne(jobHistoryId);
+			try {
+				jobHistory.setDetails(new ObjectMapper().writeValueAsString(jobHistoryDetails));
+			} catch (Exception e) {
+				log.warn("Failed to write jobHistory details: ", jobHistoryDetails.toString(), e);
+				jobHistory.setDetails("UNKNOWN");
+			}
+
+			if (successCount > 0 && failedCount == 0) {
+				jobHistory.setStatus(ReportConstants.STATUS_COMPLETED);
+			} else if (successCount > 0 && failedCount > 0) {
+				jobHistory.setStatus(ReportConstants.STATUS_PARTIAL_FAILED);
+			} else {
+				jobHistory.setStatus(ReportConstants.STATUS_FAILED);
+			}
+
+			jobHistory.setLastModifiedDate(Instant.now());
+			jobHistory.setLastModifiedBy(
+					SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get()
+							: "system");
+			jobHistory.setGenerationEndDate(LocalDateTime.now());
+			String reportPath = baseDirectory + File.separator
+					+ (StringUtils
+							.leftPad(
+									ReportConstants.MONTHLY.equals(jobHistory.getFrequency()) ? "00"
+											: String.valueOf(
+													jobHistoryDetails.getTransactionStartDate().getDayOfMonth()),
+									2, "0"))
+					+ File.separator + jobHistoryId;
+			jobHistory.setReportPath(reportPath);
+			jobHistory = jobHistoryRepository.save(jobHistory);
+			status.flush();
+
+			return jobHistory;
+		});
+		log.debug("postUpdateReportGeneration [jobHistoryId={}, successCount={}, failedCount={}, status={}]",
+				jobHistoryId, successCount, failedCount, result.getStatus());
+
 	}
 
 	public boolean isDbSyncRunning() {
@@ -148,7 +209,7 @@ public class ReportService {
 		}
 		return false;
 	}
-	
+
 	private String findInstitutionCode(Long institutionId) {
 
 		Institution inst = institutionRepository.findOne(institutionId);
@@ -158,34 +219,41 @@ public class ReportService {
 			return "CBC";
 		}
 	}
-	
-	private boolean skipReportGeneration(boolean isManualGenerate, boolean isFinancialReport, LocalDate reportStartDate, Optional<List<LocalDate>> holidays) {		
+
+	private boolean skipReportGeneration(boolean isManualGenerate, boolean isFinancialReport, LocalDate reportStartDate,
+			Optional<List<LocalDate>> holidays) {
 		boolean isWorkingDay = BusinessDay.isWorkingDay(reportStartDate, holidays);
 		boolean toSkip = !isManualGenerate && isFinancialReport && !isWorkingDay;
-		
-		log.debug("skipReportGeneration [reportStartDate={}, isManualGenerate={}, isFinancialReport={}, isWorkingDay={}] => {}", reportStartDate, isManualGenerate, isFinancialReport, isWorkingDay, toSkip);
-		
+
+		log.debug(
+				"skipReportGeneration [reportStartDate={}, isManualGenerate={}, isFinancialReport={}, isWorkingDay={}] => {}",
+				reportStartDate, isManualGenerate, isFinancialReport, isWorkingDay, toSkip);
+
 		return toSkip;
 	}
-	
-	private List<ReportDefinition> getReportsByCategoryIdOrReportId(Long reportCategoryId, Long reportId, Long institutionId, String frequency) {
+
+	private List<ReportDefinition> getReportsByCategoryIdOrReportId(Long reportCategoryId, Long reportId,
+			Long institutionId, String frequency) {
 		if (reportCategoryId == null || reportCategoryId <= 0) {
 			if (frequency != null) {
-				return reportDefinitionRepository.findByInstitutionIdAndFrequencyContainsOrderByName(institutionId, frequency);
+				return reportDefinitionRepository.findByInstitutionIdAndFrequencyContainsOrderByName(institutionId,
+						frequency);
 			} else {
 				return reportDefinitionRepository.findByInstitutionIdOrderByName(institutionId);
 			}
-			
-		}  else if (reportId == null || reportId <= 0) {
+
+		} else if (reportId == null || reportId <= 0) {
 			if (frequency != null) {
-				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdAndFrequencyContainsOrderByName(reportCategoryId, institutionId, frequency);
+				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdAndFrequencyContainsOrderByName(
+						reportCategoryId, institutionId, frequency);
 			} else {
-				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdOrderByName(reportCategoryId, institutionId);
-			}			
+				return reportDefinitionRepository.findByCategoryIdAndInstitutionIdOrderByName(reportCategoryId,
+						institutionId);
+			}
 		} else {
 			List<ReportDefinition> aList = new ArrayList<>();
 			ReportDefinition def = reportDefinitionRepository.findOne(reportId);
-			
+
 			if (frequency == null || frequency.trim().isEmpty()) {
 				aList.add(reportDefinitionRepository.findOne(reportId));
 				return aList;
@@ -194,163 +262,170 @@ public class ReportService {
 				return aList;
 			} else {
 				return aList;
-			}			
-		}
-	}
-
-	@Async
-	public void generateReport(ReportGenerationMgr reportGenerationMgr, ReportDefinition reportDefinition, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, List<ReportDefinition> aList, boolean manualGenerate,
-			String directory, long dailyJobId, long monthlyJobId, boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, 
-			JobHistoryDetails jobHistoryDetails, String dailyReportPath, String monthlyReportPath, String user, Job job) throws JsonProcessingException {
-
-		Map<String,String> reportStatusMap = new HashMap<String,String>();
-
-		boolean isDailyPartialFailed = false;
-		boolean isDailyCompleted = false;
-		boolean isMonthlyPartialFailed = false;
-		boolean isMonthlyCompleted = false;
-				
-		if(isDailyFreq) {
-			updateJobHistoryInProgress(dailyJobId, user);
-			dailyReportPath = directory + File.separator + StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator + dailyJobId;		
-		} 
-		
-		if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
-			updateJobHistoryInProgress(monthlyJobId, user);
-			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;	
-		}
-
-//		for (ReportDefinition reportDefinition : aList) {
-//			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
-//			reportGenerationMgr.setFileName(reportDefinition.getName());
-//			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
-//			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
-//			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
-//			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
-//			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
-//			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
-//			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
-//			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
-
-			handleExceptionFilePrefix(reportGenerationMgr, reportDefinition.getFileNamePrefix(), inputStartDateTime,
-					inputEndDateTime);
-			
-			Optional<List<LocalDate>> holidays = getHolidayList();
-			if (!manualGenerate && reportDefinition.isByBusinessDate()
-					&& !BusinessDay.isWorkingDay(inputStartDateTime.toLocalDate(), holidays)) {
-				log.debug("Non working day:{}. System will not auto generate report: {}",
-						inputStartDateTime.toLocalDate(), reportDefinition.getName());
-				//continue;
-				return;
-			} else {
-				String[] frequencies = reportGenerationMgr.getFrequency().split(",");
-				for (String freq : frequencies) {
-					if (ReportConstants.DAILY.equals(freq)) {					
-						setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime,
-								directory, reportDefinition.getReportCategory().getName(),
-								reportDefinition.isByBusinessDate(), manualGenerate, holidays, dailyJobId);
-						log.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
-								reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
-						
-						try {
-							runReport(reportGenerationMgr);
-							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
-							isDailyCompleted = true;
-						} catch (ReportGenerationException e) {
-							log.error("Error generating report:" + e.getFilename());
-							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
-							isDailyPartialFailed = true;
-						}
-						
-					}
-
-					if (ReportConstants.MONTHLY.equals(freq)) {
-						if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
-							setTransactionDateRange(reportGenerationMgr, true, inputStartDateTime, inputEndDateTime,
-									directory, reportDefinition.getReportCategory().getName(),
-									reportDefinition.isByBusinessDate(), manualGenerate, holidays, monthlyJobId);
-							log.debug("run monthly report: name={}, start date={}, end date={}",
-									reportDefinition.getName(), reportGenerationMgr.getTxnStartDate(),
-									reportGenerationMgr.getTxnEndDate());
-							try {
-								runReport(reportGenerationMgr);								
-								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
-								isMonthlyCompleted = true;
-							} catch (ReportGenerationException e) {
-								log.error("Error generating report:" + e.getFilename());
-								reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
-								isMonthlyPartialFailed = true;
-							}
-														
-						}
-					}
-				}
 			}
-//		}
-		
-		jobHistoryDetails.setReportStatusMap(reportStatusMap);
-		
-		if(dailyJobId != 0) {		
-			updateJobHistoryOnFinish(reportGenerationMgr, dailyJobId, jobHistoryDetails, isDailyCompleted, isDailyPartialFailed, dailyReportPath);
 		}
-		
-		if(monthlyJobId != 0) {			
-			updateJobHistoryOnFinish(reportGenerationMgr, monthlyJobId, jobHistoryDetails, isMonthlyCompleted, isMonthlyPartialFailed, monthlyReportPath);
-		}
-		
-	}
-	
-	public boolean isGenerateMonthlyReport(boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly, LocalDateTime inputStartDateTime) {
-		return (!isDailyFreq && isMonthlyOnlyFreq && manualMonthly) || (!manualMonthly && YearMonth.from(inputStartDateTime).atEndOfMonth()
-				.isEqual(inputStartDateTime.toLocalDate()));
 	}
 
-	public void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails, boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {		
-		if(jobId != 0) {			
-			Long id = transactionTemplate.execute(status -> {
-				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
-				//jobHistoryDetails.setEndDateTime(LocalDateTime.now());
-				jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
-				jobHistory.setReportPath(reportPath);
-				try {
-					jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}				
-				jobHistory.setGenerationEndDate(LocalDateTime.now());
-				jobHistory.setLastModifiedDate(Instant.now());
-				jobHistory = jobHistoryRepository.save(jobHistory);
-				log.debug("Generate Report [END] {} : {}", jobId, jobHistory.getStatus());
-				return jobHistory.getId();
-			});		
-		}
+//	@Async
+//	public void generateReport(ReportGenerationMgr reportGenerationMgr, ReportDefinition reportDefinition,
+//			LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, List<ReportDefinition> aList,
+//			boolean manualGenerate, String directory, long dailyJobId, long monthlyJobId, boolean isDailyFreq,
+//			boolean isMonthlyOnlyFreq, boolean manualMonthly, JobHistoryDetails jobHistoryDetails,
+//			String dailyReportPath, String monthlyReportPath, String user, Job job) throws JsonProcessingException {
+//
+//		Map<String, String> reportStatusMap = new HashMap<String, String>();
+//
+//		boolean isDailyPartialFailed = false;
+//		boolean isDailyCompleted = false;
+//		boolean isMonthlyPartialFailed = false;
+//		boolean isMonthlyCompleted = false;
+//
+//		if (isDailyFreq) {
+//			updateJobHistoryInProgress(dailyJobId, user);
+//			dailyReportPath = directory + File.separator
+//					+ StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0") + File.separator
+//					+ dailyJobId;
+//		}
+//
+//		if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
+//			updateJobHistoryInProgress(monthlyJobId, user);
+//			monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;
+//		}
+//
+////		for (ReportDefinition reportDefinition : aList) {
+////			reportGenerationMgr.setReportCategory(reportDefinition.getReportCategory().getName());
+////			reportGenerationMgr.setFileName(reportDefinition.getName());
+////			reportGenerationMgr.setFileFormat(reportDefinition.getFileFormat());
+////			reportGenerationMgr.setProcessingClass(reportDefinition.getProcessingClass());
+////			reportGenerationMgr.setHeaderFields(reportDefinition.getHeaderFields());
+////			reportGenerationMgr.setBodyFields(reportDefinition.getBodyFields());
+////			reportGenerationMgr.setTrailerFields(reportDefinition.getTrailerFields());
+////			reportGenerationMgr.setFrequency(reportDefinition.getFrequency());
+////			reportGenerationMgr.setBodyQuery(reportDefinition.getBodyQuery());
+////			reportGenerationMgr.setTrailerQuery(reportDefinition.getTrailerQuery());
+//
+//		handleExceptionFilePrefix(reportGenerationMgr, reportDefinition.getFileNamePrefix(), inputStartDateTime,
+//				inputEndDateTime);
+//
+//		Optional<List<LocalDate>> holidays = getHolidayList();
+//		if (!manualGenerate && reportDefinition.isByBusinessDate()
+//				&& !BusinessDay.isWorkingDay(inputStartDateTime.toLocalDate(), holidays)) {
+//			log.debug("Non working day:{}. System will not auto generate report: {}", inputStartDateTime.toLocalDate(),
+//					reportDefinition.getName());
+//			// continue;
+//			return;
+//		} else {
+//			String[] frequencies = reportGenerationMgr.getFrequency().split(",");
+//			for (String freq : frequencies) {
+//				if (ReportConstants.DAILY.equals(freq)) {
+//					setTransactionDateRange(reportGenerationMgr, false, inputStartDateTime, inputEndDateTime, directory,
+//							reportDefinition.getReportCategory().getName(), reportDefinition.isByBusinessDate(),
+//							manualGenerate, holidays, dailyJobId);
+//					log.debug("run daily report: name={}, start date={}, end date={}", reportDefinition.getName(),
+//							reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
+//
+//					try {
+//						runReport(reportGenerationMgr);
+//						reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
+//						isDailyCompleted = true;
+//					} catch (ReportGenerationException e) {
+//						log.error("Error generating report:" + e.getFilename());
+//						reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
+//						isDailyPartialFailed = true;
+//					}
+//
+//				}
+//
+//				if (ReportConstants.MONTHLY.equals(freq)) {
+//					if (isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly, inputStartDateTime)) {
+//						setTransactionDateRange(reportGenerationMgr, true, inputStartDateTime, inputEndDateTime,
+//								directory, reportDefinition.getReportCategory().getName(),
+//								reportDefinition.isByBusinessDate(), manualGenerate, holidays, monthlyJobId);
+//						log.debug("run monthly report: name={}, start date={}, end date={}", reportDefinition.getName(),
+//								reportGenerationMgr.getTxnStartDate(), reportGenerationMgr.getTxnEndDate());
+//						try {
+//							runReport(reportGenerationMgr);
+//							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_COMPLETED);
+//							isMonthlyCompleted = true;
+//						} catch (ReportGenerationException e) {
+//							log.error("Error generating report:" + e.getFilename());
+//							reportStatusMap.put(reportDefinition.getName(), ReportConstants.STATUS_FAILED);
+//							isMonthlyPartialFailed = true;
+//						}
+//
+//					}
+//				}
+//			}
+//		}
+////		}
+//
+//		jobHistoryDetails.setReportStatusMap(reportStatusMap);
+//
+//		if (dailyJobId != 0) {
+//			updateJobHistoryOnFinish(reportGenerationMgr, dailyJobId, jobHistoryDetails, isDailyCompleted,
+//					isDailyPartialFailed, dailyReportPath);
+//		}
+//
+//		if (monthlyJobId != 0) {
+//			updateJobHistoryOnFinish(reportGenerationMgr, monthlyJobId, jobHistoryDetails, isMonthlyCompleted,
+//					isMonthlyPartialFailed, monthlyReportPath);
+//		}
+//
+//	}
+
+	public boolean isGenerateMonthlyReport(boolean isDailyFreq, boolean isMonthlyOnlyFreq, boolean manualMonthly,
+			LocalDateTime inputStartDateTime) {
+		return (!isDailyFreq && isMonthlyOnlyFreq && manualMonthly) || (!manualMonthly
+				&& YearMonth.from(inputStartDateTime).atEndOfMonth().isEqual(inputStartDateTime.toLocalDate()));
 	}
-	
-	public void updateJobHistoryInProgress(long jobId, String user) throws JsonProcessingException {		
-		if(jobId != 0) {			
-			Long id = transactionTemplate.execute(status -> {
-				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
-				jobHistory.setStatus(ReportConstants.STATUS_IN_PROGRESS);
-				jobHistory.setLastModifiedDate(Instant.now());
-				jobHistory.setLastModifiedBy(user);
-				jobHistory = jobHistoryRepository.save(jobHistory);
-				log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobId);
-				return jobHistory.getId();
-			});		
-		}
-	}
-	
+
+//	public void updateJobHistoryOnFinish(ReportGenerationMgr rgm, long jobId, JobHistoryDetails jobHistoryDetails,
+//			boolean isCompleted, boolean isPartialFailed, String reportPath) throws JsonProcessingException {
+//		if (jobId != 0) {
+//			Long id = transactionTemplate.execute(status -> {
+//				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+//				// jobHistoryDetails.setEndDateTime(LocalDateTime.now());
+//				jobHistory.setStatus(getJobStatus(isCompleted, isPartialFailed));
+//				jobHistory.setReportPath(reportPath);
+//				try {
+//					jobHistory.setDetails(mapper.writeValueAsString(jobHistoryDetails));
+//				} catch (Exception e) {
+//					throw new RuntimeException(e);
+//				}
+//				jobHistory.setGenerationEndDate(LocalDateTime.now());
+//				jobHistory.setLastModifiedDate(Instant.now());
+//				jobHistory = jobHistoryRepository.save(jobHistory);
+//				log.debug("Generate Report [END] {} : {}", jobId, jobHistory.getStatus());
+//				return jobHistory.getId();
+//			});
+//		}
+//	}
+
+//	public void updateJobHistoryInProgress(long jobId, String user) throws JsonProcessingException {
+//		if (jobId != 0) {
+//			Long id = transactionTemplate.execute(status -> {
+//				JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
+//				jobHistory.setStatus(ReportConstants.STATUS_IN_PROGRESS);
+//				jobHistory.setLastModifiedDate(Instant.now());
+//				jobHistory.setLastModifiedBy(user);
+//				jobHistory = jobHistoryRepository.save(jobHistory);
+//				log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobId);
+//				return jobHistory.getId();
+//			});
+//		}
+//	}
+
 	private String getJobStatus(boolean isCompleted, boolean isPartialFailed) {
 		String status = null;
-		
-		if(isCompleted && isPartialFailed) {
+
+		if (isCompleted && isPartialFailed) {
 			status = ReportConstants.STATUS_PARTIAL_FAILED;
-		} else if(!isCompleted && isPartialFailed) {
+		} else if (!isCompleted && isPartialFailed) {
 			status = ReportConstants.STATUS_FAILED;
 		} else {
 			status = ReportConstants.STATUS_COMPLETED;
 		}
-		
+
 		return status;
 	}
 
@@ -379,8 +454,8 @@ public class ReportService {
 		if (isMonthly) {
 			String dayPrefix = "00";
 			reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix + File.separator + jobId);
-			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + jobId + File.separator
-					+ ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
+			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + jobId
+					+ File.separator + ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
 			LocalDate firstDayOfMonth = inputStartDateTime.toLocalDate().withDayOfMonth(1);
 			LocalDate lastDayOfMonth = inputStartDateTime.toLocalDate()
 					.withDayOfMonth(inputStartDateTime.toLocalDate().lengthOfMonth());
@@ -391,8 +466,8 @@ public class ReportService {
 		} else {
 			String dayPrefix = StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0");
 			reportGenerationMgr.setFileBaseDirectory(directory + File.separator + dayPrefix + File.separator + jobId);
-			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + jobId + File.separator
-					+ ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
+			reportGenerationMgr.setFileLocation(directory + File.separator + dayPrefix + File.separator + jobId
+					+ File.separator + ReportConstants.MAIN_PATH + File.separator + reportCategory + File.separator);
 			calculateTxnDateTime(reportGenerationMgr, inputStartDateTime, inputEndDateTime, byBusinessDate,
 					manualGenerate, holidays);
 			reportGenerationMgr.setReportTxnEndDate(inputEndDateTime);
@@ -452,10 +527,10 @@ public class ReportService {
 				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 
 	}
-	
+
 	public Map<Long, String> getAllInstitutionIdAndShortCode() {
 		Map<Long, String> institutionMap = new HashMap<>();
-		
+
 		institutionRepository.findAll().forEach(i -> {
 			if ("Institution".equals(i.getType())) {
 				if (ReportConstants.CBC_INSTITUTION.equals(i.getName())) {
@@ -464,31 +539,32 @@ public class ReportService {
 					institutionMap.put(i.getId(), "CBS");
 				}
 			}
-		});		
+		});
 		return institutionMap;
 	}
 
-	public long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, String details, String frequency) {
-		
-		Long id = transactionTemplate.execute(status -> {
-			LocalDateTime currentTs = LocalDateTime.now();
-			
-			JobHistory jobHistory = new JobHistory();
-			jobHistory.setCreatedBy(user);
-			jobHistory.setCreatedDate(Instant.now());
-			jobHistory.setDetails(details);
-			jobHistory.setFrequency(frequency);
-			jobHistory.setGenerationStartDate(currentTs);
-			jobHistory.setJob(job);
-			jobHistory.setReportEndDate(inputEndDateTime);
-			jobHistory.setReportStartDate(inputStartDateTime);
-			jobHistory.setStatus(ReportConstants.STATUS_IN_QUEUE);
-			
-			jobHistory = jobHistoryRepository.saveAndFlush(jobHistory);
-			log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobHistory.getId());
-			return jobHistory.getId();
-		});
-
-		return id;
-	}
+//	public long createJobHistory(Job job, String user, LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime,
+//			String details, String frequency) {
+//
+//		Long id = transactionTemplate.execute(status -> {
+//			LocalDateTime currentTs = LocalDateTime.now();
+//
+//			JobHistory jobHistory = new JobHistory();
+//			jobHistory.setCreatedBy(user);
+//			jobHistory.setCreatedDate(Instant.now());
+//			jobHistory.setDetails(details);
+//			jobHistory.setFrequency(frequency);
+//			jobHistory.setGenerationStartDate(currentTs);
+//			jobHistory.setJob(job);
+//			jobHistory.setReportEndDate(inputEndDateTime);
+//			jobHistory.setReportStartDate(inputStartDateTime);
+//			jobHistory.setStatus(ReportConstants.STATUS_IN_QUEUE);
+//
+//			jobHistory = jobHistoryRepository.saveAndFlush(jobHistory);
+//			log.debug("Generate Report [{}] {}", jobHistory.getStatus(), jobHistory.getId());
+//			return jobHistory.getId();
+//		});
+//
+//		return id;
+//	}
 }

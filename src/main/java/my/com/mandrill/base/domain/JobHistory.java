@@ -244,7 +244,6 @@ public class JobHistory implements Serializable {
 	public String toString() {
 		return "JobHistory{" +
 				", id='" + getId() + "'" +
-				", job='" + getJob() + "'" +
 	            ", status='" + getStatus() + "'" +
 	            ", createdBy='" + getCreatedBy() + "'" +
 	            ", createdDate='" + getCreatedDate() + "'" +

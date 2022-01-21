@@ -185,10 +185,10 @@ public class JobHistoryResource {
         if(query!=null && !query.isEmpty()){
         	 String startDate = formatDate(query, -1) + " 00:00:00";
              String endDate = formatDate(query, 1) + " 00:00:00";
-             page = jobHistoryRepository.findReportGeneratedByDate(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
+             page = jobHistoryRepository.findReportGeneratedByDate(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
         }
         else{
-        	page = jobHistoryRepository.findLatestReportGenerated(pageable, currentUserLogin, ReportConstants.JOB_NAME_GENERATE_REPORT, institutionId);
+        	page = jobHistoryRepository.findLatestReportGenerated(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT, institutionId);
         }
               
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/job-history-generated");

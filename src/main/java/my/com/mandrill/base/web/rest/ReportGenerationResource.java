@@ -199,10 +199,6 @@ public class ReportGenerationResource {
 				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId,
 				startDateTime, endDateTime);
 
-		// Create daily + monthly jobs to generate report
-		// Status in queue
-
-//		try {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 		LocalDateTime inputStartDateTime = LocalDateTime.parse(startDateTime, formatter);
@@ -214,108 +210,91 @@ public class ReportGenerationResource {
 
 		jobHistoryService.queueReportJob(jobHistoryDetails);
 
-//			String instShortCode = findInstitutionCode(institutionId);
-//
-//			JobHistory dbsyncJob = jobHistoryRepository.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
-//					ReportConstants.STATUS_IN_PROGRESS, ReportConstants.JOB_NAME_DB_SYNC);
-//			if (dbsyncJob != null) {
-//				throw new BadRequestAlertException("Database sync is in progress. Please try again later.", "DBSync",
-//						"dbsync.inprogress");
-//			}
-//			
-//			generateReportByInstitutionAndCategory(inputStartDateTime, inputEndDateTime, institutionId, instShortCode,
-//					reportCategoryId, reportId, true, true, getUsername());
-//
-//			auditActionService.addSuccessEvent(AuditActionType.REPORT_GENERATE, null);
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(new ReportDefinition()));
+	}
+
+//	public void generateReportByInstitutionAndCategory(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime,
+//			Long institutionId, String instShortCode, Long reportCategoryId, Long reportId, boolean manualMonthly,
+//			boolean manualGenerate, String user) {
+//		logger.debug(
+//				"generateReportByInstitutionAndCategory: [institution={}, inputStartDateTime={}, inputEndDateTime={}, institutionId={}, instShortCode={}, reportCategoryId={}, reportId={}, includeMonthly={}, manualGenerate={}]",
+//				institutionId, inputStartDateTime, inputEndDateTime, institutionId, instShortCode, reportCategoryId,
+//				reportId, manualMonthly, manualGenerate);
+//
+//		String yearMonth = inputStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+//		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+//				+ institutionId + File.separator + yearMonth;
+//
+//		try {
+//			List<ReportDefinition> aList = new ArrayList<>();
+//			String reportCategory = null;
+//			String report = null;
+//
+//			if (reportCategoryId == null || reportCategoryId <= 0) {
+//				aList = reportDefinitionRepository.findByInstitutionIdOrderByName(institutionId);
+//				reportCategory = "ALL";
+//				report = "ALL";
+//			} else if (reportId == null || reportId <= 0) {
+//				aList = reportDefinitionRepository.findByCategoryIdAndInstitutionIdOrderByName(reportCategoryId,
+//						institutionId);
+//				reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
+//				report = "ALL";
+//			} else {
+//				ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
+//				if (reportDefinition != null) {
+//					aList.add(reportDefinition);
+//				}
+//
+//				reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
+//				report = reportDefinition.getName();
+//			}
+//			logger.debug("Process {} reports", aList.size());
+//			String description = "REPORT CATEGORY: " + reportCategory + ", REPORT: " + report + ", FROM: "
+//					+ inputStartDateTime.toString() + ", TO: " + inputEndDateTime.toString();
+//
+//			Job job = jobRepository.findByName(ReportConstants.JOB_NAME_GENERATE_REPORT);
+//			JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId,
+//					reportCategoryId != null ? reportCategoryId : 0L, reportCategory, reportId, report, description,
+//					inputStartDateTime, inputEndDateTime);
+//
+//			String dailyReportPath = null;
+//			String monthlyReportPath = null;
+//
+//			boolean isDailyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Daily"));
+//			boolean isMonthlyOnlyFreq = aList.stream().anyMatch(p -> p.getFrequency().matches("Monthly"));
+//
+//			long dailyJobId = 0;
+//			long monthlyJobId = 0;
+//
+//			if (isDailyFreq) {
+//				dailyJobId = reportService.createJobHistory(job, user, inputStartDateTime, inputEndDateTime,
+//						mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
+//				dailyReportPath = directory + File.separator
+//						+ StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0")
+//						+ File.separator + dailyJobId;
+//			}
+//
+//			if (reportService.isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly,
+//					inputStartDateTime)) {
+//				monthlyJobId = reportService.createJobHistory(job, user, inputStartDateTime, inputEndDateTime,
+//						mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
+//				monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;
+//			}
+//
+//			for (ReportDefinition reportDefinition : aList) {
+//				ReportGenerationMgr mgr = ReportGenerationMgr.create(0L, instShortCode, manualGenerate, inputStartDateTime,
+//						env, encryptionService, reportDefinition);
+//
+//				reportService.generateReport(mgr, reportDefinition, inputStartDateTime, inputEndDateTime, aList,
+//						manualGenerate, directory, dailyJobId, monthlyJobId, isDailyFreq, isMonthlyOnlyFreq,
+//						manualMonthly, jobHistoryDetails, dailyReportPath, monthlyReportPath, user, job);
+//			}
+//
 //		} catch (Exception e) {
-//			auditActionService.addFailedEvent(AuditActionType.REPORT_GENERATE, null, e);
-//			throw e;
+//			throw new RuntimeException("Failed to generate report", e);
 //		}
-	}
-
-	public void generateReportByInstitutionAndCategory(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime,
-			Long institutionId, String instShortCode, Long reportCategoryId, Long reportId, boolean manualMonthly,
-			boolean manualGenerate, String user) {
-		logger.debug(
-				"generateReportByInstitutionAndCategory: [institution={}, inputStartDateTime={}, inputEndDateTime={}, institutionId={}, instShortCode={}, reportCategoryId={}, reportId={}, includeMonthly={}, manualGenerate={}]",
-				institutionId, inputStartDateTime, inputEndDateTime, institutionId, instShortCode, reportCategoryId,
-				reportId, manualMonthly, manualGenerate);
-
-		String yearMonth = inputStartDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-		String directory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
-				+ institutionId + File.separator + yearMonth;
-
-		try {
-			List<ReportDefinition> aList = new ArrayList<>();
-			String reportCategory = null;
-			String report = null;
-
-			if (reportCategoryId == null || reportCategoryId <= 0) {
-				aList = reportDefinitionRepository.findByInstitutionIdOrderByName(institutionId);
-				reportCategory = "ALL";
-				report = "ALL";
-			} else if (reportId == null || reportId <= 0) {
-				aList = reportDefinitionRepository.findByCategoryIdAndInstitutionIdOrderByName(reportCategoryId,
-						institutionId);
-				reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
-				report = "ALL";
-			} else {
-				ReportDefinition reportDefinition = reportDefinitionRepository.findOne(reportId);
-				if (reportDefinition != null) {
-					aList.add(reportDefinition);
-				}
-
-				reportCategory = reportCategoryRepository.findOne(reportCategoryId).getName();
-				report = reportDefinition.getName();
-			}
-			logger.debug("Process {} reports", aList.size());
-			String description = "REPORT CATEGORY: " + reportCategory + ", REPORT: " + report + ", FROM: "
-					+ inputStartDateTime.toString() + ", TO: " + inputEndDateTime.toString();
-
-			Job job = jobRepository.findByName(ReportConstants.JOB_NAME_GENERATE_REPORT);
-			JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(institutionId,
-					reportCategoryId != null ? reportCategoryId : 0L, reportCategory, reportId, report, description,
-					inputStartDateTime, inputEndDateTime);
-
-			String dailyReportPath = null;
-			String monthlyReportPath = null;
-
-			boolean isDailyFreq = aList.stream().anyMatch(p -> p.getFrequency().contains("Daily"));
-			boolean isMonthlyOnlyFreq = aList.stream().anyMatch(p -> p.getFrequency().matches("Monthly"));
-
-			long dailyJobId = 0;
-			long monthlyJobId = 0;
-
-			if (isDailyFreq) {
-				dailyJobId = reportService.createJobHistory(job, user, inputStartDateTime, inputEndDateTime,
-						mapper.writeValueAsString(jobHistoryDetails), ReportConstants.DAILY);
-				dailyReportPath = directory + File.separator
-						+ StringUtils.leftPad(String.valueOf(inputStartDateTime.getDayOfMonth()), 2, "0")
-						+ File.separator + dailyJobId;
-			}
-
-			if (reportService.isGenerateMonthlyReport(isDailyFreq, isMonthlyOnlyFreq, manualMonthly,
-					inputStartDateTime)) {
-				monthlyJobId = reportService.createJobHistory(job, user, inputStartDateTime, inputEndDateTime,
-						mapper.writeValueAsString(jobHistoryDetails), ReportConstants.MONTHLY);
-				monthlyReportPath = directory + File.separator + "00" + File.separator + monthlyJobId;
-			}
-
-			for (ReportDefinition reportDefinition : aList) {
-				ReportGenerationMgr mgr = ReportGenerationMgr.create(instShortCode, manualGenerate, inputStartDateTime,
-						env, encryptionService, reportDefinition);
-
-				reportService.generateReport(mgr, reportDefinition, inputStartDateTime, inputEndDateTime, aList,
-						manualGenerate, directory, dailyJobId, monthlyJobId, isDailyFreq, isMonthlyOnlyFreq,
-						manualMonthly, jobHistoryDetails, dailyReportPath, monthlyReportPath, user, job);
-			}
-
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to generate report", e);
-		}
-
-	}
+//
+//	}
 
 //	public void preGenerateReport(LocalDateTime inputStartDateTime, LocalDateTime inputEndDateTime, Long institutionId,
 //			String instShortCode, Long reportCategoryId, Long reportId, boolean manualMonthly, boolean manualGenerate, String user) throws JsonProcessingException {

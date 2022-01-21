@@ -1,5 +1,6 @@
 package my.com.mandrill.base.service;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
@@ -14,34 +15,42 @@ import my.com.mandrill.base.processor.IReportProcessor;
 import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.processor.ReportProcessorLocator;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.reporting.ReportGenerationResult;
 
 @Service
 public class ReportAsyncService {
 
 	private final Logger log = LoggerFactory.getLogger(ReportAsyncService.class);
-	
+
 	@Autowired
 	private ReportProcessorLocator reportProcessLocator;
-	
+
 	@Autowired
 	private DataSource dataSource;
-	
+
 	@Async
-	public void runReport(ReportGenerationMgr reportGenerationMgr) throws ReportGenerationException {
-		log.debug("runReport start [jobId={}, report={}] ", reportGenerationMgr.getJobId(),
+	public CompletableFuture<ReportGenerationResult> runReport(ReportGenerationMgr reportGenerationMgr) {
+		log.debug("runReport start [jobHistoryId={}, report={}] ", reportGenerationMgr.getJobId(),
 				reportGenerationMgr.getFileName());
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 
 		long start = System.nanoTime();
-		if (reportProcessor != null) {
-			log.debug("runReport with processor: {}", reportProcessor);
-			reportProcessor.process(reportGenerationMgr);
-		} else {
-			reportGenerationMgr.run(dataSource);
+		try {
+			if (reportProcessor != null) {
+				log.debug("runReport with processor: {}", reportProcessor);
+				reportProcessor.process(reportGenerationMgr);
+			} else {
+				reportGenerationMgr.run(dataSource);
+			}
+		} catch (ReportGenerationException e) {
+			log.error("Failed to generate report: [reportName={}]", reportGenerationMgr.getFileName(), e);
+			return CompletableFuture
+					.completedFuture(ReportGenerationResult.failed(reportGenerationMgr.getFileName(), e.getMessage()));
 		}
 
-		log.debug("runReport end [jobId={}, report={}] ELAPSED TIME - {}s : ", reportGenerationMgr.getJobId(),
+		log.debug("runReport end [jobHistoryId={}, reportName={}] ELAPSED TIME - {}s", reportGenerationMgr.getJobId(),
 				reportGenerationMgr.getFileName(), TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+		return CompletableFuture.completedFuture(ReportGenerationResult.success(reportGenerationMgr.getFileName()));
 	}
-	
+
 }

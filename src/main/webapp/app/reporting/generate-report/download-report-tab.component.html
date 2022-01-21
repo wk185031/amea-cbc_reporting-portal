@@ -33,7 +33,7 @@
             <tbody>
             	<tr *ngFor="let jobHistory of jobHistories ;trackBy: trackId">
 	            	<td>{{jobHistory.createdDate | date:'short'}}</td>
-	            	<td>{{getGeneratedEndDateTime(jobHistory.details) | date:'short'}}</td>
+	            	<td>{{jobHistory.generationEndDate | date:'short'}}</td>
 	            	<td>{{jobHistory.frequency}}</td>
 	            	<td style="width:40%">{{getDetails(jobHistory.details)}}</td>
 	            	<td>{{jobHistory.createdBy}}</td>
@@ -56,7 +56,7 @@
 	                        <button *ngIf="jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED'" type="submit"	                            
 	                                class="btn btn-info btn-sm">
 	                            <span class="fa fa-download"></span>
-	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id, jobHistory.frequency)">Download</span>
+	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id, jobHistory.frequency, jobHistory.reportStartDate)">Download</span>
 	                        </button>
 	                        <button *ngIf="(jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED') && this.account.login == jobHistory.createdBy" type="submit"	                             
 	                                replaceUrl="true"

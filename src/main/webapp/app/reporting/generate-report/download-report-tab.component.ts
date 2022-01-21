@@ -126,10 +126,10 @@ export class DownloadReportTabComponent implements OnInit {
         }
     }
     
-    downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number, frequency: string) {
+    downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number, frequency: string, reportStartDate: string) {
     	var parsedDetail = JSON.parse(details);
         const req = this.generateReportService.downloadReport(this.branchId, parsedDetail.institutionId,
-            (parsedDetail.searchByDate ? parsedDetail.transactionStartDate : this.reportMonth + '-00'), parsedDetail.reportCategoryId, parsedDetail.report, jobId, frequency);
+            reportStartDate, parsedDetail.reportCategoryId, parsedDetail.report, jobId, frequency);
         this.http.request(req).subscribe(
             (requestEvent: HttpEvent<Blob[]>) => {
                 if (requestEvent instanceof HttpResponse) {

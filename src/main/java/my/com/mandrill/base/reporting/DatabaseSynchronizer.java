@@ -65,6 +65,7 @@ import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.AtmDowntime;
 import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
+import my.com.mandrill.base.domain.JobHistoryDetails;
 import my.com.mandrill.base.domain.Task;
 import my.com.mandrill.base.domain.TaskGroup;
 import my.com.mandrill.base.domain.TxnLogCustom;
@@ -78,6 +79,7 @@ import my.com.mandrill.base.repository.search.JobSearchRepository;
 import my.com.mandrill.base.repository.search.TaskGroupSearchRepository;
 import my.com.mandrill.base.repository.search.TaskSearchRepository;
 import my.com.mandrill.base.service.DcmsSyncService;
+import my.com.mandrill.base.service.JobHistoryService;
 import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.web.rest.ReportGenerationResource;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
@@ -118,6 +120,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private final DataSource dataSource;
 	private final DcmsSyncService dcmsSyncService;
 	private final AuditActionService auditActionService;
+	private final JobHistoryService jobHistoryService;
 
 	private static final String SQL_INSERT_TXN_LOG_CUSTOM = "insert into transaction_log_custom values (?,?,?,?,?,?,?,?,?,?)";
 	private static final String SQL_SELECT_CUSTOM_TXN_LOG = "select TRL_ID,TRL_TSC_CODE,TRL_TQU_ID,TRL_PAN,TRL_ACQR_INST_ID,TRL_CARD_ACPT_TERMINAL_IDENT,TRL_ORIGIN_ICH_NAME,TRL_CUSTOM_DATA,TRL_CUSTOM_DATA_EKY_ID,TRL_PAN_EKY_ID,TRL_ISS_NAME,TRL_DEO_NAME,TRL_SYSTEM_TIMESTAMP,TRL_APPR_ID from transaction_log {WHERE_CONDITION} order by TRL_SYSTEM_TIMESTAMP";
@@ -174,7 +177,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
 			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService, ReportGenerationResource reportGenerationResource,
 			DataSource dataSource, DcmsSyncService dcmsSyncService,
-			AuditActionService auditActionService) {
+			AuditActionService auditActionService, JobHistoryService jobHistoryService) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
 		this.taskRepository = taskRepository;
@@ -188,6 +191,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		this.dataSource = dataSource;
 		this.dcmsSyncService = dcmsSyncService;
 		this.auditActionService = auditActionService;
+		this.jobHistoryService = jobHistoryService;
 	}
 
 	TaskScheduler taskScheduler;
@@ -351,19 +355,32 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				dbsyncJob.setStatus(ReportConstants.STATUS_FAILED);
 				dbsyncJob.setLastModifiedBy(user);
 				dbsyncJob.setLastModifiedDate(Instant.now());
-				jobHistoryRepo.save(dbsyncJob);
+				jobHistoryRepo.saveAndFlush(dbsyncJob);
 				throw e;
 			}
 
-			log.debug("Database synchronizer done. Start generate report tasks.");
+			log.debug("Database synchronizer completed");
 			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
 
-			for (Map.Entry<Long, String> mapEntry : reportService.getAllInstitutionIdAndShortCode().entrySet()) {
-				reportGenerationResource.generateReportByInstitutionAndCategory(
-						LocalDate.now().minusDays(1L).atStartOfDay(), LocalDate.now().minusDays(1L).atTime(23, 59),
-						mapEntry.getKey(), mapEntry.getValue(), null, null, false, false,
-						ReportConstants.CREATED_BY_USER);
+			if (ReportConstants.CREATED_BY_USER.equals(user)) {
+				log.debug("System db sync, proceed with report generation.");
+				for (Map.Entry<Long, String> mapEntry : reportService.getAllInstitutionIdAndShortCode().entrySet()) {
+					JobHistoryDetails jobHistoryDetails = new JobHistoryDetails(mapEntry.getKey(), 0L, null, 0L, null,
+							null, LocalDate.now().minusDays(1L).atStartOfDay(),
+							LocalDate.now().minusDays(1L).atTime(23, 59));
+					jobHistoryService.queueReportJob(jobHistoryDetails);
+				}
+			} else {
+				log.debug("Db sync trigger manually, skip report generation.");
 			}
+
+			//TODO
+//			for (Map.Entry<Long, String> mapEntry : reportService.getAllInstitutionIdAndShortCode().entrySet()) {
+//				reportGenerationResource.generateReportByInstitutionAndCategory(
+//						LocalDate.now().minusDays(1L).atStartOfDay(), LocalDate.now().minusDays(1L).atTime(23, 59),
+//						mapEntry.getKey(), mapEntry.getValue(), null, null, false, false,
+//						ReportConstants.CREATED_BY_USER);
+//			}
 
 			return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))

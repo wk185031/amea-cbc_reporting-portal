@@ -1,16 +1,20 @@
 package my.com.mandrill.base.service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,11 +24,13 @@ import my.com.mandrill.base.domain.Job;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.JobHistoryDetails;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.JobRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 
 @Service
@@ -41,6 +47,15 @@ public class JobHistoryService {
 
 	@Autowired
 	private ReportDefinitionRepository reportDefinitionRepository;
+
+	@Autowired
+	private ReportService reportService;
+
+	@Autowired
+	private SystemConfigurationRepository systemConfigurationRepo;
+
+	@Autowired
+	private EntityManager em;
 
 	private final Logger log = LoggerFactory.getLogger(JobHistoryService.class);
 
@@ -61,7 +76,7 @@ public class JobHistoryService {
 		if (generateForMonthly) {
 			jobList.add(createReportGenerationJob(jobHistory, ReportConstants.MONTHLY));
 		}
-		
+
 		if (jobList.size() == 0) {
 			throw new RuntimeException("error.report.noJobInQueue");
 		}
@@ -159,6 +174,71 @@ public class JobHistoryService {
 				cloneJobHistory.getId());
 
 		return cloneJobHistory;
+	}
+
+	@Scheduled(cron = "0 * * * * ?")
+	public void executeQueuedReportGenerationJob() {
+		log.debug("executeQueuedReportGenerationJob: START");
+		if (reportService.isDbSyncRunning()) {
+			log.debug("DB sync is running. Report Generation Job will not be executed.");
+			return;
+		}
+
+		SystemConfiguration config = systemConfigurationRepo.findByName("job.report.generate.max");
+		int maxJobToExecute = 2;
+		if (config != null && config.getConfig() != null) {
+			maxJobToExecute = Integer.parseInt(config.getConfig());
+		}
+
+		long reportInQueueCount = jobHistoryRepository.countByJobNameAndStatus(ReportConstants.JOB_NAME_GENERATE_REPORT,
+				ReportConstants.STATUS_IN_QUEUE);
+		if (reportInQueueCount == 0) {
+			log.debug("No job in queue. Skip.");
+			return;
+		}
+
+		long reportInProgressCount = jobHistoryRepository
+				.countByJobNameAndStatus(ReportConstants.JOB_NAME_GENERATE_REPORT, ReportConstants.STATUS_IN_PROGRESS);
+		if (reportInProgressCount >= maxJobToExecute) {
+			log.debug("Max job IN PROGRESS. Wait for existing job to complete.");
+			return;
+		}
+
+		@SuppressWarnings("unchecked")
+		List<JobHistory> jobsToExecute = em.createQuery(
+				"select j from JobHistory j where j.job.name = :jobName and j.status = :status order by j.createdDate")
+				.setParameter("jobName", ReportConstants.JOB_NAME_GENERATE_REPORT)
+				.setParameter("status", ReportConstants.STATUS_IN_QUEUE)
+				.setMaxResults((int) (maxJobToExecute - reportInProgressCount)).getResultList();
+		for (JobHistory h : jobsToExecute) {
+			log.debug("Execute job [jobHistoryId={}]", h.getId());
+			h.setStatus(ReportConstants.STATUS_IN_PROGRESS);
+			h.setGenerationStartDate(LocalDateTime.now());
+			h.setLastModifiedDate(Instant.now());
+			h.setLastModifiedBy(
+					SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get()
+							: "system");
+			jobHistoryRepository.saveAndFlush(h);
+			
+			try {
+				JobHistoryDetails jobHistoryDetails = new ObjectMapper().readValue(h.getDetails(),
+						JobHistoryDetails.class);
+				log.debug("Read jobHistoryDetails from json: {}", jobHistoryDetails.toString());
+
+				reportService.generateReport(h.getId(), "system".equals(h.getCreatedBy()) ? false : true,
+						jobHistoryDetails, h.getCreatedBy());
+			} catch (Exception e) {
+				log.error("Failed to generate report [jobHistoryId={}]", h.getId(), e);
+				h.setStatus(ReportConstants.STATUS_FAILED);
+				h.setLastModifiedDate(Instant.now());
+				h.setLastModifiedBy(
+						SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get()
+								: "system");
+				jobHistoryRepository.saveAndFlush(h);
+			}
+		}
+
+		log.debug("executeQueuedReportGenerationJob: END");
 	}
 
 }

@@ -408,9 +408,10 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		}
 	}
 
-	public static ReportGenerationMgr create(String instShortCode, boolean manualGenerate,
+	public static ReportGenerationMgr create(long jobId, String instShortCode, boolean manualGenerate,
 			LocalDateTime inputStartDateTime, Environment env, EncryptionService encryptionService, ReportDefinition def) {
 		ReportGenerationMgr reportGenerationMgr = new ReportGenerationMgr();
+		reportGenerationMgr.setJobId(jobId);
 		reportGenerationMgr.setInstitution(instShortCode);
 		reportGenerationMgr.setGenerate(manualGenerate);
 		reportGenerationMgr.setFileDate(inputStartDateTime.toLocalDate());
