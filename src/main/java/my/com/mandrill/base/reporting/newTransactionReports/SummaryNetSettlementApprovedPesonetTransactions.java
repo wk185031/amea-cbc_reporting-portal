@@ -216,7 +216,7 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -254,13 +254,7 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -273,7 +267,7 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
@@ -288,13 +282,7 @@ public class SummaryNetSettlementApprovedPesonetTransactions extends CsvReportPr
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return "0";
 	}

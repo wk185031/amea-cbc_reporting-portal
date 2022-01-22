@@ -557,7 +557,7 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -601,18 +601,7 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					if (ps != null) {
-						ps.close();
-					}
-					if (rs != null) {
-						rs.close();
-					}
-					
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}

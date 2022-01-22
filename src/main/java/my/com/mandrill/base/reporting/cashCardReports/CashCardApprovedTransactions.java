@@ -71,7 +71,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 
 			if (query != null && !query.trim().isEmpty()) {
 				try {
-					ps = rgm.connection.prepareStatement(query);
+					ps = rgm.getConnection().prepareStatement(query);
 					rs = ps.executeQuery();
 					fieldsMap = rgm.getQueryResultStructure(rs);
 					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -126,13 +126,11 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 					throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 				} finally {
 					try {
-						ps.close();
-						rs.close();
 						doc.close();
 					} catch (Exception e) {
-						rgm.errors++;
-						logger.error("Error closing DB resources", e);
+						logger.error("Error closing doc", e);
 					}
+					rgm.cleanUpDbResource(ps, rs);
 				}
 			}
 		} finally {
@@ -347,7 +345,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 
 			if (query != null && !query.trim().isEmpty()) {
 				try {
-					ps = rgm.connection.prepareStatement(query);
+					ps = rgm.getConnection().prepareStatement(query);
 					rs = ps.executeQuery();
 					fieldsMap = rgm.getQueryResultStructure(rs);
 					lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -392,14 +390,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 					rgm.errors++;
 					logger.error("Error trying to execute the body query", e);
 				} finally {
-					try {
-						ps.close();
-						rs.close();
-						rgm.exit();
-					} catch (SQLException e) {
-						rgm.errors++;
-						logger.error("Error closing DB resources", e);
-					}
+					rgm.cleanUpDbResource(ps, rs);
 				}
 			}
 		} catch (Exception e) {
@@ -657,7 +648,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		int i = 0;
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -710,13 +701,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -855,7 +840,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 
 			if (!rs.isBeforeFirst()) {
@@ -867,13 +852,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return false;
 	}

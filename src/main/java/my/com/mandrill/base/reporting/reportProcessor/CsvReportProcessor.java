@@ -403,7 +403,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -437,13 +437,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the branch", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return branchMap;
@@ -463,7 +457,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -501,13 +495,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -529,7 +517,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -585,13 +573,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -615,7 +597,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -682,13 +664,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -708,7 +684,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -739,13 +715,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -769,7 +739,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -836,13 +806,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -861,7 +825,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -889,13 +853,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return terminalMap;
@@ -914,7 +872,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -942,13 +900,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return causeMap;
@@ -1131,7 +1083,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				
@@ -1172,13 +1124,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return false;
@@ -1195,7 +1141,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				while (rs.next()) {
@@ -1232,13 +1178,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -1255,7 +1195,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 		int i = 0;
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				while (rs.next()) {
@@ -1293,13 +1233,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return i;
@@ -1316,7 +1250,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -1354,13 +1288,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -1376,7 +1304,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -1414,13 +1342,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}

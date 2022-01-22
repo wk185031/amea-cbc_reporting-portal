@@ -63,7 +63,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			contentStream = newPage(rgm, doc, DEFAULT_FONT, DEFAULT_FONT_SIZE, DEFAULT_MARGIN, pageCount);
 			pageCount++;
 
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -151,39 +151,32 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, ie);
 		} finally {
 			try {
-				if (ps != null) {
-					ps.close();
-				}
-				if (rs != null) {
-					rs.close();
-				}
 				if (doc != null) {
 					doc.close();
-					rgm.exit();
 				}
 			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
+				logger.warn("Error closing DB resources", e);
 			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 	}
 
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 
+		ResultSet rs = null;
+		PreparedStatement ps = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			rgm.setBodyQuery(rgm.getFixBodyQuery());
-
-			ResultSet rs = null;
-			PreparedStatement ps = null;
+	
 			int recordCount = 0;
 			int pageCount = 1;
 			String lastDebitCreditFlag = null;
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 			String query = getBodyQuery(rgm);
 
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -270,6 +263,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			logger.error("Failed to generate report.", e);
 			throw new RuntimeException(e);
 		} finally {
+			rgm.cleanUpDbResource(ps, rs);
 		}
 	}
 
@@ -348,7 +342,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -376,13 +370,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return branchCodeList;
@@ -430,7 +418,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -489,13 +477,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -758,7 +740,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 
 			if (!rs.isBeforeFirst()) {
@@ -770,13 +752,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return false;
 	}

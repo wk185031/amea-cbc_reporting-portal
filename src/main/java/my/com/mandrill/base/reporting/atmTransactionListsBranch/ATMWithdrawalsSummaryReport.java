@@ -85,7 +85,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 
 					if (bodyQuery != null && !bodyQuery.trim().isEmpty()) {
 						logger.debug("Generate report with body Query = {}", bodyQuery);
-						ps = rgm.connection.prepareStatement(bodyQuery);
+						ps = rgm.getConnection().prepareStatement(bodyQuery);
 						rs = ps.executeQuery();
 						fieldsMap = rgm.getQueryResultStructure(rs);
 						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -189,17 +189,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
 				} finally {
-					try {
-						if (ps != null) {
-							ps.close();
-						}
-						if (rs != null) {
-							rs.close();
-						}
-					} catch (Exception e) {
-						logger.warn("Failed to close statement or resultset", e);
-					}
-
+					rgm.cleanUpDbResource(ps, rs);
 				}
 
 			}

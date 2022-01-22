@@ -74,7 +74,8 @@ public class GLHandoffEload extends BatchProcessor {
 		if (getCriteriaQuery() != null) {
 			setCriteriaQuery(getCriteriaQuery().replace("AND {" + ReportConstants.PARAM_GL_DESCRIPTION + "}", "")
 					.replace("\"" + "Value Date" + "\",", "")
-					.replace("\"" + "Third Party Tran Description" + "\",", "\"" + "Third Party Tran Description" + "\"")
+					.replace("\"" + "Third Party Tran Description" + "\",",
+							"\"" + "Third Party Tran Description" + "\"")
 					.replace("\"" + "TRAN_DATE" + "\"", "")
 					.replace("TO_CHAR(TXN.TRL_DATETIME_LOCAL_TXN, 'MM-DD-YYYY')", ""));
 		}
@@ -203,7 +204,7 @@ public class GLHandoffEload extends BatchProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -241,12 +242,7 @@ public class GLHandoffEload extends BatchProcessor {
 			} catch (Exception e) {
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}

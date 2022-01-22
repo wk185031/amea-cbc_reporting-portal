@@ -195,7 +195,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -223,13 +223,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return billerCodeList;
@@ -243,7 +237,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 
 			if (!rs.isBeforeFirst()) {
@@ -255,13 +249,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return false;
 	}
@@ -348,7 +336,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 
 				while (rs.next()) {
@@ -369,13 +357,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -391,7 +373,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -429,13 +411,7 @@ public class BillsPaymentExtractFilesDetailedTransactions extends TxtReportProce
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}

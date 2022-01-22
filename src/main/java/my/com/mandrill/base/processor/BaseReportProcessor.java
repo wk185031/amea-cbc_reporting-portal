@@ -123,30 +123,7 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 			}
 			throw new ReportGenerationException(outputFile.getName(), e);
 		} finally {
-			if (ps != null) {
-				try {
-					ps.close();
-				} catch (Exception e2) {
-					logger.warn("Failed to close preparedStatement.");
-				}
-
-			}
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e3) {
-					logger.warn("Failed to close resultSet.");
-				}
-
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (Exception e4) {
-					logger.warn("Failed to close connection.");
-				}
-			}
+			rgm.cleanUpDbResource(ps, rs, conn);
 		}
 	}
 

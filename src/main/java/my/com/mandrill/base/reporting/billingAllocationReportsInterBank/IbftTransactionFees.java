@@ -393,7 +393,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -432,13 +432,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the receiving branch code", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return branchCodeMap;
@@ -454,7 +448,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -498,13 +492,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -517,7 +505,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
@@ -527,13 +515,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return "0";
 	}

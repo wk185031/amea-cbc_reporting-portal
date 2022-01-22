@@ -41,6 +41,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private EncryptionService encryptionService;
 	private String lastGlAccount;
 	private LocalDate postingDate;
+	private DataSource datasource;
 	private long jobId;
 	
 	public String getFixBodyQuery() {
@@ -72,8 +73,9 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		logger.debug("In ReportGenerationMgr.run()");
 		errors = 0;
 		this.setFileFormatTmp(this.getFileFormat());
+		this.datasource = ds;
 		
-		insertDcmsIssData(ds);
+		//insertDcmsIssData(ds);
 
 		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
 		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
@@ -96,19 +98,19 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		setFixTrailerQuery(getTrailerQuery());
 
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_PDF)) {
-			initialiseDBConnection(ds);
+			//initialiseDBConnection(ds);
 			this.setFileFormat(ReportConstants.FILE_PDF);
 			createPdfReportInstance(this);
 			pdfReportProcessor.processPdfRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_CSV)) {
-			initialiseDBConnection(ds);
+			//initialiseDBConnection(ds);
 			this.setFileFormat(ReportConstants.FILE_CSV);
 			createCsvReportInstance(this);
 			csvReportProcessor.processCsvRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_TXT)) {
-			initialiseDBConnection(ds);
+			//initialiseDBConnection(ds);
 			this.setFileFormat(ReportConstants.FILE_TXT);
 			createTxtReportInstance(this);
 			txtReportProcessor.processTxtRecord(this);
@@ -121,7 +123,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		errors = 0;
 		this.setFileFormatTmp(this.getFileFormat());
 		
-		insertDcmsIssData(url, username, password);
+		//insertDcmsIssData(url, username, password);
 
 		String institution = getInstitution() == null ? "'CBC'" : getInstitution();
 		setBodyQuery(CriteriaParamsUtil.replaceInstitution(getBodyQuery(), institution, ReportConstants.VALUE_DEO_NAME,
@@ -144,51 +146,93 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		setFixTrailerQuery(getTrailerQuery());
 
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_PDF)) {
-			initialiseDBConnection(url, username, password);
+			//initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_PDF);
 			createPdfReportInstance(this);
 			pdfReportProcessor.processPdfRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_CSV)) {
-			initialiseDBConnection(url, username, password);
+			//initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_CSV);
 			createCsvReportInstance(this);
 			csvReportProcessor.processCsvRecord(this);
 		}
 		if (this.getFileFormatTmp().contains(ReportConstants.FILE_TXT)) {
-			initialiseDBConnection(url, username, password);
+			//initialiseDBConnection(url, username, password);
 			this.setFileFormat(ReportConstants.FILE_TXT);
 			createTxtReportInstance(this);
 			txtReportProcessor.processTxtRecord(this);
 		}
 	}
 	
-	public void initialiseDBConnection(DataSource ds) {
-		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
-		try {
-			connection = ds.getConnection();
-			connection.setAutoCommit(false);
-		} catch (Exception e) {
-			errors++;
-			logger.error("Error in establishing database connection: ", e);
-		}
-	}
+//	public void initialiseDBConnection(DataSource ds) {
+//		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
+//		try {
+//			connection = ds.getConnection();
+//			//connection.setAutoCommit(false);
+//		} catch (Exception e) {
+//			errors++;
+//			logger.error("Error in establishing database connection: ", e);
+//		}
+//	}
+//
+//	public void initialiseDBConnection(String url, String username, String password) {
+//		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
+//		try {
+//			connection = DriverManager.getConnection(url, username, password);
+//			//connection.setAutoCommit(false);
+//		} catch (Exception e) {
+//			errors++;
+//			logger.error("Error in establishing database connection: ", e);
+//		}
+//	}
+	
+	public void cleanUpDbResource(PreparedStatement ps, ResultSet rs) {
+		logger.debug("In ReportGenerationMgr.cleanUp()");
 
-	public void initialiseDBConnection(String url, String username, String password) {
-		logger.debug("In ReportGenerationMgr.initialiseDBConnection()");
+		cleanUpDbResource(ps, rs, null);
+	}
+	
+	public void cleanUpDbResource(PreparedStatement ps, ResultSet rs, Connection conn) {
+		logger.debug("In ReportGenerationMgr.cleanUp()");
+
 		try {
-			connection = DriverManager.getConnection(url, username, password);
-			connection.setAutoCommit(false);
+			if (ps != null) {
+				ps.close();
+			}
+		} catch (SQLException e) {
+			logger.warn("Failed to close prepared statement", e);
+		}
+
+		try {
+			if (rs != null) {
+				rs.close();
+			}
+		} catch (SQLException e) {
+			logger.warn("Failed to close resultset", e);
+		}
+		
+		try {
+			if (conn != null) {
+				conn.close();
+			}
 		} catch (Exception e) {
-			errors++;
-			logger.error("Error in establishing database connection: ", e);
+			logger.warn("Failed to close db connection: ", e);
+		}
+
+		try {
+			if (connection != null) {
+				connection.close();
+			}
+		} catch (Exception e) {
+			logger.warn("Failed to close db connection: ", e);
 		}
 	}
 
 	public void exit() {
 		logger.debug("In ReportGenerationMgr.exit()");
 		try {
-			connection.setAutoCommit(true);
+			//connection.setAutoCommit(true);
 			if (connection != null) {
 				logger.debug("Close db connection...");
 				connection.close();
@@ -290,6 +334,13 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 	public void setPostingDate(LocalDate postingDate) {
 		this.postingDate = postingDate;
+	}
+	
+	public Connection getConnection() throws SQLException {
+		if (connection == null || connection.isClosed()) {
+			connection = datasource.getConnection();
+		} 
+		return connection;
 	}
 
 	private void insertDcmsIssData(String url, String username, String password) {

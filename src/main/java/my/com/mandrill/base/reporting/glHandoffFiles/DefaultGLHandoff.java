@@ -31,17 +31,18 @@ public class DefaultGLHandoff extends BatchProcessor {
 	@Override
 	protected void execute(File file, ReportGenerationMgr rgm) {
 		String branchCode = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
 			
-			ResultSet rs = null;
-			PreparedStatement ps = null;
+			
 			String query = getBodyQuery(rgm);
 			logger.info("Execute query: {}", query);
 
-			ps = rgm.connection.prepareStatement(query);
+			ps = rgm.getConnection().prepareStatement(query);
 			rs = ps.executeQuery();
 			HashMap<String, ReportGenerationFields> fieldsMap = rgm.getQueryResultStructure(rs);
 			HashMap<String, ReportGenerationFields> lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -94,12 +95,11 @@ public class DefaultGLHandoff extends BatchProcessor {
 			try {
 				if (rgm.fileOutputStream != null) {
 					rgm.fileOutputStream.close();
-					rgm.exit();
 				}
 			} catch (IOException e) {
-				rgm.errors++;
-				logger.error("Error in closing fileOutputStream", e);
+				logger.warn("Error in closing fileOutputStream", e);
 			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 	}
 	

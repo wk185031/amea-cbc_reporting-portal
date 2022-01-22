@@ -27,7 +27,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 		PreparedStatement ps = null;
 		String branchName = "";
 		try {
-			ps = rgm.connection.prepareStatement("SELECT BRC_NAME FROM BRANCH WHERE BRC_CODE = '"
+			ps = rgm.getConnection().prepareStatement("SELECT BRC_NAME FROM BRANCH WHERE BRC_CODE = '"
 					+ getBranchCode(toAccountNo, toAccountNoEkyId) + "'");
 			rs = ps.executeQuery();
 
@@ -42,13 +42,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the query to get the receiving branch name", e);
 		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
+			rgm.cleanUpDbResource(ps, rs);
 		}
 		return branchName;
 	}
@@ -69,7 +63,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -100,13 +94,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -127,7 +115,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -168,13 +156,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -317,7 +299,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -359,13 +341,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -381,7 +357,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -423,13 +399,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -524,7 +494,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -566,18 +536,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				try {
-					if (ps != null) {
-						ps.close();
-					}
-					if (rs != null) {
-						rs.close();
-					}
-					
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -593,7 +552,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -635,13 +594,7 @@ public class IbftReportProcessor extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}

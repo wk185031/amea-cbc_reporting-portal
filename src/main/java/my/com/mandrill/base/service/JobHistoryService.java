@@ -1,5 +1,8 @@
 package my.com.mandrill.base.service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -9,11 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.sql.DataSource;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +60,13 @@ public class JobHistoryService {
 	private SystemConfigurationRepository systemConfigurationRepo;
 
 	@Autowired
+	private Environment env;
+
+	@Autowired
 	private EntityManager em;
+
+	@Autowired
+	private DataSource datasource;
 
 	private final Logger log = LoggerFactory.getLogger(JobHistoryService.class);
 
@@ -219,7 +230,7 @@ public class JobHistoryService {
 					SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get()
 							: "system");
 			jobHistoryRepository.saveAndFlush(h);
-			
+
 			try {
 				JobHistoryDetails jobHistoryDetails = new ObjectMapper().readValue(h.getDetails(),
 						JobHistoryDetails.class);
@@ -239,6 +250,56 @@ public class JobHistoryService {
 		}
 
 		log.debug("executeQueuedReportGenerationJob: END");
+	}
+
+	@Scheduled(cron = "0/5 * * * * ?")
+	public void syncDcmsIssuanceCardTable() {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		PreparedStatement ps1 = null;
+		try {
+			conn = datasource.getConnection();
+			ps = conn.prepareStatement("delete from DCMS_ISSUANCE_CARD");
+			ps.executeUpdate();
+
+			String sql = "INSERT INTO DCMS_ISSUANCE_CARD (SELECT CRD_ID, CRD_NUMBER, CRD_AUDIT_LOG FROM {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} "
+					+ "WHERE CRD_AUDIT_LOG LIKE '%Account Delinked%')";
+
+			sql = sql
+					.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}",
+							env.getProperty(ReportConstants.DB_SCHEMA_DCMS))
+					.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}",
+							env.getProperty(ReportConstants.DB_LINK_DCMS));
+			ps1 = conn.prepareStatement(sql);
+			ps1.executeUpdate();
+
+		} catch (Exception e) {
+			log.error("Failed to execute job: syncDcmsIssuanceCardTable", e);
+		} finally {
+			try {
+				if (ps != null) {
+					ps.close();
+				}
+			} catch (SQLException e) {
+				log.warn("Failed to close prepared statement", e);
+			}
+
+			try {
+				if (ps1 != null) {
+					ps1.close();
+				}
+			} catch (SQLException e) {
+				log.warn("Failed to close prepared statement", e);
+			}
+
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (Exception e) {
+				log.warn("Failed to close db connection: ", e);
+			}
+		}
 	}
 
 }

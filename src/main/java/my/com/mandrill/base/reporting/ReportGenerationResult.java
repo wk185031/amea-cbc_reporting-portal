@@ -8,6 +8,8 @@ public class ReportGenerationResult {
 
 	private String error;
 
+	long elapsedTimeInSec;
+
 	public String getReportName() {
 		return reportName;
 	}
@@ -32,18 +34,28 @@ public class ReportGenerationResult {
 		this.error = error;
 	}
 
-	public static ReportGenerationResult success(String reportName) {
+	public long getElapsedTimeInSec() {
+		return elapsedTimeInSec;
+	}
+
+	public void setElapsedTimeInSec(long elapsedTimeInSec) {
+		this.elapsedTimeInSec = elapsedTimeInSec;
+	}
+
+	public static ReportGenerationResult success(String reportName, long elapsedTimeInSec) {
 		ReportGenerationResult result = new ReportGenerationResult();
 		result.setReportName(reportName);
 		result.setSuccess(true);
+		result.setElapsedTimeInSec(elapsedTimeInSec);
 		return result;
 	}
 
-	public static ReportGenerationResult failed(String reportName, String error) {
+	public static ReportGenerationResult failed(String reportName, String error, long elapsedTimeInSec) {
 		ReportGenerationResult result = new ReportGenerationResult();
 		result.setReportName(reportName);
 		result.setSuccess(false);
 		result.setError(error);
+		result.setElapsedTimeInSec(elapsedTimeInSec);
 		return result;
 	}
 

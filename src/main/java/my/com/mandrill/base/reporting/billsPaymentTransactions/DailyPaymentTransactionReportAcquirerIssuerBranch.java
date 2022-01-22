@@ -673,7 +673,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
@@ -727,13 +727,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -761,7 +755,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		String currentBranchName = null;
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -871,13 +865,7 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -945,37 +933,6 @@ public class DailyPaymentTransactionReportAcquirerIssuerBranch extends PdfReport
 		}
 		line.append(getEol());
 		rgm.writeLine(line.toString().getBytes());
-	}
-
-	private boolean executeQuery(ReportGenerationMgr rgm) {
-		logger.debug("In DailyPaymentTransactionReportAcquirerIssuerBranch.executeQuery()");
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		String query = getBodyQuery(rgm);
-		logger.info("Execute query: {}", query);
-
-		try {
-			ps = rgm.connection.prepareStatement(query);
-			rs = ps.executeQuery();
-
-			if (!rs.isBeforeFirst()) {
-				return false;
-			} else {
-				return true;
-			}
-		} catch (Exception e) {
-			rgm.errors++;
-			logger.error("Error trying to execute the body query", e);
-		} finally {
-			try {
-				ps.close();
-				rs.close();
-			} catch (SQLException e) {
-				rgm.errors++;
-				logger.error("Error closing DB resources", e);
-			}
-		}
-		return false;
 	}
 	
 	private class SummaryCount {

@@ -182,27 +182,9 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
-					
-					conn.close();
-					ps.close();
-					rs.close();
 				} finally {
-					try {
-						if (conn != null) {
-							conn.close();
-						}
-						if (ps != null) {
-							ps.close();
-						}
-						if (rs != null) {
-							rs.close();
-						}
-					} catch (Exception e) {
-						logger.warn("Failed to close statement or resultset", e);
-					}
-
+					rgm.cleanUpDbResource(ps, rs, conn);
 				}
-
 			}
 			masterStream = endDocument(masterStream);
 			masterStream = null;
@@ -421,7 +403,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.connection.prepareStatement(query);
+				ps = rgm.getConnection().prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -464,13 +446,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				try {
-					ps.close();
-					rs.close();
-				} catch (SQLException e) {
-					rgm.errors++;
-					logger.error("Error closing DB resources", e);
-				}
+				rgm.cleanUpDbResource(ps, rs);
 			}
 		}
 	}
@@ -652,49 +628,50 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 			
 			for (Branch b : branches) {
 				logger.debug("Process transaction for branch={}", b.getAbr_code());
-				
-				currentContext.setQuery(replaceBodyQueryCriteria(rgm, currentContext.getPredefinedFieldMap(), b));
-				conn = datasource.getConnection();
-				ps = conn.prepareStatement(currentContext.getQuery());
-				rs = ps.executeQuery();
+				try {
+					currentContext.setQuery(replaceBodyQueryCriteria(rgm, currentContext.getPredefinedFieldMap(), b));
+					conn = datasource.getConnection();
+					ps = conn.prepareStatement(currentContext.getQuery());
+					rs = ps.executeQuery();
 
-				branchOutputFile = createEmptyReportFile(rgm, b.getAbr_code());
-				outBranch = new FileOutputStream(branchOutputFile);
+					branchOutputFile = createEmptyReportFile(rgm, b.getAbr_code());
+					outBranch = new FileOutputStream(branchOutputFile);
 
-				presetBranchCodeAndName(currentContext.getPredefinedFieldMap(), b);
-				writeReportHeader(outMaster, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
-				writeReportHeader(outBranch, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
+					presetBranchCodeAndName(currentContext.getPredefinedFieldMap(), b);
+					writeReportHeader(outMaster, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
+					writeReportHeader(outBranch, rgm.getHeaderFields(), currentContext.getPredefinedFieldMap());
 
-				if (rs.next()) {
-					do {
-						List<ReportGenerationFields> bodyFields = mapResultsetToField(extractBodyFields(rgm.getBodyFields()),
-								rs);
+					if (rs.next()) {
+						do {
+							List<ReportGenerationFields> bodyFields = mapResultsetToField(extractBodyFields(rgm.getBodyFields()),
+									rs);
 
-						preProcessBodyHeader(currentContext, bodyFields, outMaster, outBranch);
-						writeBodyHeader(currentContext, extractBodyHeaderFields(rgm.getBodyFields()), outMaster, outBranch);
+							preProcessBodyHeader(currentContext, bodyFields, outMaster, outBranch);
+							writeBodyHeader(currentContext, extractBodyHeaderFields(rgm.getBodyFields()), outMaster, outBranch);
 
-						preProcessBodyData(currentContext, bodyFields, outMaster, outBranch);
-						writeBodyData(currentContext, bodyFields, outMaster, outBranch);
-												
-					} while (rs.next());	
-					
-					writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), outMaster, outBranch);
-					writeReportTrailer(currentContext, parseFieldConfig(rgm.getTrailerFields()), outMaster, outBranch);
-					
-					postReportGeneration(branchOutputFile);
-					
-					csvWriter.writeLine(outMaster, "\r\n");
-				} else {
-					csvWriter.writeLine(outMaster, "**NO TRANSACTIONS FOR THE DAY** \r\n");
-					csvWriter.writeLine(outMaster, "\r\n");
-					csvWriter.writeLine(outBranch, "**NO TRANSACTIONS FOR THE DAY** \r\n");
-					csvWriter.writeLine(outMaster, "\r\n");
+							preProcessBodyData(currentContext, bodyFields, outMaster, outBranch);
+							writeBodyData(currentContext, bodyFields, outMaster, outBranch);
+													
+						} while (rs.next());	
+						
+						writeBodyTrailer(currentContext, extractBodyFields(rgm.getBodyFields()), outMaster, outBranch);
+						writeReportTrailer(currentContext, parseFieldConfig(rgm.getTrailerFields()), outMaster, outBranch);
+						
+						postReportGeneration(branchOutputFile);
+						
+						csvWriter.writeLine(outMaster, "\r\n");
+					} else {
+						csvWriter.writeLine(outMaster, "**NO TRANSACTIONS FOR THE DAY** \r\n");
+						csvWriter.writeLine(outMaster, "\r\n");
+						csvWriter.writeLine(outBranch, "**NO TRANSACTIONS FOR THE DAY** \r\n");
+						csvWriter.writeLine(outMaster, "\r\n");
+					}
+					logger.debug("Report generation complete for branch [{}]. File={}", b.getAbr_code(), branchOutputFile.getAbsolutePath());
+					outBranch.close();
+				} finally {
+					rgm.cleanUpDbResource(ps, rs, conn);
 				}
-				logger.debug("Report generation complete for branch [{}]. File={}", b.getAbr_code(), branchOutputFile.getAbsolutePath());
-				outBranch.close();
-				conn.close();
-				ps.close();
-				rs.close();
+				
 			}					
 			
 			logger.debug("Report generation complete for master. File={}", masterOutputFile.getAbsolutePath());
@@ -712,32 +689,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 				}
 			}
 			throw new ReportGenerationException(masterOutputFile.getName(), e);
-		} finally {
-			if (ps != null) {
-				try {
-					ps.close();
-				} catch (Exception e2) {
-					logger.warn("Failed to close preparedStatement.");
-				}
-
-			}
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (Exception e3) {
-					logger.warn("Failed to close resultSet.");
-				}
-
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (Exception e4) {
-					logger.warn("Failed to close connection.");
-				}
-			}
-		}
+		} 
 	}
 	
 	abstract protected void preProcessBodyHeader(ReportContext context, List<ReportGenerationFields> bodyFields,

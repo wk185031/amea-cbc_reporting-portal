@@ -116,7 +116,7 @@ public class GeneralReportProcess {
 					m.appendReplacement(sb, value);
 				} else {
 					rgm.errors++;
-					logger.error("No field defined for parameter: {}", paramName);
+					logger.warn("No field defined for parameter: {}", paramName);
 				}
 
 			}
@@ -139,7 +139,7 @@ public class GeneralReportProcess {
 					m.appendReplacement(sb, globalFileFieldsMap.get(paramName).format());
 				} else {
 					rgm.errors++;
-					logger.error("No field defined for parameter ", paramName);
+					logger.warn("No field defined for parameter ", paramName);
 				}
 
 			}
@@ -164,7 +164,7 @@ public class GeneralReportProcess {
 					m.appendReplacement(sb, value);
 				} else {
 					rgm.errors++;
-					logger.error("No field defined for parameter: {}", paramName);
+					logger.warn("No field defined for parameter: {}", paramName);
 				}
 
 			}
@@ -478,7 +478,7 @@ public class GeneralReportProcess {
 		try {
 			toAccountNo = SecurePANField.fromDatabase(toAccountNumber, ekyId).getClear();
 		} catch (Throwable e) {
-			logger.error("Failed to decrypt to account number.", e);
+			logger.warn("Failed to decrypt to account number.", e);
 		}
 			
 		switch (toAccountNo.length()) {
@@ -562,7 +562,7 @@ public class GeneralReportProcess {
 				globalFieldsMap.put(decryptedField.getFieldName(), decryptedField);
 			}
 		} catch (Throwable e) {
-			logger.error("Failed to decrypt value.", e);
+			logger.warn("Failed to decrypt value.", e);
 		}
 	}
 	
@@ -624,7 +624,7 @@ public class GeneralReportProcess {
 				globalFieldsMap.put(decryptedField.getFieldName(), decryptedField);
 			}
 		} catch (Throwable e) {
-			logger.error("Failed to decrypt value.", e);
+			logger.warn("Failed to decrypt value.", e);
 		}
 	}
 	

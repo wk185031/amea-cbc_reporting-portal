@@ -30,7 +30,7 @@ public class ReportAsyncService {
 
 	@Async
 	public CompletableFuture<ReportGenerationResult> runReport(ReportGenerationMgr reportGenerationMgr) {
-		log.debug("runReport start [jobHistoryId={}, report={}] ", reportGenerationMgr.getJobId(),
+		log.debug("runReport-{}: START [report={}] ", reportGenerationMgr.getJobId(),
 				reportGenerationMgr.getFileName());
 		IReportProcessor reportProcessor = reportProcessLocator.locate(reportGenerationMgr.getProcessingClass());
 
@@ -43,14 +43,18 @@ public class ReportAsyncService {
 				reportGenerationMgr.run(dataSource);
 			}
 		} catch (ReportGenerationException e) {
-			log.error("Failed to generate report: [reportName={}]", reportGenerationMgr.getFileName(), e);
-			return CompletableFuture
-					.completedFuture(ReportGenerationResult.failed(reportGenerationMgr.getFileName(), e.getMessage()));
+			long elapsedTime = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+			log.debug("runReport-{}: FAILED [jobHistoryId={}, reportName={}] ELAPSED TIME - {}s",
+					reportGenerationMgr.getJobId(), reportGenerationMgr.getFileName(), elapsedTime, e);
+			return CompletableFuture.completedFuture(
+					ReportGenerationResult.failed(reportGenerationMgr.getFileName(), e.getMessage(), elapsedTime));
 		}
 
-		log.debug("runReport end [jobHistoryId={}, reportName={}] ELAPSED TIME - {}s", reportGenerationMgr.getJobId(),
-				reportGenerationMgr.getFileName(), TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
-		return CompletableFuture.completedFuture(ReportGenerationResult.success(reportGenerationMgr.getFileName()));
+		long elapsedTime = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+		log.debug("runReport-{}: END [reportName={}] ELAPSED TIME - {}s", reportGenerationMgr.getJobId(),
+				reportGenerationMgr.getFileName(), elapsedTime);
+		return CompletableFuture
+				.completedFuture(ReportGenerationResult.success(reportGenerationMgr.getFileName(), elapsedTime));
 	}
 
 }
