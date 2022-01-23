@@ -21,6 +21,7 @@
         <table class="table table-striped">
             <thead>
 	            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="transition.bind(this)">
+	            	<th jhiSortBy="id"><span>Job ID</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="createdDate"><span>Start Date Time</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="endDate"><span>End Date Time</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="details"><span>Frequency</span> <span class="fa fa-sort"></span></th>
@@ -32,7 +33,8 @@
             </thead>
             <tbody>
             	<tr *ngFor="let jobHistory of jobHistories ;trackBy: trackId">
-	            	<td>{{jobHistory.createdDate | date:'short'}}</td>
+            		<td>{{jobHistory.id}}</td>
+	            	<td>{{jobHistory.generationStartDate | date:'short'}}</td>
 	            	<td>{{jobHistory.generationEndDate | date:'short'}}</td>
 	            	<td>{{jobHistory.frequency}}</td>
 	            	<td style="width:40%">{{getDetails(jobHistory.details)}}</td>
@@ -56,7 +58,7 @@
 	                        <button *ngIf="jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED'" type="submit"	                            
 	                                class="btn btn-info btn-sm">
 	                            <span class="fa fa-download"></span>
-	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="downloadReport('All', jobHistory.details, 0, jobHistory.id, jobHistory.frequency, jobHistory.reportStartDate)">Download</span>
+	                            <span class="d-none d-md-inline" jhiTranslate="entity.action.download" (click)="download(jobHistory.id)">Download</span>
 	                        </button>
 	                        <button *ngIf="(jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED') && this.account.login == jobHistory.createdBy" type="submit"	                             
 	                                replaceUrl="true"

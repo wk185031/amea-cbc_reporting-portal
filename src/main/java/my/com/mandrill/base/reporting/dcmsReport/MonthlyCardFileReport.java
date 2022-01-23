@@ -361,7 +361,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
                 rgm.errors++;
                 logger.error("Error trying to execute the body query", e);
             } finally {
-            	rgm.cleanUpDbResource(ps, rs);
+            	rgm.cleanAllDbResource(ps, rs);
             }
         }
         return contentStream;
@@ -614,7 +614,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
                 rgm.errors++;
                 logger.error("Error trying to execute the body query", e);
             } finally {
-            	rgm.cleanUpDbResource(ps, rs);
+            	rgm.cleanAllDbResource(ps, rs);
             }
         }
     }

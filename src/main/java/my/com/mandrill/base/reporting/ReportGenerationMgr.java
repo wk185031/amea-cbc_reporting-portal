@@ -26,6 +26,7 @@ import my.com.mandrill.base.reporting.reportProcessor.IPdfReportProcessor;
 import my.com.mandrill.base.reporting.reportProcessor.ITxtReportProcessor;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class ReportGenerationMgr extends ReportGenerationFields {
 
@@ -187,38 +188,14 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 //		}
 //	}
 	
-	public void cleanUpDbResource(PreparedStatement ps, ResultSet rs) {
-		logger.debug("In ReportGenerationMgr.cleanUp()");
-
-		cleanUpDbResource(ps, rs, null);
+	public void cleanAllDbResource(PreparedStatement ps, ResultSet rs) {
+		cleanAllDbResource(ps, rs, null);
 	}
 	
-	public void cleanUpDbResource(PreparedStatement ps, ResultSet rs, Connection conn) {
+	public void cleanAllDbResource(PreparedStatement ps, ResultSet rs, Connection conn) {
 		logger.debug("In ReportGenerationMgr.cleanUp()");
 
-		try {
-			if (ps != null) {
-				ps.close();
-			}
-		} catch (SQLException e) {
-			logger.warn("Failed to close prepared statement", e);
-		}
-
-		try {
-			if (rs != null) {
-				rs.close();
-			}
-		} catch (SQLException e) {
-			logger.warn("Failed to close resultset", e);
-		}
-		
-		try {
-			if (conn != null) {
-				conn.close();
-			}
-		} catch (Exception e) {
-			logger.warn("Failed to close db connection: ", e);
-		}
+		DbUtils.cleanDbResources(conn, ps, rs);
 
 		try {
 			if (connection != null) {
@@ -336,11 +313,24 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		this.postingDate = postingDate;
 	}
 	
+	/**
+	 * @return Existing db connection in the Manager if valid, otherwise get new from pool
+	 * @throws SQLException
+	 */
 	public Connection getConnection() throws SQLException {
 		if (connection == null || connection.isClosed()) {
 			connection = datasource.getConnection();
 		} 
 		return connection;
+	}
+	
+	/**
+	 * @return New db connection, regardless the existing in Manager valid or not.
+	 * This is typically for trailer sql where it execute separately from body query
+	 * @throws SQLException
+	 */
+	public Connection getNewConnection() throws SQLException {
+		return datasource.getConnection();
 	}
 
 	private void insertDcmsIssData(String url, String username, String password) {

@@ -44,7 +44,7 @@ public class ReportAsyncService {
 			}
 		} catch (ReportGenerationException e) {
 			long elapsedTime = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-			log.debug("runReport-{}: FAILED [jobHistoryId={}, reportName={}] ELAPSED TIME - {}s",
+			log.debug("runReport-{}: FAILED [reportName={}] ELAPSED TIME - {}s",
 					reportGenerationMgr.getJobId(), reportGenerationMgr.getFileName(), elapsedTime, e);
 			return CompletableFuture.completedFuture(
 					ReportGenerationResult.failed(reportGenerationMgr.getFileName(), e.getMessage(), elapsedTime));

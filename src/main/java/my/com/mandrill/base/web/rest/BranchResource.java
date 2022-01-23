@@ -67,7 +67,7 @@ public class BranchResource {
     @Timed
     public List<Branch> getAllBranches() {
         log.debug("REST request to get all Branches");
-        return branchRepository.findAll();
+        return branchRepository.findAllByOrderNameAsc();
         }
 
     /**

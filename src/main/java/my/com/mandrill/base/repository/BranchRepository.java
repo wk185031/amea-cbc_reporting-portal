@@ -3,6 +3,8 @@ package my.com.mandrill.base.repository;
 import my.com.mandrill.base.domain.Branch;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.*;
 
 
@@ -13,4 +15,6 @@ import org.springframework.data.jpa.repository.*;
 @Repository
 public interface BranchRepository extends JpaRepository<Branch, String> {
 
+	@Query("select b from Branch b order by abr_name asc")
+	public List<Branch> findAllByOrderNameAsc();
 }

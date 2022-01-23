@@ -355,7 +355,7 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}
@@ -383,7 +383,7 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return "0";
 	}

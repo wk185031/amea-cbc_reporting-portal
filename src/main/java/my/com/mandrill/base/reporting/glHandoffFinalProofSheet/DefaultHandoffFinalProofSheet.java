@@ -135,7 +135,7 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 			} catch (Exception e) {
 				logger.warn("Error closing doc", e);
 			}
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 	}
 
@@ -219,7 +219,7 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 			logger.error("Failed to generate report.", e);
 			throw new RuntimeException(e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 	}
 
@@ -326,7 +326,7 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return branchCodeList;
@@ -433,7 +433,7 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -605,7 +605,7 @@ public class DefaultHandoffFinalProofSheet extends TxtReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return false;
 	}

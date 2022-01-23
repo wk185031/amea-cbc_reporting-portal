@@ -432,7 +432,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the receiving branch code", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return branchCodeMap;
@@ -492,7 +492,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}
@@ -515,7 +515,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return "0";
 	}

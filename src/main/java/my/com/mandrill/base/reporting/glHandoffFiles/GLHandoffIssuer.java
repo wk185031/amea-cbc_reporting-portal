@@ -234,7 +234,7 @@ public class GLHandoffIssuer extends BatchProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}

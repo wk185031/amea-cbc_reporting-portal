@@ -149,7 +149,7 @@ public class BaseGLProcessor extends TxtReportProcessor {
 			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, ie);
 		} finally {
 			try {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 				if (doc != null) {
 					doc.close();
 				}
@@ -262,7 +262,7 @@ public class BaseGLProcessor extends TxtReportProcessor {
 			logger.error("Failed to generate report.", e);
 			throw new RuntimeException(e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		
 	}
@@ -370,7 +370,7 @@ public class BaseGLProcessor extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return branchCodeList;
@@ -477,7 +477,7 @@ public class BaseGLProcessor extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -750,7 +750,7 @@ public class BaseGLProcessor extends TxtReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return false;
 	}

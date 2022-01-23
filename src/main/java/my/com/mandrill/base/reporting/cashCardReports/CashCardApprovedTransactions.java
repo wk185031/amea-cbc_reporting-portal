@@ -130,7 +130,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 					} catch (Exception e) {
 						logger.error("Error closing doc", e);
 					}
-					rgm.cleanUpDbResource(ps, rs);
+					rgm.cleanAllDbResource(ps, rs);
 				}
 			}
 		} finally {
@@ -390,7 +390,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 					rgm.errors++;
 					logger.error("Error trying to execute the body query", e);
 				} finally {
-					rgm.cleanUpDbResource(ps, rs);
+					rgm.cleanAllDbResource(ps, rs);
 				}
 			}
 		} catch (Exception e) {
@@ -701,7 +701,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -852,7 +852,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return false;
 	}

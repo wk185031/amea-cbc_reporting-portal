@@ -99,7 +99,7 @@ public class DefaultGLHandoff extends BatchProcessor {
 			} catch (IOException e) {
 				logger.warn("Error in closing fileOutputStream", e);
 			}
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 	}
 	

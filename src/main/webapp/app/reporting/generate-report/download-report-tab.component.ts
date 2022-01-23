@@ -11,9 +11,9 @@ import { JobHistoryService } from '../../app-admin/job-history/job-history.servi
 import { JhiEventManager, JhiParseLinks, JhiAlertService } from 'ng-jhipster';
 import { ITEMS_PER_PAGE, Principal } from '../../shared';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
- import { ReportStatusModalService } from './report-status-modal.service';
-
-
+import { ReportStatusModalService } from './report-status-modal.service';
+import { NgxUiLoaderService } from 'ngx-ui-loader'; 
+ 
 @Component({
     selector: 'jhi-download-report-tab',
     templateUrl: './download-report-tab.component.html'
@@ -57,7 +57,8 @@ export class DownloadReportTabComponent implements OnInit {
         private router: Router,
         private parseLinks: JhiParseLinks,
         // private loginService: LoginModalService,
-         private reportStatusService: ReportStatusModalService
+         private reportStatusService: ReportStatusModalService,
+         private ngxLoader: NgxUiLoaderService
     ) {
     	this.itemsPerPage = ITEMS_PER_PAGE;
         this.routeData = this.activatedRoute.data.subscribe((data) => {
@@ -124,6 +125,25 @@ export class DownloadReportTabComponent implements OnInit {
                 this.generatedReportDTO = null;
             });
         }
+    }
+    
+    download(jobId: number) {
+    	this.ngxLoader.start();
+    	this.generateReportService.download(jobId).subscribe(resp => {
+    		const a: any = document.createElement('a');
+    		const contentDisposition = resp.headers.get('content-disposition');
+    		const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim().replace(/(^"|"$)/g, '');
+    		console.log('download file: ' + filename);
+    		a.href = window.URL.createObjectURL(resp.body);
+    		a.target = '_blank';
+    		a.download = filename;
+            document.body.appendChild(a);
+            this.ngxLoader.stop();
+            a.click();
+    	}, error => {
+    		this.ngxLoader.stop();
+    		this.jhiAlertService.error('error.report.downloadFailed', null, null);
+    	});
     }
     
     downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number, frequency: string, reportStartDate: string) {

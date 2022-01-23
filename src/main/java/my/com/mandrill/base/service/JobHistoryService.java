@@ -167,7 +167,7 @@ public class JobHistoryService {
 						jobHistoryDetails.getInstitutionId(), jobHistoryDetails.getReportCategoryId(), frequency);
 			} else {
 				ReportDefinition def = reportDefinitionRepository.getOne(jobHistoryDetails.getReportId());
-				if (def != null && frequency.equals(def.getFrequency())) {
+				if (def != null && def.getFrequency() != null && def.getFrequency().contains(frequency)) {
 					reportCount = 1;
 				}
 			}
@@ -221,6 +221,7 @@ public class JobHistoryService {
 				.setParameter("jobName", ReportConstants.JOB_NAME_GENERATE_REPORT)
 				.setParameter("status", ReportConstants.STATUS_IN_QUEUE)
 				.setMaxResults((int) (maxJobToExecute - reportInProgressCount)).getResultList();
+		log.debug("Report generation job to execute={}.", jobsToExecute.size());
 		for (JobHistory h : jobsToExecute) {
 			log.debug("Execute job [jobHistoryId={}]", h.getId());
 			h.setStatus(ReportConstants.STATUS_IN_PROGRESS);

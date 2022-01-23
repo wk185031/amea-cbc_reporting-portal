@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.reportProcessor;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class BranchReportProcessor extends PdfReportProcessor {
 
@@ -58,12 +60,13 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		try {
 			masterDoc = new PDDocument();
 
-			PreparedStatement ps = null;
-			ResultSet rs = null;
 			addReportPreProcessingFieldsToGlobalMap(rgm);
 
 			for (Branch b : branches) {
 				logger.debug("Process transaction for branch={}", b.getAbr_code());
+
+				PreparedStatement ps = null;
+				ResultSet rs = null;
 
 				try {
 					branchDoc = new PDDocument();
@@ -143,7 +146,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
 				} finally {
-					rgm.cleanUpDbResource(ps, rs);
+					rgm.cleanAllDbResource(ps, rs);
 				}
 
 			}
@@ -156,7 +159,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 			logger.error("Failed to generate report. Remove generated files.", e);
 			cleanAllFilesOnError(writtenFilePath);
 			writtenFilePath = new ArrayList<>();
-			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		}
 	}
 
@@ -266,6 +270,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 			return;
 		}
 
+		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -275,7 +280,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.getConnection().prepareStatement(query);
+				conn = rgm.getNewConnection();
+				ps = conn.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -318,7 +324,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				DbUtils.cleanDbResources(conn, ps, rs);
 			}
 		}
 	}
@@ -397,22 +403,18 @@ public class BranchReportProcessor extends PdfReportProcessor {
 
 				String fieldValue = getFieldValue(rgm, field, fieldsMap);
 				if (field.isEol()) {
-					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue,
-							branchCode, branchName);
+					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue, branchCode, branchName);
 					masterStream = writeText(rgm, masterDoc, masterStream, null, branchCode, branchName);
 
-					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue,
-							branchCode, branchName);
+					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
 					branchStream = writeText(rgm, branchDoc, branchStream, null, branchCode, branchName);
 
 					// Same counter for master and branch
 					incrementLineCounter();
 					incrementLineCounter();
 				} else {
-					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue,
-							branchCode, branchName);
-					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue,
-							branchCode, branchName);
+					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue, branchCode, branchName);
+					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
 				}
 			}
 		}
@@ -513,19 +515,19 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		ReportGenerationFields branchCodeField = new ReportGenerationFields(GROUP_FIELD_BRANCH,
 				ReportGenerationFields.TYPE_STRING, "'" + branchCode + "'");
 		getGlobalFileFieldsMap().put(branchCodeField.getFieldName(), branchCodeField);
-		
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
 		String txnStart = rgm.getTxnStartDate().format(formatter);
 		String txnEnd = rgm.getTxnEndDate().format(formatter);
-		
+
 		ReportGenerationFields txnStartField = new ReportGenerationFields(ReportConstants.PARAM_TXN_START_TS,
 				ReportGenerationFields.TYPE_STRING, "'" + txnStart + "'");
 		getGlobalFileFieldsMap().put(txnStartField.getFieldName(), txnStartField);
-		
+
 		ReportGenerationFields txnEndField = new ReportGenerationFields(ReportConstants.PARAM_TXN_END_TS,
 				ReportGenerationFields.TYPE_STRING, "'" + txnEnd + "'");
 		getGlobalFileFieldsMap().put(txnEndField.getFieldName(), txnEndField);
-		
+
 		return getBodyQuery(rgm);
 	}
 
@@ -579,7 +581,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 		// Should be dynamic based on configuration
 		return 1;
 	}
-	
+
 	protected int getMaxLinePerPage() {
 		return 120;
 	}

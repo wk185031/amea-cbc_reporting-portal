@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ReportCategory } from '../report-config-category/report-config-category.model';
 import { ReportDefinition } from '../report-config-definition/report-config-definition.model';
+import { NgxUiLoaderService } from 'ngx-ui-loader'; 
 
 @Component({
     selector: 'jhi-generate-report',
@@ -13,7 +14,7 @@ export class GenerateReportComponent {
     categories: ReportCategory[];
     reportDefinitions: ReportDefinition[];
 
-    constructor(private activatedRoute: ActivatedRoute) {
+    constructor(private activatedRoute: ActivatedRoute, private ngxLoader: NgxUiLoaderService) {
         this.activatedRoute.data.subscribe((data) => {
             this.categories = data['pagingParams'].categories;
             this.reportDefinitions = data['pagingParams'].reportDefinitions;

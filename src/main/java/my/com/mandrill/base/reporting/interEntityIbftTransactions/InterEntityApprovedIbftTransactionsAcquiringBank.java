@@ -640,7 +640,7 @@ public class InterEntityApprovedIbftTransactionsAcquiringBank extends IbftReport
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}

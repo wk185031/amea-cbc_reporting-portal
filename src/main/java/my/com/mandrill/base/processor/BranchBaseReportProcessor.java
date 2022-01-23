@@ -183,7 +183,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
 				} finally {
-					rgm.cleanUpDbResource(ps, rs, conn);
+					rgm.cleanAllDbResource(ps, rs, conn);
 				}
 			}
 			masterStream = endDocument(masterStream);
@@ -446,7 +446,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}
@@ -669,7 +669,7 @@ public abstract class BranchBaseReportProcessor extends BaseReportProcessor {
 					logger.debug("Report generation complete for branch [{}]. File={}", b.getAbr_code(), branchOutputFile.getAbsolutePath());
 					outBranch.close();
 				} finally {
-					rgm.cleanUpDbResource(ps, rs, conn);
+					rgm.cleanAllDbResource(ps, rs, conn);
 				}
 				
 			}					

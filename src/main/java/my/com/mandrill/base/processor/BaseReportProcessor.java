@@ -123,7 +123,7 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 			}
 			throw new ReportGenerationException(outputFile.getName(), e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs, conn);
+			rgm.cleanAllDbResource(ps, rs, conn);
 		}
 	}
 

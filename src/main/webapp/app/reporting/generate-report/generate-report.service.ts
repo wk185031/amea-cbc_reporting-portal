@@ -138,6 +138,13 @@ export class GenerateReportService {
         });
         return req;
     }
+    
+    download(jobId: number) {
+    	return this.http.get(`${this.resourceDownloadReport}/${jobId}`, {
+      		responseType: 'blob',
+      		observe: 'response'
+    	});
+  	}
 
     deleteReport(jobId: string) {
         console.log("deleteReport");

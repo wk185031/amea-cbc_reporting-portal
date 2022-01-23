@@ -157,7 +157,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			} catch (Exception e) {
 				logger.warn("Error closing DB resources", e);
 			}
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 	}
 
@@ -263,7 +263,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			logger.error("Failed to generate report.", e);
 			throw new RuntimeException(e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 	}
 
@@ -370,7 +370,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return branchCodeList;
@@ -477,7 +477,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -752,7 +752,7 @@ public class GLHandoffBlocksheetCashCard extends TxtReportProcessor {
 			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
 		} finally {
-			rgm.cleanUpDbResource(ps, rs);
+			rgm.cleanAllDbResource(ps, rs);
 		}
 		return false;
 	}

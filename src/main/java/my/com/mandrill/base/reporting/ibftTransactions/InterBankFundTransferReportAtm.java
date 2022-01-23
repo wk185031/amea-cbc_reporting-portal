@@ -523,7 +523,7 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -591,7 +591,7 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -656,7 +656,7 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the receiving branch code", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return branchCodeMap;

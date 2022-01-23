@@ -189,7 +189,7 @@ public class ATMWithdrawalsSummaryReport extends BranchReportProcessor {
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
 				} finally {
-					rgm.cleanUpDbResource(ps, rs);
+					rgm.cleanAllDbResource(ps, rs);
 				}
 
 			}

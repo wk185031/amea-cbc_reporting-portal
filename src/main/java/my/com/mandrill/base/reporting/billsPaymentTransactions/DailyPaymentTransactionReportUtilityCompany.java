@@ -212,7 +212,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				rgm.errors++;
 				logger.error("Error trying to execute the query to get the criteria", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return criteriaMap;
@@ -432,7 +432,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 		return contentStream;
@@ -492,7 +492,7 @@ public class DailyPaymentTransactionReportUtilityCompany extends PdfReportProces
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanUpDbResource(ps, rs);
+				rgm.cleanAllDbResource(ps, rs);
 			}
 		}
 	}

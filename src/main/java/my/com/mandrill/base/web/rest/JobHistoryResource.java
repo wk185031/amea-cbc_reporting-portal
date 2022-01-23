@@ -36,11 +36,14 @@ import com.codahale.metrics.annotation.Timed;
 
 import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.domain.JobHistory;
-import my.com.mandrill.base.domain.SystemConfiguration;
+import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.repository.JobHistoryRepository;
+import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.repository.search.JobHistorySearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
+import my.com.mandrill.base.service.UserService;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.base.web.rest.util.PaginationUtil;
@@ -60,9 +63,16 @@ public class JobHistoryResource {
 
     private final JobHistorySearchRepository jobHistorySearchRepository;
     
-    public JobHistoryResource(JobHistoryRepository jobHistoryRepository, JobHistorySearchRepository jobHistorySearchRepository) {
+    private final UserService userService;
+    
+    private final UserExtraRepository userExtraRepo;
+    
+    public JobHistoryResource(JobHistoryRepository jobHistoryRepository, JobHistorySearchRepository jobHistorySearchRepository,
+    		UserService userService, UserExtraRepository userExtraRepo) {
         this.jobHistoryRepository = jobHistoryRepository;
         this.jobHistorySearchRepository = jobHistorySearchRepository;
+        this.userService = userService;
+        this.userExtraRepo = userExtraRepo;
     }
 
     /**
@@ -180,21 +190,50 @@ public class JobHistoryResource {
         log.debug("REST request to get JobHistoryByDate : {}");
         log.debug("date selected:: "+query);
 
-        String currentUserLogin = SecurityUtils.getCurrentUserLogin().orElse("");
-        Page<JobHistory> page = null;
-        if(query!=null && !query.isEmpty()){
-        	 String startDate = formatDate(query, -1) + " 00:00:00";
-             String endDate = formatDate(query, 1) + " 00:00:00";
-             page = jobHistoryRepository.findReportGeneratedByDate(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
-        }
-        else{
-        	page = jobHistoryRepository.findLatestReportGenerated(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT, institutionId);
-        }
+		Page<JobHistory> page = null;
+		if (query != null && !query.isEmpty()) {
+			String startDate = formatDate(query, -1) + " 00:00:00";
+			String endDate = formatDate(query, 1) + " 00:00:00";
+			if (getUserBranchCode() != null) {
+				page = jobHistoryRepository.findReportGeneratedByDateForBranch(pageable,
+						ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
+			} else {
+				page = jobHistoryRepository.findReportGeneratedByDate(pageable,
+						ReportConstants.JOB_NAME_GENERATE_REPORT, startDate, endDate, institutionId);
+			}
+
+		} else {
+			if (getUserBranchCode() != null) {
+				page = jobHistoryRepository.findLatestReportGeneratedForBranch(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT,
+						institutionId);
+			} else {
+				page = jobHistoryRepository.findLatestReportGenerated(pageable, ReportConstants.JOB_NAME_GENERATE_REPORT,
+						institutionId);
+			}
+			
+		}
               
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/job-history-generated");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
         
     }
+    
+    private String getUserBranchCode() {
+		String branchCode = null;
+
+		final Optional<User> isUser = userService.getUserWithAuthorities();
+
+		if (isUser.isPresent()) {
+			User user = isUser.get();
+			// get user extra from given user
+			UserExtra userExtra = userExtraRepo.findByUser(user.getId());
+			if (null != userExtra.getBranches() && !userExtra.getBranches().isEmpty()) {
+				branchCode = userExtra.getBranches().stream().findFirst().get().getAbr_code();
+			}
+		}
+
+		return branchCode;
+	}
     
     private String formatDate(String dateSelected, int addDays){
     	
