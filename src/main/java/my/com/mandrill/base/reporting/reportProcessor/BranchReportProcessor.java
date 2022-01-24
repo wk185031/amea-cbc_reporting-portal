@@ -115,13 +115,15 @@ public class BranchReportProcessor extends PdfReportProcessor {
 										field.setValue("");
 									}
 								}
-								writeRowData(rgm, masterDoc, branchDoc, lineFieldsMap, groupingField, b.getAbr_code(),
-										b.getAbr_name(), masterStream, branchStream);
+								writeRowData(rgm, masterDoc, null, lineFieldsMap, groupingField, b.getAbr_code(),
+										b.getAbr_name(), masterStream, null);
 								if (getLineCounter() >= getMaxLinePerPage()) {
 									masterStream = newPage(masterDoc, masterStream, rgm, b.getAbr_code(),
 											b.getAbr_name());
-									branchStream = newPage(branchDoc, branchStream, rgm, b.getAbr_code(),
-											b.getAbr_name());
+									if (branchStream != null) {
+										branchStream = newPage(branchDoc, branchStream, rgm, b.getAbr_code(),
+												b.getAbr_name());
+									}									
 								}
 								noRecordFound = false;
 
@@ -136,13 +138,15 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					if (!noRecordFound) {
 						String terminal = groupingField.get("TERMINAL").substring(0, 4);
 						logger.debug("Write summary for last terminal:{}", terminal);
-						writeTrailerSummary(rgm, masterDoc, branchDoc, groupingField, b.getAbr_code(), b.getAbr_name(),
-								masterStream, branchStream);
+						writeTrailerSummary(rgm, masterDoc, null, groupingField, b.getAbr_code(), b.getAbr_name(),
+								masterStream, null);
 					}
 
-					branchStream = endDocument(branchStream);
-					branchStream = null;
-
+					if (branchStream != null) {
+						branchStream = endDocument(branchStream);
+						branchStream = null;
+					}
+					
 					String branchDocPath = writeFile(rgm, branchDoc, b.getAbr_code());
 					writtenFilePath.add(branchDocPath);
 				} finally {
@@ -315,8 +319,10 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					}
 					writeBodyTrailer(rgm, masterDoc, masterStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
 							branchName);
-					writeBodyTrailer(rgm, branchDoc, branchStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
-							branchName);
+					if (branchDoc != null) {
+						writeBodyTrailer(rgm, branchDoc, branchStream, lineFieldsMap, extractTrailerFields(rgm), branchCode,
+								branchName);
+					}					
 					incrementLineCounter(getNoOfRowForTrailer());
 
 				}
@@ -375,19 +381,26 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					if (getLowestLevelGroupField().equals(field.getFieldName())) {
 						masterStream = writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value,
 								branchCode, branchName, false);
-						branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
-								branchCode, branchName, false);
+						if (branchStream != null) {
+							branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
+									branchCode, branchName, false);
+						}						
 						incrementLineCounter(getNoOfRowForBodyHeader());
 
 						masterStream = writeColumnHeader(rgm, masterDoc, masterStream, branchCode, branchName);
-						branchStream = writeColumnHeader(rgm, branchDoc, branchStream, branchCode, branchName);
+						if (branchStream != null) {
+							branchStream = writeColumnHeader(rgm, branchDoc, branchStream, branchCode, branchName);
+						}	
 						incrementLineCounter(getNoOfRowForColumnHeader());
 
 					} else {
 						masterStream = writeBodyHeader(rgm, masterDoc, masterStream, field.getFieldName(), value,
 								branchCode, branchName, true);
-						branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
-								branchCode, branchName, true);
+						if (branchStream != null) {
+							branchStream = writeBodyHeader(rgm, branchDoc, branchStream, field.getFieldName(), value,
+									branchCode, branchName, true);
+						}
+						
 						incrementLineCounter(getNoOfRowForBodyHeader());
 					}
 
@@ -406,15 +419,21 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue, branchCode, branchName);
 					masterStream = writeText(rgm, masterDoc, masterStream, null, branchCode, branchName);
 
-					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
-					branchStream = writeText(rgm, branchDoc, branchStream, null, branchCode, branchName);
+					if (branchStream != null) {
+						branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
+						branchStream = writeText(rgm, branchDoc, branchStream, null, branchCode, branchName);
+					}
+					
 
 					// Same counter for master and branch
 					incrementLineCounter();
 					incrementLineCounter();
 				} else {
 					masterStream = writeText(rgm, masterDoc, masterStream, fieldValue, branchCode, branchName);
-					branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
+					if (branchStream != null) {
+						branchStream = writeText(rgm, branchDoc, branchStream, fieldValue, branchCode, branchName);
+					}
+					
 				}
 			}
 		}
@@ -468,15 +487,15 @@ public class BranchReportProcessor extends PdfReportProcessor {
 	protected String writeFile(ReportGenerationMgr rgm, PDDocument doc, String branchCode) throws Exception {
 		String fileAbsolutePath = getFileAbsolutePath(rgm.getFileBaseDirectory(), rgm.getReportCategory(), branchCode,
 				rgm.getFileNamePrefix(), rgm.getTxnStartDate(), rgm.getReportTxnEndDate());
-
+		logger.debug("writeFile:{}", fileAbsolutePath);
 		try {
-			if (rgm.errors == 0) {
-				File out = new File(fileAbsolutePath);
-				if (!out.getParentFile().exists()) {
-					out.getParentFile().mkdirs();
-				}
-				doc.save(out);
+
+			File out = new File(fileAbsolutePath);
+			if (!out.getParentFile().exists()) {
+				Files.createDirectories(Paths.get(out.getParent()));
 			}
+			doc.save(out);
+
 		} finally {
 			if (doc != null) {
 				try {
@@ -484,7 +503,6 @@ public class BranchReportProcessor extends PdfReportProcessor {
 				} catch (Exception e) {
 					logger.warn("Failed to close document.", e);
 				}
-
 			}
 		}
 

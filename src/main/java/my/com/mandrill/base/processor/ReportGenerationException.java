@@ -1,6 +1,6 @@
 package my.com.mandrill.base.processor;
 
-public class ReportGenerationException extends Exception {
+public class ReportGenerationException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
