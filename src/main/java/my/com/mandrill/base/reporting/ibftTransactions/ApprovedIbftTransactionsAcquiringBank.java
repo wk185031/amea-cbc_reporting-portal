@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.ibftTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,6 +23,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.IbftReportProcessor;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 
@@ -546,6 +548,7 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 	@Override
 	protected void executeBodyQuery(ReportGenerationMgr rgm, boolean indicator) {
 		logger.debug("In ApprovedIbftTransactionsAcquiringBank.executeBodyQuery()");
+		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -557,7 +560,8 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.getConnection().prepareStatement(query);
+				conn = rgm.getConnection();
+				ps = conn.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -601,7 +605,7 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
 			} finally {
-				rgm.cleanAllDbResource(ps, rs);
+				DbUtils.cleanDbResources(conn, ps, rs);
 			}
 		}
 	}

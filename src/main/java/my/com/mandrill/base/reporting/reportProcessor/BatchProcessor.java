@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class BatchProcessor extends TxtReportProcessor {
 		try {            
 			if(rgm.getReportCategory().equals(ReportConstants.GL_HANDOFF_FILES)){
 								
-				String fileTxnDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+				String fileTxnDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 	            fileName = rgm.getFileNamePrefix() + "_" + fileTxnDate + ReportConstants.TXT_FORMAT;
 				
 			}else{

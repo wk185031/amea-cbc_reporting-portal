@@ -76,15 +76,21 @@ public class JobHistoryService {
 		Job job = jobRepository.findByName(ReportConstants.JOB_NAME_GENERATE_REPORT);
 
 		populateJobHistoryDetails(jobHistoryDetails);
-		JobHistory jobHistory = initJobHistory(jobHistoryDetails, job);
+		
 
 		boolean generateForDaily = checkGenerateForFrequency(jobHistoryDetails, ReportConstants.DAILY);
 		boolean generateForMonthly = checkGenerateForFrequency(jobHistoryDetails, ReportConstants.MONTHLY);
 
 		if (generateForDaily) {
+			jobHistoryDetails.setFrequency(ReportConstants.DAILY);
+			JobHistory jobHistory = initJobHistory(jobHistoryDetails, job);
 			jobList.add(createReportGenerationJob(jobHistory, ReportConstants.DAILY));
 		}
-		if (generateForMonthly) {
+		if (generateForMonthly) {	
+			jobHistoryDetails.setFrequency(ReportConstants.MONTHLY);
+			LocalDateTime startDateTime = jobHistoryDetails.getTransactionStartDate().toLocalDate().withDayOfMonth(1).atStartOfDay();
+			jobHistoryDetails.setTransactionStartDate(startDateTime);
+			JobHistory jobHistory = initJobHistory(jobHistoryDetails, job);
 			jobList.add(createReportGenerationJob(jobHistory, ReportConstants.MONTHLY));
 		}
 
@@ -146,7 +152,7 @@ public class JobHistoryService {
 			return true;
 		} else {
 			if (ReportConstants.MONTHLY.contentEquals(frequency)) {
-				// From and To is same day, and it is end of the month
+				// Skip if from and to is not same day and is not end of month
 				if (!jobHistoryDetails.getTransactionStartDate().toInstant(ZoneOffset.UTC).truncatedTo(ChronoUnit.DAYS)
 						.equals(jobHistoryDetails.getTransactionEndDate().toInstant(ZoneOffset.UTC)
 								.truncatedTo(ChronoUnit.DAYS))
@@ -171,6 +177,7 @@ public class JobHistoryService {
 					reportCount = 1;
 				}
 			}
+
 			log.debug("Total reports for {} frequency = {}.", frequency, reportCount);
 			return reportCount > 0;
 		}

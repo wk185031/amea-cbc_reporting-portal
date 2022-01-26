@@ -34,7 +34,6 @@ public class JobHistoryDetails implements Serializable {
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	LocalDateTime transactionEndDate;
 
-	@JsonIgnore
 	String frequency;
 	Map<String, String> reportStatusMap = new HashMap<String, String>();
 
@@ -87,13 +86,11 @@ public class JobHistoryDetails implements Serializable {
 	}
 
 	public String getDescription() {
-		if (description == null) {
-			StringBuffer sb = new StringBuffer();
-			sb.append("REPORT CATEGORY: ").append(getReportCategory()).append(", REPORT: ").append(getReport())
-					.append(", FROM: ").append(transactionStartDate).append(", TO: ").append(transactionEndDate);
-			setDescription(sb.toString());
-		}
-		return description;
+		StringBuffer sb = new StringBuffer();
+		sb.append("REPORT CATEGORY: ").append(getReportCategory()).append(", REPORT: ").append(getReport())
+				.append(", FROM: ").append(transactionStartDate).append(", TO: ").append(transactionEndDate);
+		return sb.toString();
+
 	}
 
 	public void setDescription(String description) {

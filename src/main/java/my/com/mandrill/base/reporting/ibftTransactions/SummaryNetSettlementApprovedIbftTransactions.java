@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.ibftTransactions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,6 +22,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.CsvReportProcessor;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProcessor {
 
@@ -307,6 +309,7 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 		logger.debug("In SummaryNetSettlementApprovedIbftTransactions.executeBodyQuery()");
 		ResultSet rs = null;
 		PreparedStatement ps = null;
+		Connection conn = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
 		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
 		String query = getBodyQuery(rgm);
@@ -314,7 +317,8 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.getConnection().prepareStatement(query);
+				conn = rgm.getNewConnection();
+				ps = conn.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -349,23 +353,25 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 					writeBody(rgm, lineFieldsMap, bankCode);
 				}
 			} catch (Exception e) {
-				rgm.errors++;
 				logger.error("Error trying to execute the body query", e);
+				throw new RuntimeException(e);
 			} finally {
-				rgm.cleanAllDbResource(ps, rs);
+				DbUtils.cleanDbResources(conn, ps, rs);
 			}
 		}
 	}
 
 	private String executeQuery(ReportGenerationMgr rgm, String count, String total) {
 		logger.debug("In SummaryNetSettlementApprovedIbftTransactions.executeQuery()");
+		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		String query = getBodyQuery(rgm);
 		logger.info("Execute query: {}", query);
 
 		try {
-			ps = rgm.getConnection().prepareStatement(query);
+			conn = rgm.getNewConnection();
+			ps = conn.prepareStatement(query);
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
@@ -377,10 +383,10 @@ public class SummaryNetSettlementApprovedIbftTransactions extends CsvReportProce
 				}
 			}
 		} catch (Exception e) {
-			rgm.errors++;
 			logger.error("Error trying to execute the body query", e);
+			throw  new RuntimeException(e);
 		} finally {
-			rgm.cleanAllDbResource(ps, rs);
+			DbUtils.cleanDbResources(conn, ps, rs);
 		}
 		return "0";
 	}

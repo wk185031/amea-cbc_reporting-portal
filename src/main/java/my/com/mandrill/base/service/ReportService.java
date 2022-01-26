@@ -105,10 +105,10 @@ public class ReportService {
 						jobHistoryDetails.getTransactionStartDate(), env, encryptionService, def);
 				handleExceptionFilePrefix(mgr, def.getFileNamePrefix(), jobHistoryDetails.getTransactionStartDate(),
 						jobHistoryDetails.getTransactionEndDate());
-
-				setTransactionDateRange(mgr, false, jobHistoryDetails.getTransactionStartDate(),
-						jobHistoryDetails.getTransactionEndDate(), baseDirectory, def.getReportCategory().getName(),
-						def.isByBusinessDate(), manualGenerate, holidays, jobHistoryId);
+				setTransactionDateRange(mgr, ReportConstants.MONTHLY.equals(jobHistoryDetails.getFrequency()),
+						jobHistoryDetails.getTransactionStartDate(), jobHistoryDetails.getTransactionEndDate(),
+						baseDirectory, def.getReportCategory().getName(), def.isByBusinessDate(), manualGenerate,
+						holidays, jobHistoryId);
 				futures.add(reportAsyncService.runReport(mgr));
 			}
 		}
