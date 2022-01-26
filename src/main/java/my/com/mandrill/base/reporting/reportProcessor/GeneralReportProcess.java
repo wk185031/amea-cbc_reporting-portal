@@ -1,6 +1,7 @@
 package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -385,7 +386,10 @@ public class GeneralReportProcess {
 		String fileTxnDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
 
 		ReportGenerationFields fileUploadDate = new ReportGenerationFields(ReportConstants.FILE_UPLOAD_DATE,
-				ReportGenerationFields.TYPE_DATE, rgm.getTxnEndDate().toString());
+				ReportGenerationFields.TYPE_DATE, LocalDateTime.now().toString());
+		if(rgm.getReportCategory().equals(ReportConstants.GL_HANDOFF_FILES)){
+			fileTxnDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_01));
+		}
 		ReportGenerationFields fileName = new ReportGenerationFields(ReportConstants.FILE_NAME,
 				ReportGenerationFields.TYPE_STRING,
 				rgm.getFileNamePrefix() + "_" + fileTxnDate + "_" + "001" + ReportConstants.TXT_FORMAT);
