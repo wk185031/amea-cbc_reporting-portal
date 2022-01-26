@@ -34,7 +34,6 @@ public class JobHistoryDetails implements Serializable {
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	LocalDateTime transactionEndDate;
 
-	@JsonIgnore
 	String frequency;
 	Map<String, String> reportStatusMap = new HashMap<String, String>();
 
