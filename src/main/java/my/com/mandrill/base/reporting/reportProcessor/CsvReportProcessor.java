@@ -2,6 +2,7 @@ package my.com.mandrill.base.reporting.reportProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +24,7 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
-import my.com.mandrill.base.web.rest.ReportGenerationResource;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class CsvReportProcessor extends GeneralReportProcess implements ICsvReportProcessor, IReportOutputFileName {
 
@@ -1295,6 +1296,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	protected void executeTrailerQuery(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.executeTrailerQuery()");
+		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -1304,7 +1306,8 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				ps = rgm.getConnection().prepareStatement(query);
+				conn = rgm.getConnection();
+				ps = conn.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);
 
@@ -1342,7 +1345,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
 			} finally {
-				rgm.cleanAllDbResource(ps, rs);
+				DbUtils.cleanDbResources(conn, ps, rs);
 			}
 		}
 	}
