@@ -261,6 +261,12 @@ public class AccountResource {
 
 				userExtra.getPasswordHistories().add(createNewPasswordHistory(newPasswordHash));
 				userExtraRepository.save(userExtra);
+				
+				user.setRetryCount(0);
+				user.setActivated(true);
+				user.setDeactivateDate(null);
+				user.setDeactivateReason(null);
+				userRepository.save(user);
 			}
 			
 			if (!checkPasswordLength(password1)) {

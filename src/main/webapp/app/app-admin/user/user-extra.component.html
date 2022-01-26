@@ -35,7 +35,9 @@
                 <th jhiSortBy="user.login"><span jhiTranslate="baseApp.userExtra.username">Username</span> <br> <span class="fa fa-sort"></span></th>
                 <th jhiSortBy="user.firstName"><span jhiTranslate="baseApp.userExtra.firstName">First Name</span> <br> <span class="fa fa-sort"></span></th>
                 <th jhiSortBy="user.lastName"><span jhiTranslate="baseApp.userExtra.lastName">Last Name</span> <br> <span class="fa fa-sort"></span></th>
-                <th jhiSortBy="user.email"><span jhiTranslate="baseApp.userExtra.contactEmail">Email</span> <br> <span class="fa fa-sort"></span></th>              
+                <th jhiSortBy="user.email"><span jhiTranslate="baseApp.userExtra.contactEmail">Email</span> <br> <span class="fa fa-sort"></span></th>    
+                <th jhiSortBy="user.status"><span jhiTranslate="baseApp.userExtra.status">Status</span> <br> <span class="fa fa-sort"></span></th>    
+                <th jhiSortBy="user.reason"><span jhiTranslate="baseApp.userExtra.reason">Reason</span> <br> <span class="fa fa-sort"></span></th>              
             </tr>
             </thead>
             <tbody>
@@ -43,7 +45,13 @@
                 <td><a [routerLink]="['../app-admin-user', userExtra.id ]">{{userExtra.user.login}}</a></td>
                 <td>{{userExtra.user.firstName ||'-'}}</td>
                 <td>{{userExtra.user.lastName ||'-'}}</td>
-                <td>{{userExtra.user.email}}</td>               
+                <td>{{userExtra.user.email}}</td>    
+                <!-- <td>{{userExtra.user.activated}}</td> -->
+                <td *ngIf="userExtra.user.activated else inactiveStatus">Active</td>
+                <ng-template #inactiveStatus>
+	            		<td>Inactive</td>
+	            	</ng-template>
+                <td>{{userExtra.user.deactivateReason}}</td>       
                 <td class="text-right">
                     <div class="btn-group flex-btn-group-container">
                         <button *appHasAnyPermission="['OPER:User.READ']"
