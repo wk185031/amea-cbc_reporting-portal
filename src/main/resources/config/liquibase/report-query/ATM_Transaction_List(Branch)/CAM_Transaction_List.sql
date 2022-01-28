@@ -64,7 +64,7 @@ BEGIN
       AND TXN.TRL_TSC_CODE != 26
       AND AST.AST_TERMINAL_TYPE = ''CDM''
       AND TXN.TRL_DEO_NAME = {V_Deo_Name}
-      AND ABR.ABR_CODE = {BRANCH_CODE}
+      -- AND ABR.ABR_CODE = {BRANCH_CODE}
       AND {Txn_Date}
     UNION ALL 
     SELECT
@@ -100,7 +100,7 @@ BEGIN
       AND TXN.TRL_TSC_CODE = 26
       AND AST.AST_TERMINAL_TYPE = ''CDM''
       AND TXN.TRL_DEO_NAME = {V_Deo_Name}
-      AND ABR.ABR_CODE = {BRANCH_CODE}
+      -- AND ABR.ABR_CODE = {BRANCH_CODE}
       AND {Txn_Date}
 	ORDER BY
       "BRANCH CODE",
