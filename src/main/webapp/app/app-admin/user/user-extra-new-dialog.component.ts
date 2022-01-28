@@ -54,10 +54,18 @@ export class UserExtraNewDialogComponent implements OnInit {
         this.isSaving = false;
         this.roleExtraService.query()
             .subscribe((res: HttpResponse<RoleExtra[]>) => { this.roleExtras = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
-        this.institutionService.query()
+        this.institutionService.queryChild()
             .subscribe((res: HttpResponse<Institution[]>) => { this.institutions = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
         this.branchService.query()
-            .subscribe((res: HttpResponse<Branch[]>) => { this.branches = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
+            .subscribe((res: HttpResponse<Branch[]>) => { 
+            	this.branches = res.body; 
+            	const allBranch: Branch = {
+  					abr_name: 'ALL',
+  					abr_code: '',
+				};
+				this.branches.unshift(allBranch);
+            }, 
+            (res: HttpErrorResponse) => this.onError(res.message));
     }
 
     clear() {

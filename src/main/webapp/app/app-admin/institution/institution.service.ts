@@ -19,6 +19,7 @@ export class InstitutionService {
     private resourceUrlNoPaging = SERVER_API_URL + 'api/institutions-nopaging';
     private resourcGetParenteUrl = SERVER_API_URL + 'api/institutions-parent-for-institutions-and-user';
     private resourceWithAttachmentUrl = SERVER_API_URL + 'api/institution-with-attachment';
+    private resourceUrlChild =  SERVER_API_URL + 'api/institutions/child';
 
 
     constructor(private http: HttpClient, private dateUtils: JhiDateUtils) { }
@@ -43,6 +44,12 @@ export class InstitutionService {
     query(req?: any): Observable<HttpResponse<Institution[]>> {
         const options = createRequestOption(req);
         return this.http.get<Institution[]>(this.resourceUrl, { params: options, observe: 'response' })
+            .map((res: HttpResponse<Institution[]>) => this.convertArrayResponse(res));
+    }
+    
+    queryChild(req?: any): Observable<HttpResponse<Institution[]>> {
+        const options = createRequestOption(req);
+        return this.http.get<Institution[]>(this.resourceUrlChild, { params: options, observe: 'response' })
             .map((res: HttpResponse<Institution[]>) => this.convertArrayResponse(res));
     }
 

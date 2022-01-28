@@ -5,6 +5,7 @@ import com.codahale.metrics.annotation.Timed;
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Authority;
+import my.com.mandrill.base.domain.Branch;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.repository.AuthorityRepository;
@@ -34,6 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,6 +115,13 @@ public class UserExtraResource {
 				return ResponseEntity.badRequest()
 						.headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "emailexists", "Email already in use"))
 						.body(null);
+			}
+			
+			for (Iterator<Branch> i = userExtra.getBranches().iterator(); i.hasNext();) {
+				Branch b = i.next();
+				if (b.getAbr_code() == null || b.getAbr_code().trim().isEmpty()) {
+					i.remove();
+				}
 			}
 
 			Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);

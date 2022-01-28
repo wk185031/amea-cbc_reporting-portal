@@ -156,6 +156,22 @@ public class InstitutionResource {
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/institutions");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
+    
+    /**
+     * GET  /institutions : get all the institutions.
+     *
+     * @param pageable the pagination information
+     * @return the ResponseEntity with status 200 (OK) and the list of institutions in body
+     */
+    @GetMapping("/institutions/child")
+    @Timed
+    @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_INSTITUTION+DOT+READ+"')")
+    public ResponseEntity<List<Institution>> getAllChildInstitutions() {
+        log.debug("REST request to get all child institutions");
+        List<Institution> results = institutionRepository.findInstitutionWithInstitutionType();
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+    
 
     /**
      * GET  /companies : get all the companies without paging

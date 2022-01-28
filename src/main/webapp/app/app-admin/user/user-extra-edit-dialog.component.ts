@@ -57,7 +57,14 @@ export class UserExtraEditDialogComponent implements OnInit {
         this.institutionService.queryNoPaging()
             .subscribe((res: HttpResponse<Institution[]>) => { this.institutions = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
         this.branchService.query()
-            .subscribe((res: HttpResponse<Branch[]>) => { this.branches = res.body; }, (res: HttpErrorResponse) => this.onError(res.message));
+            .subscribe((res: HttpResponse<Branch[]>) => { 
+            	this.branches = res.body; 
+            	const allBranch: Branch = {
+  					abr_name: 'ALL',
+  					abr_code: '',
+				};
+				this.branches.unshift(allBranch);
+            }, (res: HttpErrorResponse) => this.onError(res.message));
         this.activated = this.userExtra.user.activated.valueOf();
     }
 
