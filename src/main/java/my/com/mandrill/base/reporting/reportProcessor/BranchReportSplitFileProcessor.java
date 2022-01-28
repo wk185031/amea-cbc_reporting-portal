@@ -1,5 +1,6 @@
 package my.com.mandrill.base.reporting.reportProcessor;
 
+import java.io.File;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
+import my.com.mandrill.base.service.util.FileUtils;
 
 public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 
@@ -64,7 +66,8 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 				lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
 				String nextBranchCodeToWrite = null;
 				Branch currentBranchFromQueue = null;
-				boolean isFirstRecord = true;
+				boolean isNewBranch = true;
+				Map<String, String> groupingField = new HashMap<String, String>();
 
 				if (rs.next()) {
 					do {
@@ -93,7 +96,7 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 						if (nextBranchCodeToWrite == null || !currentBranch.equals(nextBranchCodeToWrite)) {
 							currentBranchFromQueue = branchQueue.poll();
 							nextBranchCodeToWrite = currentBranch;
-							isFirstRecord = true;
+							isNewBranch = true;
 						}
 
 						if (!nextBranchCodeToWrite.equals(currentBranchFromQueue.getAbr_code())) {
@@ -110,12 +113,13 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 						}
 
 						logger.debug("write record for branch: {}", nextBranchCodeToWrite);
-						Map<String, String> groupingField = new HashMap<String, String>();
-						groupingField.put(GROUP_FIELD_BRANCH, nextBranchCodeToWrite);
-						if (isFirstRecord) {
-							masterStream = newPage(masterDoc, masterStream, rgm,
-									currentBranchFromQueue.getAbr_code(), currentBranchFromQueue.getAbr_name());
-							isFirstRecord = false;
+
+						if (isNewBranch) {
+							masterStream = newPage(masterDoc, masterStream, rgm, currentBranchFromQueue.getAbr_code(),
+									currentBranchFromQueue.getAbr_name());
+							groupingField.clear();
+							groupingField.put(GROUP_FIELD_BRANCH, currentBranchFromQueue.getAbr_code());
+							isNewBranch = false;
 						}
 						writeRowData(rgm, masterDoc, null, lineFieldsMap, groupingField,
 								currentBranchFromQueue.getAbr_code(), currentBranchFromQueue.getAbr_name(),
@@ -130,11 +134,11 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 				} else {
 					logger.debug("No records found. Write all empty");
 					currentBranchFromQueue = branchQueue.poll();
-					Map<String, String> groupingField = new HashMap<String, String>();
-					groupingField.put(GROUP_FIELD_BRANCH, currentBranchFromQueue.getAbr_code());
 					do {
 						logger.debug("write no record found for: currentBranchFromQueue={}, nextBranchCodeToWrite={}",
 								currentBranchFromQueue.getAbr_code(), nextBranchCodeToWrite);
+						groupingField.clear();
+						groupingField.put(GROUP_FIELD_BRANCH, currentBranchFromQueue.getAbr_code());
 						masterStream = newPage(masterDoc, masterStream, rgm, currentBranchFromQueue.getAbr_code(),
 								currentBranchFromQueue.getAbr_name());
 						writeNoRecordFound(masterStream);
@@ -148,6 +152,14 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 				masterStream = null;
 				String masterDocPath = writeFile(rgm, masterDoc, null);
 				writtenFilePath.add(masterDocPath);
+
+				File masterReport = new File(masterDocPath);
+				if (masterReport.exists()) {
+					FileUtils.splitBranchReportByText(masterReport, masterReport.getParentFile().getParentFile().getParentFile());
+				} else {
+					logger.info("Master Report not found. Will not split branch document.");
+				}
+
 			}
 
 		} catch (Exception e) {

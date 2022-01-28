@@ -1,16 +1,12 @@
 package my.com.mandrill.base.service.util;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -90,29 +86,69 @@ public class FileUtils {
 		String name = filePath.substring(sourceDir.length() + 1, filePath.length());
 		return name;
 	}
-	
-	public static void splitBranchReportByText(File sourceFile, File destDir) throws Exception{
+
+	public static void splitBranchReportByText(File sourceFile, File destRootDir) throws Exception {
 		PDDocument doc = null;
+		PDDocument branchDoc = null;
 		PDFTextStripper pdfStripper = new PDFTextStripper();
 		try {
 			doc = PDDocument.load(sourceFile);
-			
-			for (int i = 0; i < doc.getNumberOfPages(); i++) {
+			File branchDestDir = null;
+			String fileName = null;
+
+			String currentBranchCode = null;
+			int noOfBranch = 0;
+			for (int i = 1; i <= doc.getNumberOfPages(); i++) {
 				pdfStripper.setStartPage(i);
 				pdfStripper.setEndPage(i);
 
 				String content = pdfStripper.getText(doc);
 				String[] lines = content.split("\r\n|\r|\n");
+				String lineToCheckForBranch = lines[1];
 				
-				for (int j=0; j<lines.length;j++) {
-					if (j == 1) {
-						if (!lines[j].trim().isEmpty()) {
-							String branchCode = lines[j].substring(0, 4);
-							System.out.println(branchCode);
+
+				if (!lineToCheckForBranch.trim().isEmpty()) {
+					String branchCode = lineToCheckForBranch.substring(0, 4);
+					if (currentBranchCode == null) {
+						currentBranchCode = branchCode;
+						branchDoc = new PDDocument();
+						noOfBranch++;
+					} else if (currentBranchCode != null && !currentBranchCode.equals(branchCode)) {
+						try {
+							fileName = sourceFile.getName().substring(0, sourceFile.getName().lastIndexOf(".")) + "_"
+									+ currentBranchCode + ".pdf";
+							branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode).toFile();
+							if (!branchDestDir.exists()) {
+								branchDestDir.mkdirs();
+							}
+							noOfBranch++;
+							branchDoc.save(Paths.get(branchDestDir.getAbsolutePath(), fileName).toFile());
+						} finally {
+							try {
+								branchDoc.close();
+							} catch (Exception e) {
+								log.warn("Failed to close doc.", e);
+							}
 						}
-					}					
+						branchDoc = new PDDocument();
+					}
+					branchDoc.addPage(doc.getPage(i - 1));
+					currentBranchCode = branchCode;
 				}
-			}			
+			}
+			// Save the last doc
+			fileName = sourceFile.getName().substring(0, sourceFile.getName().lastIndexOf(".")) + "_"
+					+ currentBranchCode + ".pdf";
+			branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode).toFile();
+			if (!branchDestDir.exists()) {
+				branchDestDir.mkdirs();
+			}
+			branchDoc.save(Paths.get(branchDestDir.getAbsolutePath(), fileName).toFile());
+			
+			log.debug("splitBranchReportByText: sourceFile={}, destDir={}, noOfPage={} ,noOfBranch={}",
+					sourceFile.getAbsolutePath(), destRootDir.getAbsolutePath(), doc.getNumberOfPages(),
+					noOfBranch);
+
 		} finally {
 			if (doc != null) {
 				try {
@@ -121,10 +157,18 @@ public class FileUtils {
 
 				}
 			}
+			if (branchDoc != null) {
+				try {
+					branchDoc.close();
+				} catch (Exception e) {
+
+				}
+			}
 		}
 	}
 
-	public static void splitBranchReport(File sourceFile, File destDir, Map<Integer, String> branchPageMap) throws Exception {
+	public static void splitBranchReport(File sourceFile, File destDir, Map<Integer, String> branchPageMap)
+			throws Exception {
 		PDDocument doc = null;
 		PDDocument branchDoc = null;
 		try {
@@ -135,7 +179,7 @@ public class FileUtils {
 			String branchToProcess = null;
 
 			for (Map.Entry<Integer, String> entry : branchPageMap.entrySet()) {
-				
+
 				try {
 					branchDoc = new PDDocument();
 					String branchCode = entry.getValue();
@@ -150,8 +194,8 @@ public class FileUtils {
 						log.debug("Split report: [filename={}, branch={}, page={}-{}]", sourceFile.getName(),
 								branchToProcess, startPage, endPage);
 						for (int i = startPage; i <= endPage; i++) {
-							//PDF getPage start at 0
-							branchDoc.importPage(doc.getPage(i-1));
+							// PDF getPage start at 0
+							branchDoc.importPage(doc.getPage(i - 1));
 						}
 						branchDoc.save(Paths.get(destDir.toString(), branchToProcess.concat(".pdf")).toFile());
 
@@ -173,10 +217,10 @@ public class FileUtils {
 			// process last one
 			branchDoc = new PDDocument();
 			endPage = doc.getPages().getCount();
-			log.debug("Split report: [filename={}, branch={}, page={}-{}]", sourceFile.getName(),
-					branchToProcess, startPage, endPage);
+			log.debug("Split report: [filename={}, branch={}, page={}-{}]", sourceFile.getName(), branchToProcess,
+					startPage, endPage);
 			for (int i = startPage; i <= endPage; i++) {
-				branchDoc.importPage(doc.getPage(i-1));
+				branchDoc.importPage(doc.getPage(i - 1));
 			}
 			branchDoc.save(Paths.get(destDir.toString(), branchToProcess.concat(".pdf")).toFile());
 
@@ -199,19 +243,20 @@ public class FileUtils {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Map<Integer, String> branchPageMap = new LinkedHashMap<>();
-		branchPageMap.put(1, "1001");
-		branchPageMap.put(2, "1002");
-		branchPageMap.put(3, "1003");
-		branchPageMap.put(5, "1004");
-		branchPageMap.put(489, "5008");
+//		Map<Integer, String> branchPageMap = new LinkedHashMap<>();
+//		branchPageMap.put(1, "1001");
+//		branchPageMap.put(2, "1002");
+//		branchPageMap.put(3, "1003");
+//		branchPageMap.put(5, "1004");
+//		branchPageMap.put(489, "5008");
 
 		File sourceFile = new File(
-				"D:\\MyTemp\\cbc\\reporting\\out\\22\\2021-11\\01\\6716\\MAIN\\ATM Transaction Lists (Branch Reports)\\List of ATM Withdrawals Report 20211101 0000AM-20211130 1159PM.pdf");
-		File destDir = new File("D:\\\\MyTemp\\\\cbc\\\\reporting\\\\out\\\\22\\\\2021-11\\\\01\\\\6716\\\\MAIN\\\\ATM Transaction Lists (Branch Reports)");
-		//splitBranchReport(sourceFile, destDir, branchPageMap);
-		
+				"C:\\Users\\User\\Downloads\\branch_report_compare\\original\\MAIN\\ATM Transaction Lists (Branch Reports)\\EFT - ATM Transaction List (Other Branch) 20210801 0000AM-20211231 1159PM.pdf");
+		File destDir = new File(
+				"C:\\Users\\User\\Downloads\\branch_report_compare\\original\\MAIN\\ATM Transaction Lists (Branch Reports)");
+		// splitBranchReport(sourceFile, destDir, branchPageMap);
+
 		splitBranchReportByText(sourceFile, destDir);
-		
+
 	}
 }
