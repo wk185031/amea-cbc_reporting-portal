@@ -407,6 +407,7 @@ public class UserService {
 				user.setActivated(false);
 				user.setDeactivateDate(Instant.now());
 				user.setDeactivateReason(ReportConstants.DEACTIVATE_LOCKED);
+				user.setRetryCount(user.getRetryCount() + 1);
 				user.setLastModifiedBy("system");
 			} else {
 				user.setRetryCount(user.getRetryCount() + 1);

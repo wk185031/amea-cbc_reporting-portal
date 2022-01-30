@@ -319,10 +319,12 @@ public class AccountResource {
 				throw new InvalidPasswordException();
 			}
 			Optional<User> user = userService.completePasswordReset(NewPassword, NewKey);
-
+			
 			if (!user.isPresent()) {
 				throw new InternalServerErrorException("No user was found for this reset key");
 			}
+			
+			User userEntity = user.get();
 
 			// first password reset need to insert into password_history and
 			// user_extra_password_history table
@@ -334,6 +336,14 @@ public class AccountResource {
 			userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now().minusHours(1L)));
 
 			userExtraRepository.save(userExtra);
+			
+			if(userEntity!=null) {
+				userEntity.setRetryCount(0);
+				userEntity.setActivated(true);
+				userEntity.setDeactivateDate(null);
+				userEntity.setDeactivateReason(null);
+				userRepository.save(userEntity);
+			}
 
 			auditActionService.addSuccessEvent(AuditActionType.RESET_PASSWORD_SUCCESS, null);
 

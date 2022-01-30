@@ -24,33 +24,47 @@ BEGIN
 	i_TRAILER_FIELDS_CBS := null;
 	
 	i_BODY_QUERY := TO_CLOB('
-select
-	brn.brn_code as BRANCH_CODE,
-	brn.brn_name as BRANCH_NAME,
-	count(case when
-			csh.csh_emb_id is null and
-			csh.csh_pin_offset is null 
-			then 1 end) as ENROLLMENTS,
-	count(case when
-			csh.csh_emb_id is not null and
-			csh.csh_pin_offset is null 
-			then 1 end) as PRODUCED,
-	count(case when
-			csh.csh_emb_id is not null and
-			csh.csh_sts_id = 72 and
-			csh.csh_status_date is not null 
-			then 1 end) as ACTIVATED
-from
-	{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
-	inner join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
-	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
-	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
-where
-	ccr.ccr_ins_id = {Iss_Id}
-	and ccr.ccr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') and ccr.ccr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
-group by
-	brn.brn_code, brn.brn_name
-	');	
+	select
+	brn_code as BRANCH_CODE,
+	brn_name as BRANCH_NAME,
+	sum(enrollments),
+	sum(produced),
+	sum(activated)
+	from(select count(case when (csh.csh_id is null or (csh.csh_emb_id is null and csh.csh_pin_offset is null)) and ccr_sts_id in (68,70) then 1 end) as enrollments,
+	count(case when csh.csh_emb_id is not null and csh_life_cycle = 4 then 1 end) as produced,
+	count(case when clt_cif_number is not null and csh.csh_sts_id = 72 and  csh_life_cycle = 5 then 1 end) as activated,
+	brn.brn_code,brn.brn_name
+	from
+		{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
+		LEFT join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
+		LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
+		left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
+	  left join {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CAM_CSH_ID = CSH_ID
+	  LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
+	  where ccr.ccr_ins_id = {Iss_Id}
+	  and ccr.ccr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
+	  and ccr.ccr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	  and ccr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = {Iss_Id} and cdt_type_name = ''Cash'')
+	  group by brn.brn_code,brn.brn_name
+	union
+	select distinct case when (csh.csh_id is null or (csh.csh_emb_id is null and csh.csh_pin_offset is null)) and bcr_sts_id in (68,70) then bcr_number_of_cards end as enrollments,
+	case when csh.csh_emb_id is not null and csh_life_cycle = 4 then bcr_number_of_cards end as produced,
+	case when clt_cif_number is not null and csh.csh_sts_id = 72 and  csh_life_cycle = 5 and CSH_IS_LINKED =1 then bcr_number_of_cards end as activated,
+	brn.brn_code,brn.brn_name
+	from
+	{DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
+	LEFT join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on CSH_BCR_ID = BCR_NUMBER
+	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = bcr_brn_id
+  	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
+	left join {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CAM_CSH_ID = CSH_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
+	where BCR_INS_ID = {Iss_Id}
+	and bcr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
+	and bcr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and bcr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = {Iss_Id} and cdt_type_name = ''Cash'')
+	)
+	 group by brn_code,brn_name');
+	
 	i_TRAILER_QUERY := null;
 	
 	UPDATE REPORT_DEFINITION SET 
