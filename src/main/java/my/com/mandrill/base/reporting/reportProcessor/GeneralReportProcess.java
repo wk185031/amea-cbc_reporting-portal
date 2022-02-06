@@ -543,10 +543,10 @@ public class GeneralReportProcess {
 					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
 
 					if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
-						logger.debug("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
+						logger.trace("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
 						String decryptedCustomData = encryptionService
 								.decryptAuthenticTag(fieldsMap.get(field.getFieldName()).getValue(), ekyId);
-						logger.debug("decrypted custom data: {}", decryptedCustomData);
+						logger.trace("decrypted custom data: {}", decryptedCustomData);
 						
 						decryptedField = new ReportGenerationFields(field.getFieldName(),
 								ReportGenerationFields.TYPE_STRING,
@@ -605,10 +605,10 @@ public class GeneralReportProcess {
 					ekyId = Integer.parseInt(fieldsMap.get(field.getDecryptionKey()).getValue());
 
 					if (field.getTagValue() != null && field.getTagValue().trim().length() > 0) {
-						logger.debug("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
+						logger.trace("original custom data: {}", fieldsMap.get(field.getFieldName()).getValue());
 						String decryptedCustomData = encryptionService
 								.decryptAuthenticTag(fieldsMap.get(field.getFieldName()).getValue(), ekyId);
-						logger.debug("decrypted custom data: {}", decryptedCustomData);
+						logger.trace("decrypted custom data: {}", decryptedCustomData);
 						
 						decryptedField = new ReportGenerationFields(field.getFieldName(),
 								ReportGenerationFields.TYPE_STRING,

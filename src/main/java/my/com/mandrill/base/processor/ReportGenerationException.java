@@ -10,6 +10,11 @@ public class ReportGenerationException extends RuntimeException {
 		super(e);
 		this.filename = filename;
 	}
+	
+	public ReportGenerationException(String filename) {
+		super("Unknown error.");
+		this.filename = filename;
+	}
 
 	public String getFilename() {
 		return filename;

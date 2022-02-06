@@ -39,8 +39,14 @@ public class ReportAsyncService {
 			if (reportProcessor != null) {
 				log.debug("runReport with processor: {}", reportProcessor);
 				reportProcessor.process(reportGenerationMgr);
+				if (reportGenerationMgr.errors > 0) {
+					throw new ReportGenerationException(reportGenerationMgr.getFieldName());
+				}
 			} else {
 				reportGenerationMgr.run(dataSource);
+				if (reportGenerationMgr.errors > 0) {
+					throw new ReportGenerationException(reportGenerationMgr.getFieldName());
+				}
 			}
 		} catch (ReportGenerationException e) {
 			long elapsedTime = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);

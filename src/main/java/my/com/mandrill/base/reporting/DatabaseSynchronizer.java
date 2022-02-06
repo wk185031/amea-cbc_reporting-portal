@@ -165,7 +165,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			+ ",TRL_ROUTING_LIST,TRL_RRN,TRL_RVRSL_TYPE,TRL_SERVICE_CODE,TRL_SESSION,TRL_SETTLE_CUR_ISO_ID,TRL_SETTLE_TO_ACCOUNT_RATE,TRL_SETTLE_TO_MER_SETTLE_RATE,TRL_STAN,TRL_STANDIN_REASON_INDICATOR,TRL_SYSTEM_TIMESTAMP\r\n"
 			+ ",TRL_TAC_ACC_SEQ,TRL_TCG_ID,TRL_TERMINAL_ATTENDANCE,TRL_TERMINAL_OUTPUT_CPBLTY,TRL_TIME_ZONE,TRL_TQU_ID,TRL_TRANSACTION_ID,TRL_TSC_CODE,TRL_TTY_ID,TRL_TXN_CUR_ISO_ID,TRL_TXN_STATUS,TRL_TXN_TO_SETTLE_RATE\r\n"
 			+ "from ";
-	private static final int MAX_ROW = 50;
+	private static final int MAX_ROW = 10000;
 
 	private static final String TABLE_DETAILS_NAME = "TABLE_DETAILS";
 	private static final String INCREMENTAL_UPDATE_TABLES = "ATM_STATUS_HISTORY,ATM_TXN_ACTIVITY_LOG,ATM_JOURNAL_LOG,TRANSACTION_LOG";
@@ -335,7 +335,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					ReportConstants.STATUS_IN_PROGRESS, user);
 
 			try {
-				Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_LAST_UPDATE_TS");
+				Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_SYSTEM_TIMESTAMP");
 				Timestamp atmDowntimeLastUpdatedTs = getTableLastUpdatedTimestamp("ATM_DOWNTIME", "ATD_END_TIMESTAMP");
 				Timestamp cardLastUpdatedTs = getTableLastUpdatedTimestamp("CARD", "CRD_LAST_UPDATE_TS");
 
@@ -373,14 +373,6 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			} else {
 				log.debug("Db sync trigger manually, skip report generation.");
 			}
-
-			//TODO
-//			for (Map.Entry<Long, String> mapEntry : reportService.getAllInstitutionIdAndShortCode().entrySet()) {
-//				reportGenerationResource.generateReportByInstitutionAndCategory(
-//						LocalDate.now().minusDays(1L).atStartOfDay(), LocalDate.now().minusDays(1L).atTime(23, 59),
-//						mapEntry.getKey(), mapEntry.getValue(), null, null, false, false,
-//						ReportConstants.CREATED_BY_USER);
-//			}
 
 			return ResponseEntity.created(new URI("/api/job-history/" + dbsyncJob.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
@@ -956,7 +948,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	}
 
 	private void postProcessTransactionLogData(Timestamp lastUpdatedTimestamp, Map<String, List<String>> cardBinMap) {
-		log.debug("Post Process Transaction Log data");
+		log.debug("Post Process Transaction Log data since:{}", lastUpdatedTimestamp);
 
 		Connection conn = null;
 		PreparedStatement stmt = null;
@@ -971,13 +963,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt = conn.prepareStatement(SQL_SELECT_CUSTOM_TXN_LOG.replace("{WHERE_CONDITION}", ""));
 			} else {
 				String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTimestamp);
-				String whereCondition = "where TRL_LAST_UPDATE_TS > TO_TIMESTAMP('" + formattedTs
+				String whereCondition = "where TRL_SYSTEM_TIMESTAMP > TO_TIMESTAMP('" + formattedTs
 						+ "','YYYYMMDD HH24:MI:SS.FF3')";
 
 				stmt = conn.prepareStatement(SQL_SELECT_CUSTOM_TXN_LOG.replace("{WHERE_CONDITION}", whereCondition));
 			}
 
-			stmt.setFetchSize(MAX_ROW);
+			//stmt.setFetchSize(MAX_ROW);
 			rs = stmt.executeQuery();
 
 			StringTokenizer corporateCardRange = getCorporateCard(conn);
@@ -990,7 +982,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
 						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"), listAuthPrProfile, rs.getLong("TRL_APPR_ID"));
-				log.debug("TRL_ID = {}", txnCustom.getTrlId());
+				log.trace("TRL_ID = {}", txnCustom.getTrlId());
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
 				stmt_insert.setString(2, txnCustom.getBillerCode());
@@ -1082,7 +1074,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			int panEncryptionKeyId, String originInterchange, String issuerName, String deoName,
 			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp, Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
 
-		log.debug(
+		log.trace(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
 				id, tscCode, encryptedPan, acqInstId, encryptionKeyId, panEncryptionKeyId, issuerName, deoName,
 				corporatePanRange == null ? "" : corporatePanRange.toString());
@@ -1112,7 +1104,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				if(trlApprId!=null){
 					String dummyBin = findDummyBin(listAuthPrProfile, trlApprId);
 					if(dummyBin!=null && !dummyBin.equals("")){
-						log.debug("dummyBin: "+dummyBin);
+						log.trace("dummyBin: "+dummyBin);
 						o.setCardBin(dummyBin);
 						isDomestic = false;
 					}
@@ -1186,7 +1178,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		String clearPan = pan.getClear();
 
 		String binPrefix = clearPan.substring(0, 4);
-		log.debug("findBin start: clearPan={}, binPrefix={}", clearPan, binPrefix);
+		log.trace("findBin start: clearPan={}, binPrefix={}", clearPan, binPrefix);
 		String binFound = null;
 		if (cardBinMap.containsKey(binPrefix)) {
 			for (String bin : cardBinMap.get(binPrefix)) {
@@ -1199,7 +1191,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 		}
-		log.debug("findBin end: clearPan={}, binFound={}", clearPan, binFound);
+		log.trace("findBin end: clearPan={}, binFound={}", clearPan, binFound);
 		return binFound;
 	}
 
@@ -1213,7 +1205,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		String mappedChannel = ChannelMapper.fromAuth(originChannel, originInterchange, acqInstId);
 
-		log.debug("originChannel = {}, mappedChannel = {}", originChannel, mappedChannel);
+		log.trace("originChannel = {}, mappedChannel = {}", originChannel, mappedChannel);
 
 		return mappedChannel;
 	}
@@ -1253,7 +1245,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						aNode.getNodeName().replace("secure-field" + "=Y", "");
 					}
 					map.put(aNode.getNodeName(), aNode.getTextContent());
-					log.debug("custom data: tag={}, value={}", aNode.getNodeName(), aNode.getTextContent());
+					log.trace("custom data: tag={}, value={}", aNode.getNodeName(), aNode.getTextContent());
 				}
 			}
 			return map;

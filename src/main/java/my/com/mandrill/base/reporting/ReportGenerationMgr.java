@@ -200,6 +200,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 		try {
 			if (connection != null) {
 				connection.close();
+				connection = null;
 			}
 		} catch (Exception e) {
 			logger.warn("Failed to close db connection: ", e);
@@ -213,6 +214,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 			if (connection != null) {
 				logger.debug("Close db connection...");
 				connection.close();
+				connection = null;
 			}
 		} catch (Exception e) {
 			errors++;
