@@ -208,6 +208,15 @@ public class GLHandoffInterEntity extends BatchProcessor {
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
 			switch (field.getFieldName()) {
+			case ReportConstants.AC_NUMBER:
+				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", getFieldValue(field, fieldsMap)));
+				String glAccNo = getFieldValue(field, fieldsMap);
+				int[] glAccNoArray = new int[glAccNo.length()];
+				for (int i = 0; i < glAccNoArray.length; i++) {
+					glAccNoArray[i] = glAccNo.charAt(i);
+					fileHash += glAccNoArray[i];
+				}
+				break;
 			case ReportConstants.GROUP_ID:
 				line.append(String.format("%1$-" + field.getCsvTxtLength() + "s", "ATM" + groupIdDate + "001000001"));
 				break;
