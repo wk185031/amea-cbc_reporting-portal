@@ -21,6 +21,11 @@
                  path="config/liquibase/auth-scripts/CBC_GL_ENTRY_20220206.sql"
                  splitStatements="true" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/auth-scripts/CBC_GL_ACCOUNT_20220206.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
     </changeSet>
     
 </databaseChangeLog>
