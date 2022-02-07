@@ -68,11 +68,11 @@ spring:
                 useServerPrepStmts: true
                 oracle:
                     jdbc:
-                        ReadTimeout: 7200000	
+                        ReadTimeout: 10800000	
             connectionTimeout: 30000
             maximumPoolSize: 60
             keepaliveTime: 300000
-            maxLifetime: 1800000 
+            maxLifetime: 11100000 
         dblink: 
           authentic: A5SWUAT
           dcms: A5CMUAT
