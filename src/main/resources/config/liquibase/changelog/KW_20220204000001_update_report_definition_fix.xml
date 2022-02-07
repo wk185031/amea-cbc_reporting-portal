@@ -26,6 +26,22 @@
                  path="config/liquibase/auth-scripts/CBC_GL_ACCOUNT_20220206.sql"
                  splitStatements="true" 
                  stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Files/ATM_CBC_GL_ISS_001.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Block_Sheet_Listing/Block_Sheet_Listing_For_Issuer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/GL_Handoff_Final_Proof_Sheets/Final_Proof_Sheet_For_Issuer.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sql>update SYSTEM_CONFIGURATION set CONFIG='60' where NAME='housekeeping.retention.period';</sql>
     </changeSet>
     
 </databaseChangeLog>
