@@ -532,13 +532,15 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
 				+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
 		String lastUpdateColumnName = tableShortNameMap.get(table.toUpperCase()) + "_LAST_UPDATE_TS";
+		if ("TRANSACTION_LOG".equalsIgnoreCase(table)) {
+			lastUpdateColumnName = "TRL_SYSTEM_TIMESTAMP";
+		}
 
 		Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
 
 		String sql = "";
 		if ("TRANSACTION_LOG".equalsIgnoreCase(table)) {
 			sql = SQL_TXN_LOG_INSERT + schemaTableName;
-			lastUpdateColumnName = "TRL_SYSTEM_TIMESTAMP";
 		} else {
 			sql = "insert into " + table + " (select * from " + schemaTableName;
 		}
@@ -969,7 +971,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				stmt = conn.prepareStatement(SQL_SELECT_CUSTOM_TXN_LOG.replace("{WHERE_CONDITION}", whereCondition));
 			}
 
-			//stmt.setFetchSize(MAX_ROW);
+			stmt.setFetchSize(MAX_ROW);
 			rs = stmt.executeQuery();
 
 			StringTokenizer corporateCardRange = getCorporateCard(conn);

@@ -100,8 +100,9 @@ public class BillsPaymentExtractFilesSummary extends TxtReportProcessor {
 			rgm.writeLine(line.toString().getBytes());
 			
 		} catch (IOException | JSONException e) {
-			rgm.errors++;
-			logger.error("Error in generating TXT file", e);
+			throw new ReportGenerationException(file.getName(), e);
+//			rgm.errors++;
+//			logger.error("Error in generating TXT file", e);
 		} 
 	}
 	

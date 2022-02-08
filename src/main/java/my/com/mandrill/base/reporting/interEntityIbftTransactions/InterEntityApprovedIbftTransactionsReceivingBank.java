@@ -36,7 +36,10 @@ public class InterEntityApprovedIbftTransactionsReceivingBank extends IbftReport
 
 			pagination++;
 			writeHeader(rgm, pagination);
-			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+			SortedMap<String, String> bankMap = filterCriteriaByBank(rgm);
+			logger.debug("Total iteration based on bank={}", bankMap == null ? 0 : bankMap.size());
+			
+			for (SortedMap.Entry<String, String> bankCodeMap : bankMap.entrySet()) {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				preProcessing(rgm, bankCode);

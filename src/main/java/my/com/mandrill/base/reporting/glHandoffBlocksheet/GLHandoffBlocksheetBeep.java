@@ -26,6 +26,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.TxtReportProcessor;
+import my.com.mandrill.base.service.util.DbUtils;
 
 public class GLHandoffBlocksheetBeep extends TxtReportProcessor {
 
@@ -222,8 +223,9 @@ public class GLHandoffBlocksheetBeep extends TxtReportProcessor {
 					rgm.exit();
 				}
 			} catch (IOException e) {
-				rgm.errors++;
-				logger.error("Error in closing fileOutputStream", e);
+//				rgm.errors++;
+//				logger.error("Error in closing fileOutputStream", e);
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -557,6 +559,7 @@ public class GLHandoffBlocksheetBeep extends TxtReportProcessor {
 
 		try {
 			ps = rgm.getConnection().prepareStatement(query);
+			logger.debug("####################################isClosed: {}", rgm.getConnection().isClosed());
 			rs = ps.executeQuery();
 
 			if (!rs.isBeforeFirst()) {

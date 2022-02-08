@@ -194,8 +194,9 @@ public class TxtReportProcessor extends PdfReportProcessor implements ITxtReport
 					writeBody(rgm, lineFieldsMap);
 				}
 			} catch (Exception e) {
-				rgm.errors++;
-				logger.error("Error trying to execute the body query", e);
+//				rgm.errors++;
+//				logger.error("Error trying to execute the body query", e);
+				throw new RuntimeException(e);
 			} finally {
 				rgm.cleanAllDbResource(ps, rs);
 			}

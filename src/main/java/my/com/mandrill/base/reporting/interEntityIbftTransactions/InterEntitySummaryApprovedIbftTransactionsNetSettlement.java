@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -65,35 +66,50 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 			line.append(getEol());
 			rgm.writeLine(line.toString().getBytes());
 			writeBodyHeader(rgm);
+			
+			Map<String, String> issuingBankCodeMap = new HashMap<>();
+			Map<String, String> receivingBankCodeMap = new HashMap<>();
 
 			preProcessing(rgm, "issuing");
-			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+			issuingBankCodeMap = filterCriteriaByBank(rgm);
+			
+			preProcessing(rgm, "receiving");
+			receivingBankCodeMap = filterCriteriaByBank(rgm);
+			
+			for (Map.Entry<String, String> bankCodeMap : issuingBankCodeMap.entrySet()) {
 				bankCodesMap.put(bankCodeMap.getValue(), bankCodeMap.getKey());
 			}
 
 			preProcessing(rgm, "receiving");
-			for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+			for (Map.Entry<String, String> bankCodeMap : receivingBankCodeMap.entrySet()) {
 				bankCodesMap.put(bankCodeMap.getValue(), bankCodeMap.getKey());
 			}
 
 			for (SortedMap.Entry<String, String> allBankCodesMap : bankCodesMap.entrySet()) {
 				preProcessing(rgm, "issuing");
-				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
-					if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
-						issuing = true;
-					}
+				if (issuingBankCodeMap.containsKey(allBankCodesMap.getValue())) {
+					issuing = true;
 				}
+				
+//				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+//					if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
+//						issuing = true;
+//					}
+//				}
 
 				preProcessing(rgm, "receiving");
-				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
-					if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
-						receiving = true;
-					}
+				if (receivingBankCodeMap.containsKey(allBankCodesMap.getValue())) {
+					receiving = true;
 				}
+//				for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+//					if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
+//						receiving = true;
+//					}
+//				}
 
 				if (issuing) {
 					preProcessing(rgm, "issuing");
-					for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+					for (Map.Entry<String, String> bankCodeMap : issuingBankCodeMap.entrySet()) {
 						if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())) {
 							transmittingTotal = 0.00;
 							receivingTotal = 0.00;
@@ -111,7 +127,7 @@ public class InterEntitySummaryApprovedIbftTransactionsNetSettlement extends Csv
 
 				if (receiving) {
 					preProcessing(rgm, "receiving");
-					for (SortedMap.Entry<String, String> bankCodeMap : filterCriteriaByBank(rgm).entrySet()) {
+					for (Map.Entry<String, String> bankCodeMap : receivingBankCodeMap.entrySet()) {
 						if (bankCodeMap.getKey().equals(allBankCodesMap.getValue())
 								&& !bankCodeMap.getKey().equals(getReceivingBankCode())) {
 							transmittingTotal = 0.00;
