@@ -116,7 +116,7 @@ public class GeneralReportProcess {
 					logger.debug("Replace parameter[{}] with value[{}]", paramName, value);
 					m.appendReplacement(sb, value);
 				} else {
-					rgm.errors++;
+					//rgm.errors++;
 					logger.warn("No field defined for parameter: {}", paramName);
 				}
 
