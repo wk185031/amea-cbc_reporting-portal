@@ -95,7 +95,7 @@ public class ReportService {
 		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ jobHistoryDetails.getInstitutionId() + File.separator + yearMonth;
 
-		for (ReportDefinition def : aList) {
+		for (ReportDefinition def : aList) {			
 			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),
 					jobHistoryDetails.getTransactionStartDate().toLocalDate(), holidays)) {
 				log.debug("Skip report generation [reportId={}, reportName={}]", def.getId(), def.getName());
@@ -116,7 +116,8 @@ public class ReportService {
 		int successCount = 0;
 		int failedCount = 0;
 
-		CompletableFuture.allOf(futures.toArray(new CompletableFuture[aList.size()])).join();
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).join();
+
 		for (CompletableFuture<ReportGenerationResult> f : futures) {
 			try {
 				ReportGenerationResult r = f.get();
