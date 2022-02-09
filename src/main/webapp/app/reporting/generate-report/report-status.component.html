@@ -5,9 +5,10 @@
 </div>
 
 <div class="modal-body">
-	<ul>
-		<li *ngFor="let reportStatus of reportStatuses;">{{reportStatus}}</li>
-	</ul>
+	<p class="text-right">Count of reports : {{totalCount}}</p>
+	
+	<p id="reportStatus"></p>
+	
 </div>
 
 <div class="modal-footer">

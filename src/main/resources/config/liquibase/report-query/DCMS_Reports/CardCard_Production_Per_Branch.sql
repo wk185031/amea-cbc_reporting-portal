@@ -27,9 +27,9 @@ BEGIN
 	select
 	brn_code as BRANCH_CODE,
 	brn_name as BRANCH_NAME,
-	sum(enrollments),
-	sum(produced),
-	sum(activated)
+	case when sum(enrollments) as ENROLLMENTS,
+	sum(produced) as PRODUCED,
+	sum(activated) as ACTIVATED
 	from(select count(case when (csh.csh_id is null or (csh.csh_emb_id is null and csh.csh_pin_offset is null)) and ccr_sts_id in (68,70) then 1 end) as enrollments,
 	count(case when csh.csh_emb_id is not null and csh_life_cycle = 4 then 1 end) as produced,
 	count(case when clt_cif_number is not null and csh.csh_sts_id = 72 and  csh_life_cycle = 5 then 1 end) as activated,

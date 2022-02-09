@@ -16,6 +16,8 @@ import { GenerateReportService } from './generate-report.service';
 export class ReportStatusComponent implements OnInit {
 
 	reportStatuses = [];
+	reportCategories = [];
+	totalCount: any;
     
     constructor(
     	private generateReportService: GenerateReportService,
@@ -41,11 +43,44 @@ export class ReportStatusComponent implements OnInit {
     getReportStatus(){
     	 console.log('generateReportService.getJobDetail():' + this.generateReportService.getJobDetail());
     	 
-    	 let jsonDetailObject = this.generateReportService.getJobDetail();
+    	 interface ReportStatus {
+			[key: string]: any
+		}
+    	 
+    	let jsonDetailObject = this.generateReportService.getJobDetail();
    		 
    		for (var key of Object.keys(jsonDetailObject)) {
-    		console.log(key + " -> " + jsonDetailObject[key])
-    		this.reportStatuses.push(key + ' - ' + jsonDetailObject[key]);
+   			var result = jsonDetailObject[key].split('|')
+    		
+    		if(this.reportCategories.indexOf(result[0]) == -1)
+    			this.reportCategories.push(result[0]);
+    		    		
+			let obj: ReportStatus = {};
+			obj.reportName = key;
+			obj.reportCategory = result[0];
+			obj.reportStatus = result[1];
+    		
+    		this.reportStatuses.push(obj);
 		}
+		
+		this.totalCount = this.reportStatuses.length;
+		
+		this.reportCategories.sort();
+		
+		this.reportStatuses.sort((a, b) => a.reportName.localeCompare(b.reportName));
+		
+		let html = "";
+		
+		for (var i = 0; i < this.reportCategories.length; i++) {
+			html += " </br><h6>" + this.reportCategories[i] + "</h6>";
+			for (let j in this.reportStatuses) {
+			   if (this.reportStatuses[j].reportCategory === this.reportCategories[i]){
+					html += this.reportStatuses[j].reportName + ' - ' + this.reportStatuses[j].reportStatus + "</br>";
+			   }
+			}
+			
+			document.getElementById("reportStatus").innerHTML = html;
+		}
+		
     }
 }

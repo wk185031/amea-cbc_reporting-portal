@@ -39,6 +39,7 @@ import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.ReportGenerationResult;
 import my.com.mandrill.base.repository.InstitutionRepository;
 import my.com.mandrill.base.repository.JobHistoryRepository;
+import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.util.BusinessDay;
@@ -74,6 +75,9 @@ public class ReportService {
 	private PlatformTransactionManager transactionManager;
 
 	private TransactionTemplate transactionTemplate;
+	
+	@Autowired
+	private ReportCategoryRepository reportCategoryRepository;
 
 	@PostConstruct
 	private void init() {
@@ -94,7 +98,9 @@ public class ReportService {
 				.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ jobHistoryDetails.getInstitutionId() + File.separator + yearMonth;
-
+		
+		Map<String, String> reportCategory = new HashMap<String, String>();
+		
 		for (ReportDefinition def : aList) {			
 			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),
 					jobHistoryDetails.getTransactionStartDate().toLocalDate(), holidays)) {
@@ -109,6 +115,7 @@ public class ReportService {
 						jobHistoryDetails.getTransactionStartDate(), jobHistoryDetails.getTransactionEndDate(),
 						baseDirectory, def.getReportCategory().getName(), def.isByBusinessDate(), manualGenerate,
 						holidays, jobHistoryId);
+				reportCategory.put(def.getName(), def.getReportCategory().getName());
 				futures.add(reportAsyncService.runReport(mgr));
 			}
 		}
@@ -121,12 +128,13 @@ public class ReportService {
 		for (CompletableFuture<ReportGenerationResult> f : futures) {
 			try {
 				ReportGenerationResult r = f.get();
+				
 				if (r.isSuccess()) {
 					successCount++;
-					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), ReportConstants.STATUS_COMPLETED);
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_COMPLETED);
 				} else {
 					failedCount++;
-					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), ReportConstants.STATUS_FAILED);
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_FAILED);
 				}
 			} catch (Exception e) {
 				log.error("Failed to complete report.", e);
