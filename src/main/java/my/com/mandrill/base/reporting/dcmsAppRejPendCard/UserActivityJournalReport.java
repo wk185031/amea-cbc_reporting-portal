@@ -139,12 +139,12 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 						contentStream.newLineAtOffset(0, -leading);	
 						contentStream.showText(String.format("%161s", rows[i].trim()));
 					} else {
-						contentStream.showText(rows[i]);
+						contentStream.showText(rows[i].replaceAll("\t", " "));
 					}
 					
 				}
 			} else {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream.showText(getFieldValue(rgm, field, fieldsMap).replaceAll("\t", " "));
 			}
 
 			if (field.isEol()) {

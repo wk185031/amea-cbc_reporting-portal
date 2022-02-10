@@ -190,10 +190,10 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 								
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} 
-							
+							} 							
 						}
-
+						
+						populateClientName(lineFieldsMap);
 						writePdfBodyApprovedRejected(rgm, lineFieldsMap, contentStream, leading);
 						pageHeight++;
 						recordCount++;
@@ -416,11 +416,10 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 								
 							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} 
-							
-							
+							} 	
 						}
-//						logger.debug("lineFieldsMap: {}", lineFieldsMap);
+						
+						populateClientName(lineFieldsMap);
 						writeBodyApprovedReject(rgm, lineFieldsMap);
 						recordCount++;
 					} while (rs.next());
@@ -437,6 +436,31 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			} finally {
 				rgm.cleanAllDbResource(ps, rs);
 			}
+		}
+	}
+
+	private void populateClientName(HashMap<String, ReportGenerationFields> lineFieldsMap) {
+		String functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
+		if ("FETCH CIF".equals(functionName)) {
+			String encClientName = lineFieldsMap.get("CLIENT_NAME").getValue();
+			String clientName = null;
+			String rotationNumberStr = lineFieldsMap.get("ROTATION_NUMBER").getValue();
+			int rotationNumber = (rotationNumberStr == null || rotationNumberStr.trim().isEmpty()) ? 1 : Integer.parseInt(rotationNumberStr);
+
+			if (encClientName.contains("|")) {
+				String[] clientNames = encClientName.split("\\|");
+				clientName = concatName(clientNames[0],
+						clientNames[1],
+						lineFieldsMap.get("INSTITUTION_ID").getValue(),
+						rotationNumber);
+			} else {
+				clientName = concatName(encClientName,
+						null,
+						lineFieldsMap.get("INSTITUTION_ID").getValue(),
+						rotationNumber);
+			}
+
+			lineFieldsMap.get("CLIENT_NAME").setValue(clientName);
 		}
 	}
 	
@@ -482,5 +506,35 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 			}
 		}
+	}
+	
+	private String concatName(String encFirstName, String encLastName, String institutionCode, int rotationNumber) {
+		logger.debug("concatName: encFirstName={}, encLastName={}, institutionCode={}, rotationNumber={}", encFirstName,
+				encLastName, institutionCode, rotationNumber);
+
+		String decryptFirstName = null;
+		if (encFirstName != null) {
+			decryptFirstName = getEncryptionService().decryptDcms(encFirstName, institutionCode, rotationNumber);
+		}
+
+		String decryptLastName = null;
+		if (encLastName != null) {
+			decryptLastName = getEncryptionService().decryptDcms(encLastName, institutionCode, rotationNumber);
+		}
+
+		if (decryptFirstName == null) {
+			decryptFirstName = encFirstName;
+		}
+
+		if (decryptLastName == null) {
+			decryptLastName = encLastName;
+		}
+
+		return decryptFirstName + " " + decryptLastName;
+	}
+	
+	public static void main(String[] args) {
+		String a = "aaaa|bbbb";
+		System.out.println(a.split("|")[0]);
 	}
 }

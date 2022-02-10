@@ -327,4 +327,5 @@
 	<include file="config/liquibase/changelog/KW_20220204000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220208000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220209000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220210000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
