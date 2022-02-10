@@ -628,7 +628,7 @@ BEGIN
 			STF1.STF_LOGIN_NAME As Maker,
 			STF2.STF_LOGIN_NAME As Checker,
 			FCR.FCR_COMMENT As Remarks,
-			CLT.CLT_FIRST_NAME As CLIENT_NAME,
+			CLT.CLT_FIRST_NAME || ''|'' || CLT.CLT_LAST_NAME  As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
 			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
