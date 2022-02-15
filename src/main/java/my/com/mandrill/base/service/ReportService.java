@@ -101,7 +101,11 @@ public class ReportService {
 		
 		Map<String, String> reportCategory = new HashMap<String, String>();
 		
-		for (ReportDefinition def : aList) {			
+		for (ReportDefinition def : aList) {
+			if (def.isSystem()) {
+				log.debug("skip system report: {}", def.getName());
+			}
+			
 			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),
 					jobHistoryDetails.getTransactionStartDate().toLocalDate(), holidays)) {
 				log.debug("Skip report generation [reportId={}, reportName={}]", def.getId(), def.getName());

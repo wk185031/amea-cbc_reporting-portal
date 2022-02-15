@@ -111,21 +111,24 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 
 	@Column(name = "red_branch_flag")
 	private String branchFlag;
-	
+
 	@Column(name = "red_daily_schedule_time")
 	private ZonedDateTime scheduleTime;
-	
+
 	@Column(name = "red_ins_id")
 	private Long institutionId;
-	
+
 	@ManyToOne(optional = false)
 	@NotNull
-	@JoinColumn(name="red_rec_id", nullable=false)
+	@JoinColumn(name = "red_rec_id", nullable = false)
 	private ReportCategory category;
-	
+
 	@NotNull
 	@Column(name = "red_by_business_date", nullable = false)
-    private boolean byBusinessDate = false;
+	private boolean byBusinessDate = false;
+
+	@Column(name = "red_system")
+	private boolean system;
 
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -383,7 +386,7 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public void setReportCategory(ReportCategory category) {
 		this.category = category;
 	}
-	
+
 	public String getBranchFlag() {
 		return branchFlag;
 	}
@@ -396,7 +399,7 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public void setBranchFlag(String branchFlag) {
 		this.branchFlag = branchFlag;
 	}
-	
+
 	public ZonedDateTime getScheduleTime() {
 		return scheduleTime;
 	}
@@ -409,7 +412,7 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public void setScheduleTime(ZonedDateTime scheduleTime) {
 		this.scheduleTime = scheduleTime;
 	}
-	
+
 	public Long getInstitutionId() {
 		return this.institutionId;
 	}
@@ -422,15 +425,23 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public void setInstitutionId(Long institutionId) {
 		this.institutionId = institutionId;
 	}
-	
+
 	public boolean isByBusinessDate() {
 		return byBusinessDate;
 	}
-	
+
 	public void setByBusinessDate(boolean byBusinessDate) {
 		this.byBusinessDate = byBusinessDate;
 	}
-	
+
+	public boolean isSystem() {
+		return system;
+	}
+
+	public void setSystem(boolean system) {
+		this.system = system;
+	}
+
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 	@Override
@@ -457,7 +468,8 @@ public class ReportDefinition extends AbstractAuditingEventEntity implements Ser
 	public String toString() {
 		return "ReportDefinition [id=" + id + ", name=" + name + ", description=" + description + ", fileNamePrefix="
 				+ fileNamePrefix + ", fileFormat=" + fileFormat + ", fileLocation=" + fileLocation
-				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", category=" + category.getName() 
-				+ ", branchFlag=" + branchFlag + ", scheduleTime=" + scheduleTime + ", instutionId=" + institutionId + "]";
+				+ ", processingClass=" + processingClass + ", frequency=" + frequency + ", category="
+				+ category.getName() + ", branchFlag=" + branchFlag + ", scheduleTime=" + scheduleTime
+				+ ", instutionId=" + institutionId + ", system=" + system + "]";
 	}
 }

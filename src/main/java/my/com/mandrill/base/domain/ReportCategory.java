@@ -49,6 +49,8 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
 	@Column(name = "rec_branch_flag")
 	private String branchFlag;
 	
+	@Column(name = "rec_system")
+	private boolean system;	
 	
 	// jhipster-needle-entity-add-field - JHipster will add fields here, do not
 	// remove
@@ -102,6 +104,7 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
 	// jhipster-needle-entity-add-getters-setters - JHipster will add getters and
 	// setters here, do not remove
 
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -117,6 +120,14 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
 		return Objects.equals(getId(), reportCategory.getId());
 	}
 
+	public boolean isSystem() {
+		return system;
+	}
+
+	public void setSystem(boolean system) {
+		this.system = system;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(getId());
@@ -129,6 +140,7 @@ public class ReportCategory extends AbstractAuditingEventEntity implements Seria
         ", name='" + getName() + "'" +
         ", description='" + getDescription() + "'" +
         ", branch='" + getBranchFlag() + "'" +
+        ", isSystem='" + isSystem() + "'" +
         ", createdBy='" + getCreatedBy() + "'" +
         ", createdDate='" + getCreatedDate() + "'" +
         ", lastModifiedBy='" + getLastModifiedBy() + "'" +
