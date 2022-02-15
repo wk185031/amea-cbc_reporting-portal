@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="KW_20220216000001_update_report_definition_fix_3" author="kw">
+    	<validCheckSum>any</validCheckSum>  
+
+		<addColumn tableName="JHI_USER" >
+    		<column name="last_status" afterColumn="RETRY_COUNT" type="varchar(50)"/>
+		</addColumn>
+		
+		<addColumn tableName="jhi_persistent_audit_event" >
+    		<column name="source_ip" afterColumn="event_type" type="varchar(50)"/>
+		</addColumn>
+    </changeSet>
+    
+</databaseChangeLog>

@@ -97,6 +97,10 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "retry_count")
     private int retryCount;
     
+    @Size(max = 50)
+    @Column(name = "last_status", length = 50)
+    private String lastStatus;
+    
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -236,6 +240,14 @@ public class User extends AbstractAuditingEntity implements Serializable {
 		this.retryCount = retryCount;
 	}
 
+	public String getLastStatus() {
+		return lastStatus;
+	}
+
+	public void setLastStatus(String lastStatus) {
+		this.lastStatus = lastStatus;
+	}
+
 	@Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -264,6 +276,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
             ", imageUrl='" + imageUrl + '\'' +
             ", activated='" + activated + '\'' +
             ", langKey='" + langKey + '\'' +
+            ", lastStatus='" + lastStatus + '\'' +
             ", activationKey='" + activationKey + '\'' +
             "}";
     }
