@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public class JobResource {
      */
     @PutMapping("/jobs")
     @Timed
-    public ResponseEntity<Job> updateJob(@Valid @RequestBody Job job) throws URISyntaxException {
+    public ResponseEntity<Job> updateJob(@Valid @RequestBody Job job, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to update Job : {}", job);
         if (job.getId() == null) {
             return createJob(job);
@@ -106,9 +107,9 @@ public class JobResource {
         if (job.getName().equalsIgnoreCase("DB_SYNC")) {
 			try {
 				databaseSynchronizer.refreshCronSchedule();
-				auditActionService.addSuccessEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null);
+				auditActionService.addSuccessEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, request);
 			} catch (Exception e) {
-				auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e);
+				auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e, request);
 				throw e;
 			}
         }

@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.json.JSONArray;
@@ -126,7 +127,7 @@ public class ReportDefinitionResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + CREATE
 			+ "')")
 	public ResponseEntity<ReportDefinition> createReportDefinition(
-			@Valid @RequestBody ReportDefinition reportDefinition) throws URISyntaxException {
+			@Valid @RequestBody ReportDefinition reportDefinition, HttpServletRequest request) throws URISyntaxException {
 		log.debug("User: {}, REST request to save ReportDefinition: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				reportDefinition);
 		if (reportDefinition.getId() != null) {
@@ -136,11 +137,11 @@ public class ReportDefinitionResource {
 		try {
 			ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
 			//reportDefinitionSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName(), request);
 			return ResponseEntity.created(new URI("/api/reportDefinition/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_CREATE, reportDefinition.getName(), e, request);
 			throw e;
 		}
 		
@@ -163,22 +164,22 @@ public class ReportDefinitionResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + UPDATE
 			+ "')")
 	public ResponseEntity<ReportDefinition> updateReportDefinition(
-			@Valid @RequestBody ReportDefinition reportDefinition) throws URISyntaxException {
+			@Valid @RequestBody ReportDefinition reportDefinition, HttpServletRequest request) throws URISyntaxException {
 		log.debug("User: {}, REST request to update ReportDefinition: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), reportDefinition);
 		if (reportDefinition.getId() == null) {
-			return createReportDefinition(reportDefinition);
+			return createReportDefinition(reportDefinition, request);
 		}
 		
 		try {
 			ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
 			// reportDefinitionSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName(), request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportDefinition.getId().toString()))
 					.body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName(), e, request);
 			throw e;
 		}
 		
@@ -284,16 +285,16 @@ public class ReportDefinitionResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_DEFINITION + DOT + DELETE
 			+ "')")
-	public ResponseEntity<Void> deleteReportdDefinition(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteReportdDefinition(@PathVariable Long id, HttpServletRequest request) {
 		log.debug("User: {}, REST request to delete ReportDefinition: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), id);
 		try {
 			reportDefinitionRepository.delete(id);
 			//reportDefinitionSearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), e, request);
 			throw e;
 		}	
 	}

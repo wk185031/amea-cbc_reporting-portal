@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -261,7 +263,7 @@ public class ReportGenerationResource {
 	@DeleteMapping("/delete-report/{jobId}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<Void> deleteReport(@PathVariable Long jobId) throws IOException {
+	public ResponseEntity<Void> deleteReport(@PathVariable Long jobId, HttpServletRequest request) throws IOException {
 
 		JobHistory jobHistory = jobHistoryRepository.findOne(jobId);
 		try {
@@ -270,11 +272,11 @@ public class ReportGenerationResource {
 
 			jobHistory.setStatus(ReportConstants.STATUS_DELETED);
 			jobHistoryRepository.save(jobHistory);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DELETE, jobHistory.getId().toString());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DELETE, jobHistory.getId().toString(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.report.deleted", jobId.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DELETE, jobHistory.getId().toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DELETE, jobHistory.getId().toString(), e, request);
 			throw e;
 		}
 	}
@@ -290,7 +292,7 @@ public class ReportGenerationResource {
 	@GetMapping("/download-report/{jobId}")
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
-	public ResponseEntity<Resource> downloadReport(@PathVariable Long jobId) {
+	public ResponseEntity<Resource> downloadReport(@PathVariable Long jobId, HttpServletRequest request) {
 		String username = SecurityUtils.getCurrentUserLogin().get();
 
 		String branchCode = getUserBranchCode();
@@ -320,7 +322,7 @@ public class ReportGenerationResource {
 			String outputAbsolutePath = FileUtils.zipFiles(outputFileName, reportPath.toPath(), reportPath.toPath());
 			resource = new FileSystemResource(new File(outputAbsolutePath));
 
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString(), request);
 
 			logger.debug("REST finish request to download report");
 			return ResponseEntity.ok()
@@ -330,7 +332,7 @@ public class ReportGenerationResource {
 
 		} catch (Exception e) {
 			logger.error("Failed to download file for jobId:{}", jobId, e);
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString(), e, request);
 			throw new RuntimeException(e);
 		}
 	}
@@ -363,7 +365,7 @@ public class ReportGenerationResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<Resource> downloadReport(@PathVariable Long institutionId, @PathVariable String reportDate,
 			@PathVariable Long reportCategoryId, @PathVariable String reportName, @PathVariable Long jobId,
-			@PathVariable String frequency) throws IOException {
+			@PathVariable String frequency, HttpServletRequest request) throws IOException {
 		logger.debug("User: {}, REST request to download report", SecurityUtils.getCurrentUserLogin());
 
 		Resource resource = null;
@@ -761,7 +763,7 @@ public class ReportGenerationResource {
 			}
 			auditActionService.addSuccessEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString());
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DOWNLOAD, jobId.toString(), e, request);
 			throw e;
 		}
 
