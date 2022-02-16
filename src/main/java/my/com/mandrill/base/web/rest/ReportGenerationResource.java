@@ -59,6 +59,7 @@ import my.com.mandrill.base.service.JobHistoryService;
 import my.com.mandrill.base.service.UserService;
 import my.com.mandrill.base.service.util.FileUtils;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
+import my.com.mandrill.base.repository.ReportDefinitionRepository;
 
 /**
  * REST controller for managing ReportGeneration.
@@ -69,6 +70,7 @@ public class ReportGenerationResource {
 
 	private final Logger logger = LoggerFactory.getLogger(ReportGenerationResource.class);
 	private final ReportCategoryRepository reportCategoryRepository;
+	private final ReportDefinitionRepository reportDefinitionRepository;
 	private final JobHistoryRepository jobHistoryRepository;
 	private final UserService userService;
 	private final UserExtraRepository userExtraRepository;
@@ -82,8 +84,9 @@ public class ReportGenerationResource {
 	public ReportGenerationResource(ReportCategoryRepository reportCategoryRepository,
 			JobHistoryRepository jobHistoryRepository, Environment env, UserService userService,
 			UserExtraRepository userExtraRepository, AuditActionService auditActionService,
-			JobHistoryService jobHistoryService) {
+			JobHistoryService jobHistoryService, ReportDefinitionRepository reportDefinitionRepository) {
 		this.reportCategoryRepository = reportCategoryRepository;
+		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.jobHistoryRepository = jobHistoryRepository;
 		this.userService = userService;
 		this.userExtraRepository = userExtraRepository;
@@ -819,5 +822,25 @@ public class ReportGenerationResource {
 
 	public void setUserInsId(String userInsId) {
 		this.userInsId = userInsId;
+	}
+	
+	@GetMapping("/export-report/{reportCategoryName}/{reportName}")
+	@Timed
+	public ResponseEntity<Void> exportReport(@PathVariable String reportCategoryName, @PathVariable String reportName) throws IOException {
+		logger.debug("Hi export report");
+		
+		logger.debug("reportCategory : " + reportCategoryName);
+		logger.debug("reportName : " + reportName);
+		
+		logger.debug("reportCategoryRepository.findOneByName(reportCategoryName)" + reportCategoryRepository.findOneByName(reportCategoryName));
+		
+		ReportCategory reportCategory = reportCategoryRepository.findOneByName(reportCategoryName);
+		
+		logger.debug("reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName)" + reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName));
+		
+		ReportDefinition reportDefinition = reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName);
+		
+		return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.report.export", reportCategory + "," + reportName))
+				.build();
 	}
 }
