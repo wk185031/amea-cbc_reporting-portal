@@ -16,3 +16,6 @@ Insert into CBC_GL_ENTRY (GLE_ID,GLE_GLT_ID,GLE_MAIN_DIRECTION,GLE_TRAN_CHANNEL,
     values (CBC_GL_ENTRY_SEQUENCE.nextVal,9,'ON-US','BRM',250,'Default','00','00',null,null,'065',null,'Accts. Payable - Cash Card - Reg','BANCNET EGOV - SSS','Accts. Payable - EGOV - SSS','BANCNET EGOV - SSS',null,null,null,'N','N',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
     
 update cbc_gl_entry set GLE_ENTRY_ENABLED='Y' where gle_tran_type=250 and gle_glt_id=9 and gle_tran_channel='BRM' and gle_main_direction='ON-US' and GLE_BP_INCLUDE='*';
+update cbc_gl_entry set gle_svc_enabled='Y' where gle_glt_id=11 and gle_debit_account='ACD BEEP Inter-Entity SVC Charge Bridge';
+update cbc_gl_entry set gle_svc_enabled='Y' where gle_glt_id=7 and gle_debit_account='ACD Eload SVC Charge Bridge';
+update cbc_gl_entry set gle_svc_enabled='Y' where gle_glt_id=12 and gle_debit_account='ACD Inter-Entity IBFT SVC Bridge';

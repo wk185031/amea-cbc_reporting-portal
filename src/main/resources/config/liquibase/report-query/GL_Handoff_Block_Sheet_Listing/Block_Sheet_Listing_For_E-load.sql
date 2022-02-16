@@ -64,6 +64,7 @@ WHERE
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+      AND ((GLE.GLE_SVC_ENABLED = ''Y'' AND TXN.TRL_ISS_CHARGE_AMT > 0) OR (NVL(GLE_SVC_ENABLED,''N'') = ''N'' and TXN.TRL_AMT_TXN > 0))
 GROUP BY
       GLA.GLA_NUMBER,
       GLA.GLA_NAME,
@@ -106,6 +107,7 @@ WHERE
 	  AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+      AND ((GLE.GLE_SVC_ENABLED = ''Y'' AND TXN.TRL_ISS_CHARGE_AMT > 0) OR (NVL(GLE_SVC_ENABLED,''N'') = ''N'' and TXN.TRL_AMT_TXN > 0))
 GROUP BY
       GLA.GLA_NUMBER,
       GLA.GLA_NAME,
