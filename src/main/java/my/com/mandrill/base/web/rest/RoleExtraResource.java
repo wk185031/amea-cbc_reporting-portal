@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -68,7 +69,7 @@ public class RoleExtraResource {
     @PostMapping("/role-extras")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER_ROLE+DOT+CREATE+"')")
-    public ResponseEntity<RoleExtra> createRoleExtra(@Valid @RequestBody RoleExtra roleExtra) throws URISyntaxException {
+    public ResponseEntity<RoleExtra> createRoleExtra(@Valid @RequestBody RoleExtra roleExtra, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to save RoleExtra : {}", roleExtra);
         if (roleExtra.getId() != null) {
             throw new BadRequestAlertException("A new roleExtra cannot already have an ID", ENTITY_NAME, "idexists");
@@ -76,11 +77,11 @@ public class RoleExtraResource {
 		try {
 			RoleExtra result = roleExtraRepository.save(roleExtra);
 			roleExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_CREATE, roleExtra.getName());
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_CREATE, roleExtra.getName(), request);
 			return ResponseEntity.created(new URI("/api/role-extras/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.ROLE_CREATE, roleExtra.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.ROLE_CREATE, roleExtra.getName(), e, request);
 			throw e;
 		}
     }
@@ -97,21 +98,21 @@ public class RoleExtraResource {
     @PutMapping("/role-extras")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER_ROLE+DOT+UPDATE+"')")
-    public ResponseEntity<RoleExtra> updateRoleExtra(@Valid @RequestBody RoleExtra roleExtra) throws URISyntaxException {
+    public ResponseEntity<RoleExtra> updateRoleExtra(@Valid @RequestBody RoleExtra roleExtra, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to update RoleExtra : {}", roleExtra);
         if (roleExtra.getId() == null) {
-            return createRoleExtra(roleExtra);
+            return createRoleExtra(roleExtra, request);
         }
         
 		try {
 			RoleExtra result = roleExtraRepository.save(roleExtra);
 			roleExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName());
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName(), request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, roleExtra.getId().toString()))
 					.body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName(), e, request);
 			throw e;
 		}
     }
@@ -166,16 +167,16 @@ public class RoleExtraResource {
     @DeleteMapping("/role-extras/{id}")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER_ROLE+DOT+DELETE+"')")
-    public ResponseEntity<Void> deleteRoleExtra(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRoleExtra(@PathVariable Long id, HttpServletRequest request) {
         log.debug("REST request to delete RoleExtra : {}", id);
 		try {
 			roleExtraRepository.delete(id);
 			roleExtraSearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_DELETE, id.toString());
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_DELETE, id.toString(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.ROLE_DELETE, id.toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.ROLE_DELETE, id.toString(), e, request);
 			throw e;
 		}
     }

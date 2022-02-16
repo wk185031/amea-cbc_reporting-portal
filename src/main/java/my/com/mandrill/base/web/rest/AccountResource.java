@@ -234,7 +234,7 @@ public class AccountResource {
 	 */
 	@PostMapping(path = "/account/change-password")
 	@Timed
-	public void changePassword(@RequestBody String password) {
+	public void changePassword(@RequestBody String password, HttpServletRequest request) {
 
 		String password1 = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), password);
 
@@ -274,10 +274,10 @@ public class AccountResource {
 			}
 			userService.changePassword(password1);
 			
-			auditActionService.addSuccessEvent(AuditActionType.CHANGE_PASSWORD_SUCCESS, null);
+			auditActionService.addSuccessEvent(AuditActionType.CHANGE_PASSWORD_SUCCESS, isUser.get().getLogin(), request);
 			
 		}catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.CHANGE_PASSWORD_FAILED, "test", e);
+			auditActionService.addFailedEvent(AuditActionType.CHANGE_PASSWORD_FAILED, isUser.get().getLogin(), e, request);
 			throw e;
 		}
 	}
@@ -309,17 +309,17 @@ public class AccountResource {
 	 */
 	@PostMapping(path = "/account/reset-password/finish")
 	@Timed
-	public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
+	public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword, HttpServletRequest request) {
 		String NewKey = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
 		String NewPassword = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"),
 				keyAndPassword.getNewPassword());
 
+		Optional<User> user = userService.completePasswordReset(NewPassword, NewKey);
 		try {
 			if (!checkPasswordLength(NewPassword)) {
 				throw new InvalidPasswordException();
 			}
-			Optional<User> user = userService.completePasswordReset(NewPassword, NewKey);
-			
+	
 			if (!user.isPresent()) {
 				throw new InternalServerErrorException("No user was found for this reset key");
 			}
@@ -345,10 +345,10 @@ public class AccountResource {
 				userRepository.save(userEntity);
 			}
 
-			auditActionService.addSuccessEvent(AuditActionType.RESET_PASSWORD_SUCCESS, null);
+			auditActionService.addSuccessEvent(AuditActionType.RESET_PASSWORD_SUCCESS, user.get().getLogin(), request);
 
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.RESET_PASSWORD_FAILED, null, e);
+			auditActionService.addFailedEvent(AuditActionType.RESET_PASSWORD_FAILED, user.get().getLogin(), e, request);
 			throw e;
 		}
 

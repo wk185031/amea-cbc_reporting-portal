@@ -226,6 +226,7 @@ dependencies {
     compile group: 'org.apache.cxf', name: 'cxf', version: '3.1.6' // https://mvnrepository.com/artifact/org.apache.cxf/cxf
     compile group: 'org.apache.commons', name: 'commons-compress', version: '1.15'
 	compile files('libs/decrypt-v2.jar')
+	compile 'de.danielbechler:java-object-diff:0.95'
 	
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"

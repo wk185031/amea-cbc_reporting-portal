@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,7 +59,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
@@ -214,7 +214,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			@Override
 			public void run() {
 				try {
-					synchronizeDatabase(ReportConstants.CREATED_BY_USER);
+					synchronizeDatabase(ReportConstants.CREATED_BY_USER, null);
 				} catch (Exception e) {
 					log.error("Exception in scheduleSyncDbJob.", e);
 				}
@@ -318,7 +318,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	@SuppressWarnings("resource")
 	@PostMapping("/synchronize-database/{user}")
-	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user) throws Exception {
+	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user, HttpServletRequest request) throws Exception {
 		log.info("synchronizeDatabase: DB URL={}", env.getProperty("spring.datasource.url"));
 
 		try {
@@ -360,7 +360,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 
 			log.debug("Database synchronizer completed");
-			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, request);
 
 			if (ReportConstants.CREATED_BY_USER.equals(user)) {
 				log.debug("System db sync, proceed with report generation.");
@@ -378,7 +378,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
 					.body(dbsyncJob);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
+			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e, request);
 			throw e;
 		}
 	}

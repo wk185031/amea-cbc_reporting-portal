@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -96,7 +97,7 @@ public class UserExtraResource {
     @PostMapping("/user-extras")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+CREATE+"')")
-    public ResponseEntity<UserExtra> createUserExtra(@Valid @RequestBody UserExtra userExtra) throws URISyntaxException {
+    public ResponseEntity<UserExtra> createUserExtra(@Valid @RequestBody UserExtra userExtra, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to save UserExtra : {}", userExtra);
         if (userExtra.getId() != null) {
             throw new BadRequestAlertException("A new userExtra cannot already have an ID", ENTITY_NAME, "idexists");
@@ -135,11 +136,11 @@ public class UserExtraResource {
 			UserExtra result = userExtraRepository.save(userExtra);
 			mailService.sendCreationEmail(savedUser);
 			userExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.USER_CREATE, userExtra.getName());
+			auditActionService.addSuccessEvent(AuditActionType.USER_CREATE, userExtra.getName(), request);
 			return ResponseEntity.created(new URI("/api/user-extras/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.USER_CREATE, userExtra.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.USER_CREATE, userExtra.getName(), e, request);
 			throw e;
 		}
     }
@@ -156,11 +157,11 @@ public class UserExtraResource {
     @PutMapping("/user-extras")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+UPDATE+"')")
-    public ResponseEntity<UserExtra> updateUserExtra(@Valid @RequestBody UserExtra userExtra) throws URISyntaxException {
+    public ResponseEntity<UserExtra> updateUserExtra(@Valid @RequestBody UserExtra userExtra, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to update UserExtra : {}", userExtra);
                 
         if (userExtra.getId() == null) {
-            return createUserExtra(userExtra);
+            return createUserExtra(userExtra, request);
         } else {
         	UserExtra usrExtra = userExtraRepository.findOne(userExtra.getId());
         	userExtra.setCreatedDate(usrExtra.getCreatedDate());
@@ -175,13 +176,13 @@ public class UserExtraResource {
 			userService.updateUser(new UserDTO(userExtra.getUser()));
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, userExtra.getName());
+			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, userExtra.getName(), request);
 
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, userExtra.getId().toString()))
 					.body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.USER_UPDATE, userExtra.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.USER_UPDATE, userExtra.getName(), e, request);
 			throw e;
 		}
     }
@@ -235,7 +236,7 @@ public class UserExtraResource {
     @DeleteMapping("/user-extras/{id}")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+DELETE+"')")
-	public ResponseEntity<Void> deleteUserExtra(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteUserExtra(@PathVariable Long id, HttpServletRequest request) {
 		log.debug("REST request to delete UserExtra : {}", id);
 		UserExtra userExtra = userExtraRepository.findOneWithEagerRelationships(id);
 
@@ -243,11 +244,11 @@ public class UserExtraResource {
 			userExtraRepository.delete(id);
 			userExtraSearchRepository.delete(id);
 			userService.deleteUser(userExtra.getUser().getLogin());
-			auditActionService.addSuccessEvent(AuditActionType.USER_DELETE, userExtra.getName());
+			auditActionService.addSuccessEvent(AuditActionType.USER_DELETE, userExtra.getName(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.USER_DELETE, userExtra.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.USER_DELETE, userExtra.getName(), e, request);
 			throw e;
 		}
 	}

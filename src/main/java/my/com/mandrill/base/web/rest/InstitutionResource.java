@@ -31,6 +31,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -90,7 +91,7 @@ public class InstitutionResource {
     @PostMapping("/institutions")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_INSTITUTION+DOT+CREATE+"')")
-    public ResponseEntity<Institution> createInstitution(@Valid @RequestBody Institution institution) throws URISyntaxException {
+    public ResponseEntity<Institution> createInstitution(@Valid @RequestBody Institution institution, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to save Institution : {}", institution);
         if (institution.getId() != null) {
             throw new BadRequestAlertException("A new institution cannot already have an ID", ENTITY_NAME, "idexists");
@@ -99,12 +100,12 @@ public class InstitutionResource {
         try {
         	Institution result = institutionRepository.save(institution);
             institutionSearchRepository.save(result);
-            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_CREATE, institution.getName());
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_CREATE, institution.getName(), request);
             return ResponseEntity.created(new URI("/api/institutions/" + result.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
                 .body(result);
         } catch (Exception e) {
-        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_CREATE, institution.getName(), e);
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_CREATE, institution.getName(), e, request);
         	throw e;
         }
         
@@ -122,20 +123,20 @@ public class InstitutionResource {
     @PutMapping("/institutions")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_INSTITUTION+DOT+UPDATE+"')")
-    public ResponseEntity<Institution> updateInstitution(@Valid @RequestBody Institution institution) throws URISyntaxException {
+    public ResponseEntity<Institution> updateInstitution(@Valid @RequestBody Institution institution, HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to update Institution : {}", institution);
         if (institution.getId() == null) {
-            return createInstitution(institution);
+            return createInstitution(institution, request);
         }
         try {
         	Institution result = institutionRepository.save(institution);
             institutionSearchRepository.save(result);
-            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName());
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName(), request);
             return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, institution.getId().toString()))
                 .body(result);
         } catch (Exception e) {
-        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName(), e);
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_UPDATE, institution.getName(), e, request);
         	throw e;
         }
         
@@ -209,15 +210,15 @@ public class InstitutionResource {
     @DeleteMapping("/institutions/{id}")
     @Timed
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_INSTITUTION+DOT+DELETE+"')")
-    public ResponseEntity<Void> deleteInstitution(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteInstitution(@PathVariable Long id, HttpServletRequest request) {
         log.debug("REST request to delete Institution : {}", id);
         try {
         	institutionRepository.delete(id);
             institutionSearchRepository.delete(id);
-            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id));
+            auditActionService.addSuccessEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id), request);
             return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
         } catch (Exception e) {
-        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id), e);
+        	auditActionService.addFailedEvent(AuditActionType.INSTITUTION_DELETE, String.valueOf(id), e, request);
         	throw e;
         }
         

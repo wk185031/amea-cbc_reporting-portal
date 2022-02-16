@@ -112,9 +112,6 @@ public class UserJWTController {
 
 			String encJwt = E2eEncryptionUtil.encryptEcb(env.getProperty("application.e2eKey"), jwt);
 
-			log.debug("------------------jwt = {}", jwt);
-			log.debug("------------------encJwt = {}", encJwt);
-
 			HttpHeaders httpHeaders = new HttpHeaders();
 			httpHeaders.add(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + encJwt);
 
