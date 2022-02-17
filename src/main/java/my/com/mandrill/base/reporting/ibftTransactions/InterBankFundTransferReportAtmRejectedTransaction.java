@@ -573,13 +573,13 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 							}
 						}
 					}
-					if (criteriaMap.get(acqBankMnem) == null) {
+					if (!criteriaMap.containsKey(acqBankMnem)) {
 						Map<String, String> bankNameMap = new TreeMap<>();
 						bankNameMap.put(bankName, bankCode);
 						criteriaMap.put(acqBankMnem, bankNameMap);
 					} else {
 						Map<String, String> bankNameMap = criteriaMap.get(acqBankMnem);
-						if (bankNameMap.get(acqBankMnem) == null) {
+						if (!bankNameMap.containsKey(acqBankMnem)) {
 							Map<String, String> bankCodeMap = new TreeMap<>();
 							bankCodeMap.put(bankName, bankCode);
 						} else {

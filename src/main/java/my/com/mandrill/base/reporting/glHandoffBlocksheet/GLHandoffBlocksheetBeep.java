@@ -559,7 +559,6 @@ public class GLHandoffBlocksheetBeep extends TxtReportProcessor {
 
 		try {
 			ps = rgm.getConnection().prepareStatement(query);
-			logger.debug("####################################isClosed: {}", rgm.getConnection().isClosed());
 			rs = ps.executeQuery();
 
 			if (!rs.isBeforeFirst()) {

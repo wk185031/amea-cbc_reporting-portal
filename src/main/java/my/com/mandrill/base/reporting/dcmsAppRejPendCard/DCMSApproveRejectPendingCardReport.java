@@ -440,6 +440,10 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	}
 
 	private void populateClientName(HashMap<String, ReportGenerationFields> lineFieldsMap) {
+		if (!lineFieldsMap.containsKey("FUNCTION_NAME")) {
+			return;
+		}
+				
 		String functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
 		if ("FETCH CIF".equals(functionName)) {
 			String encClientName = lineFieldsMap.get("CLIENT_NAME").getValue();
