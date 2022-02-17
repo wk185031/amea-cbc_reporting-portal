@@ -33,7 +33,7 @@ public interface JobHistoryRepository extends JpaRepository<JobHistory, Long> {
 	public Page<JobHistory> findLatestReportGenerated(Pageable pageable, @Param("jobName") String jobName,
 			@Param("insId") String insId);
 
-	@Query("select jobHistory from JobHistory jobHistory join jobHistory.job job where job.name = :jobName and jobHistory.status = 'COMPLETED' "
+	@Query("select jobHistory from JobHistory jobHistory join jobHistory.job job where job.name = :jobName and jobHistory.status IN ('COMPLETED', 'PARTIAL FAILED') "
 			+ "and JSON_VALUE(jobHistory.details, '$.institutionId') = :insId and (JSON_VALUE(jobHistory.details, '$.reportCategoryId') = 0 or JSON_VALUE(jobHistory.details, '$.reportCategory') = 'ATM Transaction Lists (Branch Reports)')")
 	public Page<JobHistory> findLatestReportGeneratedForBranch(Pageable pageable, @Param("jobName") String jobName,
 			@Param("insId") String insId);
@@ -45,7 +45,7 @@ public interface JobHistoryRepository extends JpaRepository<JobHistory, Long> {
 			@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("insId") String insId);
 
 	@Query("select jobHistory from JobHistory jobHistory join jobHistory.job job where job.name = :jobName and "
-			+ "jobHistory.createdDate >= TO_DATE(:startDate, 'YYYYMMDD HH24:MI:SS') and jobHistory.createdDate < TO_DATE(:endDate,'YYYYMMDD HH24:MI:SS') and jobHistory.status = 'COMPLETED' "
+			+ "jobHistory.createdDate >= TO_DATE(:startDate, 'YYYYMMDD HH24:MI:SS') and jobHistory.createdDate < TO_DATE(:endDate,'YYYYMMDD HH24:MI:SS') and jobHistory.status IN ('COMPLETED', 'PARTIAL FAILED') "
 			+ "and JSON_VALUE(jobHistory.details, '$.institutionId') = :insId and (JSON_VALUE(jobHistory.details, '$.reportCategoryId') = 0 or JSON_VALUE(jobHistory.details, '$.reportCategory') = 'ATM Transaction Lists (Branch Reports)')")
 	public Page<JobHistory> findReportGeneratedByDateForBranch(Pageable pageable, @Param("jobName") String jobName,
 			@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("insId") String insId);
