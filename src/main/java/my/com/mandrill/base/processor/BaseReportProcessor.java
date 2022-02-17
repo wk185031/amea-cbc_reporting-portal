@@ -59,8 +59,14 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 	public void process(ReportGenerationMgr rgm) throws ReportGenerationException {
 		FileOutputStream out = null;
 
-        File outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
-            rgm.getTxnStartDate(), rgm.getTxnEndDate());
+		File outputFile = null;
+		if (rgm.isSystemReport()) {
+			outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+		            null, null);
+		} else {
+			outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+		            null, null);
+		}
 
 		Connection conn = null;
 		ResultSet rs = null;

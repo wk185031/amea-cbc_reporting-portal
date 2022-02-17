@@ -391,4 +391,8 @@ public final class ReportConstants {
 	public static final String DEACTIVATE_DORMANT = "Dormant";
 	public static final String DEACTIVATE_LOCKED = "Locked";
 	public static final String DEACTIVATE_PASSWORD_EXPIRED = "Password Expired";
+	
+	//Institution
+	public static final String INSTITUTION_CBC  = "CBC";
+	public static final String INSTITUTION_CBS  = "CBS";
 }
