@@ -136,8 +136,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					}
 
 					if (!noRecordFound) {
-						String terminal = groupingField.get("TERMINAL").substring(0, 4);
-						logger.debug("Write summary for last terminal:{}", terminal);
+						//String terminal = groupingField.get("TERMINAL").substring(0, 4);
+						//logger.debug("Write summary for last terminal:{}", terminal);
 						writeTrailerSummary(rgm, masterDoc, null, groupingField, b.getAbr_code(), b.getAbr_name(),
 								masterStream, null);
 					}
