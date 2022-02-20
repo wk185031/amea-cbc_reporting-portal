@@ -16,4 +16,6 @@ import my.com.mandrill.base.domain.ReportCategory;
 public interface ReportCategoryRepository extends JpaRepository<ReportCategory, Long> {
 	@Query("select reportCategory from ReportCategory reportCategory where reportCategory.branchFlag = 'branch'")
     List<ReportCategory> findAllReportCategoryWithBranch(Sort sort);
+	
+	ReportCategory findOneByName(String name);
 }

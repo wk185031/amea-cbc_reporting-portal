@@ -61,8 +61,9 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 
 		File outputFile = null;
 		if (rgm.isSystemReport()) {
-			outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
-		            null, null);
+			outputFile = rgm.getFileName().equalsIgnoreCase(ReportConstants.SYSTEM_USER_ACTIVITY_REPORT) ? createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+					rgm.getTxnStartDate(), rgm.getReportTxnEndDate()) : createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
+							null, null);
 		} else {
 			outputFile = createEmptyReportFile(rgm.getFileLocation(), rgm.getFileNamePrefix(),
 		            null, null);
@@ -86,6 +87,9 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 
 			rgm.setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
 			rgm.setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
+			
+			//replace parameter {Txn_Date}
+			rgm.setBodyQuery(CriteriaParamsUtil.replaceTxnDate(rgm.getBodyQuery(), rgm));
 
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 

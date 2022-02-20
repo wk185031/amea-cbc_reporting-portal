@@ -83,7 +83,7 @@ public class ReportService {
 		transactionTemplate = new TransactionTemplate(transactionManager);
 	}
 
-	public Path generateSystemReport(long reportId, LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
+	public ReportGenerationMgr generateSystemReport(long reportId, LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
 
 		if (txnStartDate == null) {
 			txnStartDate = LocalDateTime.now();
@@ -95,13 +95,15 @@ public class ReportService {
 
 		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ "0";
+		
+		log.debug("baseDirectory : " + baseDirectory);
 
 		ReportDefinition def = reportDefinitionRepository.findOne(reportId);
 		ReportGenerationMgr mgr = ReportGenerationMgr.create(0, ReportConstants.INSTITUTION_CBC, true, txnStartDate,
 				env, encryptionService, def);
 		mgr.setFileBaseDirectory(baseDirectory);
 		mgr.setFileLocation(baseDirectory);
-		mgr.setReportTxnEndDate(txnEndDate.plusMinutes(1L));
+		mgr.setReportTxnEndDate(txnEndDate);
 		mgr.setFileNamePrefix(def.getFileNamePrefix());
 		mgr.setTxnStartDate(txnStartDate);
 		mgr.setTxnEndDate(txnEndDate != null ? txnEndDate.plusMinutes(1L) : txnEndDate);
@@ -112,8 +114,13 @@ public class ReportService {
 		} catch (ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+		
+		log.debug("mgr.getFileLocation() : " + mgr.getFileLocation());
+		log.debug("mgr.getFileName() : " + mgr.getFileName());
+		log.debug("Paths.get(mgr.getFileLocation(), mgr.getFileName()) : " + Paths.get(mgr.getFileLocation(), mgr.getFileName()));
 
-		return Paths.get(mgr.getFileLocation(), mgr.getFileName());
+		//return Paths.get(mgr.getFileLocation(), mgr.getFileNamePrefix());
+		return mgr;
 	}
 
 	public void generateReport(long jobHistoryId, boolean manualGenerate, JobHistoryDetails jobHistoryDetails,

@@ -1,7 +1,10 @@
 package my.com.mandrill.base.service.util;
 
+import java.time.format.DateTimeFormatter;
+
 import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.SpringContext;
 import my.com.mandrill.base.repository.SystemConfigurationRepository;
 
@@ -61,4 +64,20 @@ public class CriteriaParamsUtil {
 		}
 		return replaceString;
 	}	
+	
+	public static String replaceTxnDate(String query, ReportGenerationMgr rgm) {
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String txnEnd = rgm.getTxnEndDate().format(formatter);
+		
+		String criteria = "EVENT_DATE >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+				+ "') AND EVENT_DATE < TO_DATE('" + txnEnd + "','"
+				+ ReportConstants.FORMAT_TXN_DATE + "')";
+		
+		query = query.replace('{'+ReportConstants.PARAM_TXN_DATE+'}', criteria);
+		
+		return query;
+		
+	}
 }

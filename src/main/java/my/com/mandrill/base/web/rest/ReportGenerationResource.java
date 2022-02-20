@@ -53,15 +53,17 @@ import my.com.mandrill.base.domain.ReportDefinition;
 import my.com.mandrill.base.domain.User;
 import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.repository.JobHistoryRepository;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
+import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.JobHistoryService;
+import my.com.mandrill.base.service.ReportService;
 import my.com.mandrill.base.service.UserService;
 import my.com.mandrill.base.service.util.FileUtils;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
-import my.com.mandrill.base.repository.ReportDefinitionRepository;
 
 /**
  * REST controller for managing ReportGeneration.
@@ -78,6 +80,7 @@ public class ReportGenerationResource {
 	private final UserExtraRepository userExtraRepository;
 	private final AuditActionService auditActionService;
 	private final JobHistoryService jobHistoryService;
+	private final ReportService reportService;
 	private final Environment env;
 	private static String userInsId = "";
 
@@ -86,7 +89,8 @@ public class ReportGenerationResource {
 	public ReportGenerationResource(ReportCategoryRepository reportCategoryRepository,
 			JobHistoryRepository jobHistoryRepository, Environment env, UserService userService,
 			UserExtraRepository userExtraRepository, AuditActionService auditActionService,
-			JobHistoryService jobHistoryService, ReportDefinitionRepository reportDefinitionRepository) {
+			JobHistoryService jobHistoryService, ReportDefinitionRepository reportDefinitionRepository,
+			ReportService reportService) {
 		this.reportCategoryRepository = reportCategoryRepository;
 		this.reportDefinitionRepository = reportDefinitionRepository;
 		this.jobHistoryRepository = jobHistoryRepository;
@@ -94,6 +98,7 @@ public class ReportGenerationResource {
 		this.userExtraRepository = userExtraRepository;
 		this.auditActionService = auditActionService;
 		this.jobHistoryService = jobHistoryService;
+		this.reportService = reportService;
 		this.env = env;
 	}
 
@@ -828,21 +833,53 @@ public class ReportGenerationResource {
 	
 	@GetMapping("/export-report/{reportCategoryName}/{reportName}")
 	@Timed
-	public ResponseEntity<Void> exportReport(@PathVariable String reportCategoryName, @PathVariable String reportName) throws IOException {
-		logger.debug("Hi export report");
-		
-		logger.debug("reportCategory : " + reportCategoryName);
-		logger.debug("reportName : " + reportName);
-		
-		logger.debug("reportCategoryRepository.findOneByName(reportCategoryName)" + reportCategoryRepository.findOneByName(reportCategoryName));
+	public ResponseEntity<Resource> exportReport(@PathVariable String reportCategoryName, @PathVariable String reportName, 
+			@RequestParam String startDate,@RequestParam String endDate) throws IOException {
 		
 		ReportCategory reportCategory = reportCategoryRepository.findOneByName(reportCategoryName);
 		
-		logger.debug("reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName)" + reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName));
+		Resource resource = null;
 		
-		ReportDefinition reportDefinition = reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName);
+		try {
+			
+			ReportDefinition reportDefinition = reportDefinitionRepository.findOneByCategoryIdAndName(reportCategory.getId(), reportName);
+			
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+			LocalDateTime inputStartDate = (startDate!= null && !startDate.isEmpty()) ? LocalDateTime.parse(startDate, formatter) : null;
+			LocalDateTime inputEndDate = (endDate!= null && !endDate.isEmpty()) ? LocalDateTime.parse(endDate, formatter) : null;
+			
+			ReportGenerationMgr mgr = reportService.generateSystemReport(reportDefinition.getId(), inputStartDate, inputEndDate);
+			
+			String outputFileName = generateSystemReportFileName(mgr.getFileNamePrefix(), inputStartDate, inputEndDate, ReportConstants.CSV_FORMAT);
+			
+			Path reportPath = Paths.get(mgr.getFileLocation(), outputFileName);
+			
+			resource = new FileSystemResource(new File(reportPath.toString()));
+			
+			logger.debug("REST finish request to export report");
+			return ResponseEntity.ok()
+					.header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(resource.getFile().toPath()))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.body(resource);
+			
+		}catch (Exception e) {
+			logger.error("Failed to export file for reportName{}", reportName, e);
+			throw new RuntimeException(e);
+		}
 		
-		return ResponseEntity.ok().headers(HeaderUtil.createAlert("baseApp.report.export", reportCategory + "," + reportName))
-				.build();
+	}
+	
+	private String generateSystemReportFileName(String fileNamePrefix, LocalDateTime startDateTime, LocalDateTime endDateTime, String reportExtension) {
+		
+		if (startDateTime == null && endDateTime == null) {
+        	return fileNamePrefix + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(ReportConstants.DATE_FORMAT_MMDDYYYY)) + reportExtension; 
+        } else {
+        	String startDateStr = startDateTime.format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_05)).replace("1200AM", "0000AM");
+            String endDateStr = endDateTime.format(DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_05));
+            
+            return fileNamePrefix + " " + startDateStr + "-" + endDateStr + reportExtension;
+        }
+
 	}
 }

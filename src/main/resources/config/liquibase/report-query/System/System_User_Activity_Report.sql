@@ -1,5 +1,6 @@
 -- Tracking					Date			Name	Description
 -- CBCAXUPISSLOG-06			16-FEB-2022		LY		Initial Release
+-- CBCAXUPISSLOG-1061		18-FEB-2022		WY		Add txn date 
 
 DECLARE
 
@@ -19,7 +20,8 @@ BEGIN
 		from JHI_USER ju1
 		join JHI_PERSISTENT_AUDIT_EVENT jpae1 on ju1.LOGIN = jpae1.PRINCIPAL
 		join JHI_PERSISTENT_AUDIT_EVT_DATA jpaed1 on jpae1.EVENT_ID = jpaed1.EVENT_ID
-		where jpaed1.NAME = ''details''');
+		where jpaed1.NAME = ''details''
+		AND {Txn_Date}');
 		
 	  UPDATE REPORT_DEFINITION SET 
 	    RED_BODY_FIELDS = i_BODY_FIELDS,

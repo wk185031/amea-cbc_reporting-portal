@@ -43,4 +43,6 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     long countByInstitutionIdAndFrequencyContains(Long instId, String frequency);
 
     long countByInstitutionIdAndCategoryIdAndFrequencyContains(Long instId, Long categoryId, String frequency);
+    
+    ReportDefinition findOneByCategoryIdAndName(Long categoryId, String reportName);
 }
