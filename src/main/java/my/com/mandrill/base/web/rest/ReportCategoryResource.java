@@ -136,10 +136,13 @@ public class ReportCategoryResource {
 		if (reportCategory.getId() == null) {
 			return createReportCategory(reportCategory, request);
 		}
+		ReportCategory old = org.apache.commons.lang3.SerializationUtils
+				.clone(reportCategoryRepository.findOne(reportCategory.getId()));
+		
 		try {
 			ReportCategory result = reportCategoryRepository.save(reportCategory);
 			reportCategorySearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_UPDATE, old, result, request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportCategory.getId().toString()))
 					.body(result);
@@ -238,13 +241,14 @@ public class ReportCategoryResource {
 	public ResponseEntity<Void> deleteReportCategory(@PathVariable Long id, HttpServletRequest request) {
 		log.debug("User: {}, REST request to delete ReportCategory: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				id);
+		ReportCategory old = reportCategoryRepository.findOne(id);
 		try {
 			reportCategoryRepository.delete(id);
 			reportCategorySearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_DELETE, String.valueOf(id), request);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_DELETE, old.getName(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_DELETE, id.toString(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_DELETE, old != null ? old.getName() : id.toString(), e, request);
 			throw e;
 		}
 		

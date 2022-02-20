@@ -1,7 +1,48 @@
 package my.com.mandrill.base.web.rest;
 
+import static my.com.mandrill.base.service.AppPermissionService.COLON;
+import static my.com.mandrill.base.service.AppPermissionService.CREATE;
+import static my.com.mandrill.base.service.AppPermissionService.DELETE;
+import static my.com.mandrill.base.service.AppPermissionService.DOT;
+import static my.com.mandrill.base.service.AppPermissionService.OPER;
+import static my.com.mandrill.base.service.AppPermissionService.READ;
+import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_USER;
+import static my.com.mandrill.base.service.AppPermissionService.UPDATE;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.codahale.metrics.annotation.Timed;
 
+import io.github.jhipster.web.util.ResponseUtil;
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.Authority;
@@ -19,32 +60,6 @@ import my.com.mandrill.base.service.dto.UserDTO;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.base.web.rest.util.PaginationUtil;
-import io.github.jhipster.web.util.ResponseUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static my.com.mandrill.base.service.AppPermissionService.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * REST controller for managing UserExtra.
@@ -166,6 +181,10 @@ public class UserExtraResource {
         	UserExtra usrExtra = userExtraRepository.findOne(userExtra.getId());
         	userExtra.setCreatedDate(usrExtra.getCreatedDate());
         }
+        
+        UserExtra old = org.apache.commons.lang3.SerializationUtils
+				.clone(userExtraRepository.findOne(userExtra.getId()));
+        
 		try {
 
 			Authority userAuthority = authorityRepository.findOne(AuthoritiesConstants.USER);
@@ -176,7 +195,7 @@ public class UserExtraResource {
 			userService.updateUser(new UserDTO(userExtra.getUser()));
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, userExtra.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, old, result, request);
 
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, userExtra.getId().toString()))
@@ -248,7 +267,7 @@ public class UserExtraResource {
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.USER_DELETE, userExtra.getName(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.USER_DELETE, userExtra != null ? userExtra.getName() : id.toString(), e, request);
 			throw e;
 		}
 	}

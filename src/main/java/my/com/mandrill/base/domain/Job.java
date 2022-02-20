@@ -69,8 +69,8 @@ public class Job implements Serializable {
     @Column(name = "created_by", length = 100, nullable = false)
     private String createdBy;
     
-    @Size(max = 500)
-    @Column(name = "table_sync", length = 500)
+    @Size(max = 1000)
+    @Column(name = "table_sync", length = 1000)
     private String tableSync;
 
 	public String getTableSync() {

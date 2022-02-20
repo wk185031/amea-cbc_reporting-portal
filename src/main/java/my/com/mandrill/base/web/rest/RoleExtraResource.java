@@ -1,17 +1,23 @@
 package my.com.mandrill.base.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+import static my.com.mandrill.base.service.AppPermissionService.COLON;
+import static my.com.mandrill.base.service.AppPermissionService.CREATE;
+import static my.com.mandrill.base.service.AppPermissionService.DELETE;
+import static my.com.mandrill.base.service.AppPermissionService.DOT;
+import static my.com.mandrill.base.service.AppPermissionService.OPER;
+import static my.com.mandrill.base.service.AppPermissionService.READ;
+import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_USER_ROLE;
+import static my.com.mandrill.base.service.AppPermissionService.UPDATE;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
-import my.com.mandrill.base.config.audit.AuditActionService;
-import my.com.mandrill.base.config.audit.AuditActionType;
-import my.com.mandrill.base.domain.RoleExtra;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Optional;
 
-import my.com.mandrill.base.repository.RoleExtraRepository;
-import my.com.mandrill.base.repository.search.RoleExtraSearchRepository;
-import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
-import my.com.mandrill.base.web.rest.util.HeaderUtil;
-import my.com.mandrill.base.web.rest.util.PaginationUtil;
-import io.github.jhipster.web.util.ResponseUtil;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -20,20 +26,28 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.codahale.metrics.annotation.Timed;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static my.com.mandrill.base.service.AppPermissionService.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import io.github.jhipster.web.util.ResponseUtil;
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
+import my.com.mandrill.base.domain.RoleExtra;
+import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.repository.RoleExtraRepository;
+import my.com.mandrill.base.repository.search.RoleExtraSearchRepository;
+import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
+import my.com.mandrill.base.web.rest.util.HeaderUtil;
+import my.com.mandrill.base.web.rest.util.PaginationUtil;
 
 /**
  * REST controller for managing RoleExtra.
@@ -74,10 +88,11 @@ public class RoleExtraResource {
         if (roleExtra.getId() != null) {
             throw new BadRequestAlertException("A new roleExtra cannot already have an ID", ENTITY_NAME, "idexists");
         }
+
 		try {
 			RoleExtra result = roleExtraRepository.save(roleExtra);
 			roleExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_CREATE, roleExtra.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_CREATE, result.getName(), request);
 			return ResponseEntity.created(new URI("/api/role-extras/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 		} catch (Exception e) {
@@ -104,10 +119,13 @@ public class RoleExtraResource {
             return createRoleExtra(roleExtra, request);
         }
         
+        RoleExtra old = org.apache.commons.lang3.SerializationUtils
+				.clone(roleExtraRepository.findOne(roleExtra.getId()));
+        
 		try {
 			RoleExtra result = roleExtraRepository.save(roleExtra);
 			roleExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_UPDATE, roleExtra.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_UPDATE, old, result, request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, roleExtra.getId().toString()))
 					.body(result);
@@ -169,14 +187,16 @@ public class RoleExtraResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER_ROLE+DOT+DELETE+"')")
     public ResponseEntity<Void> deleteRoleExtra(@PathVariable Long id, HttpServletRequest request) {
         log.debug("REST request to delete RoleExtra : {}", id);
+        
+        RoleExtra old = roleExtraRepository.findOne(id);
 		try {
 			roleExtraRepository.delete(id);
 			roleExtraSearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.ROLE_DELETE, id.toString(), request);
+			auditActionService.addSuccessEvent(AuditActionType.ROLE_DELETE, old.getName(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.ROLE_DELETE, id.toString(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.ROLE_DELETE, old != null ? old.getName() : id.toString(), e, request);
 			throw e;
 		}
     }

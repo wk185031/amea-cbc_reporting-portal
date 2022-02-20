@@ -26,7 +26,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.SerializationUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,7 +88,8 @@ public class SystemConfigurationResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_SYSTEM_CONFIGURATION + DOT + CREATE
 			+ "')")
 	public ResponseEntity<SystemConfiguration> createSystemConfiguration(
-			@Valid @RequestBody SystemConfiguration systemConfiguration, HttpServletRequest request) throws URISyntaxException {
+			@Valid @RequestBody SystemConfiguration systemConfiguration, HttpServletRequest request)
+			throws URISyntaxException {
 		log.debug("REST request to save SystemConfiguration : {}", systemConfiguration);
 		if (systemConfiguration.getId() != null) {
 			throw new BadRequestAlertException("A new systemConfiguration cannot already have an ID", ENTITY_NAME,
@@ -98,11 +98,13 @@ public class SystemConfigurationResource {
 		try {
 			SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
 			systemConfigurationSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.CONFIGURATION_CREATE, systemConfiguration.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.CONFIGURATION_CREATE, systemConfiguration.getName(),
+					request);
 			return ResponseEntity.created(new URI("/api/system-configurations/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_CREATE, systemConfiguration.getName(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_CREATE, systemConfiguration.getName(), e,
+					request);
 			throw e;
 		}
 	}
@@ -122,12 +124,14 @@ public class SystemConfigurationResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_SYSTEM_CONFIGURATION + DOT + UPDATE
 			+ "')")
 	public ResponseEntity<SystemConfiguration> updateSystemConfiguration(
-			@Valid @RequestBody SystemConfiguration systemConfiguration, HttpServletRequest request) throws URISyntaxException {
+			@Valid @RequestBody SystemConfiguration systemConfiguration, HttpServletRequest request)
+			throws URISyntaxException {
 		log.debug("REST request to update SystemConfiguration : {}", systemConfiguration);
 		if (systemConfiguration.getId() == null) {
 			return createSystemConfiguration(systemConfiguration, request);
 		}
-		SystemConfiguration oldConfig = org.apache.commons.lang3.SerializationUtils.clone(systemConfigurationRepository.findOne(systemConfiguration.getId()));
+		SystemConfiguration oldConfig = org.apache.commons.lang3.SerializationUtils
+				.clone(systemConfigurationRepository.findOne(systemConfiguration.getId()));
 		try {
 			SystemConfiguration result = systemConfigurationRepository.save(systemConfiguration);
 			systemConfigurationSearchRepository.save(result);
@@ -136,7 +140,8 @@ public class SystemConfigurationResource {
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, systemConfiguration.getId().toString()))
 					.body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_UPDATE, systemConfiguration.getName(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_UPDATE, systemConfiguration.getName(), e,
+					request);
 			throw e;
 		}
 	}
@@ -196,7 +201,8 @@ public class SystemConfigurationResource {
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString()))
 					.build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_DELETE, config.getName(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.CONFIGURATION_DELETE,
+					config != null ? config.getName() : id.toString(), e, request);
 			throw e;
 		}
 	}

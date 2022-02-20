@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -106,7 +107,8 @@ public class ReportGenerationResource {
 	@PreAuthorize("@AppPermissionService.hasPermission('" + MENU + COLON + RESOURCE_GENERATE_REPORT + "')")
 	public ResponseEntity<ReportDefinition> generateReport(@PathVariable Long institutionId,
 			@PathVariable Long reportCategoryId, @PathVariable Long reportId, @RequestParam String startDateTime,
-			@RequestParam String endDateTime) throws ParseException, JsonProcessingException {
+			@RequestParam String endDateTime, HttpServletRequest request)
+			throws ParseException, JsonProcessingException {
 		logger.debug(
 				"User: {}, Rest to generate Report Institution ID: {}, Category ID: {}, Report ID: {}, StartDateTime: {}, EndDateTime: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId,
@@ -121,7 +123,9 @@ public class ReportGenerationResource {
 				reportCategoryId != null ? reportCategoryId : 0L, null, reportId != null ? reportId : 0L, null, null,
 				inputStartDateTime, inputEndDateTime);
 
-		jobHistoryService.queueReportJob(jobHistoryDetails);
+		List<JobHistory> jobs = jobHistoryService.queueReportJob(jobHistoryDetails);
+		auditActionService.addSuccessEvent(AuditActionType.REPORT_GENERATE,
+				jobs.stream().map(n -> n.getId().toString()).collect(Collectors.joining(",")), request);
 
 		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(new ReportDefinition()));
 	}
@@ -318,7 +322,7 @@ public class ReportGenerationResource {
 
 			if (branchCode != null && !branchCode.trim().isEmpty()) {
 				reportPathStr = Paths.get(reportPathStr, branchCode).toString();
-			} 
+			}
 
 			File reportPath = new File(reportPathStr);
 			logger.debug("downloadReport: [username={}, branchCode={}, jobId={}, reportPath={}]", username, branchCode,

@@ -8,7 +8,6 @@ import static my.com.mandrill.base.service.AppPermissionService.OPER;
 import static my.com.mandrill.base.service.AppPermissionService.READ;
 import static my.com.mandrill.base.service.AppPermissionService.RESOURCE_REPORT_DEFINITION;
 import static my.com.mandrill.base.service.AppPermissionService.UPDATE;
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,7 +39,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codahale.metrics.annotation.Timed;
@@ -58,7 +56,6 @@ import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.repository.ReportCategoryRepository;
 import my.com.mandrill.base.repository.ReportDefinitionRepository;
 import my.com.mandrill.base.repository.UserExtraRepository;
-import my.com.mandrill.base.repository.search.ReportDefinitionSearchRepository;
 import my.com.mandrill.base.security.SecurityUtils;
 import my.com.mandrill.base.service.AppService;
 import my.com.mandrill.base.service.UserService;
@@ -171,10 +168,13 @@ public class ReportDefinitionResource {
 			return createReportDefinition(reportDefinition, request);
 		}
 		
+		ReportDefinition old = org.apache.commons.lang3.SerializationUtils
+				.clone(reportDefinitionRepository.findOne(reportDefinition.getId()));
+		
 		try {
 			ReportDefinition result = reportDefinitionRepository.save(reportDefinition);
 			// reportDefinitionSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_UPDATE, reportDefinition.getName(), request);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_UPDATE, old, result, request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportDefinition.getId().toString()))
 					.body(result);
@@ -288,13 +288,15 @@ public class ReportDefinitionResource {
 	public ResponseEntity<Void> deleteReportdDefinition(@PathVariable Long id, HttpServletRequest request) {
 		log.debug("User: {}, REST request to delete ReportDefinition: {}",
 				SecurityUtils.getCurrentUserLogin().orElse(""), id);
+		
+		ReportDefinition old = reportDefinitionRepository.findOne(id);
 		try {
 			reportDefinitionRepository.delete(id);
 			//reportDefinitionSearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), request);
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_DEFINITION_DELETE, old.getName(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_DELETE, id.toString(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_DEFINITION_DELETE, old != null ? old.getName() : id.toString(), e, request);
 			throw e;
 		}	
 	}
