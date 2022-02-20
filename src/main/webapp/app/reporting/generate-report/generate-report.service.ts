@@ -21,6 +21,7 @@ export class GenerateReportService {
     private resourceGetGeneratedReport = SERVER_API_URL + 'api/report-get-generated';
     private resourceDownloadReport = SERVER_API_URL + 'api/download-report';
     private resourceDeleteReport = SERVER_API_URL + 'api/delete-report';
+    private resourceExportReport = SERVER_API_URL + 'api/export-report';
     private jobDetail = '';
     public reportDefinition: ReportDefinition[];
 
@@ -164,4 +165,11 @@ export class GenerateReportService {
     getJobDetail(){
     	return this.jobDetail;
     }
+    
+    exportReport(reportCategory: string, reportName:string, txnStartDate: string, txnEndDate: string) {
+    	console.log('Export method in GenerateReportService');
+    	return this.http.get(`${this.resourceExportReport}/${reportCategory}/${reportName}?startDate=${txnStartDate}&endDate=${txnEndDate}`, {
+    	 responseType: 'blob',
+    	 observe: 'response' });
+  	}
 }
