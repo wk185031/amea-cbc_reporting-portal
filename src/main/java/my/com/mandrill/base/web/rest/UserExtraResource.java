@@ -186,6 +186,7 @@ public class UserExtraResource {
 
         UserExtra oldClone = org.apache.commons.lang3.SerializationUtils
 				.clone(userExtraRepository.findOne(userExtra.getId()));
+        User user = userRepository.findOne(userExtra.getUser().getId());
         
 		try {
 
@@ -197,6 +198,9 @@ public class UserExtraResource {
 			Predicate<Branch> isAllBranchFilter = item -> item.getAbr_code() == null || item.getAbr_code().isEmpty();	
 			userExtra.getBranches().removeIf(isAllBranchFilter);
 						
+			user.setEmail(userExtra.getUser().getEmail());
+			user.setActivated(userExtra.getUser().getActivated());
+			userRepository.save(user);
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
 			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, oldClone, result, request);

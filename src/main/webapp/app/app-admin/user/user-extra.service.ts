@@ -41,6 +41,7 @@ export class UserExtraService {
 
     update(userExtra: UserExtra): Observable<EntityResponseType> {
         const copy = this.convert(userExtra);
+
         return this.http.put<UserExtra>(this.resourceUrl, copy, { observe: 'response' })
             .map((res: EntityResponseType) => this.convertResponse(res));
     }
@@ -126,6 +127,11 @@ export class UserExtraService {
      */
     private convert(userExtra: UserExtra): UserExtra {
         const copy: UserExtra = Object.assign({}, userExtra);
+        if (userExtra.user.activated) {
+        	copy.user.activated = true;
+        } else {
+        	copy.user.activated = false;
+        }
 
         copy.createdDate = this.dateUtils.toDate(userExtra.createdDate);
 
