@@ -159,7 +159,7 @@ public class AuditActionService {
 			String afterRole = afterUser.getRoles().stream().sorted().map(RoleExtra::getName)
 					.collect(Collectors.joining(","));
 			if (!beforeRole.contentEquals(afterRole)) {
-				ChangedItemDTO dto = new ChangedItemDTO("role", beforeBranch, afterBranch);
+				ChangedItemDTO dto = new ChangedItemDTO("role", beforeRole, afterRole);
 				changes.add(dto);
 			}
 
