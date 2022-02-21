@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -60,6 +61,7 @@ import my.com.mandrill.base.service.dto.UserDTO;
 import my.com.mandrill.base.web.rest.errors.BadRequestAlertException;
 import my.com.mandrill.base.web.rest.util.HeaderUtil;
 import my.com.mandrill.base.web.rest.util.PaginationUtil;
+
 
 /**
  * REST controller for managing UserExtra.
@@ -191,6 +193,10 @@ public class UserExtraResource {
 			Set<Authority> authoritySet = new HashSet<>();
 			authoritySet.add(userAuthority);
 			userExtra.getUser().setAuthorities(authoritySet);
+			
+			Predicate<Branch> isAllBranchFilter = item -> item.getAbr_code() == null || item.getAbr_code().isEmpty();
+			
+			userExtra.getBranches().removeIf(isAllBranchFilter);
 
 			userService.updateUser(new UserDTO(userExtra.getUser()));
 			UserExtra result = userExtraRepository.save(userExtra);

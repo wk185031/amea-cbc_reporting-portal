@@ -317,8 +317,8 @@ public class GLHandoffBlocksheetInterbankFundTransfer extends TxtReportProcessor
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
 					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
-			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
-					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
+			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_STAN \"CODE\",", "")
+					.replace("TXN.TRL_STAN,", "").replace("TXN.TRL_STAN ASC,", "")
 					.replace(
 							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = 'BANCNET SERVICE CHARGE' THEN 25.00 ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
 							"")

@@ -74,7 +74,11 @@ public class GLHandoffBlocksheetIssuer extends TxtReportProcessor {
 				contentStream.close();
 				saveFile(rgm, doc);
 			} else {
-				Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
+				
+				List<String> glDesc = filterByGlDescription(rgm);
+				
+				Iterator<String> glDescriptionItr = glDesc.iterator();
+
 				while (glDescriptionItr.hasNext()) {
 					glDescription = glDescriptionItr.next();
 					if (!endGroup && !newGroup) {
@@ -277,6 +281,8 @@ public class GLHandoffBlocksheetIssuer extends TxtReportProcessor {
 					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
 			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "")
 					.replace("TXN.TRL_DEST_STAN,", "").replace("TXN.TRL_DEST_STAN ASC,", "")
+					.replace("TXN.TRL_STAN \"CODE\",", "")
+					.replace("TXN.TRL_STAN,", "").replace("TXN.TRL_STAN ASC,", "")
 					.replace(
 							"CASE WHEN GLE.GLE_DEBIT_DESCRIPTION = 'BANCNET AP ATM WITHDRAWAL' THEN TXN.TRL_AMT_TXN ELSE NVL(TXN.TRL_ISS_CHARGE_AMT,0) + NVL(TXN.TRL_ACQ_CHARGE_AMT,0) END AS \"DEBIT\",",
 							"")

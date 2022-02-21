@@ -560,7 +560,7 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 
 		if (query != null && !query.isEmpty()) {
 			try {
-				conn = rgm.getConnection();
+				conn = rgm.getNewConnection();
 				ps = conn.prepareStatement(query);
 				rs = ps.executeQuery();
 				fieldsMap = rgm.getQueryResultStructure(rs);

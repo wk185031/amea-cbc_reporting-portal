@@ -280,8 +280,8 @@ public class GLHandoffBlocksheetPos extends TxtReportProcessor {
 			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
 					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
 			setCriteriaQuery(
-					getDebitBodyQuery().replace("TXN.TRL_DEST_STAN \"CODE\",", "").replace("TXN.TRL_DEST_STAN,", "")
-							.replace("TXN.TRL_DEST_STAN ASC,", "").replace("TXN.TRL_AMT_TXN \"DEBIT\",", "")
+					getDebitBodyQuery().replace("TXN.TRL_STAN \"CODE\",", "").replace("TXN.TRL_STAN,", "")
+							.replace("TXN.TRL_STAN ASC,", "").replace("TXN.TRL_AMT_TXN \"DEBIT\",", "")
 							.replace("TXN.TRL_ACCOUNT_1_ACN_ID \"FROM ACCOUNT NO\",", "")
 							.replace("TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,", "").replace("TXN.TRL_AMT_TXN,", "")
 							.replace("TXN.TRL_ACCOUNT_1_ACN_ID,", ""));

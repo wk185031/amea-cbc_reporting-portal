@@ -18,6 +18,7 @@ export class ReportStatusComponent implements OnInit {
 	reportStatuses = [];
 	reportCategories = [];
 	totalCount: any;
+	failCount: any;
     
     constructor(
     	private generateReportService: GenerateReportService,
@@ -48,6 +49,8 @@ export class ReportStatusComponent implements OnInit {
 		}
     	 
     	let jsonDetailObject = this.generateReportService.getJobDetail();
+    	
+    	let fail: number = 0;
    		 
    		for (var key of Object.keys(jsonDetailObject)) {
    			var result = jsonDetailObject[key].split('|')
@@ -59,11 +62,16 @@ export class ReportStatusComponent implements OnInit {
 			obj.reportName = key;
 			obj.reportCategory = result[0];
 			obj.reportStatus = result[1];
+			
+			if(result[1] === 'FAILED')
+				fail += 1;
     		
     		this.reportStatuses.push(obj);
 		}
 		
 		this.totalCount = this.reportStatuses.length;
+		
+		this.failCount = fail;
 		
 		this.reportCategories.sort();
 		
