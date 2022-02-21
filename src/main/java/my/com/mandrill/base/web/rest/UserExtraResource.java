@@ -194,11 +194,9 @@ public class UserExtraResource {
 			authoritySet.add(userAuthority);
 			userExtra.getUser().setAuthorities(authoritySet);
 			
-			Predicate<Branch> isAllBranchFilter = item -> item.getAbr_code() == null || item.getAbr_code().isEmpty();
-			
+			Predicate<Branch> isAllBranchFilter = item -> item.getAbr_code() == null || item.getAbr_code().isEmpty();	
 			userExtra.getBranches().removeIf(isAllBranchFilter);
-
-			userService.updateUser(new UserDTO(userExtra.getUser()));
+						
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
 			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, oldClone, result, request);

@@ -36,7 +36,8 @@ export class PasswordResetInitComponent implements OnInit, AfterViewInit {
             this.success = 'OK';
         }, (response) => {
             this.success = null;
-            if (response.status === 400 && response.json().type === EMAIL_NOT_FOUND_TYPE) {
+
+            if (response.status === 400 && response.error.type === EMAIL_NOT_FOUND_TYPE) {
                 this.errorEmailNotExists = 'ERROR';
             } else {
                 this.error = 'ERROR';

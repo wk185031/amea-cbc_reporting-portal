@@ -21,7 +21,8 @@ BEGIN
 		join JHI_PERSISTENT_AUDIT_EVENT jpae1 on ju1.LOGIN = jpae1.PRINCIPAL
 		join JHI_PERSISTENT_AUDIT_EVT_DATA jpaed1 on jpae1.EVENT_ID = jpaed1.EVENT_ID
 		where jpaed1.NAME = ''details''
-		AND {Txn_Date}');
+		AND {Txn_Date}
+		ORDER BY jpae1.EVENT_DATE');
 		
 	  UPDATE REPORT_DEFINITION SET 
 	    RED_BODY_FIELDS = i_BODY_FIELDS,

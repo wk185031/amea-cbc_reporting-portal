@@ -77,6 +77,7 @@ export class UserExtraEditDialogComponent implements OnInit {
         this.userExtra.lastModifiedBy = this.username;
         this.userExtra.user.lastModifiedBy = this.username;
         this.userExtra.user.langKey = this.languages[0];
+        this.userExtra.user.activated = this.activated;
         this.subscribeToSaveResponse(
             this.userExtraService.update(this.userExtra));
     }

@@ -167,7 +167,7 @@ public class ReportCategoryResource {
 	public ResponseEntity<List<ReportCategory>> getAllReportCategories(Pageable pageable) {
 		log.debug("User: {}, REST request to get a page of ReportCategory",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
-		Page<ReportCategory> page = reportCategoryRepository.findAll(new PageRequest(0, 1, new Sort(Sort.Direction.ASC, "name")));
+		Page<ReportCategory> page = reportCategoryRepository.findAll(new PageRequest(0, 100, new Sort(Sort.Direction.ASC, "name")));
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportCategory");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}

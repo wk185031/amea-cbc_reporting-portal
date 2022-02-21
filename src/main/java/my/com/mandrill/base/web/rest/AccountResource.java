@@ -264,6 +264,7 @@ public class AccountResource {
 				
 				user.setRetryCount(0);
 				user.setActivated(true);
+				user.setLastStatus(user.getDeactivateReason());
 				user.setDeactivateDate(null);
 				user.setDeactivateReason(null);
 				userRepository.save(user);
@@ -337,9 +338,10 @@ public class AccountResource {
 
 			userExtraRepository.save(userExtra);
 			
-			if(userEntity!=null) {
+			if (userEntity != null) {
 				userEntity.setRetryCount(0);
 				userEntity.setActivated(true);
+				userEntity.setLastStatus(userEntity.getDeactivateReason());
 				userEntity.setDeactivateDate(null);
 				userEntity.setDeactivateReason(null);
 				userRepository.save(userEntity);

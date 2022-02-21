@@ -26,7 +26,23 @@
             columnName="VALUE"
             newDataType="varchar2(2500)"
             tableName="JHI_PERSISTENT_AUDIT_EVT_DATA"/>
-                 
+       	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/User_Profile_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/List_of_Group_Roles.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/System_User_Activity_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+        <sql>update JHI_PERSISTENT_AUDIT_EVENT set EVENT_TYPE='LOGIN' where EVENT_TYPE='AUTHENTICATION_SUCCESS';</sql> 
+        <sql>update JHI_PERSISTENT_AUDIT_EVENT set EVENT_TYPE='LOGIN' where EVENT_TYPE='AUTHENTICATION_FAILURE';</sql>      
     </changeSet>
     
 </databaseChangeLog>

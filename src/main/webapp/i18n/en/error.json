@@ -9,7 +9,8 @@
         },
         "report": {
         	"noJobInQueue": "To generate a monthly report, please select last day of the month.",
-        	"downloadFailed": "Failed to download report"
+        	"downloadFailed": "Failed to download report",
+        	"exportFailed": "Failed to download report"
         },
         "concurrencyFailure": "Another user modified this data at the same time as you. Your changes were rejected.",
         "validation": "Validation error on the server."

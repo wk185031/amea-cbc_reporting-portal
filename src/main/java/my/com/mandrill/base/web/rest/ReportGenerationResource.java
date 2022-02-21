@@ -838,7 +838,7 @@ public class ReportGenerationResource {
 	@GetMapping("/export-report/{reportCategoryName}/{reportName}")
 	@Timed
 	public ResponseEntity<Resource> exportReport(@PathVariable String reportCategoryName, @PathVariable String reportName, 
-			@RequestParam String startDate,@RequestParam String endDate) throws IOException {
+			@RequestParam String startDate,@RequestParam String endDate, HttpServletRequest request) throws IOException {
 		
 		ReportCategory reportCategory = reportCategoryRepository.findOneByName(reportCategoryName);
 		
@@ -861,14 +861,16 @@ public class ReportGenerationResource {
 			
 			resource = new FileSystemResource(new File(reportPath.toString()));
 			
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_GENERATE, reportName, request);
 			logger.debug("REST finish request to export report");
 			return ResponseEntity.ok()
 					.header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(resource.getFile().toPath()))
 					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
 					.body(resource);
 			
-		}catch (Exception e) {
-			logger.error("Failed to export file for reportName{}", reportName, e);
+		} catch (Exception e) {
+			logger.error("Failed to export file for reportName: {}", reportName, e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_GENERATE, reportName, e, request);
 			throw new RuntimeException(e);
 		}
 		

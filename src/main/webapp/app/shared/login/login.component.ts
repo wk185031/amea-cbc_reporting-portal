@@ -1,12 +1,13 @@
 import { Component, AfterViewInit, Renderer, ElementRef } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
-import { JhiEventManager } from 'ng-jhipster';
+import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
 import * as CryptoJS from 'crypto-js';
 import { E2E_KEY } from '..';
 
 import { LoginService } from './login.service';
 import { StateStorageService } from '../auth/state-storage.service';
+import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 import { ProfileService } from '../../layouts/profiles/profile.service';
 @Component({
@@ -19,6 +20,7 @@ export class JhiLoginModalComponent implements AfterViewInit {
     rememberMe: boolean;
     username: string;
     credentials: any;
+    errorMsg: string;
 
     isSelfRegistration: boolean;
 
@@ -30,7 +32,8 @@ export class JhiLoginModalComponent implements AfterViewInit {
         private renderer: Renderer,
         private router: Router,
         public activeModal: NgbActiveModal,
-        private profileService: ProfileService
+        private profileService: ProfileService,
+        private jhiAlertService: JhiAlertService,
     ) {
         this.credentials = {};
         this.profileService.getProfileInfo().then((profileInfo) => {
@@ -58,6 +61,7 @@ export class JhiLoginModalComponent implements AfterViewInit {
             password: CryptoJS.AES.encrypt(this.password, E2E_KEY).toString(),
             rememberMe: this.rememberMe
         }).then(() => {
+        	this.errorMsg = '';
             this.authenticationError = false;
             this.activeModal.dismiss('login success');
             if (this.router.url === '/register' || (/^\/activate\//.test(this.router.url)) ||
@@ -77,7 +81,16 @@ export class JhiLoginModalComponent implements AfterViewInit {
                 this.stateStorageService.storeUrl(null);
                 this.router.navigate([redirect]);
             }
-        }).catch(() => {
+        }).catch((res: HttpErrorResponse) => {
+        
+        	if (res.error.detail && res.error.detail != 'Bad credentials') {
+            	this.errorMsg = res.error.detail;
+            	this.onError(res.error.detail);
+            } else {
+            	this.errorMsg = 'Failed to sign in! Please check your credentials and try again.';
+            	this.onError(res.error.message);
+            }
+
             this.authenticationError = true;
         });
     }
@@ -90,5 +103,10 @@ export class JhiLoginModalComponent implements AfterViewInit {
     requestResetPassword() {
         this.activeModal.dismiss('to state requestReset');
         this.router.navigate(['/reset', 'request']);
+    }
+    
+    private onError(msg: any) {
+        //this.ngxLoader.stop();
+        this.jhiAlertService.error(msg, null, null);
     }
 }

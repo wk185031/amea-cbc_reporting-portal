@@ -31,7 +31,10 @@ public class OnApplicationStartup {
 					+ "where status IN ('"+ReportConstants.STATUS_IN_PROGRESS+"','"+ReportConstants.STATUS_IN_QUEUE+"')")
 					.executeUpdate();
 			log.debug("Reset {} JOB HISTORY records.", updateCount);
-
+			
+			int resetLoginCount = em.createNativeQuery("update USER_EXTRA set LOGIN_FLAG = 'N'").executeUpdate();
+			log.debug("Reset {} user login records.", resetLoginCount);
+			
 		} catch (Exception e) {
 			log.warn("Failed to reset IN PROGRESS status in JOB HISTORY to FAILED.", e);
 		}

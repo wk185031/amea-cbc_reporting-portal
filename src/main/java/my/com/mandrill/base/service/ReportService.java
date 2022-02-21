@@ -36,6 +36,7 @@ import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.JobHistoryDetails;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.ReportGenerationResult;
@@ -83,7 +84,8 @@ public class ReportService {
 		transactionTemplate = new TransactionTemplate(transactionManager);
 	}
 
-	public ReportGenerationMgr generateSystemReport(long reportId, LocalDateTime txnStartDate, LocalDateTime txnEndDate) {
+	public ReportGenerationMgr generateSystemReport(long reportId, LocalDateTime txnStartDate,
+			LocalDateTime txnEndDate) {
 
 		if (txnStartDate == null) {
 			txnStartDate = LocalDateTime.now();
@@ -95,7 +97,7 @@ public class ReportService {
 
 		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ "0";
-		
+
 		log.debug("baseDirectory : " + baseDirectory);
 
 		ReportDefinition def = reportDefinitionRepository.findOne(reportId);
@@ -110,16 +112,16 @@ public class ReportService {
 		mgr.setSystemReport(true);
 
 		try {
-			reportAsyncService.runReport(mgr).get();
+
+			ReportGenerationResult results = reportAsyncService.runReport(mgr).get();
+			if (!results.isSuccess()) {
+				throw new ReportGenerationException(def.getFileNamePrefix(), results.getError());
+			}
+
 		} catch (ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		
-		log.debug("mgr.getFileLocation() : " + mgr.getFileLocation());
-		log.debug("mgr.getFileName() : " + mgr.getFileName());
-		log.debug("Paths.get(mgr.getFileLocation(), mgr.getFileName()) : " + Paths.get(mgr.getFileLocation(), mgr.getFileName()));
 
-		//return Paths.get(mgr.getFileLocation(), mgr.getFileNamePrefix());
 		return mgr;
 	}
 
@@ -143,6 +145,7 @@ public class ReportService {
 		for (ReportDefinition def : aList) {
 			if (def.isSystem()) {
 				log.debug("skip system report: {}", def.getName());
+				continue;
 			}
 
 			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),

@@ -192,7 +192,7 @@ public class AuditActionService {
 				}
 
 				if (e != null) {
-					sb.append(e.getMessage());
+					sb.append(e.getMessage().replace(";", " "));
 				}
 
 				Map<String, Object> dataMap = new HashMap<String, Object>();
