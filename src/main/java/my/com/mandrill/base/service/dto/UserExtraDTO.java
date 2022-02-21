@@ -1,11 +1,10 @@
 package my.com.mandrill.base.service.dto;
 
 
-import my.com.mandrill.base.domain.*;
-import org.hibernate.validator.constraints.NotBlank;
-
-import javax.validation.constraints.Size;
 import java.time.Instant;
+
+import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
 
 /**
  * A DTO representing a user extra.

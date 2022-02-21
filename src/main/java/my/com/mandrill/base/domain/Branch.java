@@ -21,7 +21,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @Table(name = "branch")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "branch")
-public class Branch implements Serializable {
+public class Branch implements Serializable, Comparable<Branch> {
 
     private static final long serialVersionUID = 1L;
 
@@ -131,6 +131,11 @@ public class Branch implements Serializable {
 		} else if (!abr_name.equals(other.abr_name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(Branch o) {
+		return this.abr_name.compareTo(o.getAbr_name());
 	}
 
 }

@@ -43,6 +43,7 @@ public class ReportAsyncService {
 					throw new ReportGenerationException(reportGenerationMgr.getFieldName());
 				}
 			} else {
+				log.debug("runReport with manager");
 				reportGenerationMgr.run(dataSource);
 				if (reportGenerationMgr.errors > 0) {
 					throw new ReportGenerationException(reportGenerationMgr.getFieldName());
@@ -50,8 +51,8 @@ public class ReportAsyncService {
 			}
 		} catch (ReportGenerationException e) {
 			long elapsedTime = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-			log.debug("runReport-{}: FAILED [reportName={}] ELAPSED TIME - {}s",
-					reportGenerationMgr.getJobId(), reportGenerationMgr.getFileName(), elapsedTime, e);
+			log.debug("runReport-{}: FAILED [reportName={}] ELAPSED TIME - {}s", reportGenerationMgr.getJobId(),
+					reportGenerationMgr.getFileName(), elapsedTime, e);
 			return CompletableFuture.completedFuture(
 					ReportGenerationResult.failed(reportGenerationMgr.getFileName(), e.getMessage(), elapsedTime));
 		}

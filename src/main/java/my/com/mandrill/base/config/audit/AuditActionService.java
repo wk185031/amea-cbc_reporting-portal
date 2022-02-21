@@ -1,9 +1,13 @@
 package my.com.mandrill.base.config.audit;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,7 +24,11 @@ import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
 import my.com.mandrill.base.config.Constants;
+import my.com.mandrill.base.domain.AppResource;
+import my.com.mandrill.base.domain.Branch;
 import my.com.mandrill.base.domain.PersistentAuditEvent;
+import my.com.mandrill.base.domain.RoleExtra;
+import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.repository.CustomAuditEventRepository;
 import my.com.mandrill.base.repository.PersistenceAuditEventRepository;
 import my.com.mandrill.base.security.SecurityUtils;
@@ -41,7 +49,7 @@ public class AuditActionService {
 	private final RequestService reqService;
 
 	private static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
-	protected static final int EVENT_DATA_COLUMN_MAX_LENGTH = 255;
+	protected static final int EVENT_DATA_COLUMN_MAX_LENGTH = 2500;
 
 	public AuditActionService(PersistenceAuditEventRepository persistenceAuditEventRepository,
 			AuditEventConverter auditEventConverter, RequestService reqService) {
@@ -78,37 +86,99 @@ public class AuditActionService {
 	}
 
 	public void addSuccessEvent(AuditActionType type, Object before, Object after, HttpServletRequest req) {
-		DiffNode diff = ObjectDifferBuilder.buildDefault().compare(before, after);
+		ObjectDifferBuilder builder = ObjectDifferBuilder.startBuilding();
+		builder.inclusion().exclude().propertyName("id");
+		builder.inclusion().exclude().propertyName("createdBy");
+		builder.inclusion().exclude().propertyName("createdDate");
+		builder.inclusion().exclude().propertyName("lastModifiedBy");
+		builder.inclusion().exclude().propertyName("lastModifiedDate");
+		builder.inclusion().exclude().propertyName("roles");
+		builder.inclusion().exclude().propertyName("permissions");
+		builder.inclusion().exclude().propertyName("branches");
+		builder.inclusion().exclude().propertyName("authorities");
+		builder.inclusion().exclude().type(Instant.class);
+		
+		//DiffNode diff = ObjectDifferBuilder.buildDefault().compare(before, after);
+		DiffNode diff = builder.build().compare(before, after);
 		if (SecurityUtils.getCurrentUserLogin().isPresent()) {
 			try {
 				Map<String, Object> dataMap = new HashMap<String, Object>();
+				List<ChangedItemDTO> changes = new ArrayList<>();
 
-				if (diff.hasChanges()) {
-					List<ChangedItemDTO> changes = new ArrayList<>();
+				if (diff.hasChanges()) {					
 					diff.visit(new DiffNode.Visitor() {
 						public void node(DiffNode node, Visit visit) {
 							if (!node.hasChildren()) {
-								final Object oldValue = node.canonicalGet(before);
-								final Object newValue = node.canonicalGet(after);
+								try {
+									final Object oldValue = node.canonicalGet(before);
+									final Object newValue = node.canonicalGet(after);
 
-								if (!skipLogging(node.getPropertyName())) {
-									ChangedItemDTO dto = new ChangedItemDTO(node.getPropertyName(),
-											oldValue == null ? "" : oldValue.toString(),
-											newValue == null ? "" : newValue.toString());
-									changes.add(dto);
+									if (!skipLogging(node.getParentNode().getPropertyName())) {
+										ChangedItemDTO dto = new ChangedItemDTO(node.getPropertyName(),
+												(oldValue == null ? "" : oldValue.toString()),
+												(newValue == null ? "" : newValue.toString()));
+										changes.add(dto);
+									}
+								} catch (Exception e) {
+									log.warn("Failed to audit field:{}", node.getPropertyName());
 								}
+								
 							}
 						}
-					});
+					});	
+				}
+				changes.addAll(addListChange(before, after));
+				if (changes.size() > 0) {
 					dataMap.put("details", new ObjectMapper().writeValueAsString(changes));
 				}
-
 				AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
 				writeToAudit(event, reqService.getClientIp(req));
 			} catch (Exception e) {
 				log.warn("Failed to write Action Audit", e);
 			}
 		}
+	}
+
+	private List<ChangedItemDTO> addListChange(Object before, Object after) {
+		List<ChangedItemDTO> changes = new ArrayList<ChangedItemDTO>();
+		if (UserExtra.class == before.getClass()) {
+			UserExtra beforeUser = (UserExtra) before;
+			UserExtra afterUser = (UserExtra) after;
+
+			String beforeBranch = beforeUser.getBranches().stream().sorted().map(Branch::getAbr_name)
+					.collect(Collectors.joining(","));
+			String afterBranch = afterUser.getBranches().stream().sorted().map(Branch::getAbr_name)
+					.collect(Collectors.joining(","));
+			if (!beforeBranch.contentEquals(afterBranch)) {
+				ChangedItemDTO dto = new ChangedItemDTO("branch", beforeBranch, afterBranch);
+				changes.add(dto);
+			}
+
+			String beforeRole = beforeUser.getRoles().stream().sorted().map(RoleExtra::getName)
+					.collect(Collectors.joining(","));
+			String afterRole = afterUser.getRoles().stream().sorted().map(RoleExtra::getName)
+					.collect(Collectors.joining(","));
+			if (!beforeRole.contentEquals(afterRole)) {
+				ChangedItemDTO dto = new ChangedItemDTO("role", beforeBranch, afterBranch);
+				changes.add(dto);
+			}
+
+		}
+		if (RoleExtra.class == before.getClass()) {
+			RoleExtra beforeRole = (RoleExtra) before;
+			RoleExtra afterRole = (RoleExtra) after;
+
+			String beforePermission = beforeRole.getPermissions().stream().sorted().map(AppResource::getName)
+					.collect(Collectors.joining(","));
+			String afterPermission = afterRole.getPermissions().stream().sorted().map(AppResource::getName)
+					.collect(Collectors.joining(","));
+			if (!beforePermission.contentEquals(afterPermission)) {
+				ChangedItemDTO dto = new ChangedItemDTO("permission", beforePermission, afterPermission);
+				changes.add(dto);
+			}
+		}
+
+		return changes;
 	}
 
 	public void addFailedEvent(AuditActionType type, String name, Exception e, HttpServletRequest req) {
@@ -138,9 +208,15 @@ public class AuditActionService {
 	}
 
 	public boolean skipLogging(String fieldName) {
-		return "epochSecond".equals(fieldName) || "nano".equals(fieldName) || "createdDate".equals(fieldName)
-				|| "createdBy".equals(fieldName) || "lastModifiedBy".equals(fieldName)
-				|| "lastMofiedDate".equals(fieldName) || "id".equals(fieldName);
+		log.debug("skiplogging check:{}", fieldName);
+		return "createdDate".equals(fieldName) || "createdBy".equals(fieldName) || "lastModifiedBy".equals(fieldName)
+				|| "lastMofiedDate".equals(fieldName) || "id".equals(fieldName) || "roles".equals(fieldName)
+				|| "branches".equals(fieldName) || "permissions".equals(fieldName);
+
+//		return "epochSecond".equals(fieldName) || "nano".equals(fieldName) || "createdDate".equals(fieldName)
+//				|| "createdBy".equals(fieldName) || "lastModifiedBy".equals(fieldName)
+//				|| "lastMofiedDate".equals(fieldName) || "id".equals(fieldName) || "dayOfMonth".equals(fieldName)
+//				|| "dayOfWeek".equals(fieldName) || "dayOfYear".equals(fieldName) || "minute".equals(fieldName);
 	}
 
 	public void writeToAudit(AuditEvent event) {
@@ -181,5 +257,50 @@ public class AuditActionService {
 			}
 		}
 		return results;
+	}
+
+	public static void main(String[] args) {
+		Branch branch = new Branch();
+		branch.setAbr_code("001");
+		branch.setAbr_name("Branch 001");
+		Set<Branch> branchMap = new HashSet<>();
+		branchMap.add(branch);
+
+		RoleExtra role1 = new RoleExtra();
+		role1.setId(1L);
+		role1.setName("Role A");
+
+		RoleExtra role2 = new RoleExtra();
+		role2.setId(2L);
+		role2.setName("Role B");
+
+		Set<RoleExtra> roleMap1 = new HashSet<>();
+		roleMap1.add(role1);
+		roleMap1.add(role2);
+
+		Set<RoleExtra> roleMap2 = new HashSet<>();
+		roleMap2.add(role2);
+		roleMap2.add(role1);
+
+		UserExtra a = new UserExtra();
+		a.setName("User A");
+		a.setDesignation("x");
+		a.setRoles(roleMap1);
+
+		UserExtra b = new UserExtra();
+		b.setName("User A");
+		b.setDesignation("0");
+		b.setBranches(branchMap);
+		// b.setRoles(roleMap2);
+
+		String beforeRole = a.getRoles().stream().sorted().map(RoleExtra::getName).collect(Collectors.joining(","));
+		String afterRole = b.getRoles().stream().sorted().map(RoleExtra::getName).collect(Collectors.joining(","));
+
+		if (!beforeRole.contentEquals(afterRole)) {
+			System.out.println("before=" + beforeRole + ", after=" + afterRole);
+		} else {
+			System.out.println("content is same");
+		}
+
 	}
 }

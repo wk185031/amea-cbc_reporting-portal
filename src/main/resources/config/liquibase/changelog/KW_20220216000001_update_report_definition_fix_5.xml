@@ -22,6 +22,10 @@
                  path="config/liquibase/alter_sequence_20220220.sql"
                  splitStatements="true" 
                  stripComments="true" />
+         <modifyDataType
+            columnName="VALUE"
+            newDataType="varchar2(2500)"
+            tableName="JHI_PERSISTENT_AUDIT_EVT_DATA"/>
                  
     </changeSet>
     

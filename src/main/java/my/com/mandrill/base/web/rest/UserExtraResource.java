@@ -181,8 +181,8 @@ public class UserExtraResource {
         	UserExtra usrExtra = userExtraRepository.findOne(userExtra.getId());
         	userExtra.setCreatedDate(usrExtra.getCreatedDate());
         }
-        
-        UserExtra old = org.apache.commons.lang3.SerializationUtils
+
+        UserExtra oldClone = org.apache.commons.lang3.SerializationUtils
 				.clone(userExtraRepository.findOne(userExtra.getId()));
         
 		try {
@@ -195,7 +195,7 @@ public class UserExtraResource {
 			userService.updateUser(new UserDTO(userExtra.getUser()));
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, old, result, request);
+			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, oldClone, result, request);
 
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, userExtra.getId().toString()))
