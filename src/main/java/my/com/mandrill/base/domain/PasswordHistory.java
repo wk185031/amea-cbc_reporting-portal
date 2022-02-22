@@ -1,5 +1,6 @@
 package my.com.mandrill.base.domain;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -21,7 +22,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @Table(name = "password_history")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "password_history")
-public class PasswordHistory {
+public class PasswordHistory implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	

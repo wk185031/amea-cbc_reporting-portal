@@ -6,7 +6,7 @@
 
 DECLARE
     i_REPORT_NAME VARCHAR2(100) := 'CAM Transaction List';
-    i_PROCESSING_CLASS VARCHAR2(100) := 'my.com.mandrill.base.reporting.reportProcessor.BranchReportProcessor';
+    i_PROCESSING_CLASS VARCHAR2(200) := 'my.com.mandrill.base.reporting.reportProcessor.BranchReportSplitFileProcessor';
     i_HEADER_FIELDS_CBC CLOB;
     i_BODY_FIELDS_CBC CLOB;
     i_TRAILER_FIELDS_CBC CLOB;

@@ -87,7 +87,9 @@ public class FileUtils {
 		return name;
 	}
 
-	public static void splitBranchReportByText(File sourceFile, File destRootDir) throws Exception {
+	public static void splitBranchReportByText(File sourceFile, File destRootDir, String category) throws Exception {
+		log.debug("splitBranchReportByText: sourceFile={}, destRootDir={}, category={}", sourceFile.getName(),
+				destRootDir.getAbsolutePath(), category);
 		PDDocument doc = null;
 		PDDocument branchDoc = null;
 		PDFTextStripper pdfStripper = new PDFTextStripper();
@@ -105,7 +107,6 @@ public class FileUtils {
 				String content = pdfStripper.getText(doc);
 				String[] lines = content.split("\r\n|\r|\n");
 				String lineToCheckForBranch = lines[1];
-				
 
 				if (!lineToCheckForBranch.trim().isEmpty()) {
 					String branchCode = lineToCheckForBranch.substring(0, 4);
@@ -117,7 +118,7 @@ public class FileUtils {
 						try {
 							fileName = sourceFile.getName().substring(0, sourceFile.getName().lastIndexOf(".")) + "_"
 									+ currentBranchCode + ".pdf";
-							branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode).toFile();
+							branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode, category).toFile();
 							if (!branchDestDir.exists()) {
 								branchDestDir.mkdirs();
 							}
@@ -139,15 +140,14 @@ public class FileUtils {
 			// Save the last doc
 			fileName = sourceFile.getName().substring(0, sourceFile.getName().lastIndexOf(".")) + "_"
 					+ currentBranchCode + ".pdf";
-			branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode).toFile();
+			branchDestDir = Paths.get(destRootDir.getAbsolutePath(), currentBranchCode, category).toFile();
 			if (!branchDestDir.exists()) {
 				branchDestDir.mkdirs();
 			}
 			branchDoc.save(Paths.get(branchDestDir.getAbsolutePath(), fileName).toFile());
-			
+
 			log.debug("splitBranchReportByText: sourceFile={}, destDir={}, noOfPage={} ,noOfBranch={}",
-					sourceFile.getAbsolutePath(), destRootDir.getAbsolutePath(), doc.getNumberOfPages(),
-					noOfBranch);
+					sourceFile.getAbsolutePath(), branchDestDir.getAbsolutePath(), doc.getNumberOfPages(), noOfBranch);
 
 		} finally {
 			if (doc != null) {
@@ -240,23 +240,5 @@ public class FileUtils {
 				}
 			}
 		}
-	}
-
-	public static void main(String[] args) throws Exception {
-//		Map<Integer, String> branchPageMap = new LinkedHashMap<>();
-//		branchPageMap.put(1, "1001");
-//		branchPageMap.put(2, "1002");
-//		branchPageMap.put(3, "1003");
-//		branchPageMap.put(5, "1004");
-//		branchPageMap.put(489, "5008");
-
-		File sourceFile = new File(
-				"C:\\Users\\User\\Downloads\\branch_report_compare\\original\\MAIN\\ATM Transaction Lists (Branch Reports)\\EFT - ATM Transaction List (Other Branch) 20210801 0000AM-20211231 1159PM.pdf");
-		File destDir = new File(
-				"C:\\Users\\User\\Downloads\\branch_report_compare\\original\\MAIN\\ATM Transaction Lists (Branch Reports)");
-		// splitBranchReport(sourceFile, destDir, branchPageMap);
-
-		splitBranchReportByText(sourceFile, destDir);
-
 	}
 }

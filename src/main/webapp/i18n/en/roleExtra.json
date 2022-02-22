@@ -6,7 +6,8 @@
                 "title": "Roles",
                 "createLabel": "Create a new Role",
                 "createOrEditLabel": "Create or edit a Role",
-                "search": "Search for Role..."
+                "search": "Search for Role...",
+                "export": "Export"
             },
             "created": "A new Role is created with identifier {{ param }}",
             "updated": "A Role is updated with identifier {{ param }}",

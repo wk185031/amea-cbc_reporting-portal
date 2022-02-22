@@ -21,7 +21,7 @@ import java.util.Objects;
 @Table(name = "app_resource")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "appresource")
-public class AppResource implements Serializable {
+public class AppResource implements Serializable, Comparable<AppResource> {
 
     private static final long serialVersionUID = 1L;
 
@@ -264,4 +264,9 @@ public class AppResource implements Serializable {
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             "}";
     }
+
+	@Override
+	public int compareTo(AppResource o) {
+		return this.name.compareTo(o.getName());
+	}
 }

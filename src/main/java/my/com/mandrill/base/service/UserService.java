@@ -1,27 +1,12 @@
 package my.com.mandrill.base.service;
 
-import my.com.mandrill.base.config.CacheConfiguration;
-import my.com.mandrill.base.domain.Authority;
-import my.com.mandrill.base.domain.RoleExtra;
-import my.com.mandrill.base.domain.SystemConfiguration;
-import my.com.mandrill.base.domain.User;
-import my.com.mandrill.base.domain.UserExtra;
-import my.com.mandrill.base.reporting.ReportConstants;
-import my.com.mandrill.base.reporting.SpringContext;
-import my.com.mandrill.base.repository.AuthorityRepository;
-import my.com.mandrill.base.config.Constants;
-import my.com.mandrill.base.repository.RoleExtraRepository;
-import my.com.mandrill.base.repository.SystemConfigurationRepository;
-import my.com.mandrill.base.repository.UserExtraRepository;
-import my.com.mandrill.base.repository.UserRepository;
-import my.com.mandrill.base.repository.search.UserExtraSearchRepository;
-import my.com.mandrill.base.repository.search.UserSearchRepository;
-import my.com.mandrill.base.security.AuthoritiesConstants;
-import my.com.mandrill.base.security.PermissionConstants;
-import my.com.mandrill.base.security.SecurityUtils;
-import my.com.mandrill.base.service.dto.UserExtraDTO;
-import my.com.mandrill.base.service.util.RandomUtil;
-import my.com.mandrill.base.service.dto.UserDTO;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +18,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
+import my.com.mandrill.base.config.Constants;
+import my.com.mandrill.base.domain.Authority;
+import my.com.mandrill.base.domain.RoleExtra;
+import my.com.mandrill.base.domain.SystemConfiguration;
+import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.domain.UserExtra;
+import my.com.mandrill.base.reporting.ReportConstants;
+import my.com.mandrill.base.reporting.SpringContext;
+import my.com.mandrill.base.repository.AuthorityRepository;
+import my.com.mandrill.base.repository.RoleExtraRepository;
+import my.com.mandrill.base.repository.SystemConfigurationRepository;
+import my.com.mandrill.base.repository.UserExtraRepository;
+import my.com.mandrill.base.repository.UserRepository;
+import my.com.mandrill.base.repository.search.UserExtraSearchRepository;
+import my.com.mandrill.base.repository.search.UserSearchRepository;
+import my.com.mandrill.base.security.AuthoritiesConstants;
+import my.com.mandrill.base.security.PermissionConstants;
+import my.com.mandrill.base.security.SecurityUtils;
+import my.com.mandrill.base.service.dto.UserDTO;
+import my.com.mandrill.base.service.dto.UserExtraDTO;
+import my.com.mandrill.base.service.util.RandomUtil;
 
 /**
  * Service class for managing users.
@@ -250,6 +252,13 @@ public class UserService {
 			user.setImageUrl(userDTO.getImageUrl());
 			user.setActivated(userDTO.isActivated());
 			user.setLangKey(userDTO.getLangKey());
+
+			// Set last status if user change from inactive to active
+			if (userDTO.isActivated() && !user.getActivated()) {
+				user.setLastStatus(user.getDeactivateReason());
+				user.setRetryCount(0);
+			}
+
 			Set<Authority> managedAuthorities = user.getAuthorities();
 			managedAuthorities.clear();
 			userDTO.getAuthorities().stream().map(authorityRepository::findOne).forEach(managedAuthorities::add);
@@ -349,6 +358,7 @@ public class UserService {
 					User user = userExtra.getUser();
 					user.setActivated(false);
 					user.setDeactivateDate(Instant.now());
+					user.setLastStatus(user.getDeactivateReason());
 					user.setDeactivateReason(ReportConstants.DEACTIVATE_DORMANT);
 					user.setLastModifiedBy("system");
 
@@ -368,6 +378,7 @@ public class UserService {
 
 		SystemConfigurationRepository configRepo = SpringContext.getBean(SystemConfigurationRepository.class);
 		SystemConfiguration config = configRepo.findByName(ReportConstants.SECURITY_PASSWORD_EXPIRY);
+		int updatedCount = 0;
 
 		if (config != null) {
 			int passwordExpiryConfig = Integer.parseInt(config.getConfig());
@@ -380,13 +391,17 @@ public class UserService {
 				if (passwordResetDate.isBefore(Instant.now().minus(passwordExpiryConfig, ChronoUnit.DAYS))) {
 
 					user.setDeactivateDate(Instant.now());
+					user.setLastStatus(user.getDeactivateReason());
 					user.setDeactivateReason(ReportConstants.DEACTIVATE_PASSWORD_EXPIRED);
 					user.setLastModifiedBy("system");
 
 					userRepository.save(user);
+					updatedCount++;
 				}
 			}
 		}
+
+		log.info("updateUserPasswordExpiry: {} user password expired.", updatedCount);
 
 	}
 
@@ -402,10 +417,11 @@ public class UserService {
 
 		if (config != null) {
 			int maxRetry = Integer.parseInt(config.getConfig());
-			
+
 			if (user.getRetryCount() + 1 >= maxRetry) {
 				user.setActivated(false);
 				user.setDeactivateDate(Instant.now());
+				user.setLastStatus(user.getDeactivateReason());
 				user.setDeactivateReason(ReportConstants.DEACTIVATE_LOCKED);
 				user.setRetryCount(user.getRetryCount() + 1);
 				user.setLastModifiedBy("system");

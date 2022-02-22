@@ -14,7 +14,12 @@
                         <span class="input-group-text" jhiTranslate="audits.filter.to">To</span>
                     </div>
                     <input type="date" class="form-control" name="end" [(ngModel)]="toDate" (ngModelChange)="onChangeDate($event)" required/>
+                    
+                    <button class="btn btn-primary float-right jh-create-entity create-role-extra" style = "margin-left: 10px">
+                 		 <span class="hidden-sm-down"  jhiTranslate="baseApp.roleExtra.home.export" (click)="export('System Reports','System User Activity Report')">Export</span>
+            		</button>
             </div>
+            
         </div>
     </div>
 

@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,7 +59,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import my.com.mandrill.base.config.audit.AuditActionService;
 import my.com.mandrill.base.config.audit.AuditActionType;
@@ -175,8 +175,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	public DatabaseSynchronizer(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
 			TaskRepository taskRepository, TaskSearchRepository taskSearchRepository,
 			TaskGroupRepository taskGroupRepository, TaskGroupSearchRepository taskGroupSearchRepository,
-			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService, ReportGenerationResource reportGenerationResource,
-			DataSource dataSource, DcmsSyncService dcmsSyncService,
+			JobHistoryRepository jobHistoryRepo, Environment env, ReportService reportService,
+			ReportGenerationResource reportGenerationResource, DataSource dataSource, DcmsSyncService dcmsSyncService,
 			AuditActionService auditActionService, JobHistoryService jobHistoryService) {
 		this.jobRepository = jobRepository;
 		this.jobSearchRepository = jobSearchRepository;
@@ -214,7 +214,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			@Override
 			public void run() {
 				try {
-					synchronizeDatabase(ReportConstants.CREATED_BY_USER);
+					synchronizeDatabase(ReportConstants.CREATED_BY_USER, null);
 				} catch (Exception e) {
 					log.error("Exception in scheduleSyncDbJob.", e);
 				}
@@ -318,9 +318,11 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	@SuppressWarnings("resource")
 	@PostMapping("/synchronize-database/{user}")
-	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user) throws Exception {
+	public ResponseEntity<JobHistory> synchronizeDatabase(@PathVariable String user, HttpServletRequest request)
+			throws Exception {
 		log.info("synchronizeDatabase: DB URL={}", env.getProperty("spring.datasource.url"));
 
+		JobHistory dbsyncJob = null;
 		try {
 
 			JobHistory incompleteJob = jobHistoryRepo.findFirstByStatusAndJobNameOrderByCreatedDateDesc(
@@ -331,8 +333,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						"dbsync.inprogress");
 			}
 
-			JobHistory dbsyncJob = createJobHistory(ReportConstants.JOB_NAME_DB_SYNC,
-					ReportConstants.STATUS_IN_PROGRESS, user);
+			dbsyncJob = createJobHistory(ReportConstants.JOB_NAME_DB_SYNC, ReportConstants.STATUS_IN_PROGRESS, user);
 
 			try {
 				Timestamp trxLogLastUpdatedTs = getTableLastUpdatedTimestamp("TRANSACTION_LOG", "TRL_SYSTEM_TIMESTAMP");
@@ -360,7 +361,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 
 			log.debug("Database synchronizer completed");
-			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, null);
+			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, dbsyncJob.getId().toString(), request);
 
 			if (ReportConstants.CREATED_BY_USER.equals(user)) {
 				log.debug("System db sync, proceed with report generation.");
@@ -378,7 +379,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					.headers(HeaderUtil.createEntityCreationAlert("Job History ", dbsyncJob.getId().toString()))
 					.body(dbsyncJob);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE, null, e);
+			auditActionService.addFailedEvent(AuditActionType.SYNCHRONIZE_DATABASE,
+					dbsyncJob == null ? "" : dbsyncJob.getId().toString(), e, request);
 			throw e;
 		}
 	}
@@ -498,7 +500,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			stmt = conn.prepareStatement("delete from " + table);
 			int deletedCount = stmt.executeUpdate();
 			log.debug("{} records deleted from {}", deletedCount, table);
-			
+
 			stmt1 = conn.prepareStatement(insertSql);
 			stmt1.execute();
 
@@ -544,7 +546,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		} else {
 			sql = "insert into " + table + " (select * from " + schemaTableName;
 		}
-		
+
 		if (lastUpdatedTs != null) {
 			String formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
 			sql = sql + " where " + lastUpdateColumnName + " > TO_TIMESTAMP('" + formattedTs
@@ -838,8 +840,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				}
 			}
 		}
-		log.debug("ELAPSED TIME: PostProcessAtmDowntime completed in {}s", TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
-
+		log.debug("ELAPSED TIME: PostProcessAtmDowntime completed in {}s",
+				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 
 	}
 
@@ -983,7 +985,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						rs.getString("TRL_PAN"), rs.getString("TRL_ACQR_INST_ID"), rs.getString("TRL_CUSTOM_DATA"),
 						rs.getInt("TRL_CUSTOM_DATA_EKY_ID"), rs.getInt("TRL_PAN_EKY_ID"),
 						rs.getString("TRL_ORIGIN_ICH_NAME"), rs.getString("TRL_ISS_NAME"), rs.getString("TRL_DEO_NAME"),
-						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"), listAuthPrProfile, rs.getLong("TRL_APPR_ID"));
+						corporateCardRange, atmDummyCards, rs.getTimestamp("TRL_SYSTEM_TIMESTAMP"), listAuthPrProfile,
+						rs.getLong("TRL_APPR_ID"));
 				log.trace("TRL_ID = {}", txnCustom.getTrlId());
 				stmt_insert = conn.prepareStatement(SQL_INSERT_TXN_LOG_CUSTOM);
 				stmt_insert.setLong(1, txnCustom.getTrlId());
@@ -1074,7 +1077,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private TxnLogCustom fromResultSet(Map<String, List<String>> cardBinMap, Long id, String tscCode,
 			String encryptedPan, String acqInstId, String encryptedCustomData, int encryptionKeyId,
 			int panEncryptionKeyId, String originInterchange, String issuerName, String deoName,
-			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp, Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
+			StringTokenizer corporatePanRange, List<String> atmDummyCards, Timestamp systemTimestamp,
+			Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
 
 		log.trace(
 				"Post process txn log: id={}, tscCode={}, encryptedPan={}, acqInstId={}, encryptionKeyId={}, panEncryptionKeyId={}, issuerName={}, deoName={}, corporatePanRange={}",
@@ -1100,21 +1104,21 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			o.setInterEntity(isInterEntity(tscCode, acqInstId, issuerName, deoName));
 
 			if (encryptedPan != null) {
-				
+
 				boolean isDomestic = true;
-				
-				if(trlApprId!=null){
+
+				if (trlApprId != null) {
 					String dummyBin = findDummyBin(listAuthPrProfile, trlApprId);
-					if(dummyBin!=null && !dummyBin.equals("")){
-						log.trace("dummyBin: "+dummyBin);
+					if (dummyBin != null && !dummyBin.equals("")) {
+						log.trace("dummyBin: " + dummyBin);
 						o.setCardBin(dummyBin);
 						isDomestic = false;
 					}
 				}
-				if(isDomestic){
+				if (isDomestic) {
 					o.setCardBin(findBin(pan, cardBinMap));
 				}
-						
+
 				if (isOnUs(issuerName)) {
 					o.setCardProductType(pan.getClear().substring(6, 8));
 					o.setCardBranch(pan.getClear().substring(8, 12));
@@ -1147,31 +1151,31 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		}
 
 	}
-		
+
 	private String findDummyBin(Map<String, String> listAuthPrProfile, Long trlApprId) throws Exception {
-		
-		if(trlApprId == null)
+
+		if (trlApprId == null)
 			return null;
-		
+
 		for (Map.Entry<String, String> entry : listAuthPrProfile.entrySet()) {
-			
-			if(entry.getKey().equals(trlApprId.toString())){
-				
-				switch(entry.getValue()) {
-				  case "Visa":
-					  return BIN_VISA;			
-				  case "Mastercard":
-					  return BIN_MASTERCARD;					 
-				  case "JCB":
-					  return BIN_JCB;					
-				  case "Union Pay":
-					  return BIN_UNIONPAY;				
+
+			if (entry.getKey().equals(trlApprId.toString())) {
+
+				switch (entry.getValue()) {
+				case "Visa":
+					return BIN_VISA;
+				case "Mastercard":
+					return BIN_MASTERCARD;
+				case "JCB":
+					return BIN_JCB;
+				case "Union Pay":
+					return BIN_UNIONPAY;
 				}
 			}
 		}
 		return "";
 	}
-	
+
 	private boolean isOnUs(String issuerName) {
 		return "CBC".equals(issuerName) || "CBS".equals(issuerName);
 	}
@@ -1408,9 +1412,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			while (rs.next()) {
 				String apprlId = String.valueOf(rs.getLong(1));
 				String apprlName = rs.getString(2);
-				
+
 				authPrProfile.put(apprlId, apprlName);
-				
+
 			}
 			log.debug("getAuthProcessingProfile: size={}", authPrProfile.size());
 			return authPrProfile;

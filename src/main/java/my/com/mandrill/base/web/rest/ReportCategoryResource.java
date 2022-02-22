@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -91,7 +92,7 @@ public class ReportCategoryResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_CATEGORY + DOT + CREATE
 			+ "')")
-	public ResponseEntity<ReportCategory> createReportCategory(@Valid @RequestBody ReportCategory reportCategory)
+	public ResponseEntity<ReportCategory> createReportCategory(@Valid @RequestBody ReportCategory reportCategory, HttpServletRequest request)
 			throws URISyntaxException {
 		log.debug("User: {}, REST request to save ReportCategory: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				reportCategory);
@@ -102,11 +103,11 @@ public class ReportCategoryResource {
 		try {
 			ReportCategory result = reportCategoryRepository.save(reportCategory);
 			reportCategorySearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName(), request);
 			return ResponseEntity.created(new URI("/api/reportCategory/" + result.getId()))
 					.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);			
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_CREATE, reportCategory.getName(), e, request);
 			throw e;
 		}
 
@@ -128,22 +129,25 @@ public class ReportCategoryResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_CATEGORY + DOT + UPDATE
 			+ "')")
-	public ResponseEntity<ReportCategory> updateReportCategory(@Valid @RequestBody ReportCategory reportCategory)
+	public ResponseEntity<ReportCategory> updateReportCategory(@Valid @RequestBody ReportCategory reportCategory, HttpServletRequest request)
 			throws URISyntaxException {
 		log.debug("User: {}, REST request to update ReportCategory: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				reportCategory);
 		if (reportCategory.getId() == null) {
-			return createReportCategory(reportCategory);
+			return createReportCategory(reportCategory, request);
 		}
+		ReportCategory old = org.apache.commons.lang3.SerializationUtils
+				.clone(reportCategoryRepository.findOne(reportCategory.getId()));
+		
 		try {
 			ReportCategory result = reportCategoryRepository.save(reportCategory);
 			reportCategorySearchRepository.save(result);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName());
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_UPDATE, old, result, request);
 			return ResponseEntity.ok()
 					.headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, reportCategory.getId().toString()))
 					.body(result);
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_UPDATE, reportCategory.getName(), e, request);
 			throw e;
 		}
 		
@@ -163,7 +167,7 @@ public class ReportCategoryResource {
 	public ResponseEntity<List<ReportCategory>> getAllReportCategories(Pageable pageable) {
 		log.debug("User: {}, REST request to get a page of ReportCategory",
 				SecurityUtils.getCurrentUserLogin().orElse(""));
-		Page<ReportCategory> page = reportCategoryRepository.findAll(new PageRequest(0, 1, new Sort(Sort.Direction.ASC, "name")));
+		Page<ReportCategory> page = reportCategoryRepository.findAll(new PageRequest(0, 100, new Sort(Sort.Direction.ASC, "name")));
 		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/reportCategory");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
 	}
@@ -234,16 +238,17 @@ public class ReportCategoryResource {
 	@Timed
 	@PreAuthorize("@AppPermissionService.hasPermission('" + OPER + COLON + RESOURCE_REPORT_CATEGORY + DOT + DELETE
 			+ "')")
-	public ResponseEntity<Void> deleteReportCategory(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteReportCategory(@PathVariable Long id, HttpServletRequest request) {
 		log.debug("User: {}, REST request to delete ReportCategory: {}", SecurityUtils.getCurrentUserLogin().orElse(""),
 				id);
+		ReportCategory old = reportCategoryRepository.findOne(id);
 		try {
 			reportCategoryRepository.delete(id);
 			reportCategorySearchRepository.delete(id);
-			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_DELETE, String.valueOf(id));
+			auditActionService.addSuccessEvent(AuditActionType.REPORT_CATEGORY_DELETE, old.getName(), request);
 			return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_DELETE, id.toString(), e);
+			auditActionService.addFailedEvent(AuditActionType.REPORT_CATEGORY_DELETE, old != null ? old.getName() : id.toString(), e, request);
 			throw e;
 		}
 		

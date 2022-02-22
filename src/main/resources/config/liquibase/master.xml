@@ -329,6 +329,11 @@
 	<include file="config/liquibase/changelog/WY_20220209000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220210000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220210000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_2.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_3.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_4.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/WY_20220218000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220214000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_1065.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
@@ -337,4 +342,6 @@
 	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_4.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220218000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220222000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_5.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220222000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

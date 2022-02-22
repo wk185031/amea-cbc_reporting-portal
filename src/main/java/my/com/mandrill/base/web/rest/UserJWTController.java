@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -26,7 +27,8 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.jhipster.config.JHipsterProperties;
-import my.com.mandrill.base.domain.User;
+import my.com.mandrill.base.config.audit.AuditActionService;
+import my.com.mandrill.base.config.audit.AuditActionType;
 import my.com.mandrill.base.domain.UserExtra;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.repository.UserExtraRepository;
@@ -57,20 +59,23 @@ public class UserJWTController {
 
 	private final UserService userService;
 
+	private final AuditActionService auditActionService;
+
 	public UserJWTController(TokenProvider tokenProvider, AuthenticationManager authenticationManager,
 			UserExtraRepository userExtraRepository, JHipsterProperties jHipsterProperties, Environment env,
-			UserService userService) {
+			UserService userService, AuditActionService auditActionService) {
 		this.tokenProvider = tokenProvider;
 		this.authenticationManager = authenticationManager;
 		this.userExtraRepository = userExtraRepository;
 		this.jHipsterProperties = jHipsterProperties;
 		this.env = env;
 		this.userService = userService;
+		this.auditActionService = auditActionService;
 	}
 
 	@PostMapping("/authenticate")
 	@Timed
-	public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
+	public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM, HttpServletRequest request) {
 
 		String username = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), loginVM.getUsername());
 		String password = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), loginVM.getPassword());
@@ -103,6 +108,7 @@ public class UserJWTController {
 
 				userExtra.setLoginFlag("Y");
 				userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now()));
+				userExtra.getUser().setRetryCount(0);
 				userExtraRepository.save(userExtra);
 			}
 
@@ -112,26 +118,24 @@ public class UserJWTController {
 
 			String encJwt = E2eEncryptionUtil.encryptEcb(env.getProperty("application.e2eKey"), jwt);
 
-			log.debug("------------------jwt = {}", jwt);
-			log.debug("------------------encJwt = {}", encJwt);
-
 			HttpHeaders httpHeaders = new HttpHeaders();
 			httpHeaders.add(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + encJwt);
+			auditActionService.addSuccessEvent(AuditActionType.LOGIN, username, request);
 
 			return new ResponseEntity<>(new JWTToken(encJwt), httpHeaders, HttpStatus.OK);
 
-		} catch (BadCredentialsException ex) {
-
-			userService.updateRetryCount(username);
-
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
+		} catch (Exception ex) {
+			if (ex instanceof BadCredentialsException) {
+				userService.updateRetryCount(username);
+			}
+			auditActionService.addFailedEvent(AuditActionType.LOGIN, username, ex, request);
+			throw ex;
 		}
 	}
 
 	@PostMapping("/logout")
 	@Timed
-	public ResponseEntity<JWTToken> logout(@Valid @RequestBody JWTToken jwtToken) {
+	public ResponseEntity<JWTToken> logout(@Valid @RequestBody JWTToken jwtToken, HttpServletRequest request) {
 
 		String encToken = jwtToken.getIdToken();
 		String token = E2eEncryptionUtil.decryptEcb(env.getProperty("application.e2eKey"), encToken);
@@ -148,6 +152,7 @@ public class UserJWTController {
 				userExtraRepository.save(userExtra);
 			}
 		}
+		auditActionService.addSuccessEvent(AuditActionType.LOGOUT, authentication.getName(), request);
 
 		return new ResponseEntity<>(HttpStatus.OK);
 	}

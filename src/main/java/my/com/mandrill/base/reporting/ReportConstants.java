@@ -379,6 +379,7 @@ public final class ReportConstants {
 	public static final String ATM_DAILY_TRANSACTION_SUMMARY = "ATM Daily Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY = "ATM Monthly Transaction Summary";
 	public static final String ATM_MONTHLY_TRANSACTION_SUMMARY_REPORT_HEADER = "ATM MONTHLY TRANSACTION SUMMARY REPORT";
+	public static final String SYSTEM_USER_ACTIVITY_REPORT = "System User Activity Report";
 
 	//Report Category
 	public static final String GL_HANDOFF_FILES = "GL Handoff Files";
@@ -391,4 +392,8 @@ public final class ReportConstants {
 	public static final String DEACTIVATE_DORMANT = "Dormant";
 	public static final String DEACTIVATE_LOCKED = "Locked";
 	public static final String DEACTIVATE_PASSWORD_EXPIRED = "Password Expired";
+	
+	//Institution
+	public static final String INSTITUTION_CBC  = "CBC";
+	public static final String INSTITUTION_CBS  = "CBS";
 }

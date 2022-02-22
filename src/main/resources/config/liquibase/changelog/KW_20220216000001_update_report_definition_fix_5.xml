@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="KW_20220216000001_update_report_definition_fix_5" author="kw">
+    	<validCheckSum>any</validCheckSum>  
+	
+		<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/alter_sequence_20220220.sql"
+                 splitStatements="true" 
+                 stripComments="true" />
+         <modifyDataType
+            columnName="VALUE"
+            newDataType="varchar2(2500)"
+            tableName="JHI_PERSISTENT_AUDIT_EVT_DATA"/>
+       	<sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/User_Profile_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/List_of_Group_Roles.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/System/System_User_Activity_Report.sql"
+                 splitStatements="false" 
+                 stripComments="true" /> 
+        <sql>update JHI_PERSISTENT_AUDIT_EVENT set EVENT_TYPE='LOGIN' where EVENT_TYPE='AUTHENTICATION_SUCCESS';</sql> 
+        <sql>update JHI_PERSISTENT_AUDIT_EVENT set EVENT_TYPE='LOGIN' where EVENT_TYPE='AUTHENTICATION_FAILURE';</sql>      
+    </changeSet>
+    
+</databaseChangeLog>

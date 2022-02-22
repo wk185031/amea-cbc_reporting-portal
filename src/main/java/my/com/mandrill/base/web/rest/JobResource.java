@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -44,89 +45,97 @@ import my.com.mandrill.base.web.rest.util.HeaderUtil;
 @RequestMapping("/api")
 public class JobResource {
 
-    private final Logger log = LoggerFactory.getLogger(JobResource.class);
+	private final Logger log = LoggerFactory.getLogger(JobResource.class);
 
-    private static final String ENTITY_NAME = "Job";
+	private static final String ENTITY_NAME = "Job";
 
-    private final JobRepository jobRepository;
+	private final JobRepository jobRepository;
 
-    private final JobSearchRepository jobSearchRepository;
+	private final JobSearchRepository jobSearchRepository;
 
-    private final DatabaseSynchronizer databaseSynchronizer;
-    
-    private final AuditActionService auditActionService;
+	private final DatabaseSynchronizer databaseSynchronizer;
 
-    public JobResource(JobRepository jobRepository, JobSearchRepository jobSearchRepository, DatabaseSynchronizer databaseSynchronizer,
-    		AuditActionService auditActionService) {
-        this.jobRepository = jobRepository;
-        this.jobSearchRepository = jobSearchRepository;
-        this.databaseSynchronizer = databaseSynchronizer;
-        this.auditActionService = auditActionService;
-    }
+	private final AuditActionService auditActionService;
 
-    /**
-     * POST  /jobs : Create a new Job.
-     *
-     * @param Job the Job to create
-     * @return the ResponseEntity with status 201 (Created) and with body the new Job, or with status 400 (Bad Request) if the Job has already an ID
-     * @throws URISyntaxException if the Location URI syntax is incorrect
-     */
-    @PostMapping("/jobs")
-    @Timed
-    public ResponseEntity<Job> createJob(@Valid @RequestBody Job job) throws URISyntaxException {
-        log.debug("REST request to save Job : {}", job);
-        if (job.getId() != null) {
-            throw new BadRequestAlertException("A new Job cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        Job result = jobRepository.save(job);
-        jobSearchRepository.save(result);
-        return ResponseEntity.created(new URI("/api/jobs/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
-    }
+	public JobResource(JobRepository jobRepository, JobSearchRepository jobSearchRepository,
+			DatabaseSynchronizer databaseSynchronizer, AuditActionService auditActionService) {
+		this.jobRepository = jobRepository;
+		this.jobSearchRepository = jobSearchRepository;
+		this.databaseSynchronizer = databaseSynchronizer;
+		this.auditActionService = auditActionService;
+	}
 
-    /**
-     * PUT  /jobs : Updates an existing Job.
-     *
-     * @param job, the Job to update
-     * @return the ResponseEntity with status 200 (OK) and with body the updated Job,
-     * or with status 400 (Bad Request) if the Job is not valid,
-     * or with status 500 (Internal Server Error) if the Job couldn't be updated
-     * @throws URISyntaxException if the Location URI syntax is incorrect
-     */
-    @PutMapping("/jobs")
-    @Timed
-    public ResponseEntity<Job> updateJob(@Valid @RequestBody Job job) throws URISyntaxException {
-        log.debug("REST request to update Job : {}", job);
-        if (job.getId() == null) {
-            return createJob(job);
-        }
-        Job result = jobRepository.save(job);
-        jobSearchRepository.save(result);
-        if (job.getName().equalsIgnoreCase("DB_SYNC")) {
-			try {
-				databaseSynchronizer.refreshCronSchedule();
-				auditActionService.addSuccessEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null);
-			} catch (Exception e) {
-				auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e);
-				throw e;
+	/**
+	 * POST /jobs : Create a new Job.
+	 *
+	 * @param Job the Job to create
+	 * @return the ResponseEntity with status 201 (Created) and with body the new
+	 *         Job, or with status 400 (Bad Request) if the Job has already an ID
+	 * @throws URISyntaxException if the Location URI syntax is incorrect
+	 */
+	@PostMapping("/jobs")
+	@Timed
+	public ResponseEntity<Job> createJob(@Valid @RequestBody Job job) throws URISyntaxException {
+		log.debug("REST request to save Job : {}", job);
+		if (job.getId() != null) {
+			throw new BadRequestAlertException("A new Job cannot already have an ID", ENTITY_NAME, "idexists");
+		}
+		Job result = jobRepository.save(job);
+		jobSearchRepository.save(result);
+		return ResponseEntity.created(new URI("/api/jobs/" + result.getId()))
+				.headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+	}
+
+	/**
+	 * PUT /jobs : Updates an existing Job.
+	 *
+	 * @param job, the Job to update
+	 * @return the ResponseEntity with status 200 (OK) and with body the updated
+	 *         Job, or with status 400 (Bad Request) if the Job is not valid, or
+	 *         with status 500 (Internal Server Error) if the Job couldn't be
+	 *         updated
+	 * @throws URISyntaxException if the Location URI syntax is incorrect
+	 */
+	@PutMapping("/jobs")
+	@Timed
+	public ResponseEntity<Job> updateJob(@Valid @RequestBody Job job, HttpServletRequest request)
+			throws URISyntaxException {
+		log.debug("REST request to update Job : {}", job);
+		if (job.getId() == null) {
+			return createJob(job);
+		}
+
+		try {
+			Job result = jobRepository.save(job);
+			jobSearchRepository.save(result);
+			if (job.getName().equalsIgnoreCase("DB_SYNC")) {
+				try {
+					databaseSynchronizer.refreshCronSchedule();
+					auditActionService.addSuccessEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, request);
+				} catch (Exception e) {
+					auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e, request);
+					throw e;
+				}
 			}
-        }
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, job.getId().toString()))
-            .body(result);
-    }
+			return ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, job.getId().toString()))
+					.body(result);
+		} catch (Exception e) {
+			auditActionService.addFailedEvent(AuditActionType.SYNC_SCHEDULER_UDPATE, null, e, request);
+			throw e;
+		}
 
-    /**
-     * GET  /jobs : get all the Jobs.
-     *
-     * @return the ResponseEntity with status 200 (OK) and the list of Jobs in body
-     */
-    @GetMapping("/jobs")
-    @Timed
+	}
+
+	/**
+	 * GET /jobs : get all the Jobs.
+	 *
+	 * @return the ResponseEntity with status 200 (OK) and the list of Jobs in body
+	 */
+	@GetMapping("/jobs")
+	@Timed
 	public List<Job> getAllJobs(@RequestParam(required = false) String name) {
 		log.debug("REST request to get all Jobs");
-		
+
 		List<Job> allJobs = jobRepository.findAll();
 		if (name != null && !name.trim().isEmpty()) {
 			List<Job> jobs = new ArrayList<Job>();
@@ -139,52 +148,52 @@ public class JobResource {
 		} else {
 			return allJobs;
 		}
-		
+
 	}
 
-    /**
-     * GET  /jobs/:id : get the "id" Job.
-     *
-     * @param id the id of the Job to retrieve
-     * @return the ResponseEntity with status 200 (OK) and with body the Job, or with status 404 (Not Found)
-     */
-    @GetMapping("/jobs/{id}")
-    @Timed
-    public ResponseEntity<Job> getJob(@PathVariable Long id) {
-        log.debug("REST request to get Job : {}", id);
-        Job job = jobRepository.findOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(job));
-    }
+	/**
+	 * GET /jobs/:id : get the "id" Job.
+	 *
+	 * @param id the id of the Job to retrieve
+	 * @return the ResponseEntity with status 200 (OK) and with body the Job, or
+	 *         with status 404 (Not Found)
+	 */
+	@GetMapping("/jobs/{id}")
+	@Timed
+	public ResponseEntity<Job> getJob(@PathVariable Long id) {
+		log.debug("REST request to get Job : {}", id);
+		Job job = jobRepository.findOne(id);
+		return ResponseUtil.wrapOrNotFound(Optional.ofNullable(job));
+	}
 
-    /**
-     * DELETE  /jobs/:id : delete the "id" Job.
-     *
-     * @param id the id of the Job to delete
-     * @return the ResponseEntity with status 200 (OK)
-     */
-    @DeleteMapping("/jobs/{id}")
-    @Timed
-    public ResponseEntity<Void> deleteJob(@PathVariable Long id) {
-        log.debug("REST request to delete Job : {}", id);
-        jobRepository.delete(id);
-        jobSearchRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
-    }
+	/**
+	 * DELETE /jobs/:id : delete the "id" Job.
+	 *
+	 * @param id the id of the Job to delete
+	 * @return the ResponseEntity with status 200 (OK)
+	 */
+	@DeleteMapping("/jobs/{id}")
+	@Timed
+	public ResponseEntity<Void> deleteJob(@PathVariable Long id) {
+		log.debug("REST request to delete Job : {}", id);
+		jobRepository.delete(id);
+		jobSearchRepository.delete(id);
+		return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+	}
 
-    /**
-     * SEARCH  /_search/jobs?query=:query : search for the Job corresponding
-     * to the query.
-     *
-     * @param query the query of the Job search
-     * @return the result of the search
-     */
-    @GetMapping("/_search/jobs")
-    @Timed
-    public List<Job> searchJobs(@RequestParam String query) {
-        log.debug("REST request to search Jobs for query {}", query);
-        return StreamSupport
-            .stream(jobSearchRepository.search(queryStringQuery(query)).spliterator(), false)
-            .collect(Collectors.toList());
-    }
+	/**
+	 * SEARCH /_search/jobs?query=:query : search for the Job corresponding to the
+	 * query.
+	 *
+	 * @param query the query of the Job search
+	 * @return the result of the search
+	 */
+	@GetMapping("/_search/jobs")
+	@Timed
+	public List<Job> searchJobs(@RequestParam String query) {
+		log.debug("REST request to search Jobs for query {}", query);
+		return StreamSupport.stream(jobSearchRepository.search(queryStringQuery(query)).spliterator(), false)
+				.collect(Collectors.toList());
+	}
 
 }

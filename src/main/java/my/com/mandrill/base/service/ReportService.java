@@ -1,6 +1,7 @@
 package my.com.mandrill.base.service;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -34,6 +36,7 @@ import my.com.mandrill.base.domain.Institution;
 import my.com.mandrill.base.domain.JobHistory;
 import my.com.mandrill.base.domain.JobHistoryDetails;
 import my.com.mandrill.base.domain.ReportDefinition;
+import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.ReportGenerationResult;
@@ -75,13 +78,51 @@ public class ReportService {
 	private PlatformTransactionManager transactionManager;
 
 	private TransactionTemplate transactionTemplate;
-	
-	@Autowired
-	private ReportCategoryRepository reportCategoryRepository;
 
 	@PostConstruct
 	private void init() {
 		transactionTemplate = new TransactionTemplate(transactionManager);
+	}
+
+	public ReportGenerationMgr generateSystemReport(long reportId, LocalDateTime txnStartDate,
+			LocalDateTime txnEndDate) {
+
+		if (txnStartDate == null) {
+			txnStartDate = LocalDateTime.now();
+		}
+
+		if (txnEndDate == null) {
+			txnEndDate = LocalDateTime.now();
+		}
+
+		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
+				+ "0";
+
+		log.debug("baseDirectory : " + baseDirectory);
+
+		ReportDefinition def = reportDefinitionRepository.findOne(reportId);
+		ReportGenerationMgr mgr = ReportGenerationMgr.create(0, ReportConstants.INSTITUTION_CBC, true, txnStartDate,
+				env, encryptionService, def);
+		mgr.setFileBaseDirectory(baseDirectory);
+		mgr.setFileLocation(baseDirectory);
+		mgr.setReportTxnEndDate(txnEndDate);
+		mgr.setFileNamePrefix(def.getFileNamePrefix());
+		mgr.setTxnStartDate(txnStartDate);
+		mgr.setTxnEndDate(txnEndDate != null ? txnEndDate.plusMinutes(1L) : txnEndDate);
+		mgr.setSystemReport(true);
+
+		try {
+
+			ReportGenerationResult results = reportAsyncService.runReport(mgr).get();
+			if (!results.isSuccess()) {
+				throw new ReportGenerationException(def.getFileNamePrefix(), results.getError());
+			}
+
+		} catch (ExecutionException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		return mgr;
 	}
 
 	public void generateReport(long jobHistoryId, boolean manualGenerate, JobHistoryDetails jobHistoryDetails,
@@ -98,10 +139,15 @@ public class ReportService {
 				.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 		String baseDirectory = Paths.get(env.getProperty("application.reportDir.path")).toString() + File.separator
 				+ jobHistoryDetails.getInstitutionId() + File.separator + yearMonth;
-		
+
 		Map<String, String> reportCategory = new HashMap<String, String>();
-		
-		for (ReportDefinition def : aList) {			
+
+		for (ReportDefinition def : aList) {
+			if (def.isSystem()) {
+				log.debug("skip system report: {}", def.getName());
+				continue;
+			}
+
 			if (skipReportGeneration(manualGenerate, def.isByBusinessDate(),
 					jobHistoryDetails.getTransactionStartDate().toLocalDate(), holidays)) {
 				log.debug("Skip report generation [reportId={}, reportName={}]", def.getId(), def.getName());
@@ -128,13 +174,15 @@ public class ReportService {
 		for (CompletableFuture<ReportGenerationResult> f : futures) {
 			try {
 				ReportGenerationResult r = f.get();
-				
+
 				if (r.isSuccess()) {
 					successCount++;
-					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_COMPLETED);
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(),
+							reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_COMPLETED);
 				} else {
 					failedCount++;
-					jobHistoryDetails.getReportStatusMap().put(r.getReportName(), reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_FAILED);
+					jobHistoryDetails.getReportStatusMap().put(r.getReportName(),
+							reportCategory.get(r.getReportName()) + "|" + ReportConstants.STATUS_FAILED);
 				}
 			} catch (Exception e) {
 				log.error("Failed to complete report.", e);
@@ -342,7 +390,6 @@ public class ReportService {
 			reportGenerationMgr.setFileNamePrefix(filePrefix);
 		}
 	}
-
 
 	public Map<Long, String> getAllInstitutionIdAndShortCode() {
 		Map<Long, String> institutionMap = new HashMap<>();

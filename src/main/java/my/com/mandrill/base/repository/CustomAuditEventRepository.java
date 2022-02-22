@@ -73,19 +73,19 @@ public class CustomAuditEventRepository implements AuditEventRepository {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void add(AuditEvent event) {
-        if (!AUTHORIZATION_FAILURE.equals(event.getType()) &&
-            !Constants.ANONYMOUS_USER.equals(event.getPrincipal())) {
+	public void add(AuditEvent event) {
+		if (!AUTHORIZATION_FAILURE.equals(event.getType()) && !Constants.ANONYMOUS_USER.equals(event.getPrincipal())
+				&& !event.getType().startsWith("AUTHENTICATION")) {
 
-            PersistentAuditEvent persistentAuditEvent = new PersistentAuditEvent();
-            persistentAuditEvent.setPrincipal(event.getPrincipal());
-            persistentAuditEvent.setAuditEventType(event.getType());
-            persistentAuditEvent.setAuditEventDate(event.getTimestamp().toInstant());
-            Map<String, String> eventData = auditEventConverter.convertDataToStrings(event.getData());
-            persistentAuditEvent.setData(truncate(eventData));
-            persistenceAuditEventRepository.save(persistentAuditEvent);
-        }
-    }
+			PersistentAuditEvent persistentAuditEvent = new PersistentAuditEvent();
+			persistentAuditEvent.setPrincipal(event.getPrincipal());
+			persistentAuditEvent.setAuditEventType(event.getType());
+			persistentAuditEvent.setAuditEventDate(event.getTimestamp().toInstant());
+			Map<String, String> eventData = auditEventConverter.convertDataToStrings(event.getData());
+			persistentAuditEvent.setData(truncate(eventData));
+			persistenceAuditEventRepository.save(persistentAuditEvent);
+		}
+	}
 
     /**
      * Truncate event data that might exceed column length.

@@ -36,6 +36,9 @@ public class PersistentAuditEvent implements Serializable {
     @Column(name = "value")
     @CollectionTable(name = "jhi_persistent_audit_evt_data", joinColumns=@JoinColumn(name="event_id"))
     private Map<String, String> data = new HashMap<>();
+    
+    @Column(name = "source_ip")
+    private String sourceIp;
 
     public Long getId() {
         return id;
@@ -76,4 +79,12 @@ public class PersistentAuditEvent implements Serializable {
     public void setData(Map<String, String> data) {
         this.data = data;
     }
+
+	public String getSourceIp() {
+		return sourceIp;
+	}
+
+	public void setSourceIp(String sourceIp) {
+		this.sourceIp = sourceIp;
+	}  
 }

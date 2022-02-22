@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { JhiParseLinks } from 'ng-jhipster';
+import { JhiParseLinks , JhiAlertService} from 'ng-jhipster';
 
 import { Audit } from './audit.model';
 import { AuditsService } from './audits.service';
 import { ITEMS_PER_PAGE } from '../../shared';
+import { GenerateReportService } from '../../reporting/generate-report/generate-report.service';
 
 @Component({
   selector: 'jhi-audit',
@@ -24,7 +25,9 @@ export class AuditsComponent implements OnInit {
 
     constructor(
         private auditsService: AuditsService,
-        private parseLinks: JhiParseLinks
+        private parseLinks: JhiParseLinks,
+        private generateReportService: GenerateReportService,
+        private jhiAlertService: JhiAlertService
     ) {
         this.itemsPerPage = ITEMS_PER_PAGE;
         this.page = 1;
@@ -92,5 +95,34 @@ export class AuditsComponent implements OnInit {
         });
 
         return this.reverse ? audits.reverse() : audits;
+    }
+    
+    export(reportCategory: string, reportName:string) {
+    	console.log('Export method in ts');
+    	console.log(this.fromDate);
+    	console.log(this.toDate);
+    	
+    	let fromTime = '00:00';
+    	let endTime = '23:59';
+    	
+    	let startDateTime = this.fromDate + ' ' + fromTime;
+        let endDateTime = this.toDate + ' ' + endTime;
+            
+    	this.generateReportService.exportReport(reportCategory, reportName, startDateTime, endDateTime).subscribe(resp => {
+    		const a: any = document.createElement('a');
+    		const contentDisposition = resp.headers.get('content-disposition');
+    		const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim().replace(/(^"|"$)/g, '');
+    		console.log('download file: ' + filename);
+    		a.href = window.URL.createObjectURL(resp.body);
+    		a.target = '_blank';
+    		a.download = filename;
+            document.body.appendChild(a);
+            
+            a.click();
+    	}, error => {
+    		
+    		this.jhiAlertService.error('error.report.exportFailed', null, null);
+    	});
+    	
     }
 }

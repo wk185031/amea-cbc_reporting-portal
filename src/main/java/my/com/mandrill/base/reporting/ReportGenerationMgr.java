@@ -44,6 +44,7 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 	private LocalDate postingDate;
 	private DataSource datasource;
 	private long jobId;
+	private boolean systemReport = false;
 	
 	public String getFixBodyQuery() {
 		return fixBodyQuery;
@@ -480,4 +481,14 @@ public class ReportGenerationMgr extends ReportGenerationFields {
 
 		return reportGenerationMgr;
 	}
+
+	public boolean isSystemReport() {
+		return systemReport;
+	}
+
+	public void setSystemReport(boolean systemReport) {
+		this.systemReport = systemReport;
+	}
+	
+	
 }
