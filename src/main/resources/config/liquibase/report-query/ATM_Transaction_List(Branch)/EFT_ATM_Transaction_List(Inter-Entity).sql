@@ -7,7 +7,7 @@
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'EFT - ATM Transaction List (Inter-Entity)';
-	i_PROCESSING_CLASS VARCHAR2(100) := 'my.com.mandrill.base.reporting.reportProcessor.BranchReportProcessor';
+	i_PROCESSING_CLASS VARCHAR2(100) := 'my.com.mandrill.base.reporting.reportProcessor.BranchReportSplitFileProcessor';
     i_BODY_FIELDS CLOB;
 	i_BODY_QUERY CLOB;
 	

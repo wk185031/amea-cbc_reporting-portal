@@ -130,6 +130,20 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 						}
 
 					} while (rs.next());
+					
+					if (!branchQueue.isEmpty()) {	
+						do {
+							currentBranchFromQueue = branchQueue.poll();
+							logger.debug("write no record found for: currentBranchFromQueue={}, nextBranchCodeToWrite={}",
+									currentBranchFromQueue.getAbr_code(), nextBranchCodeToWrite);
+							groupingField.clear();
+							groupingField.put(GROUP_FIELD_BRANCH, currentBranchFromQueue.getAbr_code());
+							masterStream = newPage(masterDoc, masterStream, rgm, currentBranchFromQueue.getAbr_code(),
+									currentBranchFromQueue.getAbr_name());
+							writeNoRecordFound(masterStream);
+							incrementLineCounter();						
+						} while (!branchQueue.isEmpty());
+					}
 
 				} else {
 					logger.debug("No records found. Write all empty");
@@ -155,11 +169,11 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 
 				File masterReport = new File(masterDocPath);
 				if (masterReport.exists()) {
-					FileUtils.splitBranchReportByText(masterReport, masterReport.getParentFile().getParentFile().getParentFile());
+					FileUtils.splitBranchReportByText(masterReport,
+							masterReport.getParentFile().getParentFile().getParentFile(), rgm.getReportCategory());
 				} else {
 					logger.info("Master Report not found. Will not split branch document.");
 				}
-
 			}
 
 		} catch (Exception e) {
@@ -179,7 +193,6 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 
 			}
 		}
-
 	}
 
 	protected String replaceBodyQueryCriteria(ReportGenerationMgr rgm) {
