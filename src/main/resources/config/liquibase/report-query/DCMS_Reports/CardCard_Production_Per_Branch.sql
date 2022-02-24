@@ -23,48 +23,68 @@ BEGIN
 	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"BRANCH CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"BRANCH CODE","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"BRANCH NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","defaultValue":"BRANCH NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"PRODUCED","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"ACTIVATED","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"BRANCH_CODE","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":6,"sectionName":"6","fieldName":"BRANCH_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"PRODUCED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"ACTIVATED","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false}]');
 	i_TRAILER_FIELDS_CBS := null;
 	
-	i_BODY_QUERY := TO_CLOB('
-	select
+	i_BODY_QUERY := TO_CLOB('SELECT 
 	brn_code as BRANCH_CODE,
 	brn_name as BRANCH_NAME,
-	case when sum(enrollments) is null then 0 else sum(enrollments) end as ENROLLMENTS,
-	case when sum(produced) is null then 0 else sum(produced) end as PRODUCED,
-	case when sum(activated) is null then 0 else sum(activated) end as ACTIVATED
-	from(select count(case when (csh.csh_id is null or (csh.csh_emb_id is null and csh.csh_pin_offset is null)) and ccr_sts_id in (68,70) then 1 end) as enrollments,
-	count(case when csh.csh_emb_id is not null and csh_life_cycle = 4 then 1 end) as produced,
-	count(case when clt_cif_number is not null and csh.csh_sts_id = 72 and  csh_life_cycle = 5 then 1 end) as activated,
-	brn.brn_code,brn.brn_name
-	from
-		{DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
-		LEFT join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
-		LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
-		left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
-	  left join {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CAM_CSH_ID = CSH_ID
-	  LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
-	  where ccr.ccr_ins_id = {Iss_Id}
-	  and ccr.ccr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
-	  and ccr.ccr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
-	  and ccr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = {Iss_Id} and cdt_type_name = ''Cash'')
-	  group by brn.brn_code,brn.brn_name
-	union
-	select sum(distinct case when (csh.csh_id is null or (csh.csh_emb_id is null and csh.csh_pin_offset is null)) and bcr_sts_id in (68,70) then bcr_number_of_cards end) as enrollments,
-	count(case when csh.csh_emb_id is not null and csh_life_cycle = 4 then 1 end) as produced,
-	count(case when clt_cif_number is not null and csh.csh_sts_id = 72 and  csh_life_cycle = 5 and CSH_IS_LINKED =1 then 1 end) as activated,
-	brn.brn_code,brn.brn_name
-	from
-	{DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
+	sum(produced) as PRODUCED,
+	sum(activated) as ACTIVATED
+	from(
+	--Manual issuance / Batch Upload
+	select 
+	brn_code,
+	brn_name,
+	count(case when csh.csh_emb_id is not null then 1 end) as produced,
+	0 as activated
+	FROM {DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
+	join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
+	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
+	where ccr.ccr_ins_id = {Iss_Id}
+	and FROM_TZ( CAST( ccr.ccr_created_ts AS TIMESTAMP ), ''UTC'' )
+    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and ccr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = 1 and cdt_type_name = ''Cash'')
+	AND CCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
+	AND CCR_STS_ID not in (67,69)
+	group by brn.brn_code,brn.brn_name
+	UNION ALL
+	--Manual/BAU cc activation
+	select
+	brn_code,
+	brn_name,
+	0 as produced,
+	count(case when scca.cc_caa_id is not null then 1 end) as activated
+	from {DCMS_Schema}.Support_CC_Activation@{DB_LINK_DCMS} Scca
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Scca.Cc_Caa_Cam_Id = ICCAM.CAM_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICCAM.CAM_CSH_ID = ICC.CSH_ID
+	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = Scca.cc_caa_brn_id
+	where Scca.Cc_Caa_Ins_Id = {Iss_Id}
+	and csh_kit_number is null
+	and Scca.Cc_Caa_Sts_Id IN (91)
+	AND FROM_TZ( CAST( To_Date(Scca.CC_CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') AS TIMESTAMP ), ''UTC'' )
+    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')  
+	and csh_audit_log like ''%Status changed from Inactive to ACTIVE%''
+	group by brn.brn_code,brn.brn_name
+	UNION ALL
+	--CC Pre-gen card
+	select
+	brn.brn_code,brn.brn_name,
+	count(case when csh.csh_emb_id is not null AND CLT_CIF_NUMBER IS NULL then 1 end) as produced,
+	count(case when CSH_KIT_NUMBER IS NOT NULL and CLT_CIF_NUMBER IS NOT NULL then 1 end) as activated
+	from {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
 	LEFT join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on CSH_BCR_ID = BCR_NUMBER
 	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = bcr_brn_id
-  	left join {DCMS_Schema}.issuance_embossing_file@{DB_LINK_DCMS} emb on emb.emb_id = csh.csh_emb_id
-	left join {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ON CAM_CSH_ID = CSH_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM ON CAM_CSH_ID = CSH_ID
 	LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
 	where BCR_INS_ID = {Iss_Id}
-	and bcr_created_ts >= To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
-	and bcr_created_ts < To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
-	and bcr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = {Iss_Id} and cdt_type_name = ''Cash'')
-	group by brn.brn_code,brn.brn_name
-	)group by brn_code,brn_name
-	 order by brn_code');
+	and FROM_TZ( CAST( bcr_created_ts AS TIMESTAMP ), ''UTC'' )
+    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and bcr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = 1 and cdt_type_name = ''Cash'')
+	and bcr_sts_id not in (67,69)
+	group by brn.brn_code,brn.brn_name)
+	group by brn_code,brn_name
+	order by brn_code');
 	
 	i_TRAILER_QUERY := null;
 	
