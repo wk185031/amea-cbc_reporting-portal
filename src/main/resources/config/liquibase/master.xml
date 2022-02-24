@@ -344,4 +344,5 @@
 	<include file="config/liquibase/changelog/WY_20220222000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220216000001_update_report_definition_fix_5.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220222000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/KW_20220224000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

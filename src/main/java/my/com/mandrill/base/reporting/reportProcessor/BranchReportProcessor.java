@@ -115,8 +115,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 										field.setValue("");
 									}
 								}
-								writeRowData(rgm, masterDoc, null, lineFieldsMap, groupingField, b.getAbr_code(),
-										b.getAbr_name(), masterStream, null);
+								writeRowData(rgm, masterDoc, branchDoc, lineFieldsMap, groupingField, b.getAbr_code(),
+										b.getAbr_name(), masterStream, branchStream);
 								if (getLineCounter() >= getMaxLinePerPage()) {
 									masterStream = newPage(masterDoc, masterStream, rgm, b.getAbr_code(),
 											b.getAbr_name());
@@ -128,6 +128,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 								noRecordFound = false;
 
 							} while (rs.next());
+
 						} else {
 							writeNoRecordFound(masterStream, branchStream);
 							incrementLineCounter();
@@ -136,10 +137,8 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					}
 
 					if (!noRecordFound) {
-						//String terminal = groupingField.get("TERMINAL").substring(0, 4);
-						//logger.debug("Write summary for last terminal:{}", terminal);
-						writeTrailerSummary(rgm, masterDoc, null, groupingField, b.getAbr_code(), b.getAbr_name(),
-								masterStream, null);
+						writeTrailerSummary(rgm, masterDoc, branchDoc, groupingField, b.getAbr_code(), b.getAbr_name(),
+								masterStream, branchStream);
 					}
 
 					if (branchStream != null) {
@@ -326,6 +325,9 @@ public class BranchReportProcessor extends PdfReportProcessor {
 					incrementLineCounter(getNoOfRowForTrailer());
 
 				}
+				
+				
+				
 			} catch (Exception e) {
 				rgm.errors++;
 				logger.error("Error trying to execute the trailer query ", e);
@@ -601,7 +603,7 @@ public class BranchReportProcessor extends PdfReportProcessor {
 	}
 
 	protected int getMaxLinePerPage() {
-		return 120;
+		return 75;
 	}
 
 }
