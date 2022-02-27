@@ -411,6 +411,10 @@ public class UserService {
 		SystemConfiguration config = configRepo.findByName(ReportConstants.SECURITY_MAX_LOGIN_RETRY);
 
 		List<UserExtra> userExtraList = userExtraRepository.findByUserLogin(username);
+		if (userExtraList == null || userExtraList.isEmpty()) {
+			log.warn("User:{} not found!", username);
+			return;
+		}
 		UserExtra userExtra = userExtraList.get(0);
 
 		User user = userExtra.getUser();
