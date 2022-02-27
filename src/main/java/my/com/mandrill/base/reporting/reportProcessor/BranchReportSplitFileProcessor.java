@@ -23,6 +23,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.service.util.FileUtils;
+import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
 public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 
@@ -92,14 +93,15 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 							}
 						}
 
-						String currentBranch = rs.getString("BRANCH CODE");
+						String currentBranch = StringUtils.defaultString(rs.getString("BRANCH CODE"), "");
 						if (nextBranchCodeToWrite == null || !currentBranch.equals(nextBranchCodeToWrite)) {
 							currentBranchFromQueue = branchQueue.poll();
 							nextBranchCodeToWrite = currentBranch;
 							isNewBranch = true;
 						}
-
-						if (!nextBranchCodeToWrite.equals(currentBranchFromQueue.getAbr_code())) {
+						
+						if (currentBranchFromQueue != null
+								&& !currentBranchFromQueue.getAbr_code().equals(nextBranchCodeToWrite)) {
 							do {
 								logger.debug("write empty section for branch: {}",
 										currentBranchFromQueue.getAbr_code());
@@ -114,19 +116,19 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 
 						logger.debug("write record for branch: {}", nextBranchCodeToWrite);
 
+						String branchCode = nextBranchCodeToWrite;
+						String branchName = (currentBranchFromQueue == null ? nextBranchCodeToWrite
+								: currentBranchFromQueue.getAbr_name());
 						if (isNewBranch) {
-							masterStream = newPage(masterDoc, masterStream, rgm, currentBranchFromQueue.getAbr_code(),
-									currentBranchFromQueue.getAbr_name());
+							masterStream = newPage(masterDoc, masterStream, rgm, branchCode, branchName);
 							groupingField.clear();
-							groupingField.put(GROUP_FIELD_BRANCH, currentBranchFromQueue.getAbr_code());
+							groupingField.put(GROUP_FIELD_BRANCH, branchCode);
 							isNewBranch = false;
 						}
-						writeRowData(rgm, masterDoc, null, lineFieldsMap, groupingField,
-								currentBranchFromQueue.getAbr_code(), currentBranchFromQueue.getAbr_name(),
+						writeRowData(rgm, masterDoc, null, lineFieldsMap, groupingField, branchCode, branchName,
 								masterStream, null);
 						if (getLineCounter() >= getMaxLinePerPage()) {
-							masterStream = newPage(masterDoc, masterStream, rgm, currentBranchFromQueue.getAbr_code(),
-									currentBranchFromQueue.getAbr_name());
+							masterStream = newPage(masterDoc, masterStream, rgm, branchCode, branchName);
 						}
 
 					} while (rs.next());
