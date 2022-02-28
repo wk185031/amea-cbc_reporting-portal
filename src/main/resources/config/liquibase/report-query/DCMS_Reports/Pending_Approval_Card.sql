@@ -39,7 +39,8 @@ SELECT
 	IC.CRD_CARDHOLDER_NAME AS CLIENTNAME,
 	SALD.ADL_BAC_ID AS FROM_DATA,
     '' '' TO_DATA,
-	MS.STS_NAME AS STATUS
+	MS.STS_NAME AS STATUS,
+	'''' as AUDIT_LOG
 FROM
 	{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING@{DB_LINK_DCMS} SALD
 	JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
@@ -63,7 +64,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	 '' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Add_On_Card@{DB_LINK_DCMS} Rac
 	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Rac.Aoc_Clt_Id = Ic.Crd_Id
@@ -86,7 +88,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
     '' '' FROM_DATA,
     CAST(ACL_AUDIT_LOG AS VARCHAR2(1000)) TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Account_Linking@{DB_LINK_DCMS} Sal
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sal.Acl_Ccm_Id = Iccm.Ccm_Id
@@ -110,7 +113,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Card_Activation@{DB_LINK_DCMS} Sac
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
@@ -134,7 +138,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
@@ -158,7 +163,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Activation@{DB_LINK_DCMS} Scca
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scca.Cc_Caa_Cam_Id = Iccm.Ccm_Id
@@ -182,7 +188,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Renewal@{DB_LINK_DCMS} Sccr
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccr.Cc_Crn_Cam_Id = Iccm.Ccm_Id
@@ -206,7 +213,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Dehotlist@{DB_LINK_DCMS} Sccd
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccd.Cc_Dhl_Cam_Id = Iccm.Ccm_Id
@@ -230,7 +238,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Hotlist@{DB_LINK_DCMS} Scch
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
@@ -254,7 +263,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Reset_Pin_Counter@{DB_LINK_DCMS} Sccrp
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccrp.Cc_Rpc_Cam_Id = Iccm.Ccm_Id
@@ -278,7 +288,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Hotlist@{DB_LINK_DCMS} Scht
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scht.Cc_Hot_Cam_Id = Iccm.Ccm_Id
@@ -302,7 +313,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Repin@{DB_LINK_DCMS} Sdrp
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
@@ -326,7 +338,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Reset_Pin_Counter@{DB_LINK_DCMS} Srp
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
@@ -350,7 +363,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_STOP_RENEWAL@{DB_LINK_DCMS} Scrn
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scrn.SRN_Ccm_Id = Iccm.Ccm_Id
@@ -374,7 +388,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Default_Acc_Req_Map@{DB_LINK_DCMS} Dac
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
@@ -398,7 +413,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Txn_Limit_Req_Map@{DB_LINK_DCMS} Scctlu
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scctlu.CC_TRM_Cam_Id = Iccm.Ccm_Id
@@ -422,7 +438,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Repin@{DB_LINK_DCMS} Srp
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Cc_Rep_Cam_Id = Iccm.Ccm_Id
@@ -446,7 +463,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Address_Update_Req_Map@{DB_LINK_DCMS} Sarm
 	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarm.AUR_CLT_ID = IC.CRD_ID
@@ -469,7 +487,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Cc_Add_Update_Req_Map@{DB_LINK_DCMS} Sarcm
 	Join {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON Sarcm.CC_AUR_CLT_ID = IC.CRD_ID
@@ -492,7 +511,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Dehotlist@{DB_LINK_DCMS} Sdhl
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
@@ -516,7 +536,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.Support_Txn_Limit_Request_Map@{DB_LINK_DCMS} Stlu
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
@@ -540,7 +561,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} ICCR
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On ICCR.CCR_CLT_Id = Iccm.CCM_CLT_ID
@@ -564,7 +586,8 @@ Select
 	Ic.Crd_Cardholder_Name As Clientname,
 	'' '' FROM_DATA,
     '' '' TO_DATA,
-	Ms.Sts_Name As Status
+	Ms.Sts_Name As Status,
+	'''' as AUDIT_LOG
 From
 	{DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} IDCR
 	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On IDCR.DCR_CLT_Id = Iccm.CCM_CLT_ID
@@ -576,6 +599,58 @@ Where
 	To_Date(IDCR.DCR_Created_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
 	And Sts_Id = 89
 	And IDCR.DCR_Ins_Id = 1
+	
+UNION ALL
+Select
+	''CC WITHHELD AUTO RNW'' As FunctionName,
+	TO_CHAR(TO_TIMESTAMP(Sccwith.CC_WAR_CREATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	ICC.CSH_CARD_NUMBER as CRD_NUMBER_ENC, 
+	INS.INS_CODE AS INSTITUTION_ID,
+	COALESCE(ICC.CSH_KEY_ROTATION_NUMBER, 1) ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	Sccwith.CC_WAR_REMARKS As Remarks,
+	ICC.Csh_Cardholder_Name As CLIENT_NAME,
+	'''' AS FROM_DATA,
+    '''' AS TO_DATA,
+	Ms.Sts_Name As Status,
+	TO_CHAR(SUBSTR (CC_WAR_AUDIT_LOG,0,3999)) as AUDIT_LOG
+From
+	{DCMS_Schema}.SUPPORT_CC_WITHHELD_RENEWAL@{DB_LINK_DCMS} Sccwith
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccwith.CC_WAR_CAM_ID = ICCAM.CAM_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICCAM.CAM_CSH_ID = ICC.CSH_ID
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccwith.CC_WAR_STS_ID=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_WAR_CREATED_BY
+	Where
+		To_Date(Sccwith.CC_WAR_CREATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+		AND STS_ID = 89
+		And Sccwith.CC_WAR_INS_ID = {Iss_Name}
+UNION ALL
+Select
+	''WITHHELD AUTO RNW'' As FunctionName,
+	TO_CHAR(TO_TIMESTAMP(Swrnw.WAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS''), ''MM/DD/YY HH24:MI'') As Issue_Date,
+	Ic.CRD_NUMBER_ENC,
+	INS.INS_CODE AS INSTITUTION_ID,
+	COALESCE(Ic.CRD_KEY_ROTATION_NUMBER, 1) ROTATION_NUMBER,
+	STF1.STF_LOGIN_NAME As Maker,
+	Swrnw.WAR_REMARKS As Remarks,
+	Ic.Crd_Cardholder_Name As CLIENT_NAME,
+	'''' AS FROM_DATA,
+    '''' AS TO_DATA,
+	Ms.Sts_Name As Status,
+	TO_CHAR(SUBSTR (WAR_AUDIT_LOG,0,3999)) as AUDIT_LOG
+From
+	{DCMS_Schema}.SUPPORT_WITHHELD_RENEWAL@{DB_LINK_DCMS} Swrnw
+	Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Swrnw.WAR_CCM_ID = Iccm.Ccm_Id
+	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
+	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Swrnw.WAR_STS_ID=Ms.Sts_Id
+	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
+	JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = WAR_CREATED_BY
+Where
+	To_Date(Swrnw.WAR_CREATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	AND STS_ID = 89
+	And Swrnw.WAR_INS_ID = {Iss_Name}
+
 ) ORDER BY ISSUE_DATE
 ');	
 	i_TRAILER_QUERY := null;

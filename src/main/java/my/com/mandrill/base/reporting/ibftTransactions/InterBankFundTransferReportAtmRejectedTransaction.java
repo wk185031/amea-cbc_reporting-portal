@@ -478,20 +478,28 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 								branchCode = result.toString();
 							}
 							if (key.equalsIgnoreCase(ReportConstants.ISSUER_BRANCH_NAME)) {
-								branchName = result.toString();
+								branchName = (result == null || result.toString().isEmpty()) ? branchCode : result.toString();
 							}
 							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
 								bankCode = result.toString();
 							}
 							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-								bankName = result.toString();
+								bankName = (result == null || result.toString().isEmpty()) ? bankCode : result.toString();
 							}
 							if (key.equalsIgnoreCase(ReportConstants.ACQUIRER_BANK_MNEM)) {
 								acqBankMnem = result.toString();
 							}
 						}
 					}
-					if (criteriaMap.get(branchCode) == null) {
+					
+					if (bankName == null) {
+						bankName = bankCode;
+					}
+					if (branchName == null) {
+						branchName = branchCode;
+					}
+					
+					if (!criteriaMap.containsKey(branchCode)) {
 						Map<String, Map<String, Map<String, String>>> branchNameMap = new TreeMap<>();
 						Map<String, Map<String, String>> acqBankMnemMap = new TreeMap<>();
 						Map<String, String> bankNameMap = new TreeMap<>();
@@ -501,7 +509,7 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 						criteriaMap.put(branchCode, branchNameMap);
 					} else {
 						Map<String, Map<String, Map<String, String>>> branchNameMap = criteriaMap.get(branchCode);
-						if (branchNameMap.get(branchName) == null) {
+						if (!branchNameMap.containsKey(branchName)) {
 							Map<String, Map<String, String>> acqBankMnemMap = new TreeMap<>();
 							Map<String, String> bankNameMap = new TreeMap<>();
 							bankNameMap.put(bankName, bankCode);
@@ -509,7 +517,7 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 							branchNameMap.put(branchName, acqBankMnemMap);
 						} else {
 							Map<String, Map<String, String>> acqBankMnemMap = branchNameMap.get(branchName);
-							if (acqBankMnemMap.get(bankCode) == null) {
+							if (!acqBankMnemMap.containsKey(bankCode)) {
 								Map<String, String> bankNameMap = new TreeMap<>();
 								bankNameMap.put(bankName, bankCode);
 								acqBankMnemMap.put(acqBankMnem, bankNameMap);
@@ -573,6 +581,13 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 							}
 						}
 					}
+					if (bankName == null) {
+						bankName = bankCode;
+					}
+					if (acqBankMnem == null) {
+						acqBankMnem = "";
+					}
+					
 					if (!criteriaMap.containsKey(acqBankMnem)) {
 						Map<String, String> bankNameMap = new TreeMap<>();
 						bankNameMap.put(bankName, bankCode);

@@ -69,7 +69,8 @@ BEGIN
 			IC.CRD_CARDHOLDER_NAME AS CLIENT_NAME,
 			ADL_BAC_ID FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.SUPPORT_ACCOUNT_DELINKING@{DB_LINK_DCMS} SALD
 			JOIN {DCMS_Schema}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK_DCMS} ICCM ON SALD.ADL_CCM_ID = ICCM.CCM_ID
@@ -97,7 +98,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    CAST(ACL_BAC_ID AS VARCHAR2(1000)) TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Account_Linking@{DB_LINK_DCMS} SAL
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On SAL.Acl_Ccm_Id = Iccm.Ccm_Id
@@ -125,7 +127,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_ADDRESS_UPDATE_REQ_MAP@{DB_LINK_DCMS} AUR
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On AUR.AUR_CLT_ID = Iccm.Ccm_CLT_Id
@@ -153,7 +156,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Card_Activation@{DB_LINK_DCMS} Sac
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sac.Caa_Ccm_Id = Iccm.Ccm_Id
@@ -181,7 +185,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Card_Renewal@{DB_LINK_DCMS} Scr
 			Left Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scr.Crn_Ccm_Id = Iccm.Ccm_Id
@@ -209,7 +214,8 @@ BEGIN
 			Icc.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 			'''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Activation@{DB_LINK_DCMS} Scca
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Scca.Cc_Caa_Cam_Id = ICCAM.CAM_ID
@@ -238,7 +244,8 @@ BEGIN
 			ICC.CSH_CARDHOLDER_NAME As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_ADD_UPDATE_REQ_MAP@{DB_LINK_DCMS} Sccadd
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccadd.CC_AUR_CAM_ID = ICCAM.CAM_ID
@@ -266,7 +273,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_CLOSE@{DB_LINK_DCMS} Sccclo
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccclo.CC_CCD_CAM_ID = ICCAM.CAM_ID
@@ -294,7 +302,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		  '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Dehotlist@{DB_LINK_DCMS} Sccd
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccd.CC_DHL_CAM_ID = ICCAM.CAM_ID
@@ -322,7 +331,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Hotlist@{DB_LINK_DCMS} Scht
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Scht.CC_HOT_CAM_ID = ICCAM.CAM_ID
@@ -350,7 +360,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id IN (88,91) THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Renewal@{DB_LINK_DCMS} Sccr
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccr.CC_CRN_CAM_ID = ICCAM.CAM_ID
@@ -378,7 +389,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Repin@{DB_LINK_DCMS} Srp
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Srp.CC_REP_CAM_ID = ICCAM.CAM_ID
@@ -406,7 +418,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			TO_CHAR(CC_OLD_PIN_COUNTER) FROM_DATA,
 		    ''0'' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_CC_Reset_Pin_Counter@{DB_LINK_DCMS} Sccrp
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccrp.Cc_Rpc_Cam_Id = ICCAM.CAM_ID
@@ -434,7 +447,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_STOP_RENEWAL@{DB_LINK_DCMS} Sccsr
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccsr.CC_SRN_CAM_ID = ICCAM.CAM_ID
@@ -462,7 +476,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_TXN_LIMIT_REQ_MAP@{DB_LINK_DCMS} Scctxn
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Scctxn.CC_TRM_CAM_ID = ICCAM.CAM_ID
@@ -490,7 +505,8 @@ BEGIN
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_UPDATE_EMBOSS_NAME@{DB_LINK_DCMS} Sccuen
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON Sccuen.UEN_CC_CSH_ID = ICC.CSH_ID
@@ -515,9 +531,10 @@ BEGIN
 			STF2.STF_LOGIN_NAME As Checker,
 			Sccwith.CC_WAR_REMARKS As Remarks,
 			ICC.Csh_Cardholder_Name As CLIENT_NAME,
-			CASE WHEN Sccwith.CC_WAR_FLAG = 0 THEN ''YES'' ELSE ''NO'' END AS FROM_DATA,
-      		CASE WHEN Sccwith.CC_WAR_FLAG = 0 THEN ''NO'' ELSE ''YES'' END AS TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			'''' AS FROM_DATA,
+      		'''' AS TO_DATA,
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			TO_CHAR(SUBSTR (CC_WAR_AUDIT_LOG,0,3999)) as AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CC_WITHHELD_RENEWAL@{DB_LINK_DCMS} Sccwith
 			JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccwith.CC_WAR_CAM_ID = ICCAM.CAM_ID
@@ -547,7 +564,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_CLOSE_CARD@{DB_LINK_DCMS} Sccard
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sccard.CCD_CCM_ID = Iccm.Ccm_Id
@@ -575,7 +593,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Default_Acc_Req_Map@{DB_LINK_DCMS} Dac
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Dac.DAR_Ccm_Id = Iccm.Ccm_Id
@@ -603,7 +622,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Dehotlist@{DB_LINK_DCMS} Sdhl
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdhl.Dhl_Ccm_Id = Iccm.Ccm_Id
@@ -631,7 +651,8 @@ BEGIN
 			CLT.CLT_FIRST_NAME || ''|'' || CLT.CLT_LAST_NAME  As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_FETCH_CIF_REQUEST@{DB_LINK_DCMS} FCR
 			--Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On FCR.FCR_CLT_ID = Iccm.Ccm_CLT_Id
@@ -660,7 +681,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Hotlist@{DB_LINK_DCMS} Scch
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Scch.Hot_Ccm_Id = Iccm.Ccm_Id
@@ -688,7 +710,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Repin@{DB_LINK_DCMS} Sdrp
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Sdrp.Rep_Ccm_Id = Iccm.Ccm_Id
@@ -716,7 +739,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			TO_CHAR(OLD_PIN_COUNTER) FROM_DATA,
 		    ''0'' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Reset_Pin_Counter@{DB_LINK_DCMS} Srp
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Srp.Rpc_Ccm_Id = Iccm.Ccm_Id
@@ -744,7 +768,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_STOP_RENEWAL@{DB_LINK_DCMS} Ssrnw
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On Ssrnw.SRN_CCM_ID = Iccm.Ccm_Id
@@ -772,7 +797,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.Support_Txn_Limit_Request_Map@{DB_LINK_DCMS} Stlu
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Stlu.Trm_Ccm_Id = Iccm.Ccm_Id
@@ -800,7 +826,8 @@ BEGIN
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
 			'''' FROM_DATA,
 		    '''' TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_UPDATE_EMBOSS_NAME@{DB_LINK_DCMS} Suemb
 			Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Suemb.UEN_CRD_ID = Ic.Crd_Id
@@ -825,9 +852,10 @@ BEGIN
 			STF2.STF_LOGIN_NAME As Checker,
 			Swrnw.WAR_REMARKS As Remarks,
 			Ic.Crd_Cardholder_Name As CLIENT_NAME,
-			CASE WHEN Swrnw.WAR_FLAG = 0 THEN ''YES'' ELSE ''NO'' END AS FROM_DATA,
-      		CASE WHEN Swrnw.WAR_FLAG = 0 THEN ''NO'' ELSE ''YES'' END AS TO_DATA,
-			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			'''' AS FROM_DATA,
+      		'''' AS TO_DATA,
+			CASE WHEN Ms.Sts_Id = 91 THEN ''A'' WHEN Ms.Sts_Id = 90 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			TO_CHAR(SUBSTR (WAR_AUDIT_LOG,0,3999)) as AUDIT_LOG
 		From
 			{DCMS_Schema}.SUPPORT_WITHHELD_RENEWAL@{DB_LINK_DCMS} Swrnw
 			Join {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS}  Iccm On Swrnw.WAR_CCM_ID = Iccm.Ccm_Id
@@ -848,21 +876,17 @@ BEGIN
 			''DEBIT'' AS CARD_TYPE,
 			CASE WHEN STS_ID IN (68,70,165) THEN TO_CHAR(IDCR.DCR_APPROVED_TS, ''MM/DD/YY HH24:MI'')
 		    ELSE TO_CHAR(IDCR.DCR_UPDATED_TS, ''MM/DD/YY HH24:MI'') END AS ISSUE_DATE,
-			CASE WHEN IDCR.DCR_STS_ID IN (68,69,165) THEN IDCR.DCR_NUMBER ELSE 
-			--{DCMS_Schema}.get_accno@{DB_LINK_DCMS}(IDCR.DCR_ID)
-			-- JSON_VALUE(IDCR.DCR_CIF_RESPONSE, ''$.bankAccountCollection[0].bacAccountNumber[0]'')
-			-- {DCMS_Schema}.get_accno@{DB_LINK_DCMS}(IDCR.DCR_CIF_RESPONSE) 
-			JSON_QUERY(IDCR.DCR_CIF_RESPONSE, ''$.bankAccountCollection[0]'')
-				END AS ACC_NO,
+			IDCR.DCR_NUMBER AS ACC_NO,
 			INS.INS_CODE AS INSTITUTION_ID,
-			COALESCE(IC.CRD_KEY_ROTATION_NUMBER, CRD.CRD_KEY_ROTATION_NUMBER) ROTATION_NUMBER,
+			COALESCE(IC.CRD_KEY_ROTATION_NUMBER, CRD.CRD_KEY_ROTATION_NUMBER, 1) ROTATION_NUMBER,
 			STF1.STF_LOGIN_NAME As Maker,
 			STF2.STF_LOGIN_NAME As Checker,
 			IDCR.DCR_REMARK AS REMARKS,
 			COALESCE(IC.CRD_CARDHOLDER_NAME,CRD.CRD_CARDHOLDER_NAME) AS CLIENT_NAME,
 			'''' FROM_DATA,
 			CRD.CRD_NUMBER TO_DATA,
-			CASE WHEN IDCR.DCR_STS_ID IN (68,70,165) THEN ''A'' WHEN IDCR.DCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN IDCR.DCR_STS_ID IN (68,70,165) THEN ''A'' WHEN IDCR.DCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} IDCR
 			LEFT JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON IC.CRD_BCR_ID = IDCR.DCR_NUMBER 
@@ -883,16 +907,17 @@ BEGIN
 			''CASH'' AS CARD_TYPE,
 			CASE WHEN ICCR.CCR_STS_ID IN (68,70,165) THEN TO_CHAR(ICCR.CCR_APPROVED_TS, ''MM/DD/YY HH24:MI'')
 		    ELSE TO_CHAR(ICCR.CCR_UPDATED_TS, ''MM/DD/YY HH24:MI'') END AS ISSUE_DATE,
-			CASE WHEN ICCR.CCR_STS_ID IN (68,69,165) THEN ICCR.CCR_NUMBER WHEN ICCR.CCR_STS_ID = 70 THEN ICCA.CAC_ACCOUNT_NUMBER END,
+			ICCR.CCR_NUMBER AS ACC_NO,
 			INS.INS_CODE AS INSTITUTION_ID,
-			ICC.CSH_KEY_ROTATION_NUMBER ROTATION_NUMBER,
+			COALESCE(ICC.CSH_KEY_ROTATION_NUMBER, 1) ROTATION_NUMBER,
 			STF1.STF_LOGIN_NAME As Maker,
 			STF2.STF_LOGIN_NAME As Checker,
 			ICCR.CCR_REMARK AS REMARKS,
 			ICC.CSH_CARDHOLDER_NAME AS CLIENT_NAME,
 			'''' FROM_DATA,
 			'''' TO_DATA,
-			CASE WHEN ICCR.CCR_STS_ID IN (68,70,165) THEN ''A'' WHEN ICCR.CCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN ICCR.CCR_STS_ID IN (68,70,165) THEN ''A'' WHEN ICCR.CCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} ICCR 
 			LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICC.CSH_BCR_ID = ICCR.CCR_NUMBER
@@ -916,8 +941,8 @@ BEGIN
 		    ELSE TO_CHAR(IBCR.BCR_UPDATED_TS, ''MM/DD/YY HH24:MI'') END AS ISSUE_DATE,
 			IBCR.BCR_NUMBER,
 			INS.INS_CODE AS INSTITUTION_ID,
-			CASE WHEN IC.CRD_BCR_ID IS NOT NULL THEN IC.CRD_KEY_ROTATION_NUMBER 
-        		ELSE ICC.CSH_KEY_ROTATION_NUMBER END AS ROTATION_NUMBER,
+			CASE WHEN IC.CRD_BCR_ID IS NOT NULL THEN COALESCE(IC.CRD_KEY_ROTATION_NUMBER, 1) 
+        		ELSE COALESCE(ICC.CSH_KEY_ROTATION_NUMBER, 1) END AS ROTATION_NUMBER,
 			STF1.STF_LOGIN_NAME As Maker,
 			STF2.STF_LOGIN_NAME As Checker,
 			CONCAT(''No of Card = '', IBCR.BCR_NUMBER_OF_CARDS) AS REMARKS,
@@ -925,7 +950,8 @@ BEGIN
         		ELSE ICC.CSH_CARDHOLDER_NAME END AS CLIENT_NAME,
 			'''' FROM_DATA,
 			'''' TO_DATA,
-			CASE WHEN IBCR.BCR_STS_ID IN (68,70,165) THEN ''A'' WHEN IBCR.BCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN IBCR.BCR_STS_ID IN (68,70,165) THEN ''A'' WHEN IBCR.BCR_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS} IBCR
 			LEFT JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} IC ON IC.CRD_BCR_ID = IBCR.BCR_NUMBER
@@ -955,7 +981,8 @@ BEGIN
 				ICC.CSH_CARDHOLDER_NAME AS CLIENT_NAME,
 				MS_FROM.Sts_Name FROM_DATA,
         		MS_TO.Sts_Name TO_DATA,
-				CASE WHEN CAC.CAC_REQ_STS_ID = 68 THEN ''A'' WHEN CAC.CAC_REQ_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+				CASE WHEN CAC.CAC_REQ_STS_ID = 68 THEN ''A'' WHEN CAC.CAC_REQ_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+				'''' AUDIT_LOG
 			FROM
 				{DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT_REQUEST@{DB_LINK_DCMS} CAC
 	      		JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = CAC.CAC_ACCOUNT_ID
@@ -987,7 +1014,8 @@ BEGIN
 			'''' FROM_DATA,
       		CASE WHEN CCB_TRN_TYPE = ''Debit'' THEN CONCAT( ''-'', TO_CHAR(CCB_AMOUNT) )  
          		WHEN CCB_TRN_TYPE = ''Credit'' THEN CONCAT( ''+'', TO_CHAR(CCB_AMOUNT) ) END AS TO_DATA,
-			CASE WHEN CCB.CCB_STS_ID = 68 THEN ''A'' WHEN CCB.CCB_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN CCB.CCB_STS_ID = 68 THEN ''A'' WHEN CCB.CCB_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.ISSUANCE_CASH_CARD_BALANCE@{DB_LINK_DCMS} CCB
       		JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} CAM ON CAM.CAM_ID = CCB.CCB_CAM_ID
@@ -1014,7 +1042,8 @@ BEGIN
 			CASE WHEN CSM.CSM_CRD_TYPE = ''DEBIT'' THEN CRD.CRD_CARDHOLDER_NAME ELSE CSH.CSH_CARDHOLDER_NAME END AS CLIENT_NAME,
 			MS_FROM.STS_NAME AS FROM_DATA,
       		MS_TO.STS_NAME AS TO_DATA,
-			CASE WHEN CSM.CSM_REQ_STS_ID = 68 THEN ''A'' WHEN CSM.CSM_REQ_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status
+			CASE WHEN CSM.CSM_REQ_STS_ID = 68 THEN ''A'' WHEN CSM.CSM_REQ_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG
 		FROM
 			{DCMS_Schema}.ISSUANCE_CARD_STATUS_MAINTENANCE@{DB_LINK_DCMS} CSM
       		LEFT JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD ON CRD.CRD_ID = CSM.CSM_CRD_ID
@@ -1043,7 +1072,8 @@ BEGIN
 			IC.Crd_Cardholder_Name AS CLIENT_NAME,
 			TO_CHAR(MOC.MOC_OLD_CIF_NUMBER) FROM_DATA,
       		TO_CHAR(MOC.MOC_CIF_NUMBER) TO_DATA,
-			CASE WHEN MOC.MOC_STS_ID = 68 THEN ''A'' WHEN MOC.MOC_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status 
+			CASE WHEN MOC.MOC_STS_ID = 68 THEN ''A'' WHEN MOC.MOC_STS_ID = 69 THEN ''R'' ELSE Ms.Sts_Name END As Status,
+			'''' AUDIT_LOG 
 		FROM 
 			{DCMS_Schema}.ISSUANCE_MODIFY_CIF@{DB_LINK_DCMS} MOC 
 	  			LEFT JOIN {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} Iccm On MOC.MOC_CLT_ID = Iccm.Ccm_CLT_Id
@@ -1071,7 +1101,8 @@ BEGIN
 		JSON_VALUE(DETAILS, ''$.cts_name'')  as CTS_NAME,
 	    '''' FROM_DATA,
 	    '''' TO_DATA,
-	    JSON_VALUE(DETAILS, ''$.status'') AS STATUS
+	    JSON_VALUE(DETAILS, ''$.status'') AS STATUS,
+	    '''' AUDIT_LOG
 	    FROM DCMS_USER_ACTIVITY WHERE  FUNCTION = ''UPD TXN SET''
 		AND INSTITUTION_ID = {Iss_Name}
 		AND CREATED_DATE >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') and CREATED_DATE < To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')

@@ -396,4 +396,11 @@ public final class ReportConstants {
 	//Institution
 	public static final String INSTITUTION_CBC  = "CBC";
 	public static final String INSTITUTION_CBS  = "CBS";
+	
+	//DCMS Support function 
+	public class SupportFunction {
+		public static final String WITHHELD_RENEWAL = "WITHHELD AUTO RNW";
+		public static final String CC_WITHHELD_RENEWAL = "CC WITHHELD AUTO RNW";
+	}
+	
 }
