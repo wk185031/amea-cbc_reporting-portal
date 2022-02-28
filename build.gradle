@@ -228,7 +228,7 @@ dependencies {
 	compile files('libs/decrypt-v2.jar')
 	compile 'de.danielbechler:java-object-diff:0.95'
 	
-    testCompile "com.jayway.jsonpath:json-path"
+    compile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
     testCompile "info.cukes:cucumber-spring"
     testCompile ("org.springframework.boot:spring-boot-starter-test") {

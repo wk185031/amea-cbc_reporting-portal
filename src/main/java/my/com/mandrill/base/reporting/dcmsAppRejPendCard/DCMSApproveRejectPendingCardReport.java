@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 import my.com.mandrill.base.processor.ReportGenerationException;
 import my.com.mandrill.base.reporting.ReportConstants;
@@ -32,7 +34,7 @@ import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
 public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(DCMSApproveRejectPendingCardReport.class);
+	private final static Logger logger = LoggerFactory.getLogger(DCMSApproveRejectPendingCardReport.class);
 	protected float DEFAULT_PAGE_HEIGHT = 10;
 	protected float pageHeight = DEFAULT_PAGE_HEIGHT;
 	protected float totalHeight = PDRectangle.A4.getWidth();
@@ -43,8 +45,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	public void executePdf(ReportGenerationMgr rgm) throws ReportGenerationException {
 		logger.debug("In DCMSApproveRejectPendingCardReport.processPdfRecord(): " + rgm.getFileNamePrefix());
 		if (getEncryptionService() == null) {
-        	setEncryptionService(rgm.getEncryptionService());
-        }
+			setEncryptionService(rgm.getEncryptionService());
+		}
 		generateReport(rgm);
 	}
 
@@ -100,7 +102,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
-			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -179,21 +182,38 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-							
-							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+
+							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
 							}
-							
+
 							String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-								
-							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} 							
+							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(),
+										keyRotationStr));
+
+							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(),
+										keyRotationStr));
+							}
 						}
-						
+
 						populateClientName(lineFieldsMap);
+						String auditLog = null;
+						try {
+							auditLog = rs.getString("AUDIT_LOG");
+							if (auditLog != null && !auditLog.trim().isEmpty()) {
+								populateFromAndToData(lineFieldsMap, auditLog);
+							}
+						} catch (SQLException e) {
+							// DO nothing. No audit log available
+						} catch (Exception e) {
+							logger.warn("Failed to retrieve from and to data:{}", auditLog, e);
+						}
+
 						writePdfBodyApprovedRejected(rgm, lineFieldsMap, contentStream, leading);
 						pageHeight++;
 						recordCount++;
@@ -213,7 +233,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		}
 		return contentStream;
 	}
-	
+
 	protected String extractAccountNumberFromJson(String jsonString, String institutionCode, String keyRotationStr) {
 		if (jsonString != null && jsonString.trim().isEmpty()) {
 			return jsonString;
@@ -221,9 +241,9 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 //		String keyRotationStr = fieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
 		int keyRotationNumber = 0;
 		try {
-			if(keyRotationStr!=null && !keyRotationStr.isEmpty()){
+			if (keyRotationStr != null && !keyRotationStr.isEmpty()) {
 				keyRotationNumber = Integer.parseInt(keyRotationStr);
-			}						
+			}
 		} catch (NumberFormatException e) {
 			logger.warn("Failed to parse value for DCMS_ROTATION_NUMBER_KEY: {}", keyRotationNumber);
 		}
@@ -231,80 +251,78 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 		try {
 			StringBuilder sb = new StringBuilder();
-			//FIXME: How to only parse for Account Linking/Delinking
-			if(jsonString.contains("bacAccountNumber")){
-				JsonNode jsonNode = new  ObjectMapper().readTree(jsonString);
+			// FIXME: How to only parse for Account Linking/Delinking
+			if (jsonString.contains("bacAccountNumber")) {
+				JsonNode jsonNode = new ObjectMapper().readTree(jsonString);
 				List<String> accountList = jsonNode.findValuesAsText("bacAccountNumber");
 				logger.debug("bacAccountNumber = {}", accountList);
-				if(accountList.size()>0){
-					for (int i=0; i<accountList.size(); i++) {
+				if (accountList.size() > 0) {
+					for (int i = 0; i < accountList.size(); i++) {
 						if (i > 0) {
 							sb.append(",");
 						}
-						//FIXME: How to retrieve rotation key from BAC_ID without hardcode?
-						sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode, keyRotationNumber));
-					}			
+						// FIXME: How to retrieve rotation key from BAC_ID without hardcode?
+						sb.append(getEncryptionService().decryptDcms(accountList.get(i), institutionCode,
+								keyRotationNumber));
+					}
 					accountListStr = sb.toString();
 				}
-			}			
-			else{ 
+			} else {
 				logger.debug("bacAccountNumber not found");
 				return jsonString;
 			}
 		} catch (Exception e) {
-			logger.warn("Failed to decrypt string:{}", jsonString);			
+			logger.warn("Failed to decrypt string:{}", jsonString);
 			// return jsonString;
 		}
-		
+
 		return accountListStr;
 	}
-	
+
 	protected String extractAccountNumberFromCifResponse(String jsonString) {
 		if (jsonString != null && jsonString.trim().isEmpty()) {
 			return jsonString;
 		}
-		
+
 		String accNo = "";
-		
+
 		try {
 
-			if(jsonString.contains("bacAccountNumber")){
-				JsonNode jsonBac = new  ObjectMapper().readTree(jsonString);
-				
+			if (jsonString.contains("bacAccountNumber")) {
+				JsonNode jsonBac = new ObjectMapper().readTree(jsonString);
+
 //				logger.debug("jsonString: {}", jsonString);
 //				logger.debug("jsonBac: {}", jsonBac);
-				
-				if(jsonBac.isArray()){
+
+				if (jsonBac.isArray()) {
 //					logger.debug("jsonBac is Array");
 					for (final JsonNode objNode : jsonBac) {
 						int bacOverallDefault = objNode.get("bacOverallDefault").asInt();
-						
+
 //						logger.debug("bacOverallDefault: {}", bacOverallDefault);
-						if(bacOverallDefault == 1){
+						if (bacOverallDefault == 1) {
 							return objNode.get("bacAccountNumber").asText();
 						}
-				    }
-				}
-				else{
+					}
+				} else {
 					int bacOverallDefault = jsonBac.get("bacOverallDefault").asInt();
-					if(bacOverallDefault == 1){
+					if (bacOverallDefault == 1) {
 						return jsonBac.get("bacAccountNumber").asText();
 					}
 //					logger.debug("bacOverallDefault: {}", bacOverallDefault);
 				}
-			}			
-			else{ 
+			} else {
 				logger.debug("bankAccountCollection not found");
 				return jsonString;
 			}
 		} catch (Exception e) {
-			logger.warn("Failed to extractAccountNumberFromCifResponse:{}", jsonString);			
+			logger.warn("Failed to extractAccountNumberFromCifResponse:{}", jsonString);
 			// return jsonString;
 		}
-		
+
 		return accNo;
 	}
-	
+
 	private void preProcessing(ReportGenerationMgr rgm)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
@@ -333,8 +351,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		try {
 			if (getEncryptionService() == null) {
-	        	setEncryptionService(rgm.getEncryptionService());
-	        }
+				setEncryptionService(rgm.getEncryptionService());
+			}
 			rgm.fileOutputStream = new FileOutputStream(file);
 			pagination = 1;
 			preProcessing(rgm);
@@ -406,20 +424,29 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 							} else {
 								field.setValue("");
 							}
-							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
 							}
-						
+
 							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
-							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-								
-							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
-								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
-							} 	
+							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(),
+										keyRotationStr));
+
+							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null
+									&& !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(),
+										keyRotationStr));
+							}
 						}
-						
+
 						populateClientName(lineFieldsMap);
+						String auditLog = rs.getString("AUDIT_LOG");
+						if (auditLog != null && !auditLog.trim().isEmpty()) {
+							populateFromAndToData(lineFieldsMap, auditLog);
+						}
 						writeBodyApprovedReject(rgm, lineFieldsMap);
 						recordCount++;
 					} while (rs.next());
@@ -443,31 +470,63 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		if (!lineFieldsMap.containsKey("FUNCTION_NAME")) {
 			return;
 		}
-				
+
 		String functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
 		if ("FETCH CIF".equals(functionName)) {
 			String encClientName = lineFieldsMap.get("CLIENT_NAME").getValue();
 			String clientName = null;
 			String rotationNumberStr = lineFieldsMap.get("ROTATION_NUMBER").getValue();
-			int rotationNumber = (rotationNumberStr == null || rotationNumberStr.trim().isEmpty()) ? 1 : Integer.parseInt(rotationNumberStr);
+			int rotationNumber = (rotationNumberStr == null || rotationNumberStr.trim().isEmpty()) ? 1
+					: Integer.parseInt(rotationNumberStr);
 
 			if (encClientName.contains("|")) {
 				String[] clientNames = encClientName.split("\\|");
-				clientName = concatName(clientNames[0],
-						clientNames[1],
-						lineFieldsMap.get("INSTITUTION_ID").getValue(),
+				clientName = concatName(clientNames[0], clientNames[1], lineFieldsMap.get("INSTITUTION_ID").getValue(),
 						rotationNumber);
 			} else {
-				clientName = concatName(encClientName,
-						null,
-						lineFieldsMap.get("INSTITUTION_ID").getValue(),
+				clientName = concatName(encClientName, null, lineFieldsMap.get("INSTITUTION_ID").getValue(),
 						rotationNumber);
 			}
 
 			lineFieldsMap.get("CLIENT_NAME").setValue(clientName);
 		}
 	}
-	
+
+	private void populateFromAndToData(HashMap<String, ReportGenerationFields> lineFieldsMap, String auditLog) {
+		String functionName = null;
+		if (lineFieldsMap.containsKey("FUNCTION_NAME")) {
+			functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
+		} else if (lineFieldsMap.containsKey("FunctionName")) {
+			functionName = lineFieldsMap.get("FunctionName").getValue();
+		}
+
+		if (functionName == null) {
+			return;
+		}
+
+		switch (functionName) {
+		case ReportConstants.SupportFunction.WITHHELD_RENEWAL:
+		case ReportConstants.SupportFunction.CC_WITHHELD_RENEWAL:
+			retrieveFromAndToFromAuditLog(lineFieldsMap, auditLog, "ALLOWED_RENEWAL");
+			break;
+		default:
+			// do nothing
+			break;
+		}
+	}
+
+	private static void retrieveFromAndToFromAuditLog(HashMap<String, ReportGenerationFields> lineFieldsMap,
+			String auditLog, String colName) {
+		String predicate = "$..CHANGE[?(@.COL == '" + colName + "')]";
+		List<Map<String, String>> dataList = JsonPath.parse(auditLog).read(predicate);
+		if (!dataList.isEmpty()) {
+			String from = dataList.get(0).get("OLD_VALUE");
+			String to = dataList.get(0).get("NEW_VALUE");
+			lineFieldsMap.get("FROM_DATA").setValue(from);
+			lineFieldsMap.get("TO_DATA").setValue(to);
+		}
+	}
+
 	protected void writeBodyApprovedReject(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
@@ -478,7 +537,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
-			line.append("\""+ getFieldValue(rgm, field, fieldsMap) + "\"");
+			line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
 			line.append(field.getDelimiter());
 			if (field.isEol()) {
 				line.append(getEol());
@@ -493,12 +552,12 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		getGlobalFileFieldsMap().put(total.getFieldName(), total);
 	}
 
-	protected void writePdfBodyApprovedRejected(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
-			PDPageContentStream contentStream, float leading)
-					throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
+	protected void writePdfBodyApprovedRejected(ReportGenerationMgr rgm,
+			HashMap<String, ReportGenerationFields> fieldsMap, PDPageContentStream contentStream, float leading)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
-			
+
 			if (field.isDecrypt()) {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
 			}
@@ -511,7 +570,7 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 			}
 		}
 	}
-	
+
 	private String concatName(String encFirstName, String encLastName, String institutionCode, int rotationNumber) {
 		logger.debug("concatName: encFirstName={}, encLastName={}, institutionCode={}, rotationNumber={}", encFirstName,
 				encLastName, institutionCode, rotationNumber);
@@ -536,9 +595,11 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 		return decryptFirstName + " " + decryptLastName;
 	}
-	
+
 	public static void main(String[] args) {
-		String a = "aaaa|bbbb";
-		System.out.println(a.split("|")[0]);
+		String auditLog = "[{\"DATE\":\"2022-02-21 16:54:07\",\"DESCRIPTION\":\"Request status is PENDING_APPROVAL\",\"Client Name\":\"ATM SIT 4 .\",\"CHANGE\":[{\"COL\":\"ALLOWED_RENEWAL\",\"NEW_VALUE\":\"No\",\"OLD_VALUE\":\"Yes\"}],\"username\":\"cbcmaker\"},{\"DATE\":\"2022-02-21 16:56:31\",\"DESCRIPTION\":\"Request status changed from PENDING_APPROVAL to COMPLETED\",\"Client Name\":\"ATM SIT 4 .\",\"CHANGE\":[{\"COL\":\"ALLOWED_RENEWAL\",\"NEW_VALUE\":\"No\",\"OLD_VALUE\":\"Yes\"}],\"username\":\"cbcchecker\"}]";
+		String auditLog2 = "[{\"DATE\":\"2022-01-14 04:27:52\",\"DESCRIPTION\":\"Request status is PENDING_APPROVAL\",\"Client Name\":\"R00334456 R00334456\",\"username\":\"cbcmaker\"},{\"DATE\":\"2022-01-14 04:32:55\",\"DESCRIPTION\":\"Request status changed from PENDING_APPROVAL to REJECTED\",\"Client Name\":\"R00334456 R00334456\",\"username\":\"cbcchecker\"}]";
+
+		retrieveFromAndToFromAuditLog(null, auditLog2, "ALLOWED_RENEWAL");
 	}
 }
