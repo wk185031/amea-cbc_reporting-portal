@@ -27,6 +27,11 @@
                  path="config/liquibase/report-query/IBFT_Transactions/Interbank_Fund_Transfer_Report(ATM)_Rejected_Transaction.sql"
                  splitStatements="false" 
                  stripComments="true" />  
+        <sqlFile dbms="oracle" 
+        		 encoding="UTF-8"
+                 path="config/liquibase/report-query/DCMS_Reports/Approved_Rejected_Card.sql"
+                 splitStatements="false" 
+                 stripComments="true" />
     </changeSet>
     
 </databaseChangeLog>
