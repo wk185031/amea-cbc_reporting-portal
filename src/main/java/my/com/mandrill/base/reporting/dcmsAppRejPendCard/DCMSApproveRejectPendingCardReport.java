@@ -496,8 +496,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		String functionName = null;
 		if (lineFieldsMap.containsKey("FUNCTION_NAME")) {
 			functionName = lineFieldsMap.get("FUNCTION_NAME").getValue();
-		} else if (lineFieldsMap.containsKey("FunctionName")) {
-			functionName = lineFieldsMap.get("FunctionName").getValue();
+		} else if (lineFieldsMap.containsKey("FUNCTIONNAME")) {
+			functionName = lineFieldsMap.get("FUNCTIONNAME").getValue();
 		}
 
 		if (functionName == null) {
