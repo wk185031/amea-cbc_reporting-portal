@@ -15,7 +15,7 @@ BEGIN
 
 -- Finacle 360
 	i_HEADER_FIELDS := TO_CLOB('[]');
-	i_BODY_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"14","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"15","fieldName":"BANK ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"BANK ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"16","fieldName":"CARD / IVRS NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":4,"sectionName":"17","fieldName":"ACCOUNT NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"18","fieldName":"OPERATION FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"OPERATION FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"19","fieldName":"EMBOSSED NAME","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"EMBOSSED NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"20","fieldName":"CARD / IVRS TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"21","fieldName":"CARD SUBTYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD SUBTYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"22","fieldName":"CARD / IVRS STATUS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS STATUS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"23","fieldName":"NO. OF JOINT ACCOUNT HOLDERS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"NO. OF JOINT ACCOUNT HOLDERS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"24","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"25","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT HOLDER TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"26","fieldName":"DEL / ADD / MOD FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"DEL / ADD / MOD FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true},{"sequence":14,"sectionName":"1","fieldName":"CIF","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"2","fieldName":"BANK ID","csvTxtLength":"8","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"3","fieldName":"ATM CARD NUMBER","csvTxtLength":"19","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":17,"sectionName":"4","fieldName":"FROM ACCOUNT NO","csvTxtLength":"16","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":18,"sectionName":"5","fieldName":"OPERATION FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"6","fieldName":"ACCOUNT NAME","csvTxtLength":"80","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":20,"sectionName":"7","fieldName":"CARD TYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"8","fieldName":"CARD SUBTYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"9","fieldName":"CARD STATUS","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"10","fieldName":"NO OF JOINT ACC HOLDERS","csvTxtLength":"2","fieldType":"Integer","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"11","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"12","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"13","fieldName":"JOINT ACC OPERATION FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}]');
+	i_BODY_FIELDS := TO_CLOB('[{"sequence":1,"sectionName":"14","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"15","fieldName":"BANK ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"BANK ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"16","fieldName":"CARD / IVRS NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"tagValue":null},{"sequence":4,"sectionName":"17","fieldName":"ACCOUNT NUMBER","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT NUMBER","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"18","fieldName":"OPERATION FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"OPERATION FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"19","fieldName":"EMBOSSED NAME","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"EMBOSSED NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"20","fieldName":"CARD / IVRS TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"21","fieldName":"CARD SUBTYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD SUBTYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":9,"sectionName":"22","fieldName":"CARD / IVRS STATUS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CARD / IVRS STATUS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":10,"sectionName":"23","fieldName":"NO. OF JOINT ACCOUNT HOLDERS","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"NO. OF JOINT ACCOUNT HOLDERS","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":11,"sectionName":"24","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"CIF ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":12,"sectionName":"25","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"ACCOUNT HOLDER TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":13,"sectionName":"26","fieldName":"DEL / ADD / MOD FLAG","csvTxtLength":"50","fieldType":"String","delimiter":"|","defaultValue":"DEL / ADD / MOD FLAG","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true},{"sequence":14,"sectionName":"1","fieldName":"CIF","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":15,"sectionName":"2","fieldName":"BANK ID","csvTxtLength":"8","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":16,"sectionName":"3","fieldName":"ATM CARD NUMBER","csvTxtLength":"19","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":17,"sectionName":"4","fieldName":"FROM ACCOUNT NO","csvTxtLength":"16","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":18,"sectionName":"5","fieldName":"OPERATION FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":19,"sectionName":"6","fieldName":"ACCOUNT NAME","csvTxtLength":"80","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":20,"sectionName":"7","fieldName":"CARD TYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":21,"sectionName":"8","fieldName":"CARD SUBTYPE","csvTxtLength":"5","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":22,"sectionName":"9","fieldName":"CARD STATUS","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":23,"sectionName":"10","fieldName":"NO OF JOINT ACC HOLDERS","csvTxtLength":"2","fieldType":"Integer","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":24,"sectionName":"11","fieldName":"CIF ID","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":25,"sectionName":"12","fieldName":"ACCOUNT HOLDER TYPE","csvTxtLength":"50","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":26,"sectionName":"13","fieldName":"JOINT ACC OPERATION FLAG","csvTxtLength":"1","fieldType":"String","delimiter":"|","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"eol":true}]');
 	i_TRAILER_FIELDS := TO_CLOB('[]');
 	
 	i_BODY_QUERY := TO_CLOB('
@@ -70,13 +70,15 @@ FROM
     {DCMS_Schema}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK_DCMS} DCR 
     INNER JOIN {DCMS_Schema}.ISSUANCE_CARD@{DB_LINK_DCMS} CRD ON CRD.CRD_ID = DCR.DCR_CRD_ID
 	INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT ON CLT.CLT_ID = DCR.DCR_CLT_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	INNER JOIN {DCMS_Schema}.Issuance_Client_Card_Mapping@{DB_LINK_DCMS} ICCM On CCM_CRD_ID = CRD.CRD_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
 	LEFT JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = DCR.DCR_PRS_ID
 	INNER JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS_ID = CRD.CRD_STS_ID
 	INNER JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON CRD.CRD_INS_ID = INS.INS_ID
 WHERE 
 	DCR.DCR_INS_ID = {Iss_Id} AND
 	TRUNC(DCR.DCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND DCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
 UNION ALL
 SELECT
 	CLT.CLT_CIF_NUMBER AS "CIF",
@@ -84,7 +86,7 @@ SELECT
 	CSH.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	CASE WHEN CSH.CSH_KEY_ROTATION_NUMBER IS NOT NULL THEN CSH.CSH_KEY_ROTATION_NUMBER ELSE 1 END "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	CASE WHEN CCR.CCR_REQUEST_TYPE = ''Manual'' THEN ''A'' ELSE ''M'' END AS "OPERATION FLAG",
 	CCR.CCR_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -98,13 +100,15 @@ FROM
     {DCMS_Schema}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK_DCMS} CCR
 	INNER JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} CSH ON CSH.CSH_ID = CCR.CCR_CSH_ID
 	INNER JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT ON CLT.CLT_ID = CCR.CCR_CLT_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On CAM_CSH_ID = CSH.CSH_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
 	LEFT JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CCR.CCR_PRS_ID
 	INNER JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS_ID = CSH.CSH_STS_ID
 	INNER JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON CSH.CSH_INS_ID = INS.INS_ID
 WHERE 
 	CCR.CCR_INS_ID = {Iss_Id} AND
 	TRUNC(CCR.CCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND CCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
 --Activated Pre-Gen
 UNION ALL
 	SELECT CLT.CLT_CIF_NUMBER AS "CIF",
@@ -131,7 +135,7 @@ UNION ALL
  join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
  left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = BCR_PRS_ID
  JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS_ID = CRD.CRD_STS_ID
- LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+ LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
 where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
@@ -142,7 +146,7 @@ SELECT CLT.CLT_CIF_NUMBER AS "CIF",
 	CSH.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	CASE WHEN CSH.CSH_KEY_ROTATION_NUMBER IS NOT NULL THEN CSH.CSH_KEY_ROTATION_NUMBER ELSE 1 END "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	CSH.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -160,7 +164,8 @@ SELECT CLT.CLT_CIF_NUMBER AS "CIF",
 	join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS on BCR_INS_ID = INS_ID
 	join {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} on BRN_ID = BCR_BRN_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS_ID = BCR_PRS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On ICCAM.CAM_CSH_ID = CSH_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = CAM_CAC_ID
   LEFT JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS_ID = CSH.CSH_STS_ID
   where 
   BCR_INS_ID = {Iss_Id}
@@ -190,7 +195,7 @@ From
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS}  Ms On Sac.Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sac.Caa_Sts_Id IN (91) And Sac.Caa_Ins_Id = {Iss_Id}
@@ -201,7 +206,7 @@ select CLT.CLT_CIF_NUMBER AS "CIF",
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -218,7 +223,7 @@ select CLT.CLT_CIF_NUMBER AS "CIF",
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scca.Cc_Caa_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where  Scca.Cc_Caa_Sts_Id IN ( 91)
@@ -247,7 +252,7 @@ select CLT.CLT_CIF_NUMBER AS "CIF",
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Srp.Rpc_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where STS.STS_ID IN ( 91) And Srp.Rpc_Ins_Id = {Iss_Id}
@@ -258,7 +263,7 @@ UNION ALL
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -275,7 +280,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccrp.Cc_Rpc_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where STS.STS_ID IN ( 91)
@@ -304,7 +309,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scch.Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Scch.Hot_Sts_Id IN ( 91) And Scch.Hot_Ins_Id = {Iss_Id}
@@ -315,7 +320,7 @@ UNION ALL
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -332,7 +337,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Scht.Cc_Hot_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where Scht.Cc_Hot_Sts_Id IN ( 91) And Scht.Cc_Hot_Ins_Id = {Iss_Id}
@@ -360,7 +365,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sdhl.Dhl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sdhl.Dhl_Sts_Id IN (91) And Sdhl.Dhl_Ins_Id = {Iss_Id}
@@ -371,7 +376,7 @@ UNION ALL
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -388,7 +393,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccd.Cc_Dhl_Sts_Id=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-    LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+    LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where Sccd.Cc_Dhl_Sts_Id IN ( 91) And Sccd.Cc_Dhl_Ins_Id = {Iss_Id}
@@ -416,7 +421,7 @@ UNION ALL
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccard.CCD_STS_ID=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sccard.CCD_STS_ID IN (74, 91) And Sccard.ccd_Ins_Id = {Iss_Id}
@@ -427,7 +432,7 @@ UNION ALL
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -441,10 +446,10 @@ UNION ALL
 	{DCMS_Schema}.SUPPORT_CC_CLOSE@{DB_LINK_DCMS} Sccclo
 	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM On Sccclo.CC_CCD_CAM_ID = ICCAM.CAM_ID
 	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICCAM.CAM_CSH_ID = ICC.CSH_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	Join {DCMS_Schema}.Master_Status@{DB_LINK_DCMS} Ms On Sccclo.CC_CCD_STS_ID=Ms.Sts_Id
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-   LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
    left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
    JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
    where Sccclo.CC_CCD_STS_ID IN (74, 91) And Sccclo.CC_CCD_INS_ID = {Iss_Id}
@@ -471,7 +476,7 @@ UNION ALL
 	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID,
 	JSON_TABLE((SELECT CRD_AUDIT_LOG FROM DCMS_ISSUANCE_CARD where CRD_ID = ic.Crd_Id),''$[*]'' COLUMNS 
@@ -482,6 +487,7 @@ UNION ALL
 	AND TO_DATE(SALD.ADL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
 	AND TO_DATE(J.AUDIT_LOG_DATE,''DD-MM-YY HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
 	AND J.DESCRIPTION LIKE BAC.BAC_ACCOUNT_NUMBER_MASKED||''%Account Delinked%''
+--Account Linking
 UNION ALL
 	select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -503,7 +509,7 @@ UNION ALL
 	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID,
 	JSON_TABLE((SELECT CRD_AUDIT_LOG FROM DCMS_ISSUANCE_CARD where CRD_ID = ic.Crd_Id),''$[*]'' COLUMNS 
@@ -521,7 +527,7 @@ UNION ALL
   ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	CCA.CAC_ACCOUNT_NUMBER_MASKED AS "FROM ACCOUNT NO",
+	CCA.CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -537,7 +543,6 @@ UNION ALL
 	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICCAM.CAM_CSH_ID = ICC.CSH_ID
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	WHERE REQ.CAC_INS_ID = {Iss_Id} AND REQ.CAC_REQ_STS_ID = 68
@@ -567,7 +572,7 @@ UNION ALL
 	Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} Ic On Iccm.Ccm_Crd_Id = Ic.Crd_Id
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	WHERE Scr.CRN_INS_ID = {Iss_Id} AND SCR.CRN_STS_ID = 91
@@ -595,7 +600,7 @@ UNION ALL
     Join {DCMS_Schema}.Issuance_Card@{DB_LINK_DCMS} IcNew On Ic.crd_id = IcNew.crd_previous_crd_id
 	join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on Iccm.CCM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON IC.CRD_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON CCM_BAC_ID = BAC_ID
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IcNew.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IcNew.CRD_STS_ID
 	WHERE Scr.CRN_INS_ID = 1 AND SCR.CRN_STS_ID = 91
@@ -607,7 +612,7 @@ UNION ALL
 	ICC.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICC.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''M'' AS "OPERATION FLAG",
 	ICC.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -622,7 +627,7 @@ UNION ALL
 	JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICC ON ICCAM.CAM_CSH_ID = ICC.CSH_ID
     join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	WHERE Sccr.CC_CRN_INS_ID = {Iss_Id} AND Sccr.CC_CRN_STS_ID = 91
@@ -633,7 +638,7 @@ UNION ALL
 	ICCNEW.CSH_CARD_NUMBER_ENC AS "ATM CARD NUMBER",
 	ICCNEW.CSH_KEY_ROTATION_NUMBER "ROTATION_NUMBER",
 	INS.INS_CODE AS INSTITUTION_ID,
-	BAC.BAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
+	CAC_ACCOUNT_NUMBER AS "FROM ACCOUNT NO",
 	''A'' AS "OPERATION FLAG",
 	ICCNEW.CSH_EMBOSSING_NAME AS "ACCOUNT NAME",
 	''CASH'' AS "CARD TYPE",
@@ -649,7 +654,7 @@ UNION ALL
 	 JOIN DCMS_OWNER.ISSUANCE_CASH_CARD@{DB_LINK_DCMS} ICCNEW ON ICCNEW.CSH_PREVIOUS_CSH_ID = ICC.CSH_ID
     join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} CLT on ICCAM.CAM_CLT_ID = CLT.CLT_ID
 	JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON ICC.CSH_INS_ID = INS.INS_ID
-	LEFT JOIN {DCMS_Schema}.ISSUANCE_BANK_ACCOUNT@{DB_LINK_DCMS} BAC ON BAC.BAC_CLT_ID = CLT.CLT_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK_DCMS} CCA ON CCA.CAC_ID = ICCAM.CAM_CAC_ID
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICCNEW.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICCNEW.CSH_STS_ID
 	WHERE Sccr.CC_CRN_INS_ID = {Iss_Id} AND Sccr.CC_CRN_STS_ID = 91

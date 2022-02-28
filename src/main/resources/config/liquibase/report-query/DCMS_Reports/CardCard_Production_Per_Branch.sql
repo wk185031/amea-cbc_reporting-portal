@@ -29,15 +29,17 @@ BEGIN
 	sum(produced) as PRODUCED,
 	sum(activated) as ACTIVATED
 	from(
-	--Manual issuance / Batch Upload
+	--Manual issuance / Batch Upload / pre-gen card activation
 	select 
 	brn_code,
 	brn_name,
-	count(case when csh.csh_emb_id is not null then 1 end) as produced,
-	0 as activated
+	count(case when csh.csh_emb_id is not null and CSH_KIT_NUMBER IS NULL then 1 end) as produced,
+	count(case when CSH_KIT_NUMBER IS NOT NULL and CLT_CIF_NUMBER IS NOT NULL then 1 end) as activated
 	FROM {DCMS_Schema}.issuance_cash_card_request@{DB_LINK_DCMS} ccr
 	join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on csh.csh_id = ccr.ccr_csh_id
 	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = ccr.ccr_brn_id
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM ON CAM_CSH_ID = CSH_ID
+	LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
 	where ccr.ccr_ins_id = {Iss_Id}
 	and FROM_TZ( CAST( ccr.ccr_created_ts AS TIMESTAMP ), ''UTC'' )
     AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
@@ -70,7 +72,7 @@ BEGIN
 	select
 	brn.brn_code,brn.brn_name,
 	count(case when csh.csh_emb_id is not null AND CLT_CIF_NUMBER IS NULL then 1 end) as produced,
-	count(case when CSH_KIT_NUMBER IS NOT NULL and CLT_CIF_NUMBER IS NOT NULL then 1 end) as activated
+	0 as activated
 	from {DCMS_Schema}.ISSUANCE_BULK_CARD_REQUEST@{DB_LINK_DCMS}
 	LEFT join {DCMS_Schema}.issuance_cash_card@{DB_LINK_DCMS} csh on CSH_BCR_ID = BCR_NUMBER
 	LEFT join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = bcr_brn_id
