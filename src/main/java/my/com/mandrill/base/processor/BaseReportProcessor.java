@@ -88,8 +88,10 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 			rgm.setBodyQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
 			rgm.setTrailerQuery(CriteriaParamsUtil.replaceBranchFilterCriteria(rgm.getBodyQuery(), institution));
 			
-			//replace parameter {Txn_Date}
-			rgm.setBodyQuery(CriteriaParamsUtil.replaceTxnDate(rgm.getBodyQuery(), rgm));
+			//replace parameter {Txn_Date} for system reports
+			if (rgm.isSystemReport()) {
+				rgm.setBodyQuery(CriteriaParamsUtil.replaceTxnDate(rgm.getBodyQuery(), rgm));
+			}
 
 			currentContext.setQuery(parseBodyQuery(rgm.getBodyQuery(), currentContext.getPredefinedFieldMap()));
 
