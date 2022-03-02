@@ -152,4 +152,82 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 			}
 		}
 	}
+	
+	@Override
+	protected void executeBodyQuery(ReportGenerationMgr rgm) {
+		logger.debug("In CsvReportProcessor.executeBodyQuery()");
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		HashMap<String, ReportGenerationFields> fieldsMap = null;
+		HashMap<String, ReportGenerationFields> lineFieldsMap = null;
+		String query = getBodyQuery(rgm);
+		logger.info("Query for body line export: {}", query);
+
+		if (query != null && !query.isEmpty()) {
+			try {
+				ps = rgm.getConnection().prepareStatement(query);
+				rs = ps.executeQuery();
+				fieldsMap = rgm.getQueryResultStructure(rs);
+				int recordCount = 0;
+
+				if (rs.next()) {
+					do {
+						lineFieldsMap = rgm.getLineFieldsMap(fieldsMap);
+						for (String key : lineFieldsMap.keySet()) {
+							ReportGenerationFields field = (ReportGenerationFields) lineFieldsMap.get(key);
+							Object result;
+							try {
+								result = rs.getObject(field.getSource());
+							} catch (SQLException e) {
+								rgm.errors++;
+								logger.error("An error was encountered when trying to write a line", e);
+								continue;
+							}
+							if (result != null) {
+								if (result instanceof Date) {
+									field.setValue(Long.toString(((Date) result).getTime()));
+								} else if (result instanceof oracle.sql.TIMESTAMP) {
+									field.setValue(
+											Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
+								} else if (result instanceof oracle.sql.DATE) {
+									field.setValue(
+											Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
+								} else {
+									field.setValue(result.toString());
+								}
+							} else {
+								field.setValue("");
+							}
+							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
+							}
+						
+							String keyRotationStr = lineFieldsMap.get(DCMS_ROTATION_NUMBER_KEY).getValue();
+							if ("FROM_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+								
+							} else if ("TO_DATA".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
+								field.setValue(extractAccountNumberFromJson(field.getValue(), rgm.getInstitution(), keyRotationStr));
+							} 	
+						}
+						
+						//populateClientName(lineFieldsMap);
+						writeBodyApprovedReject(rgm, lineFieldsMap);
+						recordCount++;
+					} while (rs.next());
+				} else {
+					rgm.writeLine(ReportConstants.NO_RECORD.getBytes());
+					rgm.writeLine(getEol().getBytes());
+				}
+
+				addTotalNoOfItemToGlobalParam(recordCount);
+
+			} catch (Exception e) {
+				rgm.errors++;
+				logger.error("Error trying to execute the body query", e);
+			} finally {
+				rgm.cleanAllDbResource(ps, rs);
+			}
+		}
+	}
 }

@@ -94,9 +94,9 @@ public class DcmsSyncService {
 	
 	private static final String COL_DCMS_USER_ACTIVITY_DATE = "AUD_USER_ACTIVTIY_DATE";
 
-	private static final String SQL_SELECT_AUDIT_LOG_DEBIT_CARD = "select CRD_ID, CRD_AUDIT_LOG, CRD_INS_ID, CRD_UPDATED_TS, STF_LOGIN_NAME, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CRD_UPDATED_BY=STF_ID or CRD_CREATED_BY=STF_ID where CRD_UPDATED_TS  > ?";
+	private static final String SQL_SELECT_AUDIT_LOG_DEBIT_CARD = "select CRD_ID, CRD_AUDIT_LOG, CRD_INS_ID, CRD_UPDATED_TS, STF_LOGIN_NAME, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CRD_UPDATED_BY=STF_ID or CRD_CREATED_BY=STF_ID where CRD_UPDATED_TS is not null ";
 
-	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD = "select CSH_ID, CSH_AUDIT_LOG, CSH_INS_ID, CSH_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CSH_UPDATED_BY=STF_ID or CSH_CREATED_BY=STF_ID  where CSH_UPDATED_TS  > ?";
+	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD = "select CSH_ID, CSH_AUDIT_LOG, CSH_INS_ID, CSH_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CSH_UPDATED_BY=STF_ID or CSH_CREATED_BY=STF_ID where CSH_UPDATED_TS is not null ";
 
 	private static final String SQL_SELECT_AUDIT_LOG_ADDRESS_UPDATE = "select null as CRD_ID, CLT_CIF_NUMBER, AUR_INS_ID, AUR_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.SUPPORT_ADDRESS_UPDATE_REQ_MAP@{DB_LINK} left join {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} on AUR_CLT_ID=CLT_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on AUR_UPDATED_BY=STF_ID or AUR_CREATED_BY=STF_ID where TO_TIMESTAMP(AUR_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS')  > ? and AUR_STS_ID in (88,91)";
 
@@ -533,9 +533,11 @@ public class DcmsSyncService {
 		} else {
 			sql = SQL_SELECT_AUDIT_LOG_DEBIT_CARD;
 		}
-		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
+		//List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
+//				.getResultList();
+		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql))
 				.getResultList();
-		// List<DcmsUserActivity> recentUpdatedCards = new ArrayList<>();
+		
 		ObjectMapper mapper = new ObjectMapper();
 
 		for (Object[] resultRow : resultList) {
@@ -658,7 +660,7 @@ public class DcmsSyncService {
 		if (auditLog != null && !auditLog.trim().isEmpty()) {
 			List<Map<String, String>> cardHistories = null;
 			try {
-				cardHistories = mapper.readValue(auditLog, new TypeReference<List<Map<String, String>>>() {
+				cardHistories = mapper.readValue(auditLog, new TypeReference<List<Map<String, Object>>>() {
 				});
 
 				for (Map<String, String> history : cardHistories) {
