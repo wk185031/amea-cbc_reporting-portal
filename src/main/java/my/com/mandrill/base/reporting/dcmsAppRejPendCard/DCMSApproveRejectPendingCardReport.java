@@ -443,7 +443,18 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 						}
 
 						populateClientName(lineFieldsMap);
-						String auditLog = rs.getString("AUDIT_LOG");
+						String auditLog = null;
+						try {
+							auditLog = rs.getString("AUDIT_LOG");
+							if (auditLog != null && !auditLog.trim().isEmpty()) {
+								populateFromAndToData(lineFieldsMap, auditLog);
+							}
+						} catch (SQLException e) {
+							// DO nothing. No audit log available
+						} catch (Exception e) {
+							logger.warn("Failed to retrieve from and to data:{}", auditLog, e);
+						}
+						
 						if (auditLog != null && !auditLog.trim().isEmpty()) {
 							populateFromAndToData(lineFieldsMap, auditLog);
 						}
