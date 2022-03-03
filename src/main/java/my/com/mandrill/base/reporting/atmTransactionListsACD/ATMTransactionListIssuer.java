@@ -73,11 +73,13 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListIssuer.preProcessing()");
 		if (rgm.getBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}", "AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_MNEM + "}", "AND CBA.CBA_MNEM != '" + rgm.getInstitution() + "'"));
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_ISSUER_NAME + "}",
+					"AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"));
+			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_MNEM + "}",
+					"AND CBA.CBA_MNEM != '" + rgm.getInstitution() + "'"));
 			rgm.setTmpBodyQuery(rgm.getBodyQuery());
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_BANK_CODE + "}", ""));
-			
+
 		}
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
@@ -85,11 +87,15 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 	private void preProcessing(ReportGenerationMgr rgm, String filterByBankCode)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In ATMTransactionListIssuer.preProcessing()");
-		if (filterByBankCode != null && rgm.getTmpBodyQuery() != null) {
-			rgm.setBodyQuery(rgm.getTmpBodyQuery());
+		rgm.setBodyQuery(rgm.getTmpBodyQuery());
+		if (filterByBankCode != null && !filterByBankCode.isEmpty() && rgm.getTmpBodyQuery() != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
 					"LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = LPAD('" + filterByBankCode + "', 10, '0')");
+			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
+		} else {
+			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
+					ReportGenerationFields.TYPE_STRING, "CBA_ACQ.CBA_CODE is null ");
 			getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 		}
 	}
@@ -157,7 +163,7 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 			}
 		}
 	}
-	
+
 	protected SortedMap<String, String> filterCriteriaByBank(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.filterCriteriaByBank()");
 		String bankCode = null;
@@ -188,16 +194,16 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 							logger.error("An error was encountered when getting result", e);
 							continue;
 						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE_ACQ)) {
-								bankCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME_ACQ)) {
-								bankName = result.toString();
-							}
+						if (key.equalsIgnoreCase(ReportConstants.BANK_CODE_ACQ)) {
+							bankCode = result != null ? result.toString() : "";
+						}
+						if (key.equalsIgnoreCase(ReportConstants.BANK_NAME_ACQ)) {
+							bankName = result != null ? result.toString() : "";
 						}
 					}
+
 					criteriaMap.put(bankCode, bankName);
+
 				}
 			} catch (Exception e) {
 				rgm.errors++;
@@ -209,51 +215,53 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 		}
 		return criteriaMap;
 	}
-	
+
 	protected void writeBody(ReportGenerationMgr rgm, HashMap<String, ReportGenerationFields> fieldsMap,
 			String txnQualifier, String voidCode, Map<String, String> eloadProviderMap)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
-		
+
 		String prepaidBillerCode = null;
 		String decryptValue = null;
-		
-		// need to cater for reverse list, as we need to take decrypt account number first to get the prepaid biller code
+
+		// need to cater for reverse list, as we need to take decrypt account number
+		// first to get the prepaid biller code
 		Collections.reverse(fields);
-		
+
 		String accountFirstTwoDigit = null;
 		String accountNo = null;
-		
+
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
-				
+
 				if (field.getFieldName().equals(ReportConstants.TO_ACCOUNT_NO)) {
-					decryptValue = getGlobalFileFieldsMap().get(field.getFieldName()).getValue();										
+					decryptValue = getGlobalFileFieldsMap().get(field.getFieldName()).getValue();
 					// check if decrypt value is prepaid biller code account
-					if(null != decryptValue && decryptValue.trim().length() > 4) {						
+					if (null != decryptValue && decryptValue.trim().length() > 4) {
 						accountNo = decryptValue.replaceAll("^0*", "");
-						
+
 						if (accountNo.length() > 4) {
 							accountFirstTwoDigit = accountNo.substring(0, 2);
-							
-							if (eloadProviderMap.containsKey(accountFirstTwoDigit) && accountNo.substring(2, 4).equals("09")) {
+
+							if (eloadProviderMap.containsKey(accountFirstTwoDigit)
+									&& accountNo.substring(2, 4).equals("09")) {
 								prepaidBillerCode = eloadProviderMap.get(accountFirstTwoDigit);
-							} 
-						}					
+							}
+						}
 					}
-				}								
+				}
 			}
-			
+
 			if (null != prepaidBillerCode && field.getFieldName().equals(ReportConstants.TO_ACCOUNT_TYPE)) {
 				fieldsMap.get(field.getFieldName()).setValue(prepaidBillerCode);
 			}
 		}
-		
+
 		// reverse back to original sequence
 		Collections.reverse(fields);
-		
+
 		for (ReportGenerationFields field : fields) {
 			if (field.isDecrypt()) {
 				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
