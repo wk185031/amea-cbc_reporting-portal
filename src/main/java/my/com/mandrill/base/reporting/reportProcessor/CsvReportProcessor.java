@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -895,7 +896,7 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							}
 						}
 					}
-					causeMap.put(cause, "");
+					causeMap.put(StringUtils.defaultString(cause), "");
 				}
 			} catch (Exception e) {
 				rgm.errors++;
