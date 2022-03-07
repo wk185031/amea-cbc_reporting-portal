@@ -128,8 +128,8 @@ export class DownloadReportTabComponent implements OnInit {
     }
     
     download(jobId: number) {
-    	this.ngxLoader.start();
     	this.generateReportService.download(jobId).subscribe(resp => {
+    		this.ngxLoader.start();
     		const a: any = document.createElement('a');
     		const contentDisposition = resp.headers.get('content-disposition');
     		const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim().replace(/(^"|"$)/g, '');
@@ -145,7 +145,7 @@ export class DownloadReportTabComponent implements OnInit {
     		this.jhiAlertService.error('error.report.downloadFailed', null, null);
     	});
     }
-    
+
     downloadReport(reportName: string, details: string, reportCategoryId: number, jobId: number, frequency: string, reportStartDate: string) {
     	var parsedDetail = JSON.parse(details);
         const req = this.generateReportService.downloadReport(this.branchId, parsedDetail.institutionId,

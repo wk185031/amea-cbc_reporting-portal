@@ -6,7 +6,6 @@ import { ReportDefinition } from '../report-config-definition/report-config-defi
 import { Subscription } from 'rxjs';
 import { JhiAlertService, JhiEventManager } from 'ng-jhipster';
 import { Principal } from '../../shared';
-import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
@@ -39,8 +38,7 @@ export class GenerateReportTabComponent implements OnInit {
         private generateReportService: GenerateReportService,
         private jhiAlertService: JhiAlertService,
         private principal: Principal,
-        private eventManager: JhiEventManager,
-        private ngxLoader: NgxUiLoaderService
+        private eventManager: JhiEventManager
     ) {
         this.reports = [];
     }
@@ -78,12 +76,10 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     private onSuccess(msg: any) {
-        //this.ngxLoader.stop();
         this.jhiAlertService.success(msg, null, null);
     }
 
     private onError(msg: any) {
-        //this.ngxLoader.stop();
         this.jhiAlertService.error(msg, null, null);
     }
 
@@ -104,8 +100,6 @@ export class GenerateReportTabComponent implements OnInit {
     }
 
     generate() {
-            //this.ngxLoader.start();
-
             if (!this.searchByDateRange) {
               this.txnStartTime = '00:00';
               this.txnEndDate = this.txnStartDate;
@@ -124,20 +118,34 @@ export class GenerateReportTabComponent implements OnInit {
 
             let startDateTime = this.txnStartDate + ' ' + this.txnStartTime;
             let endDateTime = this.txnEndDate + ' ' + this.txnEndTime;
-
-            this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, 
-            this.category ? this.category.id : 0, this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
-                (res: HttpResponse<ReportDefinition[]>) => {
-                    this.onSuccess(this.ongoingGenerate);
-                },
-                (res: HttpErrorResponse) => {
-                	if (res.error.detail) {
-                		this.onError(res.error.detail);
-                	} else {
-                		this.onError(res.error.message);
-                	}
+            
+            if (this.isDateRangeValid(startDateTime, endDateTime)) {
+            	this.generateReportService.generateReportWithStartEndDate(this.branchId, this.institutionId, 
+           			 this.category ? this.category.id : 0, this.report ? this.report.id : 0, startDateTime, endDateTime).subscribe(
+                		(res: HttpResponse<ReportDefinition[]>) => {
+                    		this.onSuccess(this.ongoingGenerate);
+                		},
+                		(res: HttpErrorResponse) => {
+                			if (res.error.detail) {
+                				this.onError(res.error.detail);
+                			} else {
+                				this.onError(res.error.message);
+                			}
                 	
-                });
+                	});          	           	
+            } else {
+            	alert("Transaction End Date must be at least same or after Transaction Start Date.")
+            }
+            
+
+           
+    }
+    
+    isDateRangeValid(txnStartDate, txnEndDate) {		
+    	let fromDate = new Date(txnStartDate);
+    	let toDate = new Date(txnEndDate);
+
+    	return toDate.getTime() >= fromDate.getTime();
     }
     
     disableDateSelection() {

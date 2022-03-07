@@ -35,13 +35,6 @@
     <br/>
     <div class="row">
         &nbsp;&nbsp;&nbsp;<label jhiTranslate="baseApp.reportGeneration.txnStartLabel">Transaction Start Date</label>
-        <!--
-        <div *ngIf="disableDateSelection();then disable_date else enable_date"></div>
-        <ng-template #disable_date class="col-3">
-            <input class="d-flex" id="field_txnStartDate" type="date" data-date="" data-date-format="dd MMM yyyy"
-                class="form-control" name="txnStartDate" [(ngModel)]="txnStartDate" [readonly]="true"/>
-        </ng-template>
-        -->
         <div class="col-3">
             <input class="d-flex" id="field_txnStartDate" type="date" data-date="" data-date-format="dd MMM yyyy"
                 class="form-control" name="txnStartDate" [(ngModel)]="txnStartDate" [readonly]="disableDateSelection()"/>
