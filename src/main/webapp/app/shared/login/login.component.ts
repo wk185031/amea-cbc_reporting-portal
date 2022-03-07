@@ -83,7 +83,11 @@ export class JhiLoginModalComponent implements AfterViewInit {
             }
         }).catch((res: HttpErrorResponse) => {
         
-        	if (res.error.detail && res.error.detail != 'Bad credentials') {
+        	console.log("-----"+res.status);
+        	if (res.status == 409) {
+        		this.errorMsg = 'You already logged in on another system.';
+            	this.onError(this.errorMsg);
+        	} else if (res.error.detail && res.error.detail != 'Bad credentials') {
             	this.errorMsg = res.error.detail;
             	this.onError(res.error.detail);
             } else {
