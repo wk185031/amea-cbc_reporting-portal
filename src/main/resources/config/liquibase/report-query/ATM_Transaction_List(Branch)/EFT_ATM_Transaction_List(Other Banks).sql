@@ -6,6 +6,7 @@
 -- Acquirer				06-AUG-2021		NY		Use left join consistently to avoid data mismatch to master 
 -- CBCAXUPISSLOG-637	25-AUG-2021		NY		Exclude failed reversal
 -- CBCAXUPISSLOG-868	02-SEP-2021		NY		Generate blank report with header if no data retrieved
+-- CBCAXUPISSLOG-1001	07-MAC-2022		KW		Add filter TRL_ORIGIN_ICH_NAME to exclude transactions from Authentic_Service
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -68,6 +69,8 @@ BEGIN
 	WHERE
       TXN.TRL_TSC_CODE IN (1, 128, 31)
       AND (TXN.TRL_TQU_ID =''F'' OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
+      -- Exclude all txn from Authentic Service as they are OnUs
+      AND TRL_ORIGIN_ICH_NAME != ''Authentic_Service''
       AND TXN.TRL_ISS_NAME IS NULL
       AND TXN.TRL_FRD_REV_INST_ID IS NULL
       AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})

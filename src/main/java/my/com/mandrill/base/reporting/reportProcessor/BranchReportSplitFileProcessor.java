@@ -103,7 +103,7 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 						if (currentBranchFromQueue != null
 								&& !currentBranchFromQueue.getAbr_code().equals(nextBranchCodeToWrite)) {
 							do {
-								logger.debug("write empty section for branch: {}",
+								logger.trace("write empty section for branch: {}",
 										currentBranchFromQueue.getAbr_code());
 								masterStream = newPage(masterDoc, masterStream, rgm,
 										currentBranchFromQueue.getAbr_code(), currentBranchFromQueue.getAbr_name());
@@ -114,7 +114,7 @@ public class BranchReportSplitFileProcessor extends BranchReportProcessor {
 									&& !currentBranchFromQueue.getAbr_code().equals(nextBranchCodeToWrite));
 						}
 
-						logger.debug("write record for branch: {}", nextBranchCodeToWrite);
+						logger.trace("write record for branch: {}", nextBranchCodeToWrite);
 
 						String branchCode = nextBranchCodeToWrite;
 						String branchName = (currentBranchFromQueue == null ? nextBranchCodeToWrite
