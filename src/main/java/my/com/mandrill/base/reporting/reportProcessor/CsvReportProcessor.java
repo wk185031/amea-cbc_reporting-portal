@@ -702,13 +702,12 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 							logger.error("An error was encountered when getting result", e);
 							continue;
 						}
-						if (result != null) {
-							if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
-								bankCode = result.toString();
-							}
-							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
-								bankName = result.toString();
-							}
+						
+						if (key.equalsIgnoreCase(ReportConstants.BANK_CODE)) {
+							bankCode = result != null ? result.toString() : "";
+						}
+						if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
+							bankName = result != null ? result.toString() : "";
 						}
 					}
 					criteriaMap.put(bankCode, bankName);

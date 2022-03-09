@@ -105,8 +105,12 @@ public class DcmsSyncService {
 	private static final String SQL_SELECT_AUDIT_LOG_UPDATE_EMBOSS_NAME = "select CRD_ID, null as CLT_CIF_NUMBER, UEN_INS_ID, UEN_UPDATED_TS, STF_LOGIN_NAME, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.SUPPORT_UPDATE_EMBOSS_NAME@{DB_LINK} left join {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} on UEN_CRD_ID=CRD_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on UEN_UPDATED_BY=STF_ID or UEN_CREATED_BY=STF_ID where TO_TIMESTAMP(UEN_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS')  > ? and UEN_STS_ID in (88,91)";
 
 	private static final String SQL_SELECT_AUDIT_LOG_CC_UPDATE_EMBOSS_NAME = "select CSH_ID, null as CLT_CIF_NUMBER, UEN_CC_INS_ID, UEN_CC_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.SUPPORT_CC_UPDATE_EMBOSS_NAME@{DB_LINK} left join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} on UEN_CC_CSH_ID=CSH_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on UEN_CC_UPDATED_BY=STF_ID or UEN_CC_CREATED_BY=STF_ID where TO_TIMESTAMP(UEN_CC_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS')  > ? and UEN_CC_STS_ID in (88,91)";
-
+	
 	private static final String SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT = "select null as CRD_ID, CLT_CIF_NUMBER, CLT_INS_ID, CLT_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CLT_AUDIT_LOG from {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CLT_UPDATED_BY=STF_ID or CLT_CREATED_BY=STF_ID where CLT_AUDIT_LOG is not null and CLT_UPDATED_TS > ?";
+
+	private static final String SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT_ATM = "SELECT NULL AS CRD_ID, CLT_CIF_NUMBER, CLT_INS_ID, CLT_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CLT_AUDIT_LOG from {DB_SCHEMA}.ISSUANCE_DEBIT_CARD_REQUEST@{DB_LINK} join {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} on CRD_ID = DCR_CRD_ID join {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} on DCR_CLT_ID = CLT_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} ON DCR_CREATED_BY = STF_ID WHERE CLT_AUDIT_LOG is not null AND DCR_CREATED_TS > ? AND DCR_CRN_ID is null AND DCR_REQUEST_TYPE = 'Manual' AND DCR_STS_ID not in (67,69) AND CRD_KIT_NUMBER IS NOT NULL ";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT_CASH = "SELECT NULL AS CRD_ID, CLT_CIF_NUMBER, CLT_INS_ID, CLT_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CLT_AUDIT_LOG from {DB_SCHEMA}.ISSUANCE_CASH_CARD_REQUEST@{DB_LINK} join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} on CSH_ID = CCR_CSH_ID join {DB_SCHEMA}.ISSUANCE_CLIENT@{DB_LINK} on CCR_CLT_ID = CLT_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} ON CCR_CREATED_BY = STF_ID WHERE CLT_AUDIT_LOG is not null AND CCR_CREATED_TS > ? AND CCR_CRN_ID is null AND CCR_REQUEST_TYPE = 'Manual' AND CCR_STS_ID not in (67,69) AND CSH_KIT_NUMBER IS NOT NULL ";
 
 	private static final String SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET = "select cts_id as CRD_ID, null as CTS_CIF, CTS_INS_ID, CTS_UPDATED_TS, STF_LOGIN_NAME, null as CRD_CARD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CTS_AUDIT_LOG, CTS_NAME "
 			+ "from {DB_SCHEMA}.CARD_TRANSACTION_SET@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CTS_UPDATED_BY=STF_ID where CTS_AUDIT_LOG is not null and CTS_UPDATED_TS > ?";
@@ -218,24 +222,25 @@ public class DcmsSyncService {
 					"Mailing address updated using Address Update", FUNCTION_UPDATE_EMBOSS_NAME, true);
 		}
 
-		// Sync ISSUANCE CLIENT
-		Timestamp dcmsIssuanceClientLastUpdatedTs = getLastUpdatedTs(TABLE_ISSUANCE_CLIENT, COL_DCMS_ISSUANCE_CLIENT_TS,
-				true, false);
-		if (dcmsIssuanceClientLastUpdatedTs.after(userActivityLastUpdatedTs)) {
-			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", TABLE_ISSUANCE_CLIENT,
-					userActivityLastUpdatedTs, dcmsIssuanceClientLastUpdatedTs);
-			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT, FUNCTION_FETCH_CIF,
-					false);
-		}
+		//Fetch CIF 
+		syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT, FUNCTION_FETCH_CIF,
+				false, false, "Modified");
+		//Pre-gen card activation ATM
+		syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT_ATM, FUNCTION_FETCH_CIF,
+				false, false, "Registered");
+		//Pre-gen card activation Cash
+		syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_ISSUANCE_CLIENT_CASH, FUNCTION_FETCH_CIF,
+				false, true, "Registered");
+//		}
 
 		// sync transaction data
-		Timestamp dcmsTxnSetLastUpdatedTs = getLastUpdatedTs("CARD_TRANSACTION_SET", "CTS_UPDATED_TS", true, false);
-		if (dcmsTxnSetLastUpdatedTs.after(userActivityLastUpdatedTs)) {
-			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", "CARD_TRANSACTION_SET",
-					userActivityLastUpdatedTs, dcmsTxnSetLastUpdatedTs);
-			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET, "UPD TXN SET",
-					true);
-		}
+//		Timestamp dcmsTxnSetLastUpdatedTs = getLastUpdatedTs("CARD_TRANSACTION_SET", "CTS_UPDATED_TS", true, false);
+//		if (dcmsTxnSetLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+//			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}", "CARD_TRANSACTION_SET",
+//					userActivityLastUpdatedTs, dcmsTxnSetLastUpdatedTs);
+//			syncIssuanceClient(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_CARD_TRANSACTION_SET, "UPD TXN SET",
+//					true);
+//		}
 
 		// sync modify CIF
 		Timestamp dcmsModifyCIFLastUpdatedTs = getLastUpdatedTs(TABLE_ISSUANCE_MODIFY_CIF,
@@ -284,7 +289,7 @@ public class DcmsSyncService {
 
 	@Transactional
 	private void syncIssuanceClient(Timestamp userActivityLastUpdatedTs, String sql, String function,
-			boolean isApproveReject) {
+			boolean isApproveReject, boolean isCashCard, String auditLogDesc) {
 
 		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
 				.getResultList();
@@ -337,7 +342,7 @@ public class DcmsSyncService {
 				row.setAuditLog(clobToString(auditLogRaw));
 			}
 			row.setFunction(function);
-			row.setCashCard(false);
+			row.setCashCard(isCashCard);
 
 			if (isApproveReject) {
 				if (resultRow[8] != null) {
@@ -348,14 +353,14 @@ public class DcmsSyncService {
 				}
 				insertApprovedRejectedLog(row, userActivityLastUpdatedTs, false, mapper);
 			} else {
-				insertClientActivityLog(row, userActivityLastUpdatedTs, false, mapper);
+				insertClientActivityLog(row, userActivityLastUpdatedTs, isCashCard, mapper, auditLogDesc);
 			}
 
 		}
 	}
 
 	private void insertClientActivityLog(DcmsUserActivity clientRow, Timestamp userActivityLastUpdatedTs,
-			boolean isCashCard, ObjectMapper mapper) {
+			boolean isCashCard, ObjectMapper mapper, String auditLogDesc) {
 		String auditLog = clientRow.getAuditLog();
 
 		if (auditLog != null && !auditLog.trim().isEmpty()) {
@@ -368,8 +373,7 @@ public class DcmsSyncService {
 					Timestamp historyDate = getHistoryDate(history);
 					if (historyDate.after(userActivityLastUpdatedTs)) {
 						String description = history.get("description");
-						if (description != null && description.contains("Modified")
-								|| description.contains("Registered")) {
+						if (description != null && description.contains(auditLogDesc)) {
 							String createdBy = getMapValueWithKeys(history, "username", "usernam");
 							DcmsUserActivity activity = new DcmsUserActivity();
 							activity.setCardId(clientRow.getCardId());

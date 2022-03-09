@@ -5,6 +5,7 @@
 -- Issuer					09-AUG-2021		NY		Use TPS mnem if its not in SWIT/CASA mnem from file format
 -- Issuer					15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
 -- Issuer					16-AUG-2021		NY		IBFT txn not found in CASA Issuer
+-- JIRA 1119				09-MAR-2022		WY		Include POS Cashout Txn
 
 DECLARE
 
@@ -55,7 +56,7 @@ FROM
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND TXN.TRL_FRD_REV_INST_ID IS NULL 
-	  AND (TXN.TRL_TSC_CODE IN (142, 143) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_MCC_ID = ''6011'')) 
+	  AND (TXN.TRL_TSC_CODE IN (142, 143) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_MCC_ID IN (''6011'',''6016''))) 
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) NOT IN (''7001'', ''7002'', ''8553'', ''8551'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
