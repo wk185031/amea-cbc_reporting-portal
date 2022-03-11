@@ -40,7 +40,8 @@ public class ATMTransactionListIssuer extends CsvReportProcessor {
 				bankCode = bankCodeMap.getKey();
 				bankName = bankCodeMap.getValue();
 				StringBuilder line = new StringBuilder();
-				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankName).append(";");
+				line.append(ReportConstants.ACQUIRER_BANK + ": ").append(";").append(bankCode + " ").append(";")
+				.append(bankName).append(";");
 				line.append(getEol());
 				rgm.writeLine(line.toString().getBytes());
 				preProcessing(rgm, bankCode);
