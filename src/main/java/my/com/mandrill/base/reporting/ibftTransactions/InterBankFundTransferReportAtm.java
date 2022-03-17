@@ -441,11 +441,11 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 
 	private SortedMap<String, Map<String, Map<String, Map<String, String>>>> filterByIssuing(ReportGenerationMgr rgm) {
 		logger.debug("In InterBankFundTransferReportAtm.filterByIssuing()");
-		String branchCode = null;
-		String branchName = null;
-		String bankCode = null;
-		String bankName = null;
-		String acqBankMnem = null;
+		String branchCode = "";
+		String branchName = "";
+		String bankCode = "";
+		String bankName = "";
+		String acqBankMnem = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -531,9 +531,9 @@ public class InterBankFundTransferReportAtm extends CsvReportProcessor {
 
 	private SortedMap<String, Map<String, String>> filterByReceiving(ReportGenerationMgr rgm) {
 		logger.debug("In InterBankFundTransferReportAtm.filterByReceiving()");
-		String bankCode = null;
-		String bankName = null;
-		String acqBankMnem = null;
+		String bankCode = "";
+		String bankName = "";
+		String acqBankMnem = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
