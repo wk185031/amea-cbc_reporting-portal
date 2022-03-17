@@ -271,8 +271,8 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 					setSummaryIssuerQuery(
 							getSummaryBodyQuery().replace(" {" + ReportConstants.PARAM_SUMMARY + "}", summaryQuery));
 
-					setSummaryIssuerQuery(getSummaryIssuerQuery().replace("ABR.ABR_CODE",
-							"CASE WHEN ISS_BRC.BRC_CODE IS NOT NULL THEN ISS_BRC.BRC_CODE ELSE ISS_BRC_A.BRC_CODE END ")
+					setSummaryIssuerQuery(getSummaryIssuerQuery().replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4)",
+							"CASE WHEN TXNC.TRL_CARD_BRANCH IS NOT NULL THEN TXNC.TRL_CARD_BRANCH ELSE TXNC_A.TRL_CARD_BRANCH END ")
 							.replace("ABR.ABR_NAME",
 									"CASE WHEN ISS_BRC.BRC_NAME IS NOT NULL THEN ISS_BRC.BRC_NAME ELSE ISS_BRC_A.BRC_NAME END "));
 
@@ -310,13 +310,13 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 			
 			if (txnType.equalsIgnoreCase("issuerSummary")) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "(ISS_BRC.BRC_CODE = '" + filterByBranchCode
-								+ "' OR ISS_BRC_A.BRC_CODE = '" + filterByBranchCode + "')");
+						ReportGenerationFields.TYPE_STRING, "(TXNC.TRL_CARD_BRANCH = '" + filterByBranchCode
+								+ "' OR TXNC_A.TRL_CARD_BRANCH = '" + filterByBranchCode + "')");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 				
 			}else {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+						ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			}
 		}
@@ -324,13 +324,13 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		if (filterByBranchName != null) {
 			
 			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchName + "'");
 			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
 		if (filterByTerminal != null) {
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 

@@ -347,7 +347,7 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 			Set<String> filterByToAccountNo, String filterType)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		logger.debug("In InterBankFundTransferReportAtmRejectedTransaction.preProcessing()");
-		String toAccountNumber = "";
+		String toAccountNumber = null;
 		if (filterByBankCode != null) {
 			ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 					ReportGenerationFields.TYPE_STRING,
@@ -359,24 +359,31 @@ public class InterBankFundTransferReportAtmRejectedTransaction extends CsvReport
 			for (Iterator<String> it = filterByToAccountNo.iterator(); it.hasNext();) {
 				String toAccountNo = it.next();
 				if (it.hasNext()) {
-					toAccountNumber += "'" + toAccountNo + "',";
+					toAccountNumber = toAccountNo != null ? "'" + toAccountNo + "'," : toAccountNo;
 				} else {
-					toAccountNumber += "'" + toAccountNo + "'";
+					toAccountNumber = toAccountNo != null ? "'" + toAccountNo + "'" : toAccountNo;
 				}
 			}
-			ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
-					ReportGenerationFields.TYPE_STRING, "TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
-			getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
+			
+			if(toAccountNumber != null) {
+				ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
+						ReportGenerationFields.TYPE_STRING, "TXN.TRL_ACCOUNT_2_ACN_ID IN (" + toAccountNumber + ")");
+				getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
+			}else {
+				ReportGenerationFields toAccountNo = new ReportGenerationFields(ReportConstants.PARAM_TO_ACCOUNT,
+						ReportGenerationFields.TYPE_STRING, "TXN.TRL_ACCOUNT_2_ACN_ID is null");
+				getGlobalFileFieldsMap().put(toAccountNo.getFieldName(), toAccountNo);
+			}
 		}
 
 		if (filterByBranchCode != null) {
 			if (filterType.equalsIgnoreCase("acquiring")) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+						ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT,0,4) = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			} else if (filterType.equalsIgnoreCase("issuing")) {
 				ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-						ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
+						ReportGenerationFields.TYPE_STRING, "TXNC.TRL_CARD_BRANCH = '" + filterByBranchCode + "'");
 				getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			} else {
 				ReportGenerationFields branchCode = new ReportGenerationFields(

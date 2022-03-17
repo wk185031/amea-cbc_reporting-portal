@@ -504,10 +504,10 @@ public class CsvReportProcessor extends GeneralReportProcess implements ICsvRepo
 
 	protected SortedMap<String, Map<String, TreeMap<String, String>>> filterCriteriaByBranch(ReportGenerationMgr rgm) {
 		logger.debug("In CsvReportProcessor.filterCriteriaByBranch()");
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
-		String location = null;
+		String branchCode = "";
+		String branchName = "";
+		String terminal = "";
+		String location = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
