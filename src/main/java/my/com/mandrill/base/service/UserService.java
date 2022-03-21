@@ -363,6 +363,8 @@ public class UserService {
 					user.setLastModifiedBy("system");
 
 					userRepository.save(user);
+					cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
+					cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
 				}
 			}
 		}
@@ -397,6 +399,8 @@ public class UserService {
 
 					userRepository.save(user);
 					updatedCount++;
+					cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
+					cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
 				}
 			}
 		}
@@ -435,7 +439,8 @@ public class UserService {
 			}
 
 			userRepository.save(user);
-
+			cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
+			cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
 		}
 	}
 }
