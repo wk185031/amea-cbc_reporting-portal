@@ -84,6 +84,7 @@ public class ReportGenerationFields {
 	private boolean group = false;
 	private boolean sumAmount = false;
 	private LocalDateTime reportTxnEndDate;
+	private String sourceTimezone;
 
 	public ReportGenerationFields() {
 		super();
@@ -511,6 +512,14 @@ public class ReportGenerationFields {
 		this.sumAmount = sumAmount;
 	}
 
+	public String getSourceTimezone() {
+		return sourceTimezone;
+	}
+
+	public void setSourceTimezone(String sourceTimezone) {
+		this.sourceTimezone = sourceTimezone;
+	}
+
 	public String format() {
 		String tempValue = null;
 		switch (fieldType) {
@@ -522,7 +531,11 @@ public class ReportGenerationFields {
 			if (value == null || value.isEmpty()) {
 				tempValue = "";
 			} else {
-				if (!value.contains("-")) {
+				if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+					LocalDateTime sourceDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)), ZoneId.systemDefault());
+					ZonedDateTime convertedDateTime = sourceDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
+				} else if (!value.contains("-")) {
 					ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
 							ZoneId.systemDefault());
 					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
@@ -543,6 +556,10 @@ public class ReportGenerationFields {
 
 			if (value == null || value.isEmpty()) {
 				tempValue = "";
+			} else if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+				LocalDateTime sourceDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)), ZoneId.systemDefault());
+				ZonedDateTime convertedDateTime = sourceDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
 			} else {
 				ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
 						ZoneId.systemDefault());
@@ -579,6 +596,11 @@ public class ReportGenerationFields {
 					tempValue = value;
 				}
 				
+			} else if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+				DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(fieldFormat);
+				LocalDateTime localDateTime = LocalDateTime.parse(value, localDateFormatter);
+				ZonedDateTime convertedDateTime = localDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
 			} else {
 				tempValue = value;
 			}
@@ -601,7 +623,11 @@ public class ReportGenerationFields {
 			if (value == null || value.isEmpty()) {
 				tempValue = "";
 			} else {
-				if (!value.contains("-")) {
+				if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+					LocalDateTime sourceDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)), ZoneId.systemDefault());
+					ZonedDateTime convertedDateTime = sourceDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
+				} else if (!value.contains("-")) {
 					ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
 							ZoneId.systemDefault());
 					tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(dateTime);
@@ -619,6 +645,10 @@ public class ReportGenerationFields {
 
 			if (value == null || value.isEmpty()) {
 				tempValue = "";
+			} else if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+				LocalDateTime sourceDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)), ZoneId.systemDefault());
+				ZonedDateTime convertedDateTime = sourceDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
 			} else {
 				ZonedDateTime dateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(value)),
 						ZoneId.systemDefault());
@@ -647,7 +677,15 @@ public class ReportGenerationFields {
 			}
 			break;
 		case ReportGenerationFields.TYPE_STRING:
-			tempValue = value;
+			if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
+				DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(fieldFormat);
+				LocalDateTime localDateTime = LocalDateTime.parse(value, localDateFormatter);
+				ZonedDateTime convertedDateTime = localDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
+				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);
+			} else {
+				tempValue = value;
+			}
+			
 			break;
 		default:
 			tempValue = "";
@@ -1031,6 +1069,7 @@ public class ReportGenerationFields {
 		field.setSource(source);
 		field.setGroup(group);
 		field.setSumAmount(sumAmount);
+		field.setSourceTimezone(sourceTimezone);
 		return field;
 	}
 }

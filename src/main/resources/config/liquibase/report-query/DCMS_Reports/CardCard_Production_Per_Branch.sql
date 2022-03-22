@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Cash Card Production Report per Branch';
@@ -41,9 +42,8 @@ BEGIN
 	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM ON CAM_CSH_ID = CSH_ID
 	LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
 	where ccr.ccr_ins_id = {Iss_Id}
-	and FROM_TZ( CAST( ccr.ccr_created_ts AS TIMESTAMP ), ''UTC'' )
-    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
-    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and ccr.ccr_created_ts BETWEEN To_Timestamp({From_Date_UTC}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date_UTC}, ''DD-MM-YY HH24:MI:SS'')
 	and ccr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = 1 and cdt_type_name = ''Cash'')
 	AND CCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
 	AND CCR_STS_ID not in (67,69)
@@ -62,9 +62,8 @@ BEGIN
 	where Scca.Cc_Caa_Ins_Id = {Iss_Id}
 	and csh_kit_number is null
 	and Scca.Cc_Caa_Sts_Id IN (91)
-	AND FROM_TZ( CAST( To_Date(Scca.CC_CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') AS TIMESTAMP ), ''UTC'' )
-    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
-    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')  
+	AND To_Timestamp(Scca.CC_CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') BETWEEN To_Timestamp({From_Date_UTC}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date_UTC}, ''DD-MM-YY HH24:MI:SS'')  
 	and csh_audit_log like ''%Status changed from Inactive to ACTIVE%''
 	group by brn.brn_code,brn.brn_name
 	UNION ALL
@@ -79,9 +78,8 @@ BEGIN
 	LEFT JOIN {DCMS_Schema}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK_DCMS} ICCAM ON CAM_CSH_ID = CSH_ID
 	LEFT JOIN {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} ON CAM_CLT_ID = CLT_ID
 	where BCR_INS_ID = {Iss_Id}
-	and FROM_TZ( CAST( bcr_created_ts AS TIMESTAMP ), ''UTC'' )
-    AT TIME ZONE ''ASIA/MANILA'' BETWEEN To_Timestamp({From_Date}, ''DD-MM-YY HH24:MI:SS'') 
-    AND To_Timestamp({To_Date}, ''DD-MM-YY HH24:MI:SS'')
+	and bcr_created_ts BETWEEN To_Timestamp({From_Date_UTC}, ''DD-MM-YY HH24:MI:SS'') 
+    AND To_Timestamp({To_Date_UTC}, ''DD-MM-YY HH24:MI:SS'')
 	and bcr_cdt_id = (select cdt_id from {DCMS_Schema}.master_card_types@{DB_LINK_DCMS} where cdt_ins_id = 1 and cdt_type_name = ''Cash'')
 	and bcr_sts_id not in (67,69)
 	group by brn.brn_code,brn.brn_name)
