@@ -67,6 +67,7 @@ public final class ReportConstants {
     public static final String DATETIME_FORMAT_03 = "yyyyMMdd HH:mm a";
     public static final String DATETIME_FORMAT_04 = "MMdd HH:mm a";
     public static final String DATETIME_FORMAT_05 = "yyyyMMdd hhmma";
+    public static final String DATETIME_FORMAT_06 = "MM/dd/yy HH:mm";
 	public static final String FORMAT_TXN_DATE = "YYYYMMDD HH24:MI:SS";
 
 	// Report Generation Path
@@ -104,6 +105,8 @@ public final class ReportConstants {
 	public static final String PARAM_ISSUER_ID = "Iss_Id";
 	public static final String PARAM_FROM_DATE = "From_Date";
 	public static final String PARAM_TO_DATE = "To_Date";
+	public static final String PARAM_FROM_DATE_UTC = "From_Date_UTC";
+	public static final String PARAM_TO_DATE_UTC = "To_Date_UTC";
 	public static final String PARAM_DCMS_DB_SCHEMA = "DCMS_Schema";
 	public static final String PARAM_DB_LINK_DCMS = "DB_LINK_DCMS";
     public static final String PARAM_AUTH_DB_SCHEMA = "AUTH_Schema";
@@ -401,6 +404,12 @@ public final class ReportConstants {
 	public class SupportFunction {
 		public static final String WITHHELD_RENEWAL = "WITHHELD AUTO RNW";
 		public static final String CC_WITHHELD_RENEWAL = "CC WITHHELD AUTO RNW";
+	}
+	
+	//Timezone
+	public class TimeZone {
+		public static final String UTC = "UTC";
+		public static final String MANILA = "Asia/Manila";
 	}
 	
 }

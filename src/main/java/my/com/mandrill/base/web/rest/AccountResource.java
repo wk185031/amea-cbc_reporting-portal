@@ -316,6 +316,7 @@ public class AccountResource {
 				keyAndPassword.getNewPassword());
 
 		Optional<User> user = userService.completePasswordReset(NewPassword, NewKey);
+		User userEntity = null;
 		try {
 			if (!checkPasswordLength(NewPassword)) {
 				throw new InvalidPasswordException();
@@ -325,7 +326,7 @@ public class AccountResource {
 				throw new InternalServerErrorException("No user was found for this reset key");
 			}
 			
-			User userEntity = user.get();
+			userEntity = user.get();
 
 			// first password reset need to insert into password_history and
 			// user_extra_password_history table
@@ -347,10 +348,11 @@ public class AccountResource {
 				userRepository.save(userEntity);
 			}
 
-			auditActionService.addSuccessEvent(AuditActionType.RESET_PASSWORD_SUCCESS, user.get().getLogin(), request);
+			auditActionService.addSuccessEvent(AuditActionType.RESET_PASSWORD_SUCCESS, userEntity.getLogin(), request);
 
 		} catch (Exception e) {
-			auditActionService.addFailedEvent(AuditActionType.RESET_PASSWORD_FAILED, user.get().getLogin(), e, request);
+			auditActionService.addFailedEvent(AuditActionType.RESET_PASSWORD_FAILED,
+					userEntity != null ? userEntity.getLogin() : "anonymous", e, request);
 			throw e;
 		}
 

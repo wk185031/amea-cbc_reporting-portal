@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -328,6 +329,9 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 
 		String txnStartDate = rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		String txnEndDate = rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		
+		String txnStartDateUTC = rgm.getTxnStartDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		String txnEndDateUTC = rgm.getTxnEndDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 		logger.debug(
 				"In DCMSApproveRejectPendingCardReport.preProcessing: fileNamePrefix={}, txnStartDate={}, txnEndDate={}, dcmsSchema={}, dbLink={}, institution={}",
@@ -338,6 +342,8 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		rgm.setBodyQuery(
 				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + txnStartDate + "'")
 						.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + txnEndDate + "'")
+						.replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + txnStartDateUTC + "'")
+						.replace("{" + ReportConstants.PARAM_TO_DATE_UTC + "}", "'" + txnEndDateUTC + "'")
 						.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", rgm.getDcmsDbSchema())
 						.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
 						.replace("{" + ReportConstants.PARAM_ISSUER_NAME + "}",

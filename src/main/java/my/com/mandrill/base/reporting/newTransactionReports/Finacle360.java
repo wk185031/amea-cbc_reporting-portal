@@ -3,6 +3,7 @@ package my.com.mandrill.base.reporting.newTransactionReports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +93,8 @@ public class Finacle360 extends CsvReportProcessor {
 		rgm.setBodyQuery(rgm.getBodyQuery()
 				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
 	            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+	            .replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + rgm.getTxnStartDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+	            .replace("{" + ReportConstants.PARAM_TO_DATE_UTC + "}", "'" + rgm.getTxnEndDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
 				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
 				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
 				.replace("{" + ReportConstants.PARAM_ISSUER_NAME+ "}", rgm.getInstitution().equals("CBC") ? CBC_BANK_NAME : CBS_BANK_NAME)
