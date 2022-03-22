@@ -90,7 +90,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 			switch (field.getFieldName()) {
 			case ReportConstants.TRANSMITTING_COUNT:
 				line.append(getFieldValue(rgm, field, fieldsMap));
-				transmittingCount += Integer.parseInt(getFieldValue(field, fieldsMap));
+				transmittingCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
 				break;
 			case ReportConstants.TRANSMITTING_EXPENSE:
 				line.append(getFieldValue(rgm, field, fieldsMap));
@@ -104,7 +104,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 				break;
 			case ReportConstants.ACQUIRER_COUNT:
 				line.append(getFieldValue(rgm, field, fieldsMap));
-				acquiringCount += Integer.parseInt(getFieldValue(field, fieldsMap));
+				acquiringCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
 				break;
 			case ReportConstants.ACQUIRER_INCOME:
 				line.append(getFieldValue(rgm, field, fieldsMap));
@@ -118,7 +118,7 @@ public class InterEntityIbftTransactionFees extends CsvReportProcessor {
 				break;
 			case ReportConstants.RECEIVING_COUNT:
 				line.append(getFieldValue(rgm, field, fieldsMap));
-				receivingCount += Integer.parseInt(getFieldValue(field, fieldsMap));
+				receivingCount += Integer.parseInt(getFieldValue(field, fieldsMap).replace(",", ""));
 				break;
 			case ReportConstants.RECEIVING_INCOME:
 				line.append(getFieldValue(rgm, field, fieldsMap));
