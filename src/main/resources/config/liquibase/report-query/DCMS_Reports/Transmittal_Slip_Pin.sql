@@ -2,6 +2,7 @@
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
 -- Rel-20210823			21-AUG-2021		KW		Fix decryption and enhance sql
 -- Rel-20210823			21-AUG-2021		GS		Revise the sql and the format of report header
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Transmittal Slip for new PINs';
@@ -52,7 +53,7 @@ where
  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
   AND DCR_STS_ID not in (67,69)
  AND CRD_KIT_NUMBER IS NULL
-   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 union all
 -- ATM Renew, ATM Replace
 select CLT_FIRST_NAME as FIRST_NAME,
@@ -77,7 +78,7 @@ where
    DCR_INS_ID = {Iss_Id}
 	  AND CRN_STS_ID = 91
 AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
-   AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+   AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 UNION ALL
 --Cash Card Manual, Cash Card Bulk Upload
 select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -104,7 +105,7 @@ where
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
  AND CSH_KIT_NUMBER IS NULL
- AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1	  
+ AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1	  
 UNION ALL
 --CASH CARD RENEW, REPLACE
 select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -130,7 +131,7 @@ where
   CCR_INS_ID = {Iss_Id}
 AND CCR_REQUEST_TYPE IN (''Renew'',''Replace'')
    AND CC_CRN_STS_ID = 91
-   AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1	  
+   AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1	  
    union all
 --ATM REPIN
   select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -155,7 +156,7 @@ join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on REP_INS_ID = INS_ID
 where 
  REP_INS_ID = {Iss_Id}
 	  AND REP_STS_ID in (91)
-	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 UNION ALL
 --CASH CARD REPIN
  select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -180,7 +181,7 @@ join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
 where 
   CC_REP_INS_ID = {Iss_Id}
   AND CC_REP_STS_ID = 91
-	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 	union all
 --ATM PRE-GEN
 	  select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -208,7 +209,7 @@ where
   AND BCR_STS_ID not in (67,69)
   AND CRD_KIT_NUMBER IS NOT NULL
   AND CRD_IS_LINKED NOT IN (''1'')
-AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'')	 - 1
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	 - 1
 UNION ALL
 --CASH CARD PRE-GEN
 	  select COALESCE(CLT_FIRST_NAME, CCL_COMPANY_NAME) as FIRST_NAME,
@@ -236,7 +237,7 @@ where
   AND BCR_STS_ID not in (67,69)
   AND CSH_KIT_NUMBER IS NOT NULL
   AND CSH_IS_LINKED NOT IN (''1'')
-AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 --ATM Renew Bulk
 select CLT_FIRST_NAME as FIRST_NAME,
@@ -261,7 +262,7 @@ where
   RBC_INS_ID = {Iss_Id}
   AND DCR_REQUEST_TYPE = ''Renew''
   AND RBC_STS_ID = 68
-   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1
 union all 
 --Cash Card Renew Bulk
 select CLT_FIRST_NAME as FIRST_NAME,
@@ -286,7 +287,7 @@ where
   RBC_INS_ID = {Iss_Id}
   AND CCR_REQUEST_TYPE = ''Renew''
   AND RBC_STS_ID = 68
-   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date},''DD-MM-YY HH24:MI:SS'') - 1 
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'') - 1 
 	) ORDER BY Branch_Code ASC');	
 	i_TRAILER_QUERY := null;
 	

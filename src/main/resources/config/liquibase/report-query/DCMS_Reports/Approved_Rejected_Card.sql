@@ -2,7 +2,8 @@
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
 -- Rel-20210827			27-AUG-2021		KW		Revise query
 -- 						11-NOV-2021		AM		844: Approved/Rejected	
--- Rel-20211204			12-DEC-2021		AM		844: Approved/Rejected								
+-- Rel-20211204			12-DEC-2021		AM		844: Approved/Rejected
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone. Body field sourceTimezone not available via UI yet								
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Approved Rejected Card Records';
@@ -36,7 +37,7 @@ BEGIN
 									{"sequence":14,"sectionName":"14","fieldName":"EMPTY","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},
 									{"sequence":15,"sectionName":"15","fieldName":"EMPTY","csvTxtLength":"10","pdfLength":"10","fieldType":"String","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},
 									{"sequence":16,"sectionName":"16","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},
-									{"sequence":17,"sectionName":"17","fieldName":"ISSUE_DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},
+									{"sequence":17,"sectionName":"17","fieldName":"ISSUE_DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"MM/dd/yy HH:mm","sourceTimezone":"UTC","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},
 									{"sequence":18,"sectionName":"18","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},
 									{"sequence":19,"sectionName":"19","fieldName":"CLIENT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},
 									{"sequence":20,"sectionName":"20","fieldName":"CARD_TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"tagValue":null},
@@ -51,7 +52,7 @@ BEGIN
 	
 -- CBS header/body/trailer fields
 	i_HEADER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Bank Code","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"0112","firstField":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":2,"sectionName":"2","fieldName":"Bank Name","csvTxtLength":"50","pdfLength":"50","fieldType":"String","defaultValue":"CHINA BANK SAVINGS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"File Name1","csvTxtLength":"60","pdfLength":"60","fieldType":"String","defaultValue":"APPROVED/REJECTED CARD RECORDS","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"RunDate","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"RUN DATE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"RunDate Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","defaultValue":"","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"PAGE","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"PAGE","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":7,"sectionName":"7","fieldName":"Page Number","csvTxtLength":"5","pdfLength":"5","fieldType":"String","defaultValue":"","eol":true,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":8,"sectionName":"8","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"firstField":true},{"sequence":9,"sectionName":"9","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":10,"sectionName":"10","fieldName":"SPACE","csvTxtLength":"96","pdfLength":"96","fieldType":"String","defaultValue":"","firstField":false,"leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"Time","csvTxtLength":"14","pdfLength":"14","fieldType":"String","defaultValue":"TIME","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":12,"sectionName":"12","fieldName":"Time Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","fieldFormat":"HH:mm:ss","leftJustified":true,"padFieldLength":0,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"Report Id","eol":true,"csvTxtLength":"9","pdfLength":"9","fieldType":"String","leftJustified":true,"padFieldLength":0,"delimiter":";","defaultValue":""},{"sequence":14,"sectionName":"Space1","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0},{"sequence":15,"sectionName":"15","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":16,"sectionName":"16","csvTxtLength":"100","pdfLength":"96","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0},{"sequence":17,"sectionName":"17","fieldName":"Todays Date","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TODAYS DATE","leftJustified":true,"padFieldLength":0},{"sequence":18,"sectionName":"18","fieldName":"Todays Date Value","csvTxtLength":"19","pdfLength":"19","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","leftJustified":true,"padFieldLength":0},{"sequence":19,"sectionName":"19","fieldName":"As Of Date","csvTxtLength":"14","pdfLength":"14","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"AS OF DATE","leftJustified":true,"padFieldLength":0},{"sequence":20,"sectionName":"20","fieldName":"As of Date Value","csvTxtLength":"16","pdfLength":"16","fieldType":"Date","delimiter":";","fieldFormat":"MM/dd/yyyy","eol":true,"leftJustified":true,"padFieldLength":0}]');
-	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD/ACCOUNT/REF No","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","defaultValue":"CUSTOMER/CARD TRANSACTION SET NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"CARD TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"CARD TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"FUNCTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"FUNCTION /","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"FROM DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"FROM DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"TO DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TO DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"9","fieldName":"CHECKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHECKER ID","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true},{"sequence":10,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"7","pdfLength":"7","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"REMARKS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"12","fieldName":"EMPTY","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"14","fieldName":"EMPTY","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"15","fieldName":"EMPTY","csvTxtLength":"10","pdfLength":"10","fieldType":"String","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":16,"sectionName":"16","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":17,"sectionName":"17","fieldName":"ISSUE_DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":19,"sectionName":"19","fieldName":"CLIENT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":20,"sectionName":"20","fieldName":"CARD_TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"tagValue":null},{"sequence":21,"sectionName":"21","fieldName":"FUNCTION_NAME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"22","fieldName":"FROM_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":false},{"sequence":23,"sectionName":"23","fieldName":"TO_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"24","fieldName":"MAKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":25,"sectionName":"25","fieldName":"CHECKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":26,"sectionName":"26","fieldName":"STATUS","csvTxtLength":"7","pdfLength":"7","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":27,"sectionName":"27","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
+	i_BODY_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"DATE/TIME","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"DATE/TIME","firstField":true,"bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";","fieldFormat":""},{"sequence":2,"sectionName":"2","fieldName":"CARD NO","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"CARD/ACCOUNT/REF No","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":3,"sectionName":"3","fieldName":"CUSTOMER NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","defaultValue":"CUSTOMER/CARD TRANSACTION SET NAME","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":4,"sectionName":"4","fieldName":"CARD TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","defaultValue":"CARD TYPE","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":5,"sectionName":"5","fieldName":"FUNCTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"FUNCTION /","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":6,"sectionName":"6","fieldName":"FROM DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"FROM DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":7,"sectionName":"7","fieldName":"TO DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"TO DATA","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":8,"sectionName":"8","fieldName":"MAKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"MAKER ID","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":9,"sectionName":"9","fieldName":"CHECKER ID","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"CHECKER ID","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":true},{"sequence":10,"sectionName":"10","fieldName":"STATUS","csvTxtLength":"7","pdfLength":"7","fieldType":"String","defaultValue":"STATUS","bodyHeader":true,"eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":11,"sectionName":"11","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":"","fieldFormat":"","defaultValue":"REMARKS","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":12,"sectionName":"12","fieldName":"EMPTY","csvTxtLength":"15","pdfLength":"15","fieldType":"String","defaultValue":"","firstField":true,"bodyHeader":true,"fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":13,"sectionName":"13","fieldName":"EMPTY","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":14,"sectionName":"14","fieldName":"EMPTY","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":15,"sectionName":"15","fieldName":"EMPTY","csvTxtLength":"10","pdfLength":"10","fieldType":"String","bodyHeader":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":16,"sectionName":"16","fieldName":"DESCRIPTION","csvTxtLength":"20","pdfLength":"20","fieldType":"String","defaultValue":"DESCRIPTION","bodyHeader":true,"eol":true,"leftJustified":true,"padFieldLength":0,"decrypt":false,"decryptionKey":null,"delimiter":";"},{"sequence":17,"sectionName":"17","fieldName":"ISSUE_DATE","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"MM/dd/yy HH:mm","sourceTimezone":"UTC","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":18,"sectionName":"18","fieldName":"CRD_NUMBER_ENC","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":19,"sectionName":"19","fieldName":"CLIENT_NAME","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":true,"decryptionKey":"DCMS_ENCRYPTION_KEY","tagValue":null},{"sequence":20,"sectionName":"20","fieldName":"CARD_TYPE","csvTxtLength":"10","pdfLength":"10","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"tagValue":null},{"sequence":21,"sectionName":"21","fieldName":"FUNCTION_NAME","csvTxtLength":"20","pdfLength":"20","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":22,"sectionName":"22","fieldName":"FROM_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"bodyHeader":false},{"sequence":23,"sectionName":"23","fieldName":"TO_DATA","csvTxtLength":"25","pdfLength":"25","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":24,"sectionName":"24","fieldName":"MAKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":25,"sectionName":"25","fieldName":"CHECKER","csvTxtLength":"15","pdfLength":"15","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":26,"sectionName":"26","fieldName":"STATUS","csvTxtLength":"7","pdfLength":"7","fieldType":"String","delimiter":";","fieldFormat":"","eol":false,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":27,"sectionName":"27","fieldName":"REMARKS","csvTxtLength":"40","pdfLength":"40","fieldType":"String","delimiter":";","fieldFormat":"","defaultValue":"","leftJustified":true,"padFieldLength":0,"decrypt":false,"eol":true}]');
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"TOTAL ITEM","csvTxtLength":"21","pdfLength":"21","defaultValue":"TOTAL NUMBER OF ITEMS:","fieldType":"String","delimiter":";","fieldFormat":"","firstField":true,"leftJustified":true,"padFieldLength":0,"decrypt":false},{"sequence":2,"sectionName":"2","fieldName":"TOTAL","fieldType":"String","delimiter":";","fieldFormat":"","leftJustified":false,"padFieldLength":0,"decrypt":false,"csvTxtLength":"7","pdfLength":"7","eol":true}]');
 	
 	i_BODY_QUERY := TO_CLOB('
@@ -80,7 +81,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = ADL_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = ADL_UPDATED_BY
 		Where
-			TO_DATE(SALD.ADL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			TO_DATE(SALD.ADL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between TO_DATE({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			AND SALD.ADL_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -109,7 +110,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = ACL_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = ACL_UPDATED_BY
 		Where
-			To_Date(SAL.ACL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(SAL.ACL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And SAL.Acl_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -138,7 +139,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = AUR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = AUR_UPDATED_BY
 		Where
-			To_Date(AUR.AUR_Updated_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(AUR.AUR_Updated_Ts, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And AUR.AUR_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -167,7 +168,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CAA_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CAA_UPDATED_BY
 		Where
-			To_Date(Sac.CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date},''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sac.CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'')  Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC},''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sac.Caa_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -196,7 +197,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CRN_UPDATED_BY
 		Where
-			To_Date(Scr.CRN_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Scr.CRN_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (88, 90, 91)
 			And Scr.Crn_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -226,7 +227,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CAA_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CAA_UPDATED_BY
 		Where
-			To_Date(Scca.CC_CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Scca.CC_CAA_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND Scca.Cc_Caa_Sts_Id IN (90, 91)
 			And Scca.Cc_Caa_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -255,7 +256,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_AUR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_AUR_UPDATED_BY
 		Where
-			To_Date(Sccadd.CC_AUR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccadd.CC_AUR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccadd.CC_AUR_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -284,7 +285,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CCD_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CCD_UPDATED_BY
 		Where
-			To_Date(Sccclo.CC_CCD_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccclo.CC_CCD_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccclo.CC_CCD_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -313,7 +314,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_DHL_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_DHL_UPDATED_BY
 		Where
-			To_Date(Sccd.CC_DHL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccd.CC_DHL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccd.Cc_Dhl_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -342,7 +343,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_HOT_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_HOT_UPDATED_BY
 		Where
-			To_Date(Scht.CC_HOT_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Scht.CC_HOT_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Scht.Cc_Hot_Ins_Id = {Iss_Name}	
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -371,7 +372,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_CRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_CRN_UPDATED_BY
 		Where
-			To_Date(Sccr.CC_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccr.CC_APPROVE_REJECTED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (88, 90, 91)
 			And Sccr.Cc_Crn_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -400,7 +401,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_REP_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_REP_UPDATED_BY
 		Where
-			To_Date(Srp.CC_REP_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Srp.CC_REP_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Srp.Cc_Rep_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -429,7 +430,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_RPC_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_RPC_UPDATED_BY
 		Where
-			To_Date(Sccrp.CC_RPC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccrp.CC_RPC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccrp.Cc_Rpc_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -458,7 +459,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_SRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_SRN_UPDATED_BY
 		Where
-			To_Date(Sccsr.CC_SRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccsr.CC_SRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccsr.CC_SRN_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -487,7 +488,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_TRM_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_TRM_UPDATED_BY
 		Where
-			To_Date(Scctxn.CC_TRM_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Scctxn.CC_TRM_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Scctxn.CC_TRM_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -515,7 +516,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = UEN_CC_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = UEN_CC_UPDATED_BY
 		Where
-			To_Date(Sccuen.UEN_CC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccuen.UEN_CC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccuen.UEN_CC_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -544,7 +545,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CC_WAR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CC_WAR_UPDATED_BY
 		Where
-			To_Date(Sccwith.CC_WAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccwith.CC_WAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccwith.CC_WAR_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -575,7 +576,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CCD_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CCD_UPDATED_BY
 		Where
-			To_Date(Sccard.CCD_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sccard.CCD_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sccard.CCD_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -604,7 +605,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = DAR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = DAR_UPDATED_BY
 		Where
-			To_Date(Dac.DAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Dac.DAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Dac.Dar_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -633,7 +634,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = DHL_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = DHL_UPDATED_BY
 		Where
-			To_Date(Sdhl.DHL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sdhl.DHL_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sdhl.Dhl_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -663,7 +664,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = FCR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = FCR_UPDATED_BY
 		Where
-			To_Date(FCR.FCR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(FCR.FCR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And FCR.FCR_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -692,7 +693,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = HOT_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = HOT_UPDATED_BY
 		Where
-			To_Date(Scch.HOT_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Scch.HOT_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Scch.Hot_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -721,7 +722,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = REP_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = REP_UPDATED_BY
 		Where
-			To_Date(Sdrp.REP_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Sdrp.REP_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Sdrp.Rep_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -750,7 +751,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = RPC_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = RPC_UPDATED_BY
 		Where
-			To_Date(Srp.RPC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Srp.RPC_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Srp.Rpc_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -779,7 +780,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = SRN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = SRN_UPDATED_BY
 		Where
-			To_Date(Ssrnw.SRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Ssrnw.SRN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Ssrnw.SRN_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -808,7 +809,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = TRM_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = TRM_UPDATED_BY
 		Where
-			To_Date(Stlu.TRM_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Stlu.TRM_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Stlu.Trm_Ins_Id = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -836,7 +837,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = UEN_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = UEN_UPDATED_BY
 		Where
-			To_Date(Suemb.UEN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Suemb.UEN_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Suemb.UEN_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -865,7 +866,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = WAR_CREATED_BY
 		    LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = WAR_UPDATED_BY
 		Where
-			To_Date(Swrnw.WAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(Swrnw.WAR_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 			AND STS_ID IN (90, 91)
 			And Swrnw.WAR_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -896,8 +897,8 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = IDCR.DCR_CREATED_BY
 		    JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = IDCR.DCR_UPDATED_BY
 		Where
-			((IDCR.DCR_STS_ID IN (68,70,165) AND IDCR.DCR_APPROVED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And IDCR.DCR_APPROVED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS''))
-		    OR (IDCR.DCR_STS_ID = 69 AND IDCR.DCR_UPDATED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And IDCR.DCR_UPDATED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')) )
+			((IDCR.DCR_STS_ID IN (68,70,165) AND IDCR.DCR_APPROVED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And IDCR.DCR_APPROVED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS''))
+		    OR (IDCR.DCR_STS_ID = 69 AND IDCR.DCR_UPDATED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And IDCR.DCR_UPDATED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')) )
 		  AND IDCR.DCR_REQUEST_TYPE NOT IN (''Renew'', ''Replace'')
 			AND IDCR.DCR_INS_ID = {Iss_Name}
 		UNION ALL
@@ -929,8 +930,8 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = ICCR.CCR_CREATED_BY
 		    JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = ICCR.CCR_UPDATED_BY
 		Where
-		    ((ICCR.CCR_STS_ID IN (68,70,165) AND ICCR.CCR_APPROVED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And ICCR.CCR_APPROVED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS''))
-		    OR (ICCR.CCR_STS_ID = 69 AND ICCR.CCR_UPDATED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And ICCR.CCR_UPDATED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')) )
+		    ((ICCR.CCR_STS_ID IN (68,70,165) AND ICCR.CCR_APPROVED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And ICCR.CCR_APPROVED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS''))
+		    OR (ICCR.CCR_STS_ID = 69 AND ICCR.CCR_UPDATED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And ICCR.CCR_UPDATED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')) )
 			AND ICCR.CCR_REQUEST_TYPE NOT IN (''Renew'', ''Replace'')
 			AND ICCR.CCR_INS_ID = {Iss_Name}
 		UNION ALL
@@ -962,8 +963,8 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = IBCR.BCR_CREATED_BY
 		    JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = IBCR.BCR_UPDATED_BY
 		Where
-			((IBCR.BCR_STS_ID IN (68,70,165) AND IBCR.BCR_APPROVED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And IBCR.BCR_APPROVED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS''))
-		    OR (IBCR.BCR_STS_ID = 69 AND IBCR.BCR_UPDATED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And IBCR.BCR_UPDATED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')) )
+			((IBCR.BCR_STS_ID IN (68,70,165) AND IBCR.BCR_APPROVED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And IBCR.BCR_APPROVED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS''))
+		    OR (IBCR.BCR_STS_ID = 69 AND IBCR.BCR_UPDATED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And IBCR.BCR_UPDATED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')) )
 			AND IBCR.BCR_INS_ID = {Iss_Name}
 	');
 	
@@ -996,7 +997,7 @@ BEGIN
 				JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CAC.CAC_CREATED_BY
 	      JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CAC.CAC_UPDATED_BY
 			Where
-	      CAC.CAC_UPDATED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And CAC.CAC_UPDATED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+	      CAC.CAC_UPDATED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And CAC.CAC_UPDATED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 	      AND CAC.CAC_REQ_STS_ID IN (68,69)
 				AND CAC.CAC_INS_ID = {Iss_Name}
 				AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -1026,7 +1027,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CCB.CCB_CREATED_BY
       		JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CCB.CCB_UPDATED_BY
 		Where
-			To_Date(CCB.CCB_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+			To_Date(CCB.CCB_UPDATED_TS, ''YYYY-MM-DD HH24:MI:SS'') Between To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
         	AND CCB.CCB_INS_ID = {Iss_Name}
 			AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)	
 	UNION ALL
@@ -1056,7 +1057,7 @@ BEGIN
 			JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = CSM.CSM_CREATED_BY
       		JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = CSM.CSM_UPDATED_BY
 		Where
-    		CSM.CSM_UPDATED_TS >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And CSM.CSM_UPDATED_TS <= To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+    		CSM.CSM_UPDATED_TS >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And CSM.CSM_UPDATED_TS <= To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
      	 	AND CSM.CSM_REQ_STS_ID IN (68,69)
        		AND CSM.CSM_INS_ID = {Iss_Name}
 	UNION ALL
@@ -1084,7 +1085,7 @@ BEGIN
 				JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF1 ON STF1.STF_ID = MOC_CREATED_BY
 	      LEFT JOIN {DCMS_Schema}.USER_STAFF@{DB_LINK_DCMS} STF2 ON STF2.STF_ID = MOC_UPDATED_BY
 		WHERE
-		MOC_UPDATED_TS >= To_Date({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') And MOC_UPDATED_TS <= To_Date({To_Date}, ''YYYY-MM-DD HH24:MI:SS'') AND
+		MOC_UPDATED_TS >= To_Date({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') And MOC_UPDATED_TS <= To_Date({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') AND
 		MOC_STS_ID IN (68,69)
 		AND MOC.MOC_INS_ID = {Iss_Name}
 		AND (STF1.STF_IS_SUP IS NULL OR STF1.STF_IS_SUP != 1)
@@ -1106,7 +1107,7 @@ BEGIN
 	    '''' AUDIT_LOG
 	    FROM DCMS_USER_ACTIVITY WHERE  FUNCTION = ''UPD TXN SET''
 		AND INSTITUTION_ID = {Iss_Name}
-		AND CREATED_DATE >= To_Timestamp({From_Date}, ''YYYY-MM-DD HH24:MI:SS'') and CREATED_DATE < To_Timestamp({To_Date}, ''YYYY-MM-DD HH24:MI:SS'')
+		AND CREATED_DATE >= To_Timestamp({From_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'') and CREATED_DATE < To_Timestamp({To_Date_UTC}, ''YYYY-MM-DD HH24:MI:SS'')
 	) ORDER BY ISSUE_DATE');
 	
 		dbms_lob.append(i_BODY_QUERY_2,i_BODY_QUERY_3);

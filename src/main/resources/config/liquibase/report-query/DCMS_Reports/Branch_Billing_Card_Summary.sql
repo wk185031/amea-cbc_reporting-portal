@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Branch Billing Summary';
@@ -35,7 +36,7 @@ from
 	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = crd.crd_brn_id
 	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = crd.crd_prs_id
 where
-	crd.crd_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+	crd.crd_created_ts between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	and crd.crd_ins_id = {Iss_Id}
 group by
 	brn.brn_code, brn.brn_name
@@ -50,7 +51,7 @@ from
 	inner join {DCMS_Schema}.master_branches@{DB_LINK_DCMS} brn on brn.brn_id = csh.csh_brn_id
 	inner join {DCMS_Schema}.card_program_setup@{DB_LINK_DCMS} prs on prs.prs_id = csh.csh_prs_id
 where
-	csh.csh_created_ts between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+	csh.csh_created_ts between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	and csh.csh_ins_id = {Iss_Id}
 group by
 	brn.brn_code, brn.brn_name) tb

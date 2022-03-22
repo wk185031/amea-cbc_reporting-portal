@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -737,20 +739,23 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     private void preProcessing(ReportGenerationMgr rgm)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.debug("In MonthlyCardbaseReport.preProcessing():" + rgm.getFileNamePrefix());
+        String txnStartDateUTC = rgm.getTxnStartDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss"));
         
         // replace {From_Date}/{To_Date}/{DCMS_Schema}/{Iss_Id} to actual value
        if(rgm.getFileDate().getDayOfMonth()==1){ // for monthly generation
     	   rgm.setBodyQuery(rgm.getBodyQuery()
     	            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
-//    	            .replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+    	            .replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + txnStartDateUTC + "'")
     	            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
     	            .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
     	            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
        }
        else{  //adhoc generation
-    	   LocalDate startDate = rgm.getFileDate().plusDays(1);
+    	   LocalDateTime startDate = rgm.getFileDate().plusDays(1).atStartOfDay();
+    	   ZonedDateTime startDateUTC = startDate.atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC));
     	   rgm.setBodyQuery(rgm.getBodyQuery()
-   	            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + startDate.format(DateTimeFormatter.ofPattern("dd-MM-yy")) + " 00:00:00'")
+   	            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + startDate.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+   	            .replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + startDateUTC.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
    	            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
    	            .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
    	            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));

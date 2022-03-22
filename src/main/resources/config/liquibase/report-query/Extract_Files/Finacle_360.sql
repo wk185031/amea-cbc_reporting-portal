@@ -3,6 +3,7 @@
 -- CBCAXUPISSLOG-673	06-JULY-2021	WY		Fix issue data generated in one single row
 -- DCMS					22-AUG-2021		NY		Add date range by card created ts
 -- DCMS					07-SEP-2021		NY		Query update by input from Opus, add status mapping to FCBS status
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone
 
 DECLARE
 	i_HEADER_FIELDS CLOB;
@@ -77,7 +78,7 @@ FROM
 	INNER JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON CRD.CRD_INS_ID = INS.INS_ID
 WHERE 
 	DCR.DCR_INS_ID = {Iss_Id} AND
-	TRUNC(DCR.DCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	TRUNC(DCR.DCR_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	AND DCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
 UNION ALL
 SELECT
@@ -107,7 +108,7 @@ FROM
 	INNER JOIN {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} INS ON CSH.CSH_INS_ID = INS.INS_ID
 WHERE 
 	CCR.CCR_INS_ID = {Iss_Id} AND
-	TRUNC(CCR.CCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	TRUNC(CCR.CCR_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	AND CCR_REQUEST_TYPE in (''Manual'',''Bulk upload'')
 --Activated Pre-Gen
 UNION ALL
@@ -139,7 +140,7 @@ UNION ALL
 where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
-  AND TRUNC(BCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+  AND TRUNC(BCR_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 SELECT CLT.CLT_CIF_NUMBER AS "CIF",
 	''{Iss_Name}'' AS "BANK ID",
@@ -170,7 +171,7 @@ SELECT CLT.CLT_CIF_NUMBER AS "CIF",
   where 
   BCR_INS_ID = {Iss_Id}
   AND BCR_STS_ID not in (67,69)
-  AND TRUNC(BCR_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+  AND TRUNC(BCR_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 --CARD ACTIVATION
 select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -199,7 +200,7 @@ From
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sac.Caa_Sts_Id IN (91) And Sac.Caa_Ins_Id = {Iss_Id}
-	AND TO_DATE(Sac.CAA_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Sac.CAA_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -228,7 +229,7 @@ select CLT.CLT_CIF_NUMBER AS "CIF",
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where  Scca.Cc_Caa_Sts_Id IN ( 91)
 	And Scca.Cc_Caa_Ins_Id = {Iss_Id}
-	AND TO_DATE(Scca.CC_CAA_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scca.CC_CAA_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	UNION ALL
 --RESET PIN COUNTER
    select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -256,7 +257,7 @@ select CLT.CLT_CIF_NUMBER AS "CIF",
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where STS.STS_ID IN ( 91) And Srp.Rpc_Ins_Id = {Iss_Id}
-	AND TO_DATE(Srp.RPC_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Srp.RPC_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
    select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -285,7 +286,7 @@ UNION ALL
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where STS.STS_ID IN ( 91)
 	And Sccrp.Cc_Rpc_Ins_Id = {Iss_Id}
-	AND TO_DATE(Sccrp.CC_RPC_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Sccrp.CC_RPC_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 --HOTLIST
   select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -313,7 +314,7 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Scch.Hot_Sts_Id IN ( 91) And Scch.Hot_Ins_Id = {Iss_Id}
-	AND TO_DATE(Scch.HOT_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scch.HOT_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
   select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -341,7 +342,7 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where Scht.Cc_Hot_Sts_Id IN ( 91) And Scht.Cc_Hot_Ins_Id = {Iss_Id}
-	AND TO_DATE(Scht.CC_HOT_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scht.CC_HOT_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 --Dehotlist
   select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -369,7 +370,7 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sdhl.Dhl_Sts_Id IN (91) And Sdhl.Dhl_Ins_Id = {Iss_Id}
-	AND TO_DATE(Sdhl.DHL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Sdhl.DHL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
   select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -397,7 +398,7 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	where Sccd.Cc_Dhl_Sts_Id IN ( 91) And Sccd.Cc_Dhl_Ins_Id = {Iss_Id}
-	AND TO_DATE(Sccd.CC_DHL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Sccd.CC_DHL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
 --Close card
   select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -425,7 +426,7 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	where Sccard.CCD_STS_ID IN (74, 91) And Sccard.ccd_Ins_Id = {Iss_Id}
-	AND TO_DATE(Sccard.CCD_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Sccard.CCD_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 UNION ALL
   select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -453,7 +454,7 @@ UNION ALL
    left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
    JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
    where Sccclo.CC_CCD_STS_ID IN (74, 91) And Sccclo.CC_CCD_INS_ID = {Iss_Id}
-   AND TO_DATE(Sccclo.CC_CCD_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+   AND TO_DATE(Sccclo.CC_CCD_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 --DELINK
 UNION ALL
   select CLT.CLT_CIF_NUMBER AS "CIF",
@@ -484,8 +485,8 @@ UNION ALL
         DESCRIPTION VARCHAR2(1000) PATH ''$.description''
        )J
 	where SALD.adl_Ins_Id = {Iss_Id}
-	AND TO_DATE(SALD.ADL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-	AND TO_DATE(J.AUDIT_LOG_DATE,''DD-MM-YY HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(SALD.ADL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(J.AUDIT_LOG_DATE,''DD-MM-YY HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	AND J.DESCRIPTION LIKE BAC.BAC_ACCOUNT_NUMBER_MASKED||''%Account Delinked%''
 --Account Linking
 UNION ALL
@@ -517,8 +518,8 @@ UNION ALL
         DESCRIPTION VARCHAR2(1000) PATH ''$.description''
        )J
 	where SAL.ACL_INS_ID = {Iss_Id}
-	AND TO_DATE(SAL.ACL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-	AND TO_DATE(J.AUDIT_LOG_DATE,''DD-MM-YY HH24:MI:SS'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(SAL.ACL_UPDATED_TS,''YYYY-MM-DD HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(J.AUDIT_LOG_DATE,''DD-MM-YY HH24:MI:SS'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	AND J.DESCRIPTION LIKE BAC.BAC_ACCOUNT_NUMBER_MASKED||''%Account linked%''
 --CASH CARD UPDATE STATUS
   UNION ALL
@@ -546,7 +547,7 @@ UNION ALL
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	WHERE REQ.CAC_INS_ID = {Iss_Id} AND REQ.CAC_REQ_STS_ID = 68
-	AND REQ.CAC_UPDATED_TS BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND REQ.CAC_UPDATED_TS BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	');	
 	
 	
@@ -576,8 +577,8 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IC.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IC.CRD_STS_ID
 	WHERE Scr.CRN_INS_ID = {Iss_Id} AND SCR.CRN_STS_ID = 91
-	AND TRUNC(Ic.CRD_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-	AND TO_DATE(Scr.CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TRUNC(Ic.CRD_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scr.CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	UNION ALL
 	select CLT.CLT_CIF_NUMBER AS "CIF",
   ''{Iss_Name}'' AS "BANK ID",
@@ -604,8 +605,8 @@ UNION ALL
     left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = IcNew.CRD_PRS_ID
     JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = IcNew.CRD_STS_ID
 	WHERE Scr.CRN_INS_ID = 1 AND SCR.CRN_STS_ID = 91
-	AND TRUNC(Ic.CRD_UPDATED_TS) BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
-	AND TO_DATE(Scr.CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TRUNC(Ic.CRD_UPDATED_TS) BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(Scr.CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	UNION ALL
 	select CLT.CLT_CIF_NUMBER AS "CIF",
 	''{Iss_Name}'' AS "BANK ID",
@@ -631,7 +632,7 @@ UNION ALL
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICC.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICC.CSH_STS_ID
 	WHERE Sccr.CC_CRN_INS_ID = {Iss_Id} AND Sccr.CC_CRN_STS_ID = 91
-	AND TO_DATE(CC_CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(CC_CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 	UNION ALL
 	select CLT.CLT_CIF_NUMBER AS "CIF",
 	''{Iss_Name}'' AS "BANK ID",
@@ -658,7 +659,7 @@ UNION ALL
 	left join {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS on PRS.PRS_ID = ICCNEW.CSH_PRS_ID
 	JOIN {DCMS_Schema}.MASTER_STATUS@{DB_LINK_DCMS} STS ON STS.STS_ID = ICCNEW.CSH_STS_ID
 	WHERE Sccr.CC_CRN_INS_ID = {Iss_Id} AND Sccr.CC_CRN_STS_ID = 91
-	AND TO_DATE(CC_CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date},''dd-MM-YY hh24:mi:ss'')
+	AND TO_DATE(CC_CRN_UPDATED_TS,''YYYY-MM-dd hh24:mi:ss'') BETWEEN TO_DATE({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') AND TO_DATE({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 ) TB
 where TB."CIF" IS NOT NULL
 ORDER BY

@@ -68,7 +68,15 @@ public class AuditActionService {
 		try {
 			if (SecurityUtils.getCurrentUserLogin().isPresent()) {
 				Map<String, Object> dataMap = new HashMap<String, Object>();
-				AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
+				
+				AuditEvent event = null;
+				
+				if (AuditActionType.RESET_PASSWORD_SUCCESS == type) {
+					event = new AuditEvent(name, type.toString(), dataMap);
+				} else {
+					event = new AuditEvent(SecurityUtils.getCurrentUserLogin().get(), type.toString(), dataMap);
+				}
+				
 				if (name != null) {
 					dataMap.put("details", "ID: " + name);
 				}
@@ -84,6 +92,7 @@ public class AuditActionService {
 			log.warn("Failed to write Action Audit", e);
 		}
 	}
+	
 
 	public void addSuccessEvent(AuditActionType type, Object before, Object after, HttpServletRequest req) {
 		ObjectDifferBuilder builder = ObjectDifferBuilder.startBuilding();

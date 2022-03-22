@@ -2,6 +2,7 @@
 -- Rel-20210812			12-AUG-2021		KW		Revise DCMS
 -- Rel-20210827			27-AUG-2021		AM		Revise DCMS
 -- Rel-2021119			19-SEP-2021		AM		CBCAXUPISSLOG-1004
+-- Rel-20220322			22-MAR-2022		KW		Convert UTC timezone
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Monthly Card File Report';
@@ -67,7 +68,7 @@ BEGIN
 		  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CRD.CRD_BRN_ID
 		  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CRD.CRD_PRS_ID
 		WHERE CRD.CRD_INS_ID = {Iss_Id}
-		  AND CRD_CREATION_DATE between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+		  AND CRD_CREATION_DATE between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 		UNION ALL
 		select 
 		  PRS.PRS_CODE AS PRODUCT_CODE,
@@ -90,7 +91,7 @@ BEGIN
 		  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CSH.CSH_BRN_ID
 		  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CSH.CSH_PRS_ID
 		WHERE CSH.CSH_INS_ID = {Iss_Id}
-		  AND CSH.CSH_CREATED_TS between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+		  AND CSH.CSH_CREATED_TS between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 		UNION ALL
 		select 
 		  ''Z'' AS PRODUCT_CODE,
@@ -113,7 +114,7 @@ BEGIN
 		  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CRD.CRD_BRN_ID
 		  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CRD.CRD_PRS_ID
 		WHERE CRD.CRD_INS_ID = {Iss_Id}
-		  AND CRD_CREATION_DATE between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+		  AND CRD_CREATION_DATE between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 		UNION ALL
 		select 
 		  ''Z'' AS PRODUCT_CODE,
@@ -136,7 +137,7 @@ BEGIN
 		  JOIN {DCMS_Schema}.MASTER_BRANCHES@{DB_LINK_DCMS} BRN ON BRN.BRN_ID = CSH.CSH_BRN_ID
 		  JOIN {DCMS_Schema}.CARD_PROGRAM_SETUP@{DB_LINK_DCMS} PRS ON PRS.PRS_ID = CSH.CSH_PRS_ID
 		WHERE CSH.CSH_INS_ID = {Iss_Id}
-		  AND CSH.CSH_CREATED_TS between To_Date({From_Date},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date},''dd-MM-YY hh24:mi:ss'')
+		  AND CSH.CSH_CREATED_TS between To_Date({From_Date_UTC},''dd-MM-YY hh24:mi:ss'') And To_Date({To_Date_UTC},''dd-MM-YY hh24:mi:ss'')
 		) GROUP BY PRODUCT_CODE, PRODUCT_NAME, BRANCH_CODE, BRANCH_NAME
 		ORDER BY CASE PRODUCT_CODE WHEN ''Z'' THEN 2 ELSE 1 END, BRANCH_CODE
 	');

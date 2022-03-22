@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -375,22 +376,34 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 		return contentStream;
 	}
 
-    private void preProcessing(ReportGenerationMgr rgm)
-        throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        logger.debug("In TransmittalSlipForNewPins.preProcessing():" + rgm.getFileNamePrefix());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
-        String txnStart = rgm.getTxnStartDate().format(formatter);
+	private void preProcessing(ReportGenerationMgr rgm)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		logger.debug("In TransmittalSlipForNewPins.preProcessing():" + rgm.getFileNamePrefix());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
+		String txnStart = rgm.getTxnStartDate().format(formatter);
 		String txnEnd = rgm.getTxnEndDate().format(formatter);
 
-        rgm.setBodyQuery(rgm.getBodyQuery()
-            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
-            .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
-			.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
-			.replace("{" + ReportConstants.PARAM_TO_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
-            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
+		rgm.setBodyQuery(rgm.getBodyQuery()
+				.replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA + "}", rgm.getDcmsDbSchema())
+				.replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
+				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}",
+						"'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_TO_DATE + "}",
+						"'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}",
+						"'" + rgm.getTxnStartDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA))
+								.withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC))
+								.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_TO_DATE_UTC + "}",
+						"'" + rgm.getTxnEndDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA))
+								.withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC))
+								.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+				.replace("{" + ReportConstants.PARAM_ISSUER_ID + "}",
+						rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION
+								: ReportConstants.DCMS_CBS_INSTITUTION));
 
-        addReportPreProcessingFieldsToGlobalMap(rgm);
-    }
+		addReportPreProcessingFieldsToGlobalMap(rgm);
+	}
 
     private void preProcessingHeader(ReportGenerationMgr rgm, String brcName, String brcCode)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
