@@ -144,7 +144,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 						if (branchCodeMap.getKey().equals(branchCode)) {
 							ReportGenerationFields branchCodeValue = new ReportGenerationFields(
 									ReportConstants.PARAM_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
-									"(ABR.ABR_CODE = '" + branchCode + "' OR BRC.BRC_CODE = '" + branchCode + "')");
+                                    "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + branchCode + "'");
 							getGlobalFileFieldsMap().put(branchCodeValue.getFieldName(), branchCodeValue);
 							setAcquiringBranchCode(branchCodeMap.getKey());
 							rgm.setBodyQuery(getAcquiringBodyQuery());
@@ -159,7 +159,7 @@ public class IbftTransactionFees extends CsvReportProcessor {
 						if (branchCodeMap.getKey().equals(branchCode)) {
 							ReportGenerationFields branchCodeValue = new ReportGenerationFields(
 									ReportConstants.PARAM_BRANCH_CODE, ReportGenerationFields.TYPE_STRING,
-									"BRC.BRC_CODE = '" + branchCode + "'");
+									"TXNC.TRL_CARD_BRANCH = '" + branchCode + "'");
 							getGlobalFileFieldsMap().put(branchCodeValue.getFieldName(), branchCodeValue);
 							setIssuingBranchCode(branchCodeMap.getKey());
 							rgm.setBodyQuery(getIssuingBodyQuery());
@@ -271,14 +271,14 @@ public class IbftTransactionFees extends CsvReportProcessor {
 		logger.debug("In IbftTransactionFees.preProcessing()");
 		if (indicator.equalsIgnoreCase("acquiring")) {
 			rgm.setBodyQuery(getAcquiringBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("END AS \"BRANCH NAME\",", "END AS \"BRANCH NAME\"")
+                    .replace("\"BRANCH NAME\",", "\"BRANCH NAME\"")
 					.replace("0 \"TRANSMITTING COUNT\",", "").replace("0 \"TRANSMITTING EXPENSE\",", "")
 					.replace("0 \"TRANSMITTING INCOME\",", "").replace("COUNT(TXN.TRL_ID) \"ACQUIRER COUNT\",", "")
 					.replace("COUNT(TXN.TRL_ID) * 6.00 \"ACQUIRER INCOME\",", "").replace("0 \"RECEIVING COUNT\",", "")
 					.replace("0 \"RECEIVING INCOME\"", ""));
 		} else if (indicator.equalsIgnoreCase("issuing")) {
 			rgm.setBodyQuery(getIssuingBodyQuery().replace("AND {" + ReportConstants.PARAM_BRANCH_CODE + "}", "")
-					.replace("BRC.BRC_NAME \"BRANCH NAME\",", "BRC.BRC_NAME \"BRANCH NAME\"")
+					.replace("\"BRANCH NAME\",", "\"BRANCH NAME\"")
 					.replace("COUNT(TXN.TRL_ID) \"TRANSMITTING COUNT\",", "")
 					.replace("COUNT(TXN.TRL_ID) * 25.00 \"TRANSMITTING EXPENSE\",", "")
 					.replace("COUNT(TXN.TRL_ID) * 7.00 \"TRANSMITTING INCOME\",", "")
