@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import my.com.mandrill.base.reporting.security.SecurePANField;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 
 public class ReportGenerationFields {
 
@@ -678,7 +679,7 @@ public class ReportGenerationFields {
 			break;
 		case ReportGenerationFields.TYPE_STRING:
 			if (sourceTimezone != null && !sourceTimezone.trim().isEmpty() && !sourceTimezone.equals(ReportConstants.TimeZone.MANILA)) {
-				DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(fieldFormat);
+				DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(CriteriaParamsUtil.findDatePattern(value));
 				LocalDateTime localDateTime = LocalDateTime.parse(value, localDateFormatter);
 				ZonedDateTime convertedDateTime = localDateTime.atZone(ZoneId.of(ReportConstants.TimeZone.UTC)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.MANILA));
 				tempValue = DateTimeFormatter.ofPattern(fieldFormat).format(convertedDateTime);

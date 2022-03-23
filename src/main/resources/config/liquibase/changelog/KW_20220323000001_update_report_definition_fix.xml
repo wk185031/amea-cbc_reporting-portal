@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="now" value="now()" dbms="h2"/>
+
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="autoIncrement" value="true"/>
+
+    <property name="floatType" value="float4" dbms="postgresql, h2"/>
+    <property name="floatType" value="float" dbms="mysql, oracle, mssql"/>
+
+    <changeSet id="KW_20220323000001_update_report_definition_fix" author="kw">
+    	<validCheckSum>any</validCheckSum>  
+  
+        <modifyDataType columnName="CRD_CARDHOLDER_NAME" newDataType="varchar2(400)" tableName="CARD"/>
+        <modifyDataType columnName="CRD_REGISTRATION_ADDR1" newDataType="varchar2(200)" tableName="CARD"/> 
+        <modifyDataType columnName="CRD_REGISTRATION_ADDR2" newDataType="varchar2(200)" tableName="CARD"/> 
+        <modifyDataType columnName="CRD_REGISTRATION_ADDR3" newDataType="varchar2(200)" tableName="CARD"/> 
+        <modifyDataType columnName="CRD_REGISTRATION_ADDR4" newDataType="varchar2(200)" tableName="CARD"/> 
+        <modifyDataType columnName="CRD_REGISTRATION_ADDR5" newDataType="varchar2(200)" tableName="CARD"/>      
+       	
+       	 <modifyDataType columnName="CUST_FIRST_NAME" newDataType="varchar2(200)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_MIDDLE_NAME" newDataType="varchar2(200)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_LAST_NAME" newDataType="varchar2(200)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_EMAIL_ADDRESS" newDataType="varchar2(200)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_HOME_PHONE" newDataType="varchar2(100)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_MOBILE_PHONE" newDataType="varchar2(100)" tableName="CUSTOMER"/>
+       	 <modifyDataType columnName="CUST_WORK_PHONE" newDataType="varchar2(100)" tableName="CUSTOMER"/>      	   
+    </changeSet>   
+</databaseChangeLog>
