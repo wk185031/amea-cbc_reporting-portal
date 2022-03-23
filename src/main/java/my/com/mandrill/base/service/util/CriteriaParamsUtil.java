@@ -1,6 +1,7 @@
 package my.com.mandrill.base.service.util;
 
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 import my.com.mandrill.base.domain.SystemConfiguration;
 import my.com.mandrill.base.reporting.ReportConstants;
@@ -79,5 +80,30 @@ public class CriteriaParamsUtil {
 		
 		return query;
 		
+	}
+	
+	public static String findDatePattern(String date) {
+		
+		String yearReg4 = "\\d{4}";
+		String yearReg2 = "\\d{2}";
+		String monthReg = "(0[1-9]|1[0-2])"; 
+		String dayReg = "(0[1-9]|1[0-9]|2[0-9]|3[0-1])";
+		String hourReg = "([0-1][0-9]|2[0-3])";
+		String minReg = "([0-5][0-9])"; 
+		String secReg = "([0-5][0-9])";
+		
+		if (Pattern.matches("^" + yearReg4 + "-" + monthReg + "-" + dayReg + " " + hourReg + ":" + minReg +":" + secReg +"$", date)) {
+			return "yyyy-MM-dd HH:mm:ss";
+		} else if (Pattern.matches("^" + monthReg + "-" + dayReg + "-" + yearReg2 + " " + hourReg + ":" + minReg +"$", date)) {
+			return "MM-dd-yy HH:mm";
+		} else if (Pattern.matches("^" + monthReg + "/" + dayReg + "/" + yearReg2 + " " + hourReg + ":" + minReg +"$", date)) {
+			return "MM/dd/yy HH:mm";
+		} else if (Pattern.matches("^" + monthReg + "/" + dayReg + "/" + yearReg2 +"$", date)) {
+			return "MM/dd/yy";
+		} else if (Pattern.matches("^" + monthReg + "-" + dayReg + "-" + yearReg2 +"$", date)) {
+			return "MM-dd-yy";
+		}
+		
+		return null;
 	}
 }
