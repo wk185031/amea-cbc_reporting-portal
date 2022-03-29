@@ -115,7 +115,7 @@ public class Bnob extends TxtReportProcessor {
 		logger.debug("In Bnob.separateQuery()");
 		if (rgm.getBodyQuery() != null) {
 			setBranchDetailBodyQuery(rgm.getBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
-					.replace("SUBSTR(AST.AST_TERMINAL_ID, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "")
 					.replace("\"TERMINAL\" ASC", "").replace("\"BRANCH CODE\" ASC,", "\"BRANCH CODE\" ASC")
 					.replace(
 							rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf("GROUP BY"),
@@ -132,13 +132,13 @@ public class Bnob extends TxtReportProcessor {
 		logger.debug("In Bnob.preProcessing()");
 		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null) {
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}
@@ -210,9 +210,9 @@ public class Bnob extends TxtReportProcessor {
 
 	private SortedMap<String, Map<String, TreeSet<String>>> filterByBranches(ReportGenerationMgr rgm) {
 		logger.debug("In Bnob.filterByBranches()");
-		String branchCode = null;
-		String branchName = null;
-		String terminal = null;
+		String branchCode = "";
+		String branchName = "";
+		String terminal = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -249,6 +249,10 @@ public class Bnob extends TxtReportProcessor {
 							if (key.equalsIgnoreCase(ReportConstants.TERMINAL)) {
 								terminal = result.toString();
 							}
+						}else {
+							branchCode = "";
+							branchName = "";
+							terminal = "";
 						}
 					}
 					if (criteriaMap.get(branchCode) == null) {
