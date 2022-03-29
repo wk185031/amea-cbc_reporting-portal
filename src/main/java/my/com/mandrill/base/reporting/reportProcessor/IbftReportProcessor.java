@@ -50,8 +50,8 @@ public class IbftReportProcessor extends CsvReportProcessor {
 	@Override
 	protected SortedMap<String, String> filterCriteriaByBank(ReportGenerationMgr rgm) {
 		logger.debug("In IbftReportProcessor.filterCriteriaByBank()");
-		String bankCode = null;
-		String bankName = null;
+		String bankCode = "";
+		String bankName = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -86,6 +86,9 @@ public class IbftReportProcessor extends CsvReportProcessor {
 							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
 								bankName = result.toString();
 							}
+						} else {
+							bankCode = "";
+							bankName = "";
 						}
 					}
 					criteriaMap.put(bankCode, bankName);
@@ -102,9 +105,9 @@ public class IbftReportProcessor extends CsvReportProcessor {
 
 	protected SortedMap<String, TreeMap<String, String>> filterByChannel(ReportGenerationMgr rgm) {
 		logger.debug("In IbftReportProcessor.filterByChannel()");
-		String channel = null;
-		String bankCode = null;
-		String bankName = null;
+		String channel = "";
+		String bankCode = "";
+		String bankName = "";
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		HashMap<String, ReportGenerationFields> fieldsMap = null;
@@ -141,6 +144,10 @@ public class IbftReportProcessor extends CsvReportProcessor {
 							if (key.equalsIgnoreCase(ReportConstants.BANK_NAME)) {
 								bankName = result.toString();
 							}
+						} else {
+							channel = "";
+							bankCode = "";
+							bankName = "";
 						}
 					}
 					if (criteriaMap.get(channel) == null) {
