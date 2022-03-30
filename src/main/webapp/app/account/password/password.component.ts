@@ -4,6 +4,7 @@ import { Principal } from '../../shared';
 import { PasswordService } from './password.service';
 import * as CryptoJS from 'crypto-js';
 import { E2E_KEY } from '../../shared';
+import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'jhi-password',
@@ -12,6 +13,8 @@ import { E2E_KEY } from '../../shared';
 export class PasswordComponent implements OnInit {
     doNotMatch: string;
     error: string;
+    errorKey: string;
+    errorMsg: string;
     success: string;
     account: any;
     password: string;
@@ -45,9 +48,11 @@ export class PasswordComponent implements OnInit {
             this.passwordService.save(this.E2Epassword).subscribe(() => {
                 this.error = null;
                 this.success = 'OK';
-            }, () => {
+            }, (res: HttpErrorResponse) => {
                 this.success = null;
                 this.error = 'ERROR';
+                this.errorKey = res.error.errorKey;
+                this.errorMsg = res.error.title;
             });
         }
     }

@@ -91,7 +91,7 @@ export class JhiLoginModalComponent implements AfterViewInit {
             	this.errorMsg = res.error.detail;
             	this.onError(res.error.detail);
             } else {
-            	this.errorMsg = 'Failed to sign in! Please check your credentials and try again.';
+            	this.errorMsg = 'error.http.401';
             	this.onError(res.error.message);
             }
 

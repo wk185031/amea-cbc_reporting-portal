@@ -20,7 +20,7 @@
                 "info": "Choose a new password",
                 "success": "<strong>Your password has been reset.</strong> Please ",
                 "keymissing": "The reset key is missing.",
-                "error": "Your password couldn't be reset. Remember a password request is only valid for 24 hours."
+                "error": "Your password couldn't be reset. Please perform a password reset again."
             }
         }
     }

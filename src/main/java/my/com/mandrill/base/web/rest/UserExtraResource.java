@@ -25,6 +25,7 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -87,6 +88,8 @@ public class UserExtraResource {
     private final MailService mailService;
     
     private final AuditActionService auditActionService;
+    
+    private final CacheManager cacheManager;
 
     public UserExtraResource(UserExtraRepository userExtraRepository,
     		UserExtraSearchRepository userExtraSearchRepository,
@@ -94,7 +97,8 @@ public class UserExtraResource {
     		AuthorityRepository authorityRepository,
     		UserService userService,
     		MailService mailService,
-    		AuditActionService auditActionService) {
+    		AuditActionService auditActionService,
+    		CacheManager cacheManager) {
         this.userExtraRepository = userExtraRepository;
         this.userExtraSearchRepository = userExtraSearchRepository;
         this.userRepository = userRepository;
@@ -102,6 +106,7 @@ public class UserExtraResource {
         this.userService = userService;
         this.mailService = mailService;
         this.auditActionService = auditActionService;
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -203,6 +208,8 @@ public class UserExtraResource {
 			userRepository.save(user);
 			UserExtra result = userExtraRepository.save(userExtra);
 			userExtraSearchRepository.save(result);
+			cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
+			cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
 			auditActionService.addSuccessEvent(AuditActionType.USER_UPDATE, oldClone, result, request);
 
 			return ResponseEntity.ok()

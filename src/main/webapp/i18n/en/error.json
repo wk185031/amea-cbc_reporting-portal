@@ -3,6 +3,7 @@
         "title": "Error page!",
         "http": {
             "400": "Bad request.",
+            "401": "Failed to sign in! Please check your credentials and try again.",
             "403": "You are not authorized to access this page.",
             "405": "The HTTP verb you used is not supported for this URL.",
             "500": "Internal server error."
@@ -11,6 +12,18 @@
         	"noJobInQueue": "To generate a monthly report, please select last day of the month.",
         	"downloadFailed": "Failed to download report",
         	"exportFailed": "Failed to download report"
+        },
+        "password": {
+        	"violation": {
+        		"history": "You used the password recently. Please choose a different password."
+        	}
+        },
+        "user": {
+        	"unlocked": "Your account is unlocked. Please reset your password <a href='#/reset/request' target='_blank'>here</a>.",
+        	"locked": "Your account is locked. Please contact administrator to activate your account.",
+        	"suspended": "Your account is suspended. Please contact administrator to activate your account.",
+        	"expired": "Your account is expired. Please reset your password <a href='#/reset/request' target='_blank'>here</a>.",
+        	"disabled": "Your account is not active. Please contact administrator to activate your account."
         },
         "concurrencyFailure": "Another user modified this data at the same time as you. Your changes were rejected.",
         "validation": "Validation error on the server."
