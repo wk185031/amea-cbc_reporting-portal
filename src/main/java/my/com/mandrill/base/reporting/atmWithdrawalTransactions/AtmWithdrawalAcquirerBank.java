@@ -9,8 +9,9 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -28,26 +29,36 @@ public class AtmWithdrawalAcquirerBank extends CsvReportProcessor {
 	@Override
 	protected void execute(ReportGenerationMgr rgm, File file) {
 		String branchCode = null;
+		String branchName = null;
+		String terminal = null;
+		String location = null;
 		try {
 			rgm.fileOutputStream = new FileOutputStream(file);
 			preProcessing(rgm);
 			writeHeader(rgm);
-			for (SortedMap.Entry<String, Set<String>> branchCodeMap : filterCriteriaByBranchTerminal(rgm).entrySet()) {
+			for (SortedMap.Entry<String, Map<String, TreeMap<String, String>>> branchCodeMap : filterCriteriaByBranch(
+					rgm).entrySet()) {
 				branchCode = branchCodeMap.getKey();
-				for (String terminal : branchCodeMap.getValue()) {
-					preProcessing(rgm, branchCode, terminal);
-					StringBuilder line = new StringBuilder();
-					line.append(ReportConstants.BRANCH + "   : ").append(";").append(branchCode).append(";");
-					line.append(getEol());
-					line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";");
-					line.append(getEol());
-					rgm.writeLine(line.toString().getBytes());
-					writeBodyHeader(rgm);
-					preProcessing(rgm, branchCode, terminal);
-					executeBodyQuery(rgm);
-					line = new StringBuilder();
-					line.append(getEol());
-					rgm.writeLine(line.toString().getBytes());
+				for (SortedMap.Entry<String, TreeMap<String, String>> branchNameMap : branchCodeMap.getValue()
+						.entrySet()) {
+					branchName = branchNameMap.getKey();
+					for (SortedMap.Entry<String, String> terminalMap : branchNameMap.getValue().entrySet()) {
+						terminal = terminalMap.getKey();
+						location = terminalMap.getValue();
+						preProcessing(rgm, branchCode, terminal);
+						StringBuilder line = new StringBuilder();
+						line.append(ReportConstants.BRANCH + "   : ").append(";").append(branchCode).append(";").append(branchName).append(";");
+						line.append(getEol());
+						line.append(ReportConstants.TERMINAL + " : ").append(";").append(terminal).append(";").append(location).append(";");
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
+						writeBodyHeader(rgm);
+						preProcessing(rgm, branchCode, terminal);
+						executeBodyQuery(rgm);
+						line = new StringBuilder();
+						line.append(getEol());
+						rgm.writeLine(line.toString().getBytes());
+					}
 				}
 			}
 			rgm.fileOutputStream.flush();
@@ -87,9 +98,9 @@ public class AtmWithdrawalAcquirerBank extends CsvReportProcessor {
 		if (rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "'");
 
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
