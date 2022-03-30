@@ -15,7 +15,8 @@ public final class ErrorConstants {
     public static final URI LOGIN_ALREADY_USED_TYPE = URI.create(PROBLEM_BASE_URL + "/login-already-used");
     public static final URI EMAIL_NOT_FOUND_TYPE = URI.create(PROBLEM_BASE_URL + "/email-not-found");
     public static final URI SELF_REGISTRATION_NOT_ALLOWED_TYPE = URI.create(PROBLEM_BASE_URL + "/self-registration-not-allowed");
-
+    public static final URI PASSWORD_VIOLATION_TYPE = URI.create(PROBLEM_BASE_URL + "/password-violated");
+    
     private ErrorConstants() {
     }
 }

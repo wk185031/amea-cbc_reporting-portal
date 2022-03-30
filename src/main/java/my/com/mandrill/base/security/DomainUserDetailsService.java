@@ -49,15 +49,20 @@ public class DomainUserDetailsService implements UserDetailsService {
 
 		if (user.getDeactivateReason() != null
 				&& user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_LOCKED)) {
-			throw new UserNotActivatedException("The user is locked by system, contact administrator");
+			if (user.getActivated()) {
+				throw new UserNotActivatedException("error.user.unlocked");
+			} else {
+				throw new UserNotActivatedException("error.user.locked");
+			}
+			
 		} else if (user.getDeactivateReason() != null
 				&& user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_DORMANT)) {
-			throw new UserNotActivatedException("The user is suspended, contact administrator");
+			throw new UserNotActivatedException("error.user.suspended");
 		} else if (user.getDeactivateReason() != null
 				&& user.getDeactivateReason().equals(ReportConstants.DEACTIVATE_PASSWORD_EXPIRED)) {
-			throw new UserNotActivatedException("Your password is expired. Please reset your password");
+			throw new UserNotActivatedException("error.user.expired");
 		} else if (!user.getActivated()) {
-			throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+			throw new UserNotActivatedException("error.user.disabled");
 		}
 
 		List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()

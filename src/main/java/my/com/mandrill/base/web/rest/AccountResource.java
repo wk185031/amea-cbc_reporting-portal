@@ -247,17 +247,7 @@ public class AccountResource {
 				User user = isUser.get();
 				UserExtra userExtra = userExtraRepository.findByUser(user.getId());
 
-				List<PasswordHistory> recentFivePasswordHistories = userExtra.getPasswordHistories().stream()
-						.sorted(Comparator.comparing(PasswordHistory::getPasswordChangeTs).reversed()).limit(5)
-						.collect(Collectors.toList());
-
-				String newPasswordHash = passwordEncoder.encode(password1);
-				for (PasswordHistory ph : recentFivePasswordHistories) {
-					if (passwordEncoder.matches(password1, ph.getPasswordHash())) {
-						log.debug("New password matched recent 5 password histories.");
-	                    throw new InvalidPasswordException();
-					}
-				}
+				String newPasswordHash = checkPasswordHistory(password1, userExtra);
 
 				userExtra.getPasswordHistories().add(createNewPasswordHistory(newPasswordHash));
 				userExtraRepository.save(userExtra);
@@ -281,6 +271,21 @@ public class AccountResource {
 			auditActionService.addFailedEvent(AuditActionType.CHANGE_PASSWORD_FAILED, isUser.get().getLogin(), e, request);
 			throw e;
 		}
+	}
+
+	private String checkPasswordHistory(String password1, UserExtra userExtra) {
+		List<PasswordHistory> recentFivePasswordHistories = userExtra.getPasswordHistories().stream()
+				.sorted(Comparator.comparing(PasswordHistory::getPasswordChangeTs).reversed()).limit(5)
+				.collect(Collectors.toList());
+
+		String newPasswordHash = passwordEncoder.encode(password1);
+		for (PasswordHistory ph : recentFivePasswordHistories) {
+			if (passwordEncoder.matches(password1, ph.getPasswordHash())) {
+				log.debug("New password matched recent 5 password histories.");
+		        throw PasswordViolationExceptions.conflictWithHistory();
+			}
+		}
+		return newPasswordHash;
 	}
 
 	/**
@@ -311,14 +316,14 @@ public class AccountResource {
 	@PostMapping(path = "/account/reset-password/finish")
 	@Timed
 	public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword, HttpServletRequest request) {
-		String NewKey = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
-		String NewPassword = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"),
+		String newKey = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"), keyAndPassword.getKey());
+		String newPassword = E2eEncryptionUtil.decryptToken(env.getProperty("application.e2eKey"),
 				keyAndPassword.getNewPassword());
 
-		Optional<User> user = userService.completePasswordReset(NewPassword, NewKey);
+		Optional<User> user = userService.completePasswordReset(newPassword, newKey);
 		User userEntity = null;
 		try {
-			if (!checkPasswordLength(NewPassword)) {
+			if (!checkPasswordLength(newPassword)) {
 				throw new InvalidPasswordException();
 			}
 	
@@ -331,9 +336,9 @@ public class AccountResource {
 			// first password reset need to insert into password_history and
 			// user_extra_password_history table
 			UserExtra userExtra = userExtraRepository.findByUser(user.get().getId());
+			String newPasswordHash = checkPasswordHistory(newPassword, userExtra);
 
-			List<PasswordHistory> passwordHistories = userExtra.getPasswordHistories();
-			passwordHistories.add(createNewPasswordHistory(passwordEncoder.encode(NewPassword)));
+			userExtra.getPasswordHistories().add(createNewPasswordHistory(newPasswordHash));
 			userExtra.setLoginFlag("N");
 			userExtra.setLastLoginTs(Timestamp.valueOf(LocalDateTime.now().minusHours(1L)));
 
