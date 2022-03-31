@@ -135,7 +135,7 @@ public class ApprovedIbftTransactionsReceivingBank extends IbftReportProcessor {
 			}else {
 				ReportGenerationFields bankCode = new ReportGenerationFields(ReportConstants.PARAM_BANK_CODE,
 						ReportGenerationFields.TYPE_STRING,
-						"LPAD(CBA.CBA_CODE, 10, '0') = null ");
+						"LPAD(CBA.CBA_CODE, 10, '0') is null ");
 				getGlobalFileFieldsMap().put(bankCode.getFieldName(), bankCode);
 			}
 		}
