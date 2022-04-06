@@ -97,8 +97,8 @@ public class UserService {
 		return userRepository.findOneByResetKey(key)
 				.filter(user -> user.getResetDate().isAfter(Instant.now().minusSeconds(86400))).map(user -> {
 					user.setPassword(passwordEncoder.encode(newPassword));
-					user.setResetKey(null);
-					user.setResetDate(null);
+					user.setResetKey(key);
+					user.setResetDate(Instant.now());
 					cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
 					cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
 					return user;

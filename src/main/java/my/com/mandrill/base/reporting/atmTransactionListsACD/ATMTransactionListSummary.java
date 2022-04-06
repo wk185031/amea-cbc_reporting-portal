@@ -228,11 +228,11 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		if (rgm.getBodyQuery() != null) {
 			setOnUsBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ)));
-			setAcqBodyQuery(rgm.getBodyQuery()
+			setAcqBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL")
-					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL AND (COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') != {V_IE_Iss_Name})")
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_ISSUER_NAME));
 			setIeAcqBodyQuery(CriteriaParamsUtil.replaceInstitution(rgm.getBodyQuery()
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
@@ -254,11 +254,11 @@ public class ATMTransactionListSummary extends PdfReportProcessor {
 		if (rgm.getTrailerQuery() != null) {
 			setOnUsTrailerQuery(rgm.getTrailerQuery().substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 							rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ)));
-			setAcqTrailerQuery(rgm.getTrailerQuery()
+			setAcqTrailerQuery(CriteriaParamsUtil.replaceInstitution(rgm.getTrailerQuery()
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
-					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL")
-					.replace(ReportConstants.SUBSTRING_START_ACQ, ""));
+					.replace("AND {" + ReportConstants.PARAM_TXN_CRITERIA + "}", "AND TXN.TRL_ISS_NAME IS NULL AND (COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') IS NULL OR COALESCE(CBA.CBA_MNEM, TXN.TRL_ISS_NAME, '') != {V_IE_Iss_Name})")
+					.replace(ReportConstants.SUBSTRING_START_ACQ, ""), rgm.getInstitution(), ReportConstants.VALUE_INTER_ISSUER_NAME));
 			setIeAcqTrailerQuery(CriteriaParamsUtil.replaceInstitution(rgm.getTrailerQuery()
 					.substring(rgm.getTrailerQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_ACQ),
 							rgm.getTrailerQuery().lastIndexOf(ReportConstants.SUBSTRING_END_ACQ))
