@@ -17,7 +17,8 @@
                 "principal": "User",
                 "date": "Date",
                 "status": "State",
-                "data": "Extra data"
+                "data": "Extra data",
+                "ipAddr": "IP Address"
             },
             "data": {
                 "remoteAddress": "Remote Address:"
