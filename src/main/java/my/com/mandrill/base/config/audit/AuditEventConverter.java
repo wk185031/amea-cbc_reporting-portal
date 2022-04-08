@@ -38,8 +38,10 @@ public class AuditEventConverter {
         if (persistentAuditEvent == null) {
             return null;
         }
+        Map<String, Object> data = convertDataToObjects(persistentAuditEvent.getData());
+        data.put("source", persistentAuditEvent.getSourceIp());
         return new AuditEvent(Date.from(persistentAuditEvent.getAuditEventDate()), persistentAuditEvent.getPrincipal(),
-            persistentAuditEvent.getAuditEventType(), convertDataToObjects(persistentAuditEvent.getData()));
+            persistentAuditEvent.getAuditEventType(), data);
     }
 
     /**
