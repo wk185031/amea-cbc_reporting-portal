@@ -374,5 +374,5 @@
 	<include file="config/liquibase/changelog/WY_Revise_Branch_Terminal_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/KW_20220416000001_update_report_definition_fix.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/WY_20220416000001_update_report_definition.xml" relativeToChangelogFile="false"/>
-	<include file="config/liquibase/changelog/NY_20220417000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/WY_20220417000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

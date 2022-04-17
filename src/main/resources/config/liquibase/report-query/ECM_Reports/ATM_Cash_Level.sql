@@ -68,7 +68,7 @@ join (select ATO_AST_ID, L_DATE LOAD_DATE, sum(L_100) LOAD_100, sum(L_200) LOAD_
     CASE WHEN ATO_DENOMINATION = 500 THEN ATO_COUNTER ELSE 0 END L_500,
     CASE WHEN ATO_DENOMINATION = 1000 THEN ATO_COUNTER ELSE 0 END L_1000
   from {AUTH_Schema}.ATM_DEVICE_TOTALS@{DB_LINK_AUTH}  
-  where trim(ato_event) in (''Replenishment load'',''Replenishment reject'')
+  where trim(ato_event) in (''Replenishment load'',''Replenishment reject'',''Replenishment load (F)'',''Replenishment reject (F)'')
   )
   group by ATO_AST_ID, L_DATE
 ) DVT on DVT.ATO_AST_ID = AST.AST_ID
