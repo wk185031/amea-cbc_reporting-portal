@@ -140,10 +140,15 @@ public class InterEntityAtmWithdrawalIssuerBank extends CsvReportProcessor {
 			}
 
 			if (field.getFieldName().equalsIgnoreCase(ReportConstants.TOTAL_TRAN)) {
+				
+				String totalTranValue = (getFieldValue(field, fieldsMap).trim().indexOf(",") != -1)
+						? getFieldValue(field, fieldsMap).replace(",", "")
+						: getFieldValue(field, fieldsMap);
+				
 				if (mnem != null && mnem.endsWith("I")) {
-					totalTran += Integer.parseInt(getFieldValue(field, fieldsMap));
+					totalTran += Integer.parseInt(totalTranValue);
 				} else {
-					totalTran -= Integer.parseInt(getFieldValue(field, fieldsMap));
+					totalTran -= Integer.parseInt(totalTranValue);
 				}
 			}
 
