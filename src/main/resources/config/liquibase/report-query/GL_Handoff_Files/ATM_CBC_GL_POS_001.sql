@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 -- release-20210814		14-AUG-2021		KW		Revise POS condition
+-- CBCAXUPISSLOG-1262	17-APR-2022		KW		Fix grouping of records.
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'ATM CBC GL POS 001';
@@ -38,7 +39,7 @@ SELECT
       "Third Party Tran Description"
 FROM(
 SELECT
-	  CRDC.CRD_BRANCH_CODE "BRANCH CODE",
+	  SUBSTR(GLA.GLA_NUMBER, 1, 4) "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''D'' AS "Part Tran Indicator",
@@ -64,7 +65,7 @@ WHERE
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND {Branch_Code}
+      --AND {Branch_Code}
       AND {Txn_Date}
 )
 GROUP BY
@@ -88,7 +89,7 @@ START SELECT
       "Third Party Tran Description"
 FROM(
 SELECT
-	  CRDC.CRD_BRANCH_CODE "BRANCH CODE",
+	  SUBSTR(GLA.GLA_NUMBER, 1, 4) "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
       ''C'' AS "Part Tran Indicator",
@@ -114,7 +115,7 @@ WHERE
 	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
-      AND {Branch_Code}
+      --AND {Branch_Code}
       AND {Txn_Date}
 )
 GROUP BY
