@@ -116,7 +116,7 @@ public class ReportGenerationResource {
 
 		String branchCode = getUserBranchCode();
 		if (branchCode != null && !branchCode.trim().isEmpty()) {
-			throw new IllegalArgumentException("You do not have permission to generate report.");
+			throw new RuntimeException("error.report.noPermission");
 		}
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
