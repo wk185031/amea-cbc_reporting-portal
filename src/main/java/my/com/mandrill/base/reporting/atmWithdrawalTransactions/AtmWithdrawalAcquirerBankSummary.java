@@ -256,14 +256,19 @@ public class AtmWithdrawalAcquirerBankSummary extends PdfReportProcessor {
 					.substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START),
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
-			setBranchDetailBodyQuery(getBranchBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
-					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "")
-					.replace("\"TERMINAL\" ASC", "")
-					.replace(
-							getBranchBodyQuery().substring(getBranchBodyQuery().indexOf("GROUP BY"),
-									getBranchBodyQuery().indexOf("ORDER BY")),
-							"GROUP BY \"BRANCH CODE\", \"BRANCH NAME\" ")
-					.replace("\"BRANCH NAME\" ASC,", "\"BRANCH NAME\" ASC"));
+			
+			// separate in two parts to properly handle group by indexof replace
+			String branchDetailsBodyQueryPart1 = getBranchBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "").replace("\"TERMINAL\" ASC", "")
+					.replace("\"LOCATION\",", "").replace("\"LOCATION\"", "")
+					.replace("\"BRANCH NAME\" ASC,", "\"BRANCH NAME\" ASC")
+					.replace("AST.AST_ALO_LOCATION_ID", "AST.AST_ALO_LOCATION_ID \"LOCATION\",");
+			String branchDetailsBodyQueryPart2 = branchDetailsBodyQueryPart1.replace(
+					branchDetailsBodyQueryPart1.substring(branchDetailsBodyQueryPart1.indexOf("GROUP BY"),
+							branchDetailsBodyQueryPart1.indexOf("ORDER BY")),
+					"GROUP BY \"BRANCH CODE\", \"BRANCH NAME\" ");
+					
+			setBranchDetailBodyQuery(branchDetailsBodyQueryPart2);
 			setCriteriaQuery(getBranchBodyQuery());
 		}
 
