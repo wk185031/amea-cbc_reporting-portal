@@ -6,6 +6,7 @@
 -- Issuer					15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
 -- Issuer					16-AUG-2021		NY		IBFT txn not found in CASA Issuer
 -- JIRA 1119				09-MAR-2022		WY		Include POS Cashout Txn
+-- CBCAXUPISSLOG-1259		17-APR-2022		NY		4 missing transactions when compare to EFDLY006/007 and GLHandoffIssuer
 
 DECLARE
 
@@ -58,7 +59,6 @@ WHERE
 	  AND TXN.TRL_FRD_REV_INST_ID IS NULL 
 	  AND (TXN.TRL_TSC_CODE IN (142, 143) OR (TXN.TRL_TSC_CODE = 1 AND TXN.TRL_MCC_ID IN (''6011'',''6016''))) 
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
-      AND SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) NOT IN (''7001'', ''7002'', ''8553'', ''8551'')
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND (TXN.TRL_DEO_NAME != {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_Acqr_Inst_Id})
 	  AND (TXN.TRL_DEO_NAME != {V_IE_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') != {V_IE_Acqr_Inst_Id})
