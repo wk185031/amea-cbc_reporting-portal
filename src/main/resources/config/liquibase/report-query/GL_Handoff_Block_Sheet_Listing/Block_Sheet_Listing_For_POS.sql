@@ -2,6 +2,7 @@
 -- CBCAXUPISSLOG-742	25-JUN-2021		NY		Initial config from UAT environment
 -- CBCAXUPISSLOG-645	28-JUN-2021		NY		Clean up for new introduced CBS GL Account set
 -- CBCAXUPISSLOG-855	10-SEP-2021		KW		Fix branch code for CBS
+--CBCAXUPISSLOG-1312	19-APR-2022		WY		Exclude cash card txn
 
 DECLARE
 	i_REPORT_NAME VARCHAR2(100) := 'Block Sheet Listing For POS';
@@ -26,7 +27,7 @@ BEGIN
 	i_TRAILER_FIELDS_CBS := TO_CLOB('[{"sequence":1,"sectionName":"1","fieldName":"Space1","csvTxtLength":"67","pdfLength":"67","fieldType":"String","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":2,"sectionName":"2","fieldName":"Line1","csvTxtLength":"29","pdfLength":"29","fieldType":"String","defaultValue":"_","firstField":true,"eol":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":3,"sectionName":"3","fieldName":"Space2","csvTxtLength":"30","pdfLength":"30","fieldType":"String","firstField":true,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":4,"sectionName":"4","fieldName":"Asterisk1","csvTxtLength":"4","pdfLength":"4","fieldType":"String","defaultValue":"***","firstField":false,"leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":5,"sectionName":"5","fieldName":"TOTAL","csvTxtLength":"6","pdfLength":"6","fieldType":"String","defaultValue":"TOTAL","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":6,"sectionName":"6","fieldName":"Asterisk2","csvTxtLength":"4","pdfLength":"4","fieldType":"String","defaultValue":"***","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":7,"sectionName":"7","fieldName":"TOTAL DEBIT","csvTxtLength":"38","pdfLength":"38","fieldType":"Decimal","fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null},{"sequence":8,"sectionName":"8","fieldName":"TOTAL CREDIT","csvTxtLength":"14","pdfLength":"14","fieldType":"Decimal","defaultValue":"","eol":true,"fieldFormat":"#,##0.00","leftJustified":false,"padFieldLength":0,"decrypt":false,"decryptionKey":null}]');
 	
 	i_BODY_QUERY := TO_CLOB('
-SELECT
+SELECT DISTINCT
       GLA.GLA_NUMBER "GL ACCOUNT NUMBER",
       GLA.GLA_NAME "GL ACCOUNT NAME",
       TXN.TRL_STAN "CODE",
@@ -40,6 +41,10 @@ FROM
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+	  LEFT JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID
+      LEFT JOIN CARD_ACCOUNT CAT ON CAT.CAT_ACN_ID = ACN.ACN_ID
+      LEFT JOIN CARD CRD ON CRD.CRD_ID = CAT.CAT_CRD_ID
+      LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_MCC_ID = 6012
       AND TXN.TRL_TQU_ID = ''F''
@@ -53,6 +58,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+	  AND NVL(CPD.CPD_CODE, ''O'') NOT IN (''80'',''81'',''82'',''83'')
 GROUP BY
       GLA.GLA_NUMBER,
       GLA.GLA_NAME,
@@ -64,7 +70,7 @@ GROUP BY
 ORDER BY
       TXN.TRL_STAN ASC,
       GLE.GLE_DEBIT_DESCRIPTION DESC
-START SELECT
+START SELECT DISTINCT
       GLA.GLA_NUMBER "GL ACCOUNT NUMBER",
       GLA.GLA_NAME "GL ACCOUNT NAME",
       TXN.TRL_STAN "CODE",
@@ -78,6 +84,10 @@ FROM
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_CREDIT_ACCOUNT = GLA.GLA_NAME
+	  LEFT JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID
+      LEFT JOIN CARD_ACCOUNT CAT ON CAT.CAT_ACN_ID = ACN.ACN_ID
+      LEFT JOIN CARD CRD ON CRD.CRD_ID = CAT.CAT_CRD_ID
+      LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_MCC_ID = 6012
       AND TXN.TRL_TQU_ID = ''F''
@@ -91,6 +101,7 @@ WHERE
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+	  AND NVL(CPD.CPD_CODE, ''O'') NOT IN (''80'',''81'',''82'',''83'')
 GROUP BY
       GLA.GLA_NUMBER,
       GLA.GLA_NAME,
@@ -107,38 +118,65 @@ END
 	
 	i_TRAILER_QUERY := TO_CLOB('
 SELECT
-      SUM(TXN.TRL_AMT_TXN) "TOTAL DEBIT",
-      0 AS "TOTAL CREDIT"
+     SUM("DEBIT") "TOTAL DEBIT",
+     0 AS "TOTAL CREDIT"
+FROM(
+SELECT DISTINCT
+      GLA.GLA_NUMBER "GL ACCOUNT NUMBER",
+      GLA.GLA_NAME "GL ACCOUNT NAME",
+      TXN.TRL_STAN "CODE",
+      TXN.TRL_AMT_TXN "DEBIT",
+      0 AS "CREDIT",
+      TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
+      TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
+      GLE.GLE_DEBIT_DESCRIPTION "DESCRIPTION"
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+	  LEFT JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID
+      LEFT JOIN CARD_ACCOUNT CAT ON CAT.CAT_ACN_ID = ACN.ACN_ID
+      LEFT JOIN CARD CRD ON CRD.CRD_ID = CAT.CAT_CRD_ID
+      LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_MCC_ID = 6012
       AND TXN.TRL_TQU_ID = ''F''
-      AND TXN.TRL_TSC_CODE = 0
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''POS'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+	  AND NVL(CPD.CPD_CODE, ''O'') NOT IN (''80'',''81'',''82'',''83''))
 GROUP BY
-      GLE.GLE_DEBIT_DESCRIPTION
+      "DESCRIPTION"
 ORDER BY
-      GLE.GLE_DEBIT_DESCRIPTION DESC
+      "DESCRIPTION" DESC
 START SELECT
       0 AS "TOTAL DEBIT",
-     SUM(TXN.TRL_AMT_TXN) "TOTAL CREDIT"
+     SUM(CREDIT) "TOTAL CREDIT"
+FROM(
+SELECT DISTINCT GLA.GLA_NUMBER "GL ACCOUNT NUMBER",
+      GLA.GLA_NAME "GL ACCOUNT NAME",
+      TXN.TRL_STAN "CODE",
+      0 AS "DEBIT",
+      TXN.TRL_AMT_TXN "CREDIT",
+      TXN.TRL_ACCOUNT_1_ACN_ID "FROM ACCOUNT NO",
+      TXN.TRL_ACCOUNT_1_ACN_ID_EKY_ID,
+      GLE.GLE_CREDIT_DESCRIPTION "DESCRIPTION"
 FROM
       TRANSACTION_LOG TXN
 	  JOIN TRANSACTION_LOG_CUSTOM TLC ON TXN.TRL_ID = TLC.TRL_ID
       JOIN CBC_GL_ENTRY GLE ON TXN.TRL_TSC_CODE = GLE.GLE_TRAN_TYPE
       JOIN CBC_GL_ACCOUNT GLA ON GLE.GLE_DEBIT_ACCOUNT = GLA.GLA_NAME
+	  LEFT JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID
+      LEFT JOIN CARD_ACCOUNT CAT ON CAT.CAT_ACN_ID = ACN.ACN_ID
+      LEFT JOIN CARD CRD ON CRD.CRD_ID = CAT.CAT_CRD_ID
+      LEFT JOIN CARD_PRODUCT CPD ON CRD.CRD_CPD_ID = CPD.CPD_ID
 WHERE
       TXN.TRL_MCC_ID = 6012
       AND TXN.TRL_TQU_ID = ''F''
@@ -146,15 +184,16 @@ WHERE
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
       AND GLE.GLE_GLT_ID = (SELECT GLT_ID FROM CBC_GL_TRANSACTION WHERE GLT_NAME = ''POS'')
       AND GLE.GLE_ENTRY_ENABLED = ''Y''
-	  AND TLC.TRL_ORIGIN_CHANNEL NOT IN (''CDM'',''BRM'')
+	  AND TLC.TRL_ORIGIN_CHANNEL = ''BNT''
       AND GLA.GLA_INSTITUTION = {V_Gla_Inst}
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
       AND {GL_Description}
       AND {Txn_Date}
+	  AND NVL(CPD.CPD_CODE, ''O'') NOT IN (''80'',''81'',''82'',''83''))
 GROUP BY
-      GLE.GLE_CREDIT_DESCRIPTION
+      "DESCRIPTION"
 ORDER BY
-      GLE.GLE_CREDIT_DESCRIPTION DESC
+      "DESCRIPTION" DESC
 END				
 	');
 	
