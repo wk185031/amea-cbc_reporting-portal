@@ -282,10 +282,12 @@ public class TransmittalSlipForNewPins extends TxtReportProcessor {
 						if (decryptLastName == null) {
 							decryptLastName = encLastName;
 						}
-						String decryptLastNameTab = decryptLastName.replaceAll("\t", " ");		
+						//String decryptLastNameTab = decryptLastName.replaceAll("\t", " ").replaceAll("\n", " ");		
 						
-						lineFieldsMap.get("ACCOUNT_NAME")
-								.setValue(decryptFirstName + " " + decryptMiddleName + " " + decryptLastNameTab);
+						String accountName = decryptFirstName + " " + decryptMiddleName + " " + decryptLastName;
+						accountName = accountName.replaceAll("[\\n\\t ]", " ");
+						
+						lineFieldsMap.get("ACCOUNT_NAME").setValue(accountName);
 
 						if (programToLineFieldsMap == null) {
 							programToLineFieldsMap = new HashMap<String, List<HashMap<String, ReportGenerationFields>>>();
