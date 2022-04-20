@@ -11,7 +11,8 @@
         "report": {
         	"noJobInQueue": "To generate a monthly report, please select last day of the month.",
         	"downloadFailed": "Failed to download report",
-        	"exportFailed": "Failed to download report"
+        	"exportFailed": "Failed to download report",
+        	"noPermission": "You do not have permission to generate report."
         },
         "password": {
         	"violation": {

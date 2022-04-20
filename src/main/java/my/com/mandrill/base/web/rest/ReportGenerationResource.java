@@ -114,6 +114,11 @@ public class ReportGenerationResource {
 				SecurityUtils.getCurrentUserLogin().orElse(""), institutionId, reportCategoryId, reportId,
 				startDateTime, endDateTime);
 
+		String branchCode = getUserBranchCode();
+		if (branchCode != null && !branchCode.trim().isEmpty()) {
+			throw new RuntimeException("error.report.noPermission");
+		}
+		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 		LocalDateTime inputStartDateTime = LocalDateTime.parse(startDateTime, formatter);

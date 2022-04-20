@@ -26,7 +26,7 @@
 		            <th jhiSortBy="endDate"><span>End Date Time</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="details"><span>Frequency</span> <span class="fa fa-sort"></span></th>
 		            <th jhiSortBy="details"><span>Description</span> <span class="fa fa-sort"></span></th>
-		            <th jhiSortBy="createdBy"><span>User</span> <span class="fa fa-sort"></span></th>
+		            <!-- <th jhiSortBy="createdBy"><span>User</span> <span class="fa fa-sort"></span></th> -->
 		            <th jhiSortBy="status"><span>Status</span> <span class="fa fa-sort"></span></th>
 		            <th><span>Action</span> <span class="fa fa-sort"></span></th>
 	            </tr>
@@ -38,7 +38,7 @@
 	            	<td>{{jobHistory.generationEndDate | date:'short'}}</td>
 	            	<td>{{jobHistory.frequency}}</td>
 	            	<td style="width:40%">{{getDetails(jobHistory.details)}}</td>
-	            	<td>{{jobHistory.createdBy}}</td>
+	            	<!--<td>{{jobHistory.createdBy}}</td>-->
 	            	<!--<td>{{jobHistory.status}}</td>-->
 	            	<!-- <td><a class="alert-link" (click)="reportStatus()">{{jobHistory.status}}</a></td> -->
 	            	<td *ngIf="jobHistory.status == 'COMPLETED' || jobHistory.status == 'PARTIAL FAILED' else failedStatus" >
