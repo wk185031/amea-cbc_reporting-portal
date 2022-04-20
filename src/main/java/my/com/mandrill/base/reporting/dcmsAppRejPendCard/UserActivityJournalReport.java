@@ -135,16 +135,25 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 			if (fieldValue.contains("|")) {
 				String[] rows = fieldValue.split("\\|");
 				for (int i=0; i< rows.length; i++) {
+					String value = rows[i];
+					if (value != null) {
+						value = value.replaceAll("[\\n\\t ]", " ");
+					}
+					
 					if (i > 0) {
 						contentStream.newLineAtOffset(0, -leading);	
-						contentStream.showText(String.format("%161s", rows[i].trim()));
+						contentStream.showText(String.format("%161s", value.trim()));
 					} else {
-						contentStream.showText(rows[i].replaceAll("\t", " "));
+						contentStream.showText(value);
 					}
 					
 				}
 			} else {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap).replaceAll("\t", " "));
+				String value = fieldValue;
+				if (value != null) {
+					value = value.replaceAll("[\\n\\t ]", " ");
+				}
+				contentStream.showText(value);
 			}
 
 			if (field.isEol()) {

@@ -579,11 +579,15 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
 			}
 
+			String value = getFieldValue(rgm, field, fieldsMap);
+			if (value != null) {
+				value = value.replaceAll("[\\n\\t ]", " ");
+			}
 			if (field.isEol()) {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream.showText(value);
 				contentStream.newLineAtOffset(0, -leading);
 			} else {
-				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+				contentStream.showText(value);
 			}
 		}
 	}
