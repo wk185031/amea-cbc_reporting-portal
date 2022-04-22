@@ -142,28 +142,39 @@ public class GLHandoffInterEntity extends BatchProcessor {
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
-							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
-							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
-							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
-							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id
-							+ "','" + ins_id + "')"
-							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
+//					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+//							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
+//							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
+//							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
+//							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
+//							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id + "')"
+////							+ "','" + ins_id + "')"
+//							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
+					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ "AND (TXN.TRL_DEO_NAME IN ( '" + rgm.getInstitution() + "','" + ie_ins_name + "')"
+							+ " OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ins_id + "','" + ie_ins_id + "'))"
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0')) IN ('" + ie_ins_id + "')");
+
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) " + " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
-							+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name
-							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
-							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id
-							+ "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
-							+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND (TXN.TRL_DEO_NAME IN ('"
-							+ rgm.getInstitution() + "' , '" + ie_ins_name
-							+ "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
-							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
+//					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
+//					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+//					+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
+//					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
+//					+ " OR ("
+//							+ " AND TXN.TRL_ISS_NAME = '" + ie_ins_name + "'" + " AND (TXN.TRL_DEO_NAME IN ('"
+//							+ rgm.getInstitution() + "' , '" + ie_ins_name
+//							+ "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
+//							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
+//							+ ")");
+					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
+							+ "AND (TXN.TRL_DEO_NAME IN ( '" + rgm.getInstitution() + "','" + ie_ins_name + "')"
+							+ " OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ins_id + "','" + ie_ins_id + "'))"
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0')) IN ('" + ins_id + "')");
+
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			rgm.setBodyQuery(rgm.getBodyQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			break;
