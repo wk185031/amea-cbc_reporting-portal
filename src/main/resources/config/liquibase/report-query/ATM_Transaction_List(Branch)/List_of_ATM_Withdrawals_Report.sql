@@ -10,6 +10,7 @@
 -- CBCAXUPISSLOG-868	02-SEP-2021		NY		Generate blank report with header if no data retrieved
 -- CBCAXUPISSLOG-806	20-OCT-2021		NY		Fix oracle error invalid number
 -- CBCAXUPISSLOG-1171	24-MAR-2022		WY		Add terminal name (Location) in the report
+-- CBCAXUPISSLOG-1258	27-APR-2022		KW		Fix page overflow when multiple terminals in single page
 
 DECLARE
     i_HEADER_FIELDS_CBC CLOB;
@@ -20,7 +21,7 @@ DECLARE
     i_TRAILER_FIELDS_CBS CLOB;
 	i_BODY_QUERY CLOB;
 	i_TRAILER_QUERY CLOB;
-	i_PROCESSING_CLASS VARCHAR2(200) := 'my.com.mandrill.base.reporting.reportProcessor.BranchReportProcessor';
+	i_PROCESSING_CLASS VARCHAR2(200) := 'my.com.mandrill.base.reporting.atmTransactionListsBranch.ListOfATMWithdrawal';
 BEGIN 
 
 -- List of ATM Withdrawals Report

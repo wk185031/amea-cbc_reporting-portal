@@ -28,6 +28,7 @@ import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.PdfReportProcessor;
 
+@Deprecated
 public class ListOfATMWithdrawalsReport extends PdfReportProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(ListOfATMWithdrawalsReport.class);
