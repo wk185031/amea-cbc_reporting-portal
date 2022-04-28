@@ -127,6 +127,7 @@ FROM
 WHERE
 	  TXN.TRL_TSC_CODE IN (142, 143)
       AND (TXN.TRL_TQU_ID IN (''F'') OR (TXN.TRL_TQU_ID = ''R'' AND TXN.TRL_ACTION_RESPONSE_CODE = 0))
+	  AND (TXN.TRL_DEO_NAME = {V_Deo_Name} OR LPAD(TXN.TRL_ACQR_INST_ID, 10, ''0'') = {V_Acqr_Inst_Id})
       AND {Branch_Code}
       AND {Terminal}
       AND {Txn_Criteria}
@@ -146,10 +147,10 @@ START SELECT
       SUM("JUMP AMT") "JUMP AMT",
       SUM("JUMP FEE") "JUMP FEE",
       COUNT("NOW VOL") + COUNT("JUMP VOL") "TOTAL VOL",
-      SUM("NOW AMT") + SUM("JUMP AMT") "TOTAL AMT",
-      SUM("NOW FEE") + SUM("JUMP FEE") "TOTAL FEE"
+      NVL(SUM("NOW AMT"),0) + NVL(SUM("JUMP AMT"),0) "TOTAL AMT",
+      NVL(SUM("NOW FEE"),0) + NVL(SUM("JUMP FEE"),0) "TOTAL FEE"
 FROM(
-      SELECT
+      SELECT DISTINCT
             SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
             ABR.ABR_NAME "BRANCH NAME",
             CASE WHEN TXN.TRL_TSC_CODE = 142 THEN TXN.TRL_ID END AS "NOW VOL",
@@ -201,7 +202,7 @@ WHERE
 	  AND TXN.TRL_ACTION_RESPONSE_CODE = 0
 	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, '' '') != ''R''
       AND {Branch_Code}
-	  AND {Terminal}
+	  AND {Branch_Name}
       AND {Txn_Criteria}
       AND {Txn_Date}
 START SELECT

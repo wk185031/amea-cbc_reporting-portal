@@ -324,7 +324,7 @@ public class AtmListCardlessWithdrawal extends MovingCashReportProcessor {
 		if (filterByBranchName != null) {
 			
 			ReportGenerationFields branchName = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_NAME,
-					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchName + "'");
+					ReportGenerationFields.TYPE_STRING, "ABR.ABR_NAME = '" + filterByBranchName + "'");
 			getGlobalFileFieldsMap().put(branchName.getFieldName(), branchName);
 		}
 
