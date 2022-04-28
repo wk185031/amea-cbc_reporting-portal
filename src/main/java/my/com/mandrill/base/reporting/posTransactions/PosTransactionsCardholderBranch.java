@@ -128,9 +128,9 @@ public class PosTransactionsCardholderBranch extends PdfReportProcessor {
 
 	private SortedMap<String, Map<String, TreeSet<String>>> filterByBranches(ReportGenerationMgr rgm) {
 		logger.debug("In PosTransactionsCardholderBranch.filterByBranches()");
-		String branchCode = null;
-		String branchName = null;
-		String bankName = null;
+		String branchCode = "";
+		String branchName = "";
+		String bankName = "";
 		// String customData = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
