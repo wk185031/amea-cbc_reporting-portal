@@ -168,7 +168,7 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 							rgm.getBodyQuery().lastIndexOf(ReportConstants.SUBSTRING_END))
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setSummaryDetailBodyQuery(getSummaryBodyQuery().replace("AND {" + ReportConstants.PARAM_TERMINAL + "}", "")
-					.replace("SUBSTR(AST.AST_TERMINAL_ID, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "")
+					.replace("SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) \"TERMINAL\",", "").replace("\"TERMINAL\",", "")
 					.replace("\"TERMINAL\" ASC", "")
 					.replace(
 							getSummaryBodyQuery().substring(getSummaryBodyQuery().indexOf("GROUP BY"),
@@ -195,13 +195,13 @@ public class InterEntityAtmWithdrawalAcquirerBank extends IbftReportProcessor {
 		logger.debug("In InterEntityAtmWithdrawalAcquirerBank.preProcessing()");
 		if (filterByBranchCode != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
 		if (filterByTerminal != null) {
 			ReportGenerationFields terminal = new ReportGenerationFields(ReportConstants.PARAM_TERMINAL,
-					ReportGenerationFields.TYPE_STRING, "SUBSTR(AST.AST_TERMINAL_ID, -4) = '" + filterByTerminal + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, -4) = '" + filterByTerminal + "'");
 			getGlobalFileFieldsMap().put(terminal.getFieldName(), terminal);
 		}
 	}

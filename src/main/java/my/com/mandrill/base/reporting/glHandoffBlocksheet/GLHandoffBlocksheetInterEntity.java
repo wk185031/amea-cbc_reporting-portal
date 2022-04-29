@@ -87,6 +87,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			} else {
 				Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 				while (glDescriptionItr.hasNext()) {
+					branchCode = null;
 					glDescription = glDescriptionItr.next();
 					if (endGroup && newGroup) {
 						endGroup = false;
@@ -368,6 +369,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 			while (glDescriptionItr.hasNext()) {
+				branchCode = null;
 				glDescription = glDescriptionItr.next();
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
