@@ -18,12 +18,12 @@
     	<validCheckSum>any</validCheckSum>
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Pay_to_Mobile_Transactions/List_of_Moving_Cash_Transactions.sql"
+                 path="config/liquibase/report-query/Pay_to_Mobile_Transactions/ATM_List_of_Cardless_Withdrawal.sql"
                  splitStatements="false" 
                  stripComments="true" />
 		<sqlFile dbms="oracle" 
         		 encoding="UTF-8"
-                 path="config/liquibase/report-query/Inter-Entity_ATM_Withdrawal_Transactions/Inter-Entity_ATM_Withdrawal_as_Acquirer_Bank.sql"
+                 path="config/liquibase/report-query/Pay_to_Mobile_Transactions/List_of_Moving_Cash_Transactions.sql"
                  splitStatements="false" 
                  stripComments="true" />
     </changeSet>
