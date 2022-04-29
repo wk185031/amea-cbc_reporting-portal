@@ -2,7 +2,8 @@ package my.com.mandrill.base.repository;
 
 import my.com.mandrill.base.domain.UserExtra;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -30,4 +31,6 @@ public interface UserExtraRepository extends JpaRepository<UserExtra, Long> {
 	List<UserExtra> findByUserLogin(String username);
 	
 	List<UserExtra> findAllByLastLoginTsIsNotNull();
+	
+	Page<UserExtra> findByUserLoginContaining(String searchString, Pageable pageable);
 }
