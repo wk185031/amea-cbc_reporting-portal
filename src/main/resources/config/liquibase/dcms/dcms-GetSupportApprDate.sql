@@ -18,9 +18,9 @@ BEGIN
         IF V_INSTR > 0 THEN
             V_INSTR:=V_INSTR+7;
         END IF;
-        V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,10);
+        V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,8);
         IF V_SUBSTR IS NOT NULL THEN
-        V_DATE:=TO_DATE(V_SUBSTR,'YYYY-MM-DD');
+        V_DATE:=TO_DATE(V_SUBSTR,'DD-MM-YY');
         END IF;
         RETURN V_DATE;
 END ;
