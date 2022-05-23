@@ -169,6 +169,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 	private static final String TABLE_DETAILS_NAME = "TABLE_DETAILS";
 	private static final String INCREMENTAL_UPDATE_TABLES = "ATM_STATUS_HISTORY,ATM_TXN_ACTIVITY_LOG,ATM_JOURNAL_LOG,TRANSACTION_LOG";
+	private static final String TRANSACTION_LOG_TABLE = "TRANSACTION_LOG";
 
 	private final Environment env;
 
@@ -361,7 +362,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 
 			log.debug("Database synchronizer completed");
-			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, dbsyncJob.getId().toString(), request);
+			auditActionService.addSuccessEvent(AuditActionType.SYNCHRONIZE_DATABASE, dbsyncJob.getId().toString(),
+					request);
 
 			if (ReportConstants.CREATED_BY_USER.equals(user)) {
 				log.debug("System db sync, proceed with report generation.");
@@ -451,10 +453,19 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			} else {
 				truncateInsertRecords(table);
 			}
-
+			
 			log.debug("ELAPSED TIME: Table {} synced in {}s", table,
 					TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 		}
+
+		long start = System.nanoTime();
+
+		// update tran log reversal that happened next day
+		updatePostTransactionLog(TRANSACTION_LOG_TABLE);
+
+		log.debug("ELAPSED TIME update post tran log", TRANSACTION_LOG_TABLE,
+				TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+
 		toggleForeignKey(true);
 	}
 
@@ -582,6 +593,8 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 		}
 	}
+
+	
 
 	private Timestamp getTableLastUpdatedTimestamp(String tableName, String lastUpdateColumnName) throws Exception {
 		Connection conn = dataSource.getConnection();
@@ -1444,5 +1457,87 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			}
 		}
 	}
+	
+	private void updatePostTransactionLog(String table) throws Exception {
 
+		Map<String, String> tableShortNameMap = getTableShortName();
+		String schemaTableName = env.getProperty(ReportConstants.DB_SCHEMA_AUTHENTIC) + "." + table + "@"
+				+ env.getProperty(ReportConstants.DB_LINK_AUTHENTIC);
+		String lastUpdateColumnName = tableShortNameMap.get(table.toUpperCase()) + "_LAST_UPDATE_TS";
+
+		Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
+
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyy");
+		Date firstDateRunning = sdf.parse("01/06/2022");
+		Timestamp firstTsRunning = new Timestamp(firstDateRunning.getTime());
+
+		String formattedTs = null;
+
+		StringBuilder sql = new StringBuilder(
+				"SELECT RPT.TRL_ID, RPT.TRL_EXT_ID, RPT.TRL_STAN, AUTH.TRL_POST_COMPLETION_CODE, AUTH.TRL_LAST_UPDATE_TS, "
+						+ "AUTH.TRL_CARD_TRACK_DATA_EKY_ID, AUTH.TRL_ROUTING_LIST FROM TRANSACTION_LOG RPT " + "JOIN "
+						+ schemaTableName + " AUTH ON RPT.TRL_EXT_ID = AUTH.TRL_ID AND RPT.TRL_STAN = AUTH.TRL_STAN "
+						+ "WHERE RPT.TRL_TQU_ID = 'F' AND AUTH.TRL_TQU_ID = 'F' "
+						+ "AND RPT.TRL_LAST_UPDATE_TS <> AUTH.TRL_LAST_UPDATE_TS ");
+
+		if (lastUpdatedTs != null && lastUpdatedTs.after(firstTsRunning)) {
+			formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
+			sql.append(" AND RPT.TRL_LAST_UPDATE_TS > ? ");
+		}
+
+		log.debug("sql:{}", sql);
+
+		Connection conn = dataSource.getConnection();
+		PreparedStatement ps = conn.prepareStatement(sql.toString());
+		ResultSet rs = null;
+
+		try {
+
+			if (formattedTs != null) {
+				ps.setString(1, formattedTs);
+			}
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				Long reportTrlId = rs.getLong(1);
+				Long externalTrlId = rs.getLong(2);
+				String stan = rs.getString(3) != null ? "'" + rs.getString(3) + "'" : rs.getString(3);
+				String postCompletionCode = rs.getString(4) != null ? "'" + rs.getString(4) + "'" : rs.getString(4);
+				Timestamp lastUpdateTs = rs.getTimestamp(5);
+				String cardTrackEncryptId = rs.getString(6) != null ? "'" + rs.getString(6) + "'" : rs.getString(6);
+				String routingList = rs.getString(7) != null ? "'" + rs.getString(7) + "'" : rs.getString(7);
+
+				String updateQuery = "UPDATE TRANSACTION_LOG SET TRL_POST_COMPLETION_CODE = " + postCompletionCode
+						+ ", " + "TRL_LAST_UPDATE_TS = TO_TIMESTAMP('" + lastUpdateTs
+						+ "', 'YYYY-MM-DD HH24:MI:SS.FF') , " + "TRL_CARD_TRACK_DATA_EKY_ID = " + cardTrackEncryptId
+						+ ", " + "TRL_ROUTING_LIST = " + routingList + "" + " WHERE TRL_ID = " + reportTrlId
+						+ " AND TRL_EXT_ID = " + externalTrlId + " AND TRL_TQU_ID = 'F' AND TRL_STAN = " + stan + "";
+				
+				log.debug("updateQuery:{}", updateQuery);
+				
+				ps = conn.prepareStatement(updateQuery);
+				ps.execute(updateQuery);
+			}
+
+		} catch (Exception e) {
+			log.error("updatePostTransactionLog error: ", e);
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (Exception e) {
+					log.warn("Failed to close stmt", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					log.warn("Failed to close conn", e);
+				}
+			}
+		}
+
+	}
 }

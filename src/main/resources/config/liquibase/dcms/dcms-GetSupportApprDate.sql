@@ -17,8 +17,8 @@ BEGIN
         V_INSTR:= REGEXP_INSTR(CLobInput,'DATE',1,V_NTH);
         IF V_INSTR > 0 THEN
             V_INSTR:=V_INSTR+7;
+			V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,8);
         END IF;
-        V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,8);
         IF V_SUBSTR IS NOT NULL THEN
         V_DATE:=TO_DATE(V_SUBSTR,'DD-MM-YY');
         END IF;
