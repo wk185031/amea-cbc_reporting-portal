@@ -1468,10 +1468,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		Timestamp lastUpdatedTs = getTableLastUpdatedTimestamp(table, lastUpdateColumnName);
 
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyy");
-		Date firstDateRunning = sdf.parse("01/06/2022");
-		Timestamp firstTsRunning = new Timestamp(firstDateRunning.getTime());
+//		Date firstDateRunning = sdf.parse("01/06/2022");
+//		Timestamp firstTsRunning = new Timestamp(firstDateRunning.getTime());
 
-		String formattedTs = null;
+//		String formattedTs = null;
 
 		StringBuilder sql = new StringBuilder(
 				"SELECT RPT.TRL_ID, RPT.TRL_EXT_ID, RPT.TRL_STAN, AUTH.TRL_POST_COMPLETION_CODE, AUTH.TRL_LAST_UPDATE_TS, "
@@ -1480,10 +1480,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						+ "WHERE RPT.TRL_TQU_ID = 'F' AND AUTH.TRL_TQU_ID = 'F' "
 						+ "AND RPT.TRL_LAST_UPDATE_TS <> AUTH.TRL_LAST_UPDATE_TS ");
 
-		if (lastUpdatedTs != null && lastUpdatedTs.after(firstTsRunning)) {
-			formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
-			sql.append(" AND RPT.TRL_LAST_UPDATE_TS > ? ");
-		}
+//		if (lastUpdatedTs != null) {
+//			formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
+//			sql.append(" AND RPT.TRL_LAST_UPDATE_TS > ? ");
+//		}
 
 		log.debug("sql:{}", sql);
 
@@ -1493,9 +1493,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 		try {
 
-			if (formattedTs != null) {
-				ps.setString(1, formattedTs);
-			}
+//			if (formattedTs != null) {
+//				ps.setString(1, formattedTs);
+//			}
 
 			rs = ps.executeQuery();
 
