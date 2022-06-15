@@ -8,6 +8,7 @@
 -- Issuer					15-AUG-2021		NY		Time use 24 hour format, get stan if dest_stan null, bank code/to account 0 if not IBFT txn
 -- JIRA 1119				09-MAR-2022		WY		Include POS Cashout Txn
 -- CBCAXUPISSLOG-1259		19-APR-2022		NY		4 missing transactions when compare to EFDLY006/007 and GLHandoffIssuer
+-- CBCAXUPISSLOG-1352		14-JUN-2022		NY		Fix report discrepancy, remove filter on decimal value as POS cashout may have decimal amount
 
 DECLARE
 
@@ -61,7 +62,7 @@ FROM
 WHERE
       TXN.TRL_TQU_ID IN (''F'', ''R'')
 	  AND (TXN.TRL_TSC_CODE IN (142, 143) OR (TXN.TRL_TSC_CODE = 1 AND 
-      TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_AMT_TXN - FLOOR(TXN.TRL_AMT_TXN) = 0))
+      TXN.TRL_FRD_REV_INST_ID IS NULL))
 	  AND TXN.TRL_MCC_ID IN (''6011'',''6016'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND TXN.TRL_ISS_NAME = {V_Iss_Name}
