@@ -27,9 +27,15 @@ SELECT
     SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
     AST.AST_ALO_LOCATION_ID "LOCATION",
     AST.AST_ID "STATION ID",
-    case when NES.ASH_OPERATION_STATUS = ''In service'' then 0 else 100 end "UNAVAILABLE",
-    case when NES.ASH_OPERATION_STATUS = ''In service'' then 100 else 0 end  "AVAILABLE",
-    case when NES.ASH_OPERATION_STATUS = ''In service'' then ''1'' else ''0'' end "STANDARD"
+	case when nes.rn is not null and NES.ASH_OPERATION_STATUS = ''In service'' then 0
+    when nes.rn is null and ast.ast_required_state = ''In service'' then 0
+    else 100 end "UNAVAILABLE",
+    case when nes.rn is not null and NES.ASH_OPERATION_STATUS = ''In service'' then 100
+    when nes.rn is null and ast.ast_required_state = ''In service'' then 100
+    else 100 end "AVAILABLE",
+    case when nes.rn is not null and NES.ASH_OPERATION_STATUS = ''In service'' then ''1''
+    when nes.rn is null and ast.ast_required_state = ''In service'' then ''1''
+    else ''0'' end "STANDARD"
 FROM
     ATM_STATIONS AST
     JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
@@ -39,7 +45,7 @@ WHERE
 	DEO.DEO_NAME = {V_Deo_Name}
     AND AST_ID NOT IN (
       select distinct(ATD_AST_ID) from ATM_DOWNTIME ATD WHERE {Txn_Date}
-    )
+    ) AND AST.AST_ACTIVE = ''YES''
 UNION 
 (SELECT
      AST.AST_ARE_NAME "REGION",
@@ -54,11 +60,11 @@ FROM
       ATM_STATIONS AST
       JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
       JOIN ATM_BRANCHES ABR ON AST.AST_ABR_ID = ABR.ABR_ID
-      JOIN ATM_DOWNTIME ATD ON AST.AST_ID = ATD_AST_ID AND {Txn_Date}
+      LEFT JOIN ATM_DOWNTIME ATD ON AST.AST_ID = ATD_AST_ID AND {Txn_Date}
 	  
 WHERE
 	DEO.DEO_NAME = {V_Deo_Name}
-    AND AST.AST_ID in (select distinct(ASH_AST_ID) from ATM_STATUS_HISTORY) 
+	AND AST.AST_ACTIVE = ''YES''
 GROUP BY
       AST.AST_ARE_NAME,
       ABR.ABR_CODE,
