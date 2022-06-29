@@ -395,5 +395,6 @@
 	<include file="config/liquibase/changelog/WY_20220622000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/LJL_20220623000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	<include file="config/liquibase/changelog/LJL_20220628000001_update_report_definition.xml" relativeToChangelogFile="false"/>
+	<include file="config/liquibase/changelog/LJL_20220629000001_update_report_definition.xml" relativeToChangelogFile="false"/>
 	
 </databaseChangeLog>
