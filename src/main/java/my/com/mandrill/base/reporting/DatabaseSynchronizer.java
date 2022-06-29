@@ -736,7 +736,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 			rs = stmt.executeQuery();
 
 			AtmDowntime lastDowntime = null;
-
+			
 			while (rs.next()) {
 				String operationStatus = rs.getString("ASH_OPERATION_STATUS");
 				String commStatus = rs.getString("ASH_COMM_STATUS");
@@ -745,83 +745,55 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				String serviceStateReason = rs.getString("ASH_SERVICE_STATE_REASON");
 				java.sql.Date statusDate = new java.sql.Date(
 						DateUtils.truncate(new Date(statusTimestamp.getTime()), Calendar.DATE).getTime());
-
+				
 				log.debug("postProcessAtmDowntime: astId={}, statusTimestamp={}, operationSttus={}, commStatus={}",
 						astId, statusTimestamp, operationStatus, commStatus);
+				
+				if (lastDowntime != null && astId != lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null) {
+					// Previous entry is from different ATM, close the entry
+					AtmDowntime tempLastDowntime = lastDowntime.clone();
+					tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
+							LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+					insertAtmDownTime(tempLastDowntime);
 
-				if ("Out of service".equals(operationStatus) || "Down".equals(commStatus)) {
-					if (lastDowntime != null && lastDowntime.isRepeatedEntry(astId, statusDate, true)) {
-						log.debug("Entering criteria 1.1");
-						// Do nothing, continue search for next up entry
-					} else {
-						if (lastDowntime != null && astId != lastDowntime.getAstId()
-								&& lastDowntime.getEndTimestamp() == null) {
-							log.debug("Entering criteria 1.2");
-							// Previous entry is from different ATM, close the entry
-							AtmDowntime tempLastDowntime = lastDowntime.clone();
-							tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
-									LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
-							insertAtmDownTime(tempLastDowntime);
-
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
-									serviceStateReason);
-						} else if (lastDowntime != null && astId == lastDowntime.getAstId()
-								&& lastDowntime.getEndTimestamp() == null) {
-							log.debug("Entering criteria 1.3");
-							// Previous entry is from same ATM but different day, close the entry
-							AtmDowntime tempLastDowntime = lastDowntime.clone();
-							tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
-									LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
-							insertAtmDownTime(tempLastDowntime);
-
-							// Since ATM not up from yesterday, downtime will start at 00:00
-							lastDowntime = new AtmDowntime(astId, statusDate,
-									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null,
-									serviceStateReason);
-						} else {
-							log.debug("Entering criteria 1.4");
-							lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
-									serviceStateReason);
-						}
-					}
-
-				} else if ("In service".equals(operationStatus)) {
-					if (lastDowntime != null && lastDowntime.isRepeatedEntry(astId, statusDate, false)) {
-						log.debug("Entering criteria 2.1");
-						// Do nothing
-					} else {
-						if (lastDowntime == null) {
-							log.debug("Entering criteria 2.2");
-							AtmDowntime tempLastDowntime = new AtmDowntime(astId, statusDate,
-									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)),
-									statusTimestamp, serviceStateReason);
-							insertAtmDownTime(tempLastDowntime);
-							lastDowntime = tempLastDowntime;
-						} else if (astId == lastDowntime.getAstId() && statusDate.equals(lastDowntime.getStatusDate())
-								&& lastDowntime.getEndTimestamp() == null) {
-							log.debug("Entering criteria 2.3");
-							AtmDowntime tempLastDowntime = lastDowntime.clone();
-							tempLastDowntime.setEndTimestamp(statusTimestamp);
-							insertAtmDownTime(tempLastDowntime);
-							lastDowntime = tempLastDowntime;
-						} else {
-							if (lastDowntime.getAstId() != astId || !lastDowntime.getStatusDate().equals(statusDate)) {
-								log.debug("Entering criteria 2.4");
-								// Close previous open entry
-								AtmDowntime tempLastDowntime = lastDowntime.clone();
-								tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
-										LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
-								insertAtmDownTime(tempLastDowntime);
-							}
-							log.debug("Entering criteria 2.5");
-							AtmDowntime newLastDowntime = new AtmDowntime(astId, statusDate,
-									Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)),
-									statusTimestamp, serviceStateReason);
-							insertAtmDownTime(newLastDowntime);
-							lastDowntime = newLastDowntime;
-						}
-					}
+					lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
+							serviceStateReason);
+					
+				} else if (lastDowntime != null && astId == lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null 
+						&& !statusDate.equals(lastDowntime.getStatusDate())) {
+					
+					// Previous entry is from same ATM but different day, close the entry
+					AtmDowntime tempLastDowntime = lastDowntime.clone();
+					tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
+							LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+					insertAtmDownTime(tempLastDowntime);
+					
+					// Since ATM not up from yesterday, downtime will start at 00:00
+					lastDowntime = new AtmDowntime(astId, statusDate,
+							Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null,
+							serviceStateReason);
+					
+				} else if (lastDowntime != null && astId == lastDowntime.getAstId() && statusDate.equals(lastDowntime.getStatusDate()) 
+						&& lastDowntime.getEndTimestamp() == null) {
+					
+					AtmDowntime tempLastDowntime = lastDowntime.clone();
+					tempLastDowntime.setEndTimestamp(statusTimestamp);
+					insertAtmDownTime(tempLastDowntime);
+					lastDowntime = tempLastDowntime;
+					
 				}
+				
+				if ("Out of service".equals(operationStatus) || "Unknown".equals(operationStatus) || "Down".equals(commStatus)) {
+					lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,serviceStateReason);
+				}
+			}
+			
+			if (lastDowntime != null && lastDowntime.getEndTimestamp() == null) {
+				// Insert last downtime record into table
+				AtmDowntime tempLastDowntime = lastDowntime.clone();
+				tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
+						LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
+				insertAtmDownTime(tempLastDowntime);
 			}
 
 		} catch (Exception e) {
