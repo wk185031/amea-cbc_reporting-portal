@@ -749,16 +749,22 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 				log.debug("postProcessAtmDowntime: astId={}, statusTimestamp={}, operationSttus={}, commStatus={}",
 						astId, statusTimestamp, operationStatus, commStatus);
 				
-				if (lastDowntime != null && astId != lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null) {
+				if(lastDowntime != null && astId == lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null
+						&& "In service".equals(operationStatus)) {
+					
+					AtmDowntime tempLastDowntime = lastDowntime.clone();
+					tempLastDowntime.setEndTimestamp(statusTimestamp);
+					insertAtmDownTime(tempLastDowntime);
+					lastDowntime = tempLastDowntime;
+					
+				}else if (lastDowntime != null && astId != lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null) {
 					// Previous entry is from different ATM, close the entry
 					AtmDowntime tempLastDowntime = lastDowntime.clone();
 					tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
 							LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
 					insertAtmDownTime(tempLastDowntime);
+					lastDowntime = tempLastDowntime;
 
-					lastDowntime = new AtmDowntime(astId, statusDate, statusTimestamp, null,
-							serviceStateReason);
-					
 				} else if (lastDowntime != null && astId == lastDowntime.getAstId() && lastDowntime.getEndTimestamp() == null 
 						&& !statusDate.equals(lastDowntime.getStatusDate())) {
 					
@@ -767,11 +773,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 					tempLastDowntime.setEndTimestamp(Timestamp.valueOf(
 							LocalDateTime.of(lastDowntime.getStatusDate().toLocalDate(), LocalTime.MAX)));
 					insertAtmDownTime(tempLastDowntime);
-					
-					// Since ATM not up from yesterday, downtime will start at 00:00
-					lastDowntime = new AtmDowntime(astId, statusDate,
-							Timestamp.valueOf(LocalDateTime.of(statusDate.toLocalDate(), LocalTime.MIN)), null,
-							serviceStateReason);
+					lastDowntime = tempLastDowntime;
 					
 				} else if (lastDowntime != null && astId == lastDowntime.getAstId() && statusDate.equals(lastDowntime.getStatusDate()) 
 						&& lastDowntime.getEndTimestamp() == null) {
