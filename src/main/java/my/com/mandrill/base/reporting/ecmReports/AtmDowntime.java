@@ -168,7 +168,7 @@ public class AtmDowntime extends CsvReportProcessor {
 	
 	@Override
 	protected String getAtmDownTimeEndDateRangeFieldName() {
-		return "ATD.ATD_END_TIMESTAMP";
+		return "ATD.ATD_START_TIMESTAMP";
 	}
 
 	@Override
