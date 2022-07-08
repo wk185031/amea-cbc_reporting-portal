@@ -53,11 +53,11 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 
 	private static final String SQL_SUM_AMOUNT = "select sum(ACN.ACN_BALANCE_1) \"TOTAL BALANCE\", sum(case when CTR.CTR_DEBIT_CREDIT = 'DEBIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL DEBIT\", sum(case when CTR.CTR_DEBIT_CREDIT = 'CREDIT' then TXN.TRL_AMT_TXN else 0 end) \"TOTAL CREDIT\" from TRANSACTION_LOG txn left join TRANSACTION_LOG_CUSTOM TXNC on TXN.TRL_ID=TXNC.TRL_ID left join CARD CRD on TXN.TRL_PAN=CRD.CRD_PAN  left join BRANCH BRC on TXNC.TRL_CARD_BRANCH = BRC.BRC_CODE left join CARD_ACCOUNT CAT on CRD.CRD_ID=CAT.CAT_CRD_ID left join ACCOUNT ACN on CAT.CAT_ACN_ID=ACN.ACN_ID left join CARD_PRODUCT CPD on CRD.CRD_CPD_ID=CPD.CPD_ID left join CBC_TRAN_CODE CTR on TXN.TRL_TSC_CODE=CTR.CTR_CODE and TXNC.TRL_ORIGIN_CHANNEL=CTR.CTR_CHANNEL where CPD.CPD_CODE in ('80','81','82','83') ";
 
-	private static final String SQL_COUNT_ACTIVE_ACCOUNT = "select BRC.BRC_CODE \"BRANCH CODE\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 1 ELSE 0 END) AS \"CORPORATE ACCOUNT\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 0 ELSE 1 END) AS \"RETAIL ACCOUNT\" from ACCOUNT ACN join CARD_ACCOUNT CAT on ACN.ACN_ID = CAT.CAT_ACN_ID join CARD CRD on CRD.CRD_ID = CAT.CAT_CRD_ID join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('80','81','82','83') AND ACN_STATUS = 'A' group by BRC.BRC_CODE";
+	private static final String SQL_COUNT_ACTIVE_ACCOUNT = "select CST.CRD_BRANCH_CODE \"BRANCH CODE\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 1 ELSE 0 END) AS \"CORPORATE ACCOUNT\", sum(CASE WHEN CPD.CPD_CODE = '83' THEN 0 ELSE 1 END) AS \"RETAIL ACCOUNT\" from ACCOUNT ACN join CARD_ACCOUNT CAT on ACN.ACN_ID = CAT.CAT_ACN_ID join CARD CRD on CRD.CRD_ID = CAT.CAT_CRD_ID join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('80','81','82','83') AND ACN_STATUS = 'A' group by CST.CRD_BRANCH_CODE";
 	
-	private static final String SQL_COUNT_ACTIVE_CARD = "select BRC.BRC_CODE, CUST.CUST_FIRST_NAME, count(CRD.CRD_ID) from CARD CRD join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID join CUSTOMER CUST on CRD.CRD_CUST_ID = CUST.CUST_ID left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('83') AND CRD_STATUS_1 = 'A' AND {date_range_criteria} group by BRC.BRC_CODE, CUST.CUST_FIRST_NAME order by BRC.BRC_CODE, CUST.CUST_FIRST_NAME";
+	private static final String SQL_COUNT_ACTIVE_CARD = "select CST.CRD_BRANCH_CODE, CUST.CUST_FIRST_NAME, count(CRD.CRD_ID) from CARD CRD join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID  join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID join CUSTOMER CUST on CRD.CRD_CUST_ID = CUST.CUST_ID left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('83') AND CRD_STATUS_1 = 'A' AND {date_range_criteria} group by CST.CRD_BRANCH_CODE, CUST.CUST_FIRST_NAME order by CST.CRD_BRANCH_CODE, CUST.CUST_FIRST_NAME";
 	
-	private static final String SQL_SUM_TXN_AMOUNT = "select BRC.BRC_CODE, CUST.CUST_FIRST_NAME, SUM(TXN.TRL_AMT_TXN) from CARD CRD join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID join CUSTOMER CUST on CRD.CRD_CUST_ID = CUST.CUST_ID  left join TRANSACTION_LOG TXN on TXN.TRL_PAN = CRD.CRD_PAN   left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('83') AND CRD_STATUS_1 = 'A' AND {date_range_criteria} group by BRC.BRC_CODE, CUST.CUST_FIRST_NAME";
+	private static final String SQL_SUM_TXN_AMOUNT = "select CST.CRD_BRANCH_CODE, CUST.CUST_FIRST_NAME, SUM(TXN.TRL_AMT_TXN) from CARD CRD join CARD_CUSTOM CST on CRD.CRD_ID = CST.CRD_ID join CARD_PRODUCT CPD on CRD.CRD_CPD_ID = CPD.CPD_ID join CUSTOMER CUST on CRD.CRD_CUST_ID = CUST.CUST_ID  left join TRANSACTION_LOG TXN on TXN.TRL_PAN = CRD.CRD_PAN   left join BRANCH BRC on BRC.BRC_CODE = CST.CRD_BRANCH_CODE where CPD.CPD_CODE in ('83') AND CRD_STATUS_1 = 'A' AND {date_range_criteria} group by CST.CRD_BRANCH_CODE, CUST.CUST_FIRST_NAME";
 	
 	private static final String CORPORATE_PREFIX = "C_";
 
@@ -297,12 +297,18 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 			Map<String, ReportGenerationFields> predefinedDataMap) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ReportConstants.DATETIME_FORMAT_01);
 		String txnEnd = rgm.getTxnEndDate().format(formatter);
-
-		ReportGenerationFields txnEndDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_END_DATE,
+		String txnStart = rgm.getTxnStartDate().format(formatter);
+		String criteria = "TXN.TRL_SYSTEM_TIMESTAMP >= TO_DATE('" + txnStart + "', '" + ReportConstants.FORMAT_TXN_DATE
+				+ "') AND TXN.TRL_SYSTEM_TIMESTAMP < TO_DATE('" + txnEnd + "','"
+				+ ReportConstants.FORMAT_TXN_DATE + "')";
+		
+		ReportGenerationFields txnDate = new ReportGenerationFields(ReportConstants.PARAM_TXN_DATE,
 				ReportGenerationFields.TYPE_STRING,
-				"TO_DATE('" + txnEnd + "','" + ReportConstants.FORMAT_TXN_DATE + "')");
+				criteria);
 
-		predefinedDataMap.put(txnEndDate.getFieldName(), txnEndDate);
+
+	
+		predefinedDataMap.put(txnDate.getFieldName(), txnDate);
 	}
 
 	private String getBranchCodeFieldName() {
@@ -413,7 +419,7 @@ public class CashCardDailyTransactionSummary extends BaseReportProcessor {
 		PreparedStatement ps = null;
 
 		sql += " and TXNC.TRL_IS_CORPORATE_CARD = " + (isCorporate ? "1" : "0");
-		sql += " and BRC.BRC_CODE = '" + branchCode + "'";
+		sql += " and TXNC.TRL_CARD_BRANCH = '" + branchCode + "'";
 
 		try {
 			conn = datasource.getConnection();
