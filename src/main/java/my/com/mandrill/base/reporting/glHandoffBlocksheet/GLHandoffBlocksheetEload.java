@@ -280,8 +280,8 @@ public class GLHandoffBlocksheetEload extends TxtReportProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
 					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
-			setCriteriaQuery(getDebitBodyQuery().replace("TXN.TRL_STAN \"CODE\",", "")
-					.replace("TXN.TRL_STAN,", "").replace("TXN.TRL_STAN ASC,", "")
+			setCriteriaQuery(getDebitBodyQuery().replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) \"CODE\",", "")
+					.replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL),", "").replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) ASC,", "")
 					.replace(
 							"CASE WHEN GLA.GLA_NAME IN ('ACD Eload SVC Charge Bridge', 'Accts. Payable - Bancnet Eload Tfee') THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
 							"")

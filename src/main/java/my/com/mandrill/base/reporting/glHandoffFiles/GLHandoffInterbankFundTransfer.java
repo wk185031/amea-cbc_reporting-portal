@@ -117,7 +117,7 @@ public class GLHandoffInterbankFundTransfer extends BatchProcessor {
 		case ReportConstants.BANCNET_INTERBANK_TRANSFER_CR:
 			ReportGenerationFields channelCr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
-							"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id} AND ATP.ATP_ID != 0", 
+							"TXN.TRL_TSC_CODE = 41 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id} AND CPD_RECV.CPD_CODE NOT IN ('80','81','82','83')", 
 							rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
 			getGlobalFileFieldsMap().put(channelCr.getFieldName(), channelCr);
 			break;
