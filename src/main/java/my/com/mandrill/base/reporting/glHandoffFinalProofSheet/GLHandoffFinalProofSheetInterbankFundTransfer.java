@@ -235,7 +235,7 @@ public class GLHandoffFinalProofSheetInterbankFundTransfer extends TxtReportProc
 			ReportGenerationFields channelDr = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING, CriteriaParamsUtil.replaceInstitution(
 							"TXN.TRL_TSC_CODE = 1 AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000008882' AND TLC.TRL_ORIGIN_CHANNEL = 'BNT' "
-							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND CPD.CPD_CODE NOT IN ('80','81','82','83')",
+							+ "AND TXN.TRL_ISS_NAME = {V_Iss_Name} AND (CPD_RECV.CPD_CODE is null or CPD_RECV.CPD_CODE NOT IN ('80','81','82','83'))",
 							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			getGlobalFileFieldsMap().put(channelDr.getFieldName(), channelDr);
 			break;
