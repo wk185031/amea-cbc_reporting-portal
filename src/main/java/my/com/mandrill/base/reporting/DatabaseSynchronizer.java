@@ -1450,9 +1450,9 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		StringBuilder sql = new StringBuilder(
 				"SELECT RPT.TRL_ID, RPT.TRL_EXT_ID, RPT.TRL_STAN, AUTH.TRL_POST_COMPLETION_CODE, AUTH.TRL_LAST_UPDATE_TS, "
 						+ "AUTH.TRL_CARD_TRACK_DATA_EKY_ID, AUTH.TRL_ROUTING_LIST FROM TRANSACTION_LOG RPT " + "JOIN "
-						+ schemaTableName + " AUTH ON RPT.TRL_EXT_ID = AUTH.TRL_ID AND RPT.TRL_STAN = AUTH.TRL_STAN "
-						+ "WHERE RPT.TRL_TQU_ID = 'F' AND AUTH.TRL_TQU_ID = 'F' "
-						+ "AND RPT.TRL_LAST_UPDATE_TS <> AUTH.TRL_LAST_UPDATE_TS ");
+						+ schemaTableName + " AUTH ON RPT.TRL_EXT_ID = AUTH.TRL_ID "
+						+ "WHERE RPT.TRL_TQU_ID = 'F' AND AUTH.TRL_TQU_ID = 'F' AND AUTH.TRL_POST_COMPLETION_CODE IS NOT NULL "
+						+ "AND RPT.TRL_LAST_UPDATE_TS <> AUTH.TRL_LAST_UPDATE_TS AND RPT.TRL_SYSTEM_TIMESTAMP >= TO_TIMESTAMP(SYSDATE - 2) ");
 
 //		if (lastUpdatedTs != null) {
 //			formattedTs = new SimpleDateFormat("yyyyMMdd HH:mm:ss.SSS").format(lastUpdatedTs);
