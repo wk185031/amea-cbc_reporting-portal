@@ -312,7 +312,7 @@ public class CashCardBalance extends PdfReportProcessor {
 		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "CRDCT.CRD_BRANCH_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
