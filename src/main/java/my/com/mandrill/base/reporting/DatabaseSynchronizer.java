@@ -1486,7 +1486,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 						+ ", " + "TRL_LAST_UPDATE_TS = TO_TIMESTAMP('" + lastUpdateTs
 						+ "', 'YYYY-MM-DD HH24:MI:SS.FF') , " + "TRL_CARD_TRACK_DATA_EKY_ID = " + cardTrackEncryptId
 						+ ", " + "TRL_ROUTING_LIST = " + routingList + "" + " WHERE TRL_ID = " + reportTrlId
-						+ " AND TRL_EXT_ID = " + externalTrlId + " AND TRL_TQU_ID = 'F' AND TRL_STAN = " + stan + "";
+						+ " AND TRL_EXT_ID = " + externalTrlId + " AND TRL_TQU_ID = 'F' ";
 				
 				log.debug("updateQuery:{}", updateQuery);
 				
