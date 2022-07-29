@@ -774,7 +774,7 @@ public class CashCardApprovedTransactions extends PdfReportProcessor {
 			// rgm.setBodyQuery(rgm.getTmpBodyQuery().replace("AND {" +
 			// ReportConstants.PARAM_TERMINAL + "}", ""));
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "TXNC.TRL_CARD_BRANCH = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 
