@@ -581,6 +581,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
                         
                         if(isSummary){
                         	writeBodyMonthlyCardSummary(rgm, null);
+                        	writeTrailerMonthlyCardSummary(rgm, null);
                         }
                         else{
                         	writeTrailer(rgm, null);
@@ -746,6 +747,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     	   rgm.setBodyQuery(rgm.getBodyQuery()
     	            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
     	            .replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + txnStartDateUTC + "'")
+    	            .replace("{" + ReportConstants.PARAM_TO_DATE_UTC + "}", "'" + rgm.getTxnEndDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
     	            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
     	            .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
     	            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));
@@ -756,6 +758,7 @@ public class MonthlyCardbaseReport extends PdfReportProcessor {
     	   rgm.setBodyQuery(rgm.getBodyQuery()
    	            .replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + startDate.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
    	            .replace("{" + ReportConstants.PARAM_FROM_DATE_UTC + "}", "'" + startDateUTC.format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
+   	            .replace("{" + ReportConstants.PARAM_TO_DATE_UTC + "}", "'" + rgm.getTxnEndDate().atZone(ZoneId.of(ReportConstants.TimeZone.MANILA)).withZoneSameInstant(ZoneId.of(ReportConstants.TimeZone.UTC)).format(DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss")) + "'")
    	            .replace("{" + ReportConstants.PARAM_DCMS_DB_SCHEMA+ "}", rgm.getDcmsDbSchema())
    	            .replace("{" + ReportConstants.PARAM_DB_LINK_DCMS + "}", rgm.getDbLink())
    	            .replace("{" + ReportConstants.PARAM_ISSUER_ID+ "}", rgm.getInstitution().equals("CBC") ? ReportConstants.DCMS_CBC_INSTITUTION : ReportConstants.DCMS_CBS_INSTITUTION));

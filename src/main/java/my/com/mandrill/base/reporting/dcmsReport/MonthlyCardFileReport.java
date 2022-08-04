@@ -604,6 +604,7 @@ public class MonthlyCardFileReport extends PdfReportProcessor {
                         
                         if(isSummary){
                         	writeBodyMonthlyCardSummary(rgm, null);
+                        	writeTrailerMonthlyCardSummary(rgm, null);
                         }
                         else{
                         	writeTrailer(rgm, null);
