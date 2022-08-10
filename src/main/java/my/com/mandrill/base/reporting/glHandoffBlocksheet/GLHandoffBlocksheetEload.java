@@ -271,6 +271,10 @@ public class GLHandoffBlocksheetEload extends TxtReportProcessor {
 
 	private void separateQuery(ReportGenerationMgr rgm) {
 		logger.debug("In GLHandoffBlocksheetEload.separateQuery()");
+		
+		String institution = rgm.getInstitution() == null ? "CBC" : rgm.getInstitution();
+		String instId = "CBC".equals(institution) ? "'0000000010'" : "'0000000112'";
+		
 		if (rgm.getBodyQuery() != null) {
 			setDebitBodyQuery(rgm.getBodyQuery().substring(rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SELECT),
 					rgm.getBodyQuery().indexOf(ReportConstants.SUBSTRING_SECOND_QUERY_START)));
@@ -280,8 +284,9 @@ public class GLHandoffBlocksheetEload extends TxtReportProcessor {
 					.replace(ReportConstants.SUBSTRING_START, ""));
 			setCreditBodyQuery(getCreditBodyQuery().replace(getCreditBodyQuery().substring(
 					getCreditBodyQuery().indexOf("GROUP BY"), getCreditBodyQuery().indexOf("ORDER BY")), ""));
-			setCriteriaQuery(getDebitBodyQuery().replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) \"CODE\",", "")
-					.replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL),", "").replace("COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) ASC,", "")
+			setCriteriaQuery(getDebitBodyQuery().replace("CASE WHEN (TXN.TRL_DEO_NAME = '" + institution + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = " + instId + ") THEN TXN.TRL_DEST_STAN ELSE COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) END AS \"CODE\",", "")
+					.replace("CASE WHEN (TXN.TRL_DEO_NAME = '" + institution + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = " + instId + ") THEN TXN.TRL_DEST_STAN ELSE COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL),", "")
+					.replace("CASE WHEN (TXN.TRL_DEO_NAME = '" + institution + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = " + instId + ") THEN TXN.TRL_DEST_STAN ELSE COALESCE(TXN.TRL_STAN, TXN.TRL_DEST_STAN, NULL) END ASC,", "")
 					.replace(
 							"CASE WHEN GLA.GLA_NAME IN ('ACD Eload SVC Charge Bridge', 'Accts. Payable - Bancnet Eload Tfee') THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS \"DEBIT\",",
 							"")
