@@ -1,5 +1,6 @@
 -- Tracking				Date			Name	Description
 -- Revise Report	 	25-JULY-2021	WY		Revise report according to requirement
+-- CBCAXUPISSLOG-1335	19-AUG-202		NY		NVL change for improvement
 
 DECLARE
 	
@@ -29,7 +30,7 @@ FROM
 	  JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
 WHERE
       TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+	  AND (TXN.TRL_POST_COMPLETION_CODE IS NULL OR TXN.TRL_POST_COMPLETION_CODE NOT IN (''R''))
 	  AND DEO.DEO_NAME = {V_Deo_Name}
       AND {Txn_Time}
 	  AND {Terminal}
@@ -57,7 +58,7 @@ FROM
 	  JOIN DEVICE_ESTATE_OWNER DEO ON AST.AST_DEO_ID = DEO.DEO_ID
 WHERE
       TXN.TRL_TQU_ID = ''F'' 
-	  AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
+      AND (TXN.TRL_POST_COMPLETION_CODE IS NULL OR TXN.TRL_POST_COMPLETION_CODE NOT IN (''R''))
 	  AND DEO.DEO_NAME = {V_Deo_Name}
       AND {Txn_Time})');
 	
