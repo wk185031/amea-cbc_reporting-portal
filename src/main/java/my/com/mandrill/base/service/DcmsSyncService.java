@@ -83,6 +83,14 @@ public class DcmsSyncService {
 	private static final String TABLE_ISSUANCE_CASH_CARD_BALANCE = "ISSUANCE_CASH_CARD_BALANCE";
 	
 	private static final String TABLE_USER_ACTIVITY_LOGS = "USER_ACTIVITY_LOGS";
+	
+	private static final String TABLE_SUPPORT_DEFAULT_ACC = "SUPPORT_DEFAULT_ACC_REQ_MAP";
+	
+	private static final String TABLE_CARD_TXN_SET = "CARD_TRANSACTION_SET";
+	
+	private static final String TABLE_TXN_LIMIT = "SUPPORT_TXN_LIMIT_REQUEST_MAP";
+	
+	private static final String TABLE_TXN_LIMIT_CC = "SUPPORT_CC_TXN_LIMIT_REQ_MAP";
 
 	private static final String COL_DCMS_ISSUANCE_CLIENT_TS = "CLT_UPDATED_TS";
 
@@ -93,6 +101,14 @@ public class DcmsSyncService {
 	private static final String COL_DCMS_ISSUANCE_CASH_CARD_BALANCE_TS = "CCB_UPDATED_TS";
 	
 	private static final String COL_DCMS_USER_ACTIVITY_DATE = "AUD_USER_ACTIVTIY_DATE";
+	
+	private static final String COL_DCMS_DEFAULT_ACC_DATE = "DAR_UPDATED_TS";
+	
+	private static final String COL_DCMS_TXN_SET_DATE = "CTS_UPDATED_TS";
+	
+	private static final String COL_DCMS_TXN_LIMIT_DATE = "TRM_UPDATED_TS";
+	
+	private static final String COL_DCMS_TXN_LIMIT_CC_DATE = "CC_TRM_UPDATED_TS";
 
 	private static final String SQL_SELECT_AUDIT_LOG_DEBIT_CARD = "select CRD_ID, CRD_AUDIT_LOG, CRD_INS_ID, CRD_UPDATED_TS, STF_LOGIN_NAME, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CRD_UPDATED_BY=STF_ID or CRD_CREATED_BY=STF_ID where CRD_UPDATED_TS is not null ";
 
@@ -130,6 +146,12 @@ public class DcmsSyncService {
 	private static final String FUNCTION_UPDATE_CC_ACC_STATUS = "Update CC Acc Sts";
 	
 	private static final String FUNCTION_PRE_GEN_ACTIVATION = "Pre-gen card activation";
+	
+	private static final String FUNCTION_DEFAULT_ACC_CHANGE = "Default Acc Change";
+	
+	private static final String FUNCTION_TXN_SET_UPDATE = "Transaction Set Update";
+	
+	private static final String FUNCTION_TXN_LIMIT_UPDATE = "Transaction Limit Update";
 
 	private DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -150,6 +172,14 @@ public class DcmsSyncService {
 	private static final String SQL_SELECT_AUDIT_LOG_CASH_CARD_ACC_STATUS = "select CSH_ID, CAC_AUDIT_LOG, CAC_INS_ID, CAC_UPDATED_TS, STF_LOGIN_NAME, CSH_CARD_NUMBER_ENC, CSH_KEY_ROTATION_NUMBER from {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK} join {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK} on CAM_CAC_ID = CAC_ID join {DB_SCHEMA}.ISSUANCE_CASH_CARD@{DB_LINK} ON CSH_ID = CAM_CSH_ID left join {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CAC_UPDATED_BY=STF_ID where CAC_UPDATED_TS > ? AND CAC_AUDIT_LOG IS NOT NULL ";
 	
 	private static final String SQL_SELECT_AUDIT_LOG_USER_ACTIVITY_LOGS = "select TO_CHAR(AUD_USER_ACTIVITY), STF_INS_ID, STF_LOGIN_NAME, AUD_USER_ACTIVTIY_DATE FROM {DB_SCHEMA}.USER_ACTIVITY_LOGS@{DB_LINK} JOIN {DB_SCHEMA}.USER_STAFF@{DB_LINK} ON STF_ID = AUD_USER_ID where AUD_USER_ACTIVTIY_DATE > ? AND AUD_USER_ACTIVITY LIKE '%Kit Number%'";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_DEFAULT_ACC = "select DAR_INS_ID, DAR_AUDIT_LOG, STF_LOGIN_NAME, TO_TIMESTAMP(DAR_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS'), CRD_ID, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER, null as CIFNO FROM {DB_SCHEMA}.SUPPORT_DEFAULT_ACC_REQ_MAP@{DB_LINK} LEFT JOIN {DB_SCHEMA}.USER_STAFF@{DB_LINK} on DAR_UPDATED_BY = STF_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK} on DAR_CCM_ID = CCM_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} on CCM_CRD_ID = CRD_ID where TO_TIMESTAMP(DAR_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS') > ? AND DAR_STS_ID = 91";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_TXN_SET = "select CTS_INS_ID, CTS_AUDIT_LOG, STF_LOGIN_NAME, CTS_UPDATED_TS, null as CRD_ID, null as CRD_NUMBER_ENC, null as CRD_KEY_ROTATION_NUMBER, CTS_NAME as CIFNO FROM {DB_SCHEMA}.CARD_TRANSACTION_SET@{DB_LINK} LEFT JOIN {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CTS_UPDATED_BY = STF_ID where CTS_UPDATED_TS > ? AND CTS_STS_ID = 1";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_TXN_LIMIT = "select TRM_INS_ID,TRM_AUDIT_LOG,STF_LOGIN_NAME,TO_TIMESTAMP(TRM_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS'), CRD_ID, CRD_NUMBER_ENC, CRD_KEY_ROTATION_NUMBER, null as CIFNO FROM {DB_SCHEMA}.SUPPORT_TXN_LIMIT_REQUEST_MAP@{DB_LINK} LEFT JOIN {DB_SCHEMA}.USER_STAFF@{DB_LINK} on TRM_UPDATED_BY = STF_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CLIENT_CARD_MAPPING@{DB_LINK} on TRM_CCM_ID = CCM_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CARD@{DB_LINK} on CCM_CRD_ID = CRD_ID where TO_TIMESTAMP(TRM_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS') > ? AND TRM_STS_ID = 91";
+	
+	private static final String SQL_SELECT_AUDIT_LOG_TXN_LIMIT_CC = "select CC_TRM_INS_ID,CC_TRM_AUDIT_LOG,STF_LOGIN_NAME,TO_TIMESTAMP(CC_TRM_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS'), CAC_ID, CAC_ACCOUNT_NUMBER, CAC_KEY_ROTATION_NUMBER, null as CIFNO FROM {DB_SCHEMA}.SUPPORT_CC_TXN_LIMIT_REQ_MAP@{DB_LINK} LEFT JOIN {DB_SCHEMA}.USER_STAFF@{DB_LINK} on CC_TRM_UPDATED_BY = STF_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACC_MAPPING@{DB_LINK} on CC_TRM_CAM_ID = CAM_ID LEFT JOIN {DB_SCHEMA}.ISSUANCE_CASH_CARD_ACCOUNT@{DB_LINK} on CAM_CAC_ID = CAC_ID where TO_TIMESTAMP(CC_TRM_UPDATED_TS, 'YYYY-MM-DD HH24:MI:SS') > ? AND CC_TRM_STS_ID = 91";
 
 	public void syncDcmsUserActivity() {
 		Timestamp userActivityLastUpdatedTs = getLastUpdatedTs(TABLE_LOCAL_USER_ACTIVITY,
@@ -280,6 +310,46 @@ public class DcmsSyncService {
 					COL_DCMS_USER_ACTIVITY_DATE, userActivityLastUpdatedTs, dcmsActivityLogLastUpdatedTs);
 			syncUserActivity(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_USER_ACTIVITY_LOGS,
 					FUNCTION_PRE_GEN_ACTIVATION, patternConfigList);
+		}
+		
+		Timestamp dcmsDefaultAccLastUpdatedTs = getLastUpdatedTs(TABLE_SUPPORT_DEFAULT_ACC,
+				COL_DCMS_DEFAULT_ACC_DATE, true, false);
+		
+		if (dcmsDefaultAccLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}",
+					COL_DCMS_DEFAULT_ACC_DATE, userActivityLastUpdatedTs, dcmsDefaultAccLastUpdatedTs);
+			syncAuditLog(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_DEFAULT_ACC,
+					FUNCTION_DEFAULT_ACC_CHANGE);
+		}
+		
+		Timestamp dcmsTxnSetLastUpdatedTs = getLastUpdatedTs(TABLE_CARD_TXN_SET,
+				COL_DCMS_TXN_SET_DATE, true, false);
+		
+		if (dcmsTxnSetLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}",
+					COL_DCMS_TXN_SET_DATE, userActivityLastUpdatedTs, dcmsDefaultAccLastUpdatedTs);
+			syncAuditLog(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_TXN_SET,
+					FUNCTION_TXN_SET_UPDATE);
+		}
+		
+		Timestamp dcmsTxnLimitLastUpdatedTs = getLastUpdatedTs(TABLE_TXN_LIMIT,
+				COL_DCMS_TXN_LIMIT_DATE, true, false);
+		
+		if (dcmsTxnLimitLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}",
+					COL_DCMS_TXN_LIMIT_DATE, userActivityLastUpdatedTs, dcmsTxnLimitLastUpdatedTs);
+			syncAuditLog(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_TXN_LIMIT,
+					FUNCTION_TXN_LIMIT_UPDATE);
+		}
+		
+		Timestamp dcmsTxnLimitCCLastUpdatedTs = getLastUpdatedTs(TABLE_TXN_LIMIT_CC,
+				COL_DCMS_TXN_LIMIT_CC_DATE, true, false);
+		
+		if (dcmsTxnLimitCCLastUpdatedTs.after(userActivityLastUpdatedTs)) {
+			log.debug("Sync DCMS activity log: table={}, min timestamp={}, max timestamp={}",
+					COL_DCMS_TXN_LIMIT_CC_DATE, userActivityLastUpdatedTs, dcmsTxnLimitCCLastUpdatedTs);
+			syncAuditLog(userActivityLastUpdatedTs, SQL_SELECT_AUDIT_LOG_TXN_LIMIT_CC,
+					FUNCTION_TXN_LIMIT_UPDATE);
 		}
 
 		log.debug("ELAPSED TIME: syncDcmsUserActivity completed in {}s",
@@ -654,6 +724,80 @@ public class DcmsSyncService {
 			activity.setCreatedDate(((Timestamp) resultRow[3]).toInstant());
 			
 			userActivityRepo.save(activity);
+		}
+	}
+	
+	@Transactional
+	private void syncAuditLog(Timestamp userActivityLastUpdatedTs, String sql, String function) {
+
+		List<Object[]> resultList = em.createNativeQuery(sanitizeSql(sql)).setParameter(1, userActivityLastUpdatedTs)
+				.getResultList();
+		
+		for (Object[] resultRow : resultList) {
+			BigDecimal instId = (BigDecimal) resultRow[0];
+			Clob auditLogRaw = (Clob) resultRow[1];
+			String auditLog = clobToString(auditLogRaw);
+			String updatedBy = (String) resultRow[2];
+			Timestamp updatedDate = (Timestamp) resultRow[3];
+			BigDecimal cardId = (BigDecimal) resultRow[4];
+			String cardEncryption = (String) resultRow[5];
+			Object keyRotationNumber = resultRow[6];
+			String cifNo = (String) resultRow[7];
+			
+			log.debug("auditLog : " + auditLog);
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			List<Map<String, List>> auditLogHistories = null;
+			List<Map<String, String>> changedColumnHistories = null;
+
+			try {
+				auditLogHistories = mapper.readValue(auditLog, new TypeReference<List<Map<String, Object>>>() {});
+				
+				for (Map<String, List> history : auditLogHistories) {
+					List columnChange = history.get("CHANGE");
+					log.debug("change : " + columnChange);
+					
+					if(columnChange != null) {
+						String columnChangeStr = mapper.writeValueAsString(columnChange);
+						log.debug("respData : " + columnChangeStr);
+						
+						changedColumnHistories = mapper.readValue(columnChangeStr, new TypeReference<List<Map<String, Object>>>() {});
+						
+						for (Map<String, String> changesMap : changedColumnHistories) {
+							String colChanged = changesMap.get("COL");
+							Object newValObj = changesMap.get("NEW_VALUE");
+							String newVal = newValObj.toString();
+							Object oldValObj = changesMap.get("OLD_VALUE");
+							String oldVal = oldValObj.toString();
+							
+							log.debug("colChanged : " + colChanged);
+							log.debug("newVal : " + newVal);
+							log.debug("oldVal : " + oldVal);
+							
+							DcmsUserActivity activity = new DcmsUserActivity();
+							
+							activity.setFunction(function);
+							activity.setCardId(cardId != null ? cardId.toBigInteger() : null);
+							activity.setCashCard(false);
+							activity.setCardNumberEnc(cardEncryption != null ? cardEncryption : null);
+							activity.setCardKeyRotationNumber(keyRotationNumber != null ? ((BigDecimal) keyRotationNumber).intValue() : null );
+							activity.setDescription(colChanged + " changed from " + oldVal + " to " + newVal);
+							activity.setCustomerCifNumber(cifNo != null ? cifNo : null);
+							activity.setInstitutionId(instId.toBigInteger());
+							activity.setCreatedBy(updatedBy);
+							activity.setCreatedDate(updatedDate.toInstant());
+							
+							userActivityRepo.save(activity);
+						}
+					} else {
+						continue;
+					}
+				}
+				
+			} catch (Exception e) {
+				log.warn("Failed to parse audit log", e);
+			}
 		}
 	}
 

@@ -127,8 +127,16 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, JSONException {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		for (ReportGenerationFields field : fields) {
-			if (field.isDecrypt()) {
-				decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+			
+			String fieldsMapValue = fieldsMap.get(field.getFieldName()).getValue();
+			
+			if (field.isDecrypt() && fieldsMapValue != null && !fieldsMapValue.contains("IGNORE_DECRYPT")) {
+				//decryptValues(field, fieldsMap, getGlobalFileFieldsMap());
+				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+			
+			if(field.getFieldName().equalsIgnoreCase("CARD_NUMBER_ENC") && fieldsMapValue.contains("IGNORE_DECRYPT")) {
+				fieldsMap.get(field.getFieldName()).setValue(fieldsMapValue.replace("IGNORE_DECRYPT", ""));
 			}
 
 			String fieldValue = getFieldValue(rgm, field, fieldsMap);
@@ -207,6 +215,7 @@ public class UserActivityJournalReport extends DCMSApproveRejectPendingCardRepor
 							} else {
 								field.setValue("");
 							}
+							
 							if ("CRD_NUMBER_ENC".equals(field.getFieldName()) && field.getValue() != null && !field.getValue().trim().isEmpty()) {
 								field.setValue(extractAccountNumberFromCifResponse(field.getValue()));
 							}

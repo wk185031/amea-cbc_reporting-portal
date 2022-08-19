@@ -549,9 +549,15 @@ public class DCMSApproveRejectPendingCardReport extends PdfReportProcessor {
 		List<ReportGenerationFields> fields = extractBodyFields(rgm);
 		StringBuilder line = new StringBuilder();
 		for (ReportGenerationFields field : fields) {
+			
+			String fieldValue = fieldsMap.get(field.getFieldName()).getValue();
 
-			if (field.isDecrypt()) {
+			if (field.isDecrypt() && fieldValue != null && !fieldValue.contains("IGNORE_DECRYPT")) {
 				decryptValuesApprovedReject(field, fieldsMap, getGlobalFileFieldsMap());
+			}
+			
+			if(field.getFieldName().equalsIgnoreCase("CARD_NUMBER_ENC") && fieldValue.contains("IGNORE_DECRYPT")) {
+				fieldsMap.get(field.getFieldName()).setValue(fieldValue.replace("IGNORE_DECRYPT", ""));
 			}
 
 			line.append("\"" + getFieldValue(rgm, field, fieldsMap) + "\"");
