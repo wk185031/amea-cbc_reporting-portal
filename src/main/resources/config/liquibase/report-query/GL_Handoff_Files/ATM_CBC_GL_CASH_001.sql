@@ -312,7 +312,7 @@ SELECT
       TXN.TRL_TQU_ID = ''F'' AND (TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345'' OR TXNC.TRL_ORIGIN_CHANNEL=''OTC'')
       AND TXN.TRL_TSC_CODE IN (21,41,48)
 	  -- EBK and MBK to be excluded for now until CR on segregation of transaction finalized
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''MBK'',''EBK'')
+	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''MBK'')
       AND NVL(CPD.CPD_CODE,0) IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
@@ -359,7 +359,7 @@ SELECT
       TXN.TRL_TQU_ID = ''F'' AND (TXN.TRL_CARD_ACPT_TERMINAL_IDENT != ''12345'' OR TXNC.TRL_ORIGIN_CHANNEL=''OTC'')
       AND TXN.TRL_TSC_CODE IN (21,41,48)
 	  -- EBK and MBK to be excluded for now until CR on segregation of transaction finalized
-	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''MBK'',''EBK'')
+	  AND TXNC.TRL_ORIGIN_CHANNEL NOT IN (''MBK'')
       AND NVL(CPD.CPD_CODE,0) IN (''80'',''81'',''82'',''83'')
       AND TXN.TRL_ACTION_RESPONSE_CODE = 0
       AND NVL(TXN.TRL_POST_COMPLETION_CODE, ''O'') != ''R''
