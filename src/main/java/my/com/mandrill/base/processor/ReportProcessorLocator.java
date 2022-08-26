@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import my.com.mandrill.base.cbc.processor.SimpleReportProcessor;
+import my.com.mandrill.base.reporting.ListOfGroupRole;
 import my.com.mandrill.base.reporting.billingAllocationReportsInterBank.BillsPaymentEarningsProcessor;
 import my.com.mandrill.base.reporting.cashCardReports.CashCardDailyTransactionSummary;
 import my.com.mandrill.base.reporting.newTransactionReports.ListRecyclerTransactionProcessor;
@@ -27,6 +28,8 @@ public class ReportProcessorLocator {
 	private final CashCardDailyTransactionSummary cashCardDailyTransactionSummaryProcessor;
 	
 	private final BillsPaymentEarningsProcessor billPaymentEarningProcessor;
+	
+	private final ListOfGroupRole listOfGroupRoleProcessor;
 
 	private Map<String, IReportProcessor> reportProcessorList = new HashMap<>();
 
@@ -34,12 +37,14 @@ public class ReportProcessorLocator {
 			SummaryRecyclerTransactionProcessor summaryRecyclerTransactionProcessor,
 			SimpleReportProcessor simpleReportProcessor,
 			CashCardDailyTransactionSummary cashCardDailyTransactionSummaryProcessor,
-			BillsPaymentEarningsProcessor billPaymentEarningProcessor) {
+			BillsPaymentEarningsProcessor billPaymentEarningProcessor,
+			ListOfGroupRole listOfGroupRoleProcessor) {
 		this.listRecyclerTransactionProcessor = listRecyclerTransactionProcessor;
 		this.summaryRecyclerTransactionProcessor = summaryRecyclerTransactionProcessor;
 		this.simpleReportProcessor = simpleReportProcessor;
 		this.cashCardDailyTransactionSummaryProcessor = cashCardDailyTransactionSummaryProcessor;
 		this.billPaymentEarningProcessor = billPaymentEarningProcessor;
+		this.listOfGroupRoleProcessor = listOfGroupRoleProcessor;
 
 		reportProcessorList.put(listRecyclerTransactionProcessor.getClass().getName(),
 				(IReportProcessor) listRecyclerTransactionProcessor);
@@ -49,6 +54,8 @@ public class ReportProcessorLocator {
 		reportProcessorList.put(cashCardDailyTransactionSummaryProcessor.getClass().getName(), (IReportProcessor) cashCardDailyTransactionSummaryProcessor);
 		reportProcessorList.put(billPaymentEarningProcessor.getClass().getName(),
 				(IReportProcessor) billPaymentEarningProcessor);
+		reportProcessorList.put(listOfGroupRoleProcessor.getClass().getName(),
+				(IReportProcessor) listOfGroupRoleProcessor);
 	}
 
 	public IReportProcessor locate(String clazz) {

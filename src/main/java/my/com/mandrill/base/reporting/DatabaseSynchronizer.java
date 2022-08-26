@@ -107,7 +107,7 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 	private static final String BIN_MASTERCARD = "999992";
 	private static final String BIN_JCB = "999993";
 	private static final String BIN_UNIONPAY = "999994";
-
+	private static final String CBC143 = "CBC143";
 	private final JobRepository jobRepository;
 	private final JobSearchRepository jobSearchRepository;
 	private final TaskGroupRepository taskGroupRepository;
@@ -1225,8 +1225,13 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
+			if(clearXml.contains(CBC143)){
+			clearXml = clearXml.replaceAll("[\u001c]", " ");
+			log.trace("Custom data clear text: {}", clearXml);
+			}
 			in = new ByteArrayInputStream(clearXml.getBytes("utf-8"));
 
+			
 			Document document = builder.parse(in);
 			document.getDocumentElement().normalize();
 			Element root = document.getDocumentElement();
@@ -1236,6 +1241,10 @@ public class DatabaseSynchronizer implements SchedulingConfigurer {
 
 					if (aNode.getNodeName().contains("secure-field")) {
 						aNode.getNodeName().replace("secure-field" + "=Y", "");
+					}
+					if(aNode.getNodeName().equals(CBC143)) {
+						String beepCardNumber = aNode.getTextContent().substring(0, 16);
+						aNode.setTextContent(beepCardNumber);
 					}
 					map.put(aNode.getNodeName(), aNode.getTextContent());
 					log.trace("custom data: tag={}, value={}", aNode.getNodeName(), aNode.getTextContent());

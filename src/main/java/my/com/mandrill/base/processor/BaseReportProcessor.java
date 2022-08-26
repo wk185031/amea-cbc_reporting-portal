@@ -1,5 +1,6 @@
 package my.com.mandrill.base.processor;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -40,6 +42,7 @@ import my.com.mandrill.base.reporting.reportProcessor.ReportContext;
 import my.com.mandrill.base.service.EncryptionService;
 import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.writer.CsvWriter;
+import oracle.sql.CLOB;
 
 public abstract class BaseReportProcessor extends GeneralReportProcess implements IReportProcessor,IReportOutputFileName {
 
@@ -392,7 +395,9 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 					f.setValue(Long.toString(((oracle.sql.TIMESTAMP) result).timestampValue().getTime()));
 				} else if (result instanceof oracle.sql.DATE) {
 					f.setValue(Long.toString(((oracle.sql.DATE) result).timestampValue().getTime()));
-				} else {
+				} else if(result instanceof oracle.sql.CLOB) {
+					f.setValue(clobToString((oracle.sql.CLOB)result));
+				}else {
 					f.setValue(result.toString());
 				}
 			} else {
@@ -407,6 +412,17 @@ public abstract class BaseReportProcessor extends GeneralReportProcess implement
 		}
 		return bodyFields;
 	}
+
+	private String clobToString(CLOB result) throws SQLException, IOException {
+		BufferedReader stringReader = new BufferedReader(result.getCharacterStream());
+		String singleLine = null;
+		StringBuffer strBuff = new StringBuffer();
+		while ((singleLine = stringReader.readLine()) != null) {
+			strBuff.append(singleLine);
+		}
+		return strBuff.toString();
+	}
+
 
 	protected void writeReportTrailer(ReportContext context, List<ReportGenerationFields> bodyFields,
 			FileOutputStream out) {
