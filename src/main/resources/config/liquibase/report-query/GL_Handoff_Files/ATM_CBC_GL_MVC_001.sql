@@ -31,7 +31,7 @@ SELECT
       "Third Party Tran Description"
       
 FROM(
-SELECT
+SELECT DISTINCT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
@@ -39,7 +39,7 @@ SELECT
       CASE WHEN GLA.GLA_NAME = ''ACD Inter-Entity IBFT SVC Bridge'' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS "Tran Amount",
       GLE.GLE_DEBIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      
+      TXN.TRL_ID,
       GLE.GLE_DEBIT_DESCRIPTION "Third Party Tran Description"
       
 FROM
@@ -94,7 +94,7 @@ START SELECT
       "Third Party Tran Description"
       
 FROM(
-SELECT
+SELECT DISTINCT
       SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) "BRANCH CODE",
       GLA.GLA_NUMBER "A/C Number",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Currency Code of Account Number",
@@ -102,7 +102,7 @@ SELECT
       CASE WHEN GLA.GLA_NAME = ''Accts. Payable - Inter-Entity IBFT TFee'' THEN NVL(TXN.TRL_ISS_CHARGE_AMT, 0) ELSE TXN.TRL_AMT_TXN END AS "Tran Amount",
       GLE.GLE_CREDIT_DESCRIPTION "Tran Particular",
       CASE WHEN TXN.TRL_TXN_CUR_ISO_ID = 608 THEN ''PHP'' ELSE ''PHP'' END AS "Reference Currency Code",
-      
+      TXN.TRL_ID,
       GLE.GLE_CREDIT_DESCRIPTION "Third Party Tran Description"
       
 FROM

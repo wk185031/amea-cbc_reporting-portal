@@ -23,6 +23,7 @@ import my.com.mandrill.base.reporting.ReportConstants;
 import my.com.mandrill.base.reporting.ReportGenerationFields;
 import my.com.mandrill.base.reporting.ReportGenerationMgr;
 import my.com.mandrill.base.reporting.reportProcessor.IbftReportProcessor;
+import my.com.mandrill.base.service.util.CriteriaParamsUtil;
 import my.com.mandrill.base.service.util.DbUtils;
 
 public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
@@ -313,7 +314,8 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		if (indicator.equals(RETAIL)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112' AND TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					CriteriaParamsUtil.replaceInstitution("TXN.TRL_ISS_NAME = {V_Iss_Name} AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id} AND TXN.TRL_PAN != 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'", 
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -326,7 +328,8 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		} else if (indicator.equals(CORPORATE)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112' AND TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'");
+					CriteriaParamsUtil.replaceInstitution("LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id} AND TXN.TRL_PAN = 'FD4CD08B482F7961EA66FBEA7C7583B541F82B3E6A915B4D7E9191D8FC5FB971'", 
+							rgm.getInstitution(), ReportConstants.VALUE_INTER_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -339,7 +342,8 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		} else if (indicator.equals(IVRS)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
+					CriteriaParamsUtil.replaceInstitution("TXN.TRL_ISS_NAME = {V_Iss_Name} AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}", 
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"'' AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
@@ -352,10 +356,12 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		} else if (indicator.equals(CBC_AT_CBC_TO_OTHER_BANK)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME = 'CBC' AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != '0000000112'");
+					CriteriaParamsUtil.replaceInstitution("TXN.TRL_ISS_NAME = {V_Iss_Name} AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_IE_Recv_Inst_Id}", 
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME, ReportConstants.VALUE_INTER_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"'CBC' AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");
+					CriteriaParamsUtil.replaceInstitution("{V_Iss_Name} AS \"ISSUER BANK MNEM\", BRC.BRC_NAME \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",", 
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"JOIN CARD CRD ON TXN.TRL_PAN = CRD.CRD_PAN JOIN BRANCH BRC ON CRD.CRD_CUSTOM_DATA = BRC.BRC_CODE");
@@ -366,10 +372,12 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		} else if (indicator.equals(OTHER_BANK_AT_CBC_TO_CBC)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME IS NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '0000000010'");
+					CriteriaParamsUtil.replaceInstitution("TXN.TRL_ISS_NAME IS NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = {V_Recv_Inst_Id}", 
+							rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", 'CBC' AS \"RECEIVING BANK MNEM\",");
+					CriteriaParamsUtil.replaceInstitution("CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", {V_Iss_Name} AS \"RECEIVING BANK MNEM\",", 
+							rgm.getInstitution(), ReportConstants.VALUE_ISSUER_NAME));
 			ReportGenerationFields joinCriteria = new ReportGenerationFields(ReportConstants.PARAM_JOIN_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"JOIN CBC_BIN CBI ON TXNC.TRL_CARD_BIN = CBI.CBI_BIN JOIN CBC_BANK CBA ON CBI.CBI_CBA_ID = CBA.CBA_ID");
@@ -380,7 +388,8 @@ public class ApprovedIbftTransactionsAcquiringBank extends IbftReportProcessor {
 		} else if (indicator.equals(OTHER_BANK_AT_CBC_TO_OTHER_BANK)) {
 			ReportGenerationFields ibftCriteria = new ReportGenerationFields(ReportConstants.PARAM_IBFT_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_ISS_NAME IS NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') NOT IN ('0000000010', '0000000112')");
+					CriteriaParamsUtil.replaceInstitution("TXN.TRL_ISS_NAME IS NULL AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') != {V_Recv_Inst_Id}", 
+							rgm.getInstitution(), ReportConstants.VALUE_RECV_INST_ID));
 			ReportGenerationFields fieldCriteria = new ReportGenerationFields(ReportConstants.PARAM_FIELD_CRITERIA,
 					ReportGenerationFields.TYPE_STRING,
 					"CBA.CBA_MNEM AS \"ISSUER BANK MNEM\", '' AS \"ISSUER BRANCH NAME\", (SELECT CBA_MNEM FROM CBC_BANK WHERE LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = LPAD(CBA_CODE, 10, '0')) AS \"RECEIVING BANK MNEM\", '' AS \"RECEIVING BRANCH NAME\",");

@@ -27,7 +27,7 @@ SELECT
     SUBSTR(AST.AST_TERMINAL_ID, -4) "TERMINAL",
     AST.AST_ALO_LOCATION_ID "LOCATION",
     AST.AST_ID "STATION ID",
-    case when NES.ASH_OPERATION_STATUS = ''In service'' then 0 else 100 end "UNAVAILABLE",
+	case when NES.ASH_OPERATION_STATUS = ''In service'' then 0 else 100 end "UNAVAILABLE",
     case when NES.ASH_OPERATION_STATUS = ''In service'' then 100 else 0 end  "AVAILABLE",
     case when NES.ASH_OPERATION_STATUS = ''In service'' then ''1'' else ''0'' end "STANDARD"
 FROM
@@ -39,7 +39,7 @@ WHERE
 	DEO.DEO_NAME = {V_Deo_Name}
     AND AST_ID NOT IN (
       select distinct(ATD_AST_ID) from ATM_DOWNTIME ATD WHERE {Txn_Date}
-    )
+    ) AND AST.AST_ACTIVE = ''YES''
 UNION 
 (SELECT
      AST.AST_ARE_NAME "REGION",
@@ -58,7 +58,8 @@ FROM
 	  
 WHERE
 	DEO.DEO_NAME = {V_Deo_Name}
-    AND AST.AST_ID in (select distinct(ASH_AST_ID) from ATM_STATUS_HISTORY) 
+	AND AST.AST_ID in (select distinct(ASH_AST_ID) from ATM_STATUS_HISTORY) 
+	AND AST.AST_ACTIVE = ''YES''
 GROUP BY
       AST.AST_ARE_NAME,
       ABR.ABR_CODE,

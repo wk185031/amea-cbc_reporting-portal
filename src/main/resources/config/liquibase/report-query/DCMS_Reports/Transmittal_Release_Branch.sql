@@ -57,7 +57,7 @@ BEGIN
  	  and DCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
 	  AND DCR_STS_ID not in (67,69)
 	  AND CRD_KIT_NUMBER IS NULL
-	 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1
+	 AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(DCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 	union all
 -- ATM Renew, ATM Replace
 		select 
@@ -74,7 +74,7 @@ BEGIN
    DCR_INS_ID = {Iss_Id}
 	  AND CRN_STS_ID = 91
 AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
-	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 	  union all
 --Cash Card Manual, Cash Card Bulk Upload
 	select 
@@ -94,7 +94,7 @@ AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
   AND CCR_STS_ID not in (67,69)
  AND CCR_REQUEST_TYPE IN (''Manual'',''Bulk upload'')
  AND CSH_KIT_NUMBER IS NULL
-	   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1
+	   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(CCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 	   union all
 --CASH CARD RENEW, REPLACE
 	  	select 
@@ -112,7 +112,7 @@ AND DCR_REQUEST_TYPE IN (''Renew'',''Replace'')
   CCR_INS_ID = {Iss_Id}
    AND CC_CRN_STS_ID = 91
 AND CCR_REQUEST_TYPE IN (''Renew'',''Replace'')
-	 AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1	  
+	 AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_CRN_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	  
 	 union all
 --ATM REPIN
 	  select 
@@ -127,7 +127,7 @@ left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
 	where 
  REP_INS_ID = {Iss_Id}
 	  AND REP_STS_ID in (91)
-	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 union all
 --CASH CARD REPIN
 	  select 
@@ -144,7 +144,7 @@ join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
 	where 
   CC_REP_INS_ID = {Iss_Id}
   AND CC_REP_STS_ID = 91
-	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1
+	  AND {DCMS_Schema}.GetSupportApprDate@{DB_LINK_DCMS}(CC_REP_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 	  UNION ALL
 --ATM PRE-PREGEN
 	  	  select 
@@ -159,7 +159,7 @@ join {DCMS_Schema}.MASTER_INSTITUTIONS@{DB_LINK_DCMS} on CC_REP_INS_ID = INS_ID
   AND BCR_STS_ID not in (67,69)
   AND CRD_KIT_NUMBER IS NOT NULL
   AND CRD_IS_LINKED NOT IN (''1'')
-AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	-1 
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 	  UNION ALL
 --CASH CARD PRE-PREGEN
 	  	  select 
@@ -178,7 +178,7 @@ left join {DCMS_Schema}.ISSUANCE_CLIENT@{DB_LINK_DCMS} on CCM_CLT_ID = CLT_ID
   AND BCR_STS_ID not in (67,69)
   AND CSH_KIT_NUMBER IS NOT NULL
   AND CSH_IS_LINKED NOT IN (''1'')
-AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	-1
+AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(BCR_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')
 union all
 --ATM Renew Bulk
 select 
@@ -195,7 +195,7 @@ where
   RBC_INS_ID = {Iss_Id}
   AND DCR_REQUEST_TYPE = ''Renew''
   AND RBC_STS_ID = 68
-   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1	
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	
 UNION ALL
 --Cash Card Renew Bulk
 select 
@@ -212,7 +212,7 @@ where
   RBC_INS_ID = {Iss_Id}
   AND CCR_REQUEST_TYPE = ''Renew''
   AND RBC_STS_ID = 68
-   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')-1	 
+   AND {DCMS_Schema}.GetApprDate@{DB_LINK_DCMS}(RBC_AUDIT_LOG) BETWEEN TO_DATE({From_Date_UTC},''DD-MM-YY HH24:MI:SS'') AND TO_DATE({To_Date_UTC},''DD-MM-YY HH24:MI:SS'')	 
 	 )
 	  GROUP BY bc, update_date
 	  ORDER BY bc, update_date

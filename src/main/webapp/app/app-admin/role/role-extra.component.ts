@@ -136,15 +136,15 @@ currentAccount: any;
 
     sort() {
         const result = [this.predicate + ',' + (this.reverse ? 'asc' : 'desc')];
-        if (this.predicate !== 'id') {
-            result.push('id');
+        if (this.predicate !== 'name') {
+            result.push('name');
         }
         return result;
     }
 
     private onSuccess(data, headers) {
         this.links = this.parseLinks.parse(headers.get('link'));
-        this.totalItems = headers.get('X-Total-Count');
+        this.totalItems = headers.get('x-total-count');
         this.queryCount = this.totalItems;
         // this.page = pagingParams.page;
         this.roleExtras = data;

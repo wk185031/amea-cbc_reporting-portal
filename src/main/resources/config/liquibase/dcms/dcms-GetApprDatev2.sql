@@ -1,3 +1,5 @@
+drop function GetApprDate;
+
 CREATE OR REPLACE FUNCTION GetApprDate(CLobInput VARCHAR2) RETURN DATE DETERMINISTIC IS
        V_DATE           DATE;
        NoOfChar         NUMBER;
@@ -15,8 +17,8 @@ BEGIN
         V_INSTR:= REGEXP_INSTR(CLobInput,'date',1,V_NTH);
         IF V_INSTR > 0 THEN
             V_INSTR:=V_INSTR+7;
+			V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,8);
         END IF;
-        V_SUBSTR:=SUBSTR(CLobInput,V_INSTR,8);
         IF V_SUBSTR IS NOT NULL THEN
         V_DATE:=TO_DATE(V_SUBSTR,'DD-MM-YY');
         END IF;

@@ -139,7 +139,9 @@ public class AtmDowntime extends CsvReportProcessor {
 								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) IN ('Card reader faulty', 'Cash dispenser faulty', 'Encryptor faulty') THEN 'HW'\r\n"
 								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Cash dispenser faulty' THEN 'OOC'\r\n"
 								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) = 'Cash availability status change' THEN 'Cash'\r\n"
-								+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) IN ('Operator request', 'Exiting supervisor mode') THEN 'Other' END = '" + filterByCause + "'");
+						        + "          ELSE 'Other' "
+								//+ "          WHEN TRIM(ATD.ATD_DOWN_REASON) IN ('Operator request', 'Exiting supervisor mode') THEN 'Other' "
+								+ " END = '" + filterByCause + "'");
 				getGlobalFileFieldsMap().put(cause.getFieldName(), cause);
 			}
 		}
@@ -166,7 +168,7 @@ public class AtmDowntime extends CsvReportProcessor {
 	
 	@Override
 	protected String getAtmDownTimeEndDateRangeFieldName() {
-		return "ATD.ATD_END_TIMESTAMP";
+		return "ATD.ATD_START_TIMESTAMP";
 	}
 
 	@Override

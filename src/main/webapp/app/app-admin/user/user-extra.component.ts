@@ -133,18 +133,19 @@ currentAccount: any;
 
     sort() {
         const result = [this.predicate + ',' + (this.reverse ? 'asc' : 'desc')];
-        if (this.predicate !== 'id') {
-            result.push('id');
+        if (this.predicate !== 'user.login') {
+            result.push('user.login');
         }
         return result;
     }
 
     private onSuccess(data, headers) {
         this.links = this.parseLinks.parse(headers.get('link'));
-        this.totalItems = headers.get('X-Total-Count');
+        this.totalItems = headers.get('x-total-count');
         this.queryCount = this.totalItems;
-        // this.page = pagingParams.page;
+        //this.page = data.pagingParams.page;
         this.userExtras = data;
+        console.log('total items: ' + this.totalItems);
     }
     private onError(error) {
         this.jhiAlertService.error(error.message, null, null);

@@ -1,5 +1,6 @@
 -- Tracking					Date			Name	Description
 -- Rel-20210805				05-Aug-2021		KW		Revise report based on specification
+-- 20220721					21-JULY-2022	LJL		Revert query JIRA-1167
 
 DECLARE
     i_REPORT_NAME VARCHAR2(100) := 'Cash Card Daily Transaction Summary';

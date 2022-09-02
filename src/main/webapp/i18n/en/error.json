@@ -11,7 +11,8 @@
         "report": {
         	"noJobInQueue": "To generate a monthly report, please select last day of the month.",
         	"downloadFailed": "Failed to download report",
-        	"exportFailed": "Failed to download report"
+        	"exportFailed": "Failed to download report",
+        	"noPermission": "You do not have permission to generate report."
         },
         "password": {
         	"violation": {
@@ -23,7 +24,8 @@
         	"locked": "Your account is locked. Please contact administrator to activate your account.",
         	"suspended": "Your account is suspended. Please contact administrator to activate your account.",
         	"expired": "Your account is expired. Please reset your password <a href='#/reset/request' target='_blank'>here</a>.",
-        	"disabled": "Your account is not active. Please contact administrator to activate your account."
+        	"disabled": "Your account is not active. Please contact administrator to activate your account.",
+        	"alreadyLogin": "You already logged in on another system"
         },
         "concurrencyFailure": "Another user modified this data at the same time as you. Your changes were rejected.",
         "validation": "Validation error on the server."

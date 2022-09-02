@@ -312,7 +312,7 @@ public class CashCardBalance extends PdfReportProcessor {
 		if (filterByBranchCode != null && rgm.getTmpBodyQuery() != null) {
 			rgm.setBodyQuery(rgm.getTmpBodyQuery());
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "BRC.BRC_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "CRDCT.CRD_BRANCH_CODE = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
@@ -400,17 +400,18 @@ public class CashCardBalance extends PdfReportProcessor {
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));
 				break;
 			case ReportConstants.CUSTOMER_NAME:
-				if (getFieldValue(field, fieldsMap).length() > 50) {
-//					contentStream
-//							.showText(getFieldValue(field, fieldsMap).substring(0, 37) + String.format("%1$3s", ""));
-//					accNameValue = getFieldValue(field, fieldsMap).substring(37,
-//							getFieldValue(field, fieldsMap).length());
-//					accName = true;
-					field.setValue(getFieldValue(field, fieldsMap).substring(0, 50));
-					contentStream.showText(field.format(rgm, isHeader(), isBodyHeader(), isBody(), isTrailer()));
+				
+				String customerName = getFieldValue(field, fieldsMap);
+				
+				//replace special character /n /t
+				customerName = customerName != null ? customerName.replaceAll("[\\n\\t ]", " ") : null;
+				
+				if (customerName.length() > 50) {
+					field.setValue(customerName.substring(0, 50));
 				} else {
-					contentStream.showText(getFieldValue(rgm, field, fieldsMap));
+					field.setValue(customerName);
 				}
+				contentStream.showText(field.format(rgm, isHeader(), isBodyHeader(), isBody(), isTrailer()));
 				break;
 			case ReportConstants.CARD_PRODUCT:
 				contentStream.showText(getFieldValue(rgm, field, fieldsMap));

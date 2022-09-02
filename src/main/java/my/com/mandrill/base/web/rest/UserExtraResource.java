@@ -300,7 +300,9 @@ public class UserExtraResource {
     @PreAuthorize("@AppPermissionService.hasPermission('"+OPER+COLON+RESOURCE_USER+DOT+READ+"')")
     public ResponseEntity<List<UserExtra>> searchUserExtras(@RequestParam String query, Pageable pageable) {
         log.debug("REST request to search for a page of UserExtras for query {}", query);
-        Page<UserExtra> page = userExtraSearchRepository.search(queryStringQuery(query), pageable);
+        
+        Page<UserExtra> page = userExtraRepository.findByUserLoginContaining(query, pageable);
+
         HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page, "/api/_search/user-extras");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }

@@ -87,6 +87,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 			} else {
 				Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 				while (glDescriptionItr.hasNext()) {
+					branchCode = null;
 					glDescription = glDescriptionItr.next();
 					if (endGroup && newGroup) {
 						endGroup = false;
@@ -293,7 +294,8 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 		} catch (Exception e) {
 			rgm.errors++;
 			logger.error("Error in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
-			throw new ReportGenerationException("Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
+			throw new ReportGenerationException(
+					"Errors in generating " + rgm.getFileNamePrefix() + "_" + ReportConstants.PDF_FORMAT, e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -367,6 +369,7 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 
 			Iterator<String> glDescriptionItr = filterByGlDescription(rgm).iterator();
 			while (glDescriptionItr.hasNext()) {
+				branchCode = null;
 				glDescription = glDescriptionItr.next();
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.DEBIT_IND);
 				preProcessing(rgm, glDescription, branchCode, ReportConstants.CREDIT_IND);
@@ -515,36 +518,48 @@ public class GLHandoffBlocksheetInterEntity extends TxtReportProcessor {
 					ReportGenerationFields.TYPE_STRING, "\"BRANCH CODE\" = " + filterByBranchCode);
 			getGlobalFileFieldsMap().put(channelAR.getFieldName(), channelAR);
 			getGlobalFileFieldsMap().put(branchAR.getFieldName(), branchAR);
-			rgm.setTrailerQuery(rgm.getTrailerQuery()
-					.replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}"," \"BRANCH CODE\" = " + filterByBranchCode));
+			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("{" + ReportConstants.PARAM_BRANCH_CODE + "}",
+					" \"BRANCH CODE\" = " + filterByBranchCode));
 			break;
 		case ReportConstants.INTER_ENTITY_IBFT_CHARGE:
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_DR:
 			ReportGenerationFields channelDR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
-							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
-							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
-							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
-							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
-							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id
-							+ "','" + ins_id + "')"
-							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
-			
+//					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution()
+//							+ "' AND (((TXN.TRL_DEO_NAME = '" + rgm.getInstitution()
+//							+ "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ins_id + "')"
+//							+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ie_ins_id + "') OR "
+//							+ "((TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '"
+//							+ ie_ins_id + "')" + " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') IN ('" + ie_ins_id + "')"
+////							+ "','" + ins_id + "')"
+//							+ "OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))) ");
+					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+							+ "AND (TXN.TRL_DEO_NAME IN ( '" + rgm.getInstitution() + "','" + ie_ins_name + "')"
+							+ " OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ins_id + "','" + ie_ins_id + "'))"
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0')) IN ('" + ie_ins_id + "')");
+
 			getGlobalFileFieldsMap().put(channelDR.getFieldName(), channelDR);
 			break;
 		case ReportConstants.INTER_ENTITY_FUND_TRANSFER_CR:
 			ReportGenerationFields channelCR = new ReportGenerationFields(ReportConstants.PARAM_CHANNEL,
 					ReportGenerationFields.TYPE_STRING,
-					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
-					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
-					+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
-					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
-					+ " OR (TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
-					+ " AND (TXN.TRL_DEO_NAME IN ('" + rgm.getInstitution() + "' , '" + ie_ins_name + "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
-					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'))");
-					
-			rgm.setBodyQuery(rgm.getBodyQuery().replace("JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID", "JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_2_ACN_ID"));
+//					"TXN.TRL_TSC_CODE IN (40, 42, 44, 48) "
+////					+ " AND ((TXN.TRL_ISS_NAME = '" + rgm.getInstitution() + "'"
+////					+ " AND (TXN.TRL_DEO_NAME = '" + ie_ins_name + "' OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') = '" + ie_ins_id + "') "
+////					+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "' OR (TXN.TRL_FRD_REV_INST_ID IS NULL AND TXN.TRL_TSC_CODE = 40)))"
+////					+ " OR ("
+//					+ " AND TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
+//					+ " AND (TXN.TRL_DEO_NAME IN ('" + rgm.getInstitution() + "' , '" + ie_ins_name + "') OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ie_ins_id + "','" + ins_id + "'))"
+//					+ " AND LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0') = '" + ins_id + "'");
+////							+ ")");
+					"TXN.TRL_TSC_CODE IN (40,42,48) AND TXN.TRL_ISS_NAME = '" + ie_ins_name + "'"
+							+ "AND (TXN.TRL_DEO_NAME IN ( '" + rgm.getInstitution() + "','" + ie_ins_name + "')"
+							+ " OR LPAD(TXN.TRL_ACQR_INST_ID, 10, '0') IN ('" + ins_id + "','" + ie_ins_id + "'))"
+							+ " AND (LPAD(TXN.TRL_FRD_REV_INST_ID, 10, '0')) IN ('" + ins_id + "')");
+			
+			rgm.setBodyQuery(
+					rgm.getBodyQuery().replace("JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_1_ACN_ID",
+							"JOIN ACCOUNT ACN ON ACN.ACN_ACCOUNT_NUMBER = TXN.TRL_ACCOUNT_2_ACN_ID"));
 			rgm.setTrailerQuery(rgm.getTrailerQuery().replace("TXN.TRL_ACCOUNT_1_ACN_ID", "TXN.TRL_ACCOUNT_2_ACN_ID"));
 			getGlobalFileFieldsMap().put(channelCR.getFieldName(), channelCR);
 			break;

@@ -97,7 +97,7 @@ public class AtmAvailability extends CsvReportProcessor {
 		logger.debug("endDate:{}, startDate:{}, totalSeconds:{}", rgm.getTxnEndDate(), rgm.getTxnStartDate(), totalSeconds);
 		rgm.setBodyQuery(
 				rgm.getBodyQuery().replace("{" + ReportConstants.PARAM_TOTAL_DAY + "}", String.valueOf(totalSeconds))
-				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnStartDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")) + "'"));
+				.replace("{" + ReportConstants.PARAM_FROM_DATE + "}", "'" + rgm.getTxnEndDate().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")) + "'"));
 		addReportPreProcessingFieldsToGlobalMap(rgm);
 	}
 	

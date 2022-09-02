@@ -222,7 +222,7 @@ public class SystemConfigurationResource {
 	public ResponseEntity<List<SystemConfiguration>> searchSystemConfigurations(@RequestParam String query,
 			Pageable pageable) {
 		log.debug("REST request to search for a page of SystemConfigurations for query {}", query);
-		Page<SystemConfiguration> page = systemConfigurationSearchRepository.search(queryStringQuery(query), pageable);
+		Page<SystemConfiguration> page = systemConfigurationRepository.findByNameContaining(query, pageable);
 		HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page,
 				"/api/_search/system-configurations");
 		return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);

@@ -31,6 +31,7 @@
                 <th (click)="orderProp = 'principal'; reverse=!reverse"><span jhiTranslate="audits.table.header.principal">User</span></th>
                 <th (click)="orderProp = 'type'; reverse=!reverse"><span jhiTranslate="audits.table.header.status">State</span></th>
                 <th (click)="orderProp = 'data.message'; reverse=!reverse"><span jhiTranslate="audits.table.header.data">Extra data</span></th>
+                <th><span jhiTranslate="audits.table.header.ipAddr">IP Address</span></th>
             </tr>
             </thead>
             <tr *ngFor="let audit of getAudits()">
@@ -38,9 +39,9 @@
                 <td><small>{{audit.principal}}</small></td>
                 <td>{{audit.type}}</td>
                 <td>
-                    <span *ngIf="audit.data" ng-show="audit.data.message">{{audit.data.message}}</span>
-                    <span *ngIf="audit.data" ng-show="audit.data.name"><span>Name:</span> {{audit.data.name}}</span>
+                    <span *ngIf="audit.data" ng-show="audit.data.details">{{audit.data.details}}</span>
                 </td>
+                 <td><span *ngIf="audit.data">{{audit.data.source}}</span></td>
             </tr>
         </table>
     </div>

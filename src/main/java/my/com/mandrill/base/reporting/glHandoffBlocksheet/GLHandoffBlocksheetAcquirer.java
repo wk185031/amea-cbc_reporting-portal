@@ -309,7 +309,7 @@ public class GLHandoffBlocksheetAcquirer extends TxtReportProcessor {
 		logger.debug("In GLHandoffBlocksheetAcquirer.preProcessing()");
 		if (filterByBranchCode != null && rgm.getBodyQuery() != null) {
 			ReportGenerationFields branchCode = new ReportGenerationFields(ReportConstants.PARAM_BRANCH_CODE,
-					ReportGenerationFields.TYPE_STRING, "ABR.ABR_CODE = '" + filterByBranchCode + "'");
+					ReportGenerationFields.TYPE_STRING, "SUBSTR(TXN.TRL_CARD_ACPT_TERMINAL_IDENT, 1, 4) = '" + filterByBranchCode + "'");
 			getGlobalFileFieldsMap().put(branchCode.getFieldName(), branchCode);
 		}
 	}
